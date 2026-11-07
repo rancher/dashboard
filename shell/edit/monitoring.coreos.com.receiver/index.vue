@@ -44,46 +44,12 @@ export default {
   },
 
   data() {
-    this.value['spec'] = this.value.spec || {};
-
-    if (this.mode === _EDIT || this.mode === _VIEW) {
-      for (let i = 0; i < this.value.spec.email_configs.length; i++) {
-        if (this.value.spec.email_configs[i].smarthost) {
-          const hostPort = this.value.spec.email_configs[i].smarthost.split(':');
-
-          this.value.spec.email_configs[i]['host'] = hostPort[0] || '';
-          this.value.spec.email_configs[i]['port'] = hostPort[1] || '';
-          delete this.value.spec.email_configs[i]['smarthost'];
-        }
-      }
-    }
-
-    RECEIVERS_TYPES.forEach((receiverType) => {
-      this.value.spec[receiverType.key] = this.value.spec[receiverType.key] || [];
-    });
-
-    const specSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.RECEIVER_SPEC);
-    const expectedFields = Object.keys(specSchema.resourceFields);
-    const suffix = {};
-
-    Object.keys(this.value.spec).forEach((key) => {
-      if (!expectedFields.includes(key)) {
-        suffix[key] = this.value.spec[key];
-      }
-    });
-
-    let suffixYaml = jsyaml.dump(suffix);
-
-    if (suffixYaml.trim() === '{}') {
-      suffixYaml = '';
-    }
-
     return {
-      expectedFields,
+      expectedFields:       [],
       receiverTypes:        RECEIVERS_TYPES,
       fileFound:            false,
       receiver:             {},
-      suffixYaml,
+      suffixYaml:           '',
       EDITOR_MODES,
       yamlError:            '',
       doneLocationOverride: {
@@ -122,6 +88,47 @@ export default {
         this.yamlError = `There was a problem parsing the Custom Config: ${ ex }`;
       }
     }
+  },
+
+  created() {
+    const specSchema = this.$store.getters['cluster/schemaFor'](MONITORING.SPOOFED.RECEIVER_SPEC);
+
+    this.expectedFields = Object.keys(specSchema.resourceFields);
+    this.value.spec = this.value.spec || {};
+
+    if (this.mode === _EDIT || this.mode === _VIEW) {
+      if (this.value.spec.email_configs) {
+        for (let i = 0; i < this.value.spec.email_configs.length; i++) {
+          if (this.value.spec.email_configs[i].smarthost) {
+            const hostPort = this.value.spec.email_configs[i].smarthost.split(':');
+
+            this.value.spec.email_configs[i]['host'] = hostPort[0] || '';
+            this.value.spec.email_configs[i]['port'] = hostPort[1] || '';
+            delete this.value.spec.email_configs[i]['smarthost'];
+          }
+        }
+      }
+    }
+
+    RECEIVERS_TYPES.forEach((receiverType) => {
+      this.value.spec[receiverType.key] = this.value.spec[receiverType.key] || [];
+    });
+
+    const suffix = {};
+
+    Object.keys(this.value.spec).forEach((key) => {
+      if (!this.expectedFields.includes(key)) {
+        suffix[key] = this.value.spec[key];
+      }
+    });
+
+    let suffixYaml = jsyaml.dump(suffix);
+
+    if (suffixYaml.trim() === '{}') {
+      suffixYaml = '';
+    }
+    this.suffixYaml = suffixYaml;
+    this.registerBeforeHook(this.createSmarthost, 'create-smarthost');
   },
 
   methods: {
@@ -178,10 +185,6 @@ export default {
         });
       }
     }
-  },
-
-  created() {
-    this.registerBeforeHook(this.createSmarthost, 'create-smarthost');
   },
 };
 </script>
