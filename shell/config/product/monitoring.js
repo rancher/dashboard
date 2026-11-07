@@ -1,5 +1,5 @@
 import { DSL, IF_HAVE } from '@shell/store/type-map';
-import { MONITORING, HELM } from '@shell/config/types';
+import { MONITORING, HELM, COUNT } from '@shell/config/types';
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, RECEIVER_PROVIDERS, CONFIGURED_RECEIVER
 } from '@shell/config/table-headers';
@@ -18,6 +18,7 @@ export function init(store) {
     virtualType,
     weightType,
     configureType,
+    ignoreType,
   } = DSL(store, NAME);
   const { PROJECTHELMCHART } = HELM;
   const {
@@ -200,6 +201,10 @@ export function init(store) {
     'monitor',
     PROJECTHELMCHART,
   ]);
+
+  // The ProjectHelmChart CRD outlives the Prometheus Federator chart, so its schema alone would keep this entry after an uninstall.
+  // ProjectHelmCharts can be left behind too, and this entry is the way to reach them, so it stays while there are any
+  ignoreType(PROJECTHELMCHART, (getters) => getters['federatorMissing'] && !getters['cluster/all'](COUNT)?.[0]?.counts?.[PROJECTHELMCHART]?.summary?.count);
 
   basicType([
     ALERTMANAGERCONFIG,

@@ -67,7 +67,7 @@
 //   group,                   -- Group to show
 //   asLabel                  -- Label to display the group as; false-y for top-level.
 // )
-// ignoreType(type)           Never show type
+// ignoreType(type, [fn])     Never show type, or only while fn(getters) returns true
 // weightType(                Set the weight (sorting) order of one or more types
 //   typeOrArrayOfTypes,
 //   weight,                  -- Higher numbers are shown first/higher up on the nav tree
@@ -311,8 +311,8 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/componentForType`, { match, replace });
     },
 
-    ignoreType(regexOrString) {
-      store.commit(`${ module }/ignoreType`, regexOrString);
+    ignoreType(regexOrString, cb) {
+      store.commit(`${ module }/ignoreType`, { regexOrString, cb });
     },
 
     ignoreGroup(regexOrString, cb) {
@@ -1446,7 +1446,9 @@ export const getters = {
 
       if ( !out ) {
         for ( const rule of state.typeIgnore ) {
-          if ( schema.id.match(stringToRegex(rule)) ) {
+          const type = isObject(rule) ? rule.type : rule;
+
+          if ( schema.id.match(stringToRegex(type)) && (!rule.cb || rule.cb(rootGetters)) ) {
             out = true;
             break;
           }
@@ -1744,9 +1746,13 @@ export const mutations = {
     }) : state.groupIgnore.push(regexToString(match));
   },
 
-  ignoreType(state, match) {
+  ignoreType(state, { regexOrString: match, cb }) {
     match = ensureRegex(match);
-    state.typeIgnore.push(regexToString(match));
+    // State shouldn't contain actual RegExp objects, because they don't serialize
+    cb ? state.typeIgnore.push({
+      type: regexToString(match),
+      cb
+    }) : state.typeIgnore.push(regexToString(match));
   },
 
   groupBy(state, { type, field }) {

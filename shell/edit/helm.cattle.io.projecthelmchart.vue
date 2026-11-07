@@ -7,7 +7,10 @@ import { CONFIG_MAP, NAMESPACE } from '@shell/config/types';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Loading from '@shell/components/Loading';
+import { Banner } from '@components/Banner';
 import jsyaml from 'js-yaml';
+import { PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP } from '@shell/utils/monitoring';
+import { stringify } from '@shell/utils/error';
 
 export default {
   components: {
@@ -16,7 +19,8 @@ export default {
     LabeledInput,
     Tabbed,
     Questions,
-    Loading
+    Loading,
+    Banner
   },
 
   mixins: [createEditView],
@@ -31,11 +35,28 @@ export default {
   },
 
   async fetch() {
+    try {
+      const federatorSystemNamespacesConfigMap = await this.$store.dispatch('cluster/find', {
+        type: CONFIG_MAP, id: PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP, opt: { force: true, watch: false }
+      });
+
+      // The request worked, even if `find` returns nothing because a page of config maps landed during it
+      this.$store.commit('federatorMissing', false);
+      this.systemNamespaces = JSON.parse(federatorSystemNamespacesConfigMap?.data?.['system-namespaces.json']);
+    } catch (e) {
+      // Only a 404 shows the federator isn't installed
+      if (e?.status === 404) {
+        this.$store.commit('federatorMissing', true);
+      } else {
+        this.fetchError = stringify(e);
+      }
+      this.loading = false;
+
+      return;
+    }
+
     await this.$store.dispatch('catalog/load');
     const inStore = this.$store.getters['currentStore'](NAMESPACE);
-    const federatorSystemNamespacesConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cattle-monitoring-system/prometheus-federator-system-namespaces' });
-
-    this.systemNamespaces = JSON.parse(federatorSystemNamespacesConfigMap?.data?.['system-namespaces.json']);
 
     this.namespaces = this.$store.getters[`${ inStore }/all`](NAMESPACE)
       .filter(this.namespaceFilter)
@@ -53,6 +74,7 @@ export default {
       systemNamespaces:           null,
       namespaces:                 [],
       loading:                    true,
+      fetchError:                 null,
       inStore:                    this.$store.getters['currentStore'](),
       selectedNamespaceQuestions: null,
     };
@@ -84,6 +106,10 @@ export default {
   },
 
   computed: {
+    federatorMissing() {
+      return this.$store.getters['federatorMissing'];
+    },
+
     currentNamespace() {
       return this.namespaces.find((namespace) => namespace.id === this.value?.metadata?.namespace);
     }
@@ -111,8 +137,21 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="loading" />
+  <Banner
+    v-else-if="fetchError"
+    color="error"
+    :label="t('monitoring.projectMonitoring.federatorFetchFailed', { message: fetchError }, true)"
+    data-testid="project-monitoring-federator-fetch-failed"
+  />
+  <Banner
+    v-else-if="federatorMissing"
+    color="warning"
+    :label="t('monitoring.projectMonitoring.federatorNotInstalled')"
+    data-testid="project-monitoring-federator-not-installed"
+  />
   <CruResource
-    v-if="!loading"
+    v-else
     :done-route="doneRoute"
     :resource="value"
     :mode="mode"
@@ -156,7 +195,6 @@ export default {
       </div>
     </div>
   </CruResource>
-  <Loading v-else />
 </template>
 
 <style lang="scss" scoped>
