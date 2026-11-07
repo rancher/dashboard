@@ -21,6 +21,14 @@ For internal documentation, see [Rancher UI Internal Documentation](https://exte
 
 We welcome external contributions - please refer to the internal documentation above.
 
+Using AI tools to help write your PR is acceptable, but as the author, you are responsible for understanding every change. Listing AI tooling as a co-author, co-signing commits using an AI tool, or using the assisted-by, co-developed or similar commit trailer is not allowed.
+
+Be considerate of maintainer resources. Large AI generated PRs, commit messages, and issue reports are not allowed. Issues with excessive AI prose ("Why it matters" sections and lengthy contrived steps to reproduce) may be ignored or rejected.
+
+For AI generated changes be the first to verify and review them. Reviewers may ask questions about your AI-assisted code, and if you cannot explain why a change was made, the PR will be closed.
+
+When responding to review comments we want to engage directly with you, not with generic AI responses. If you do not engage directly with reviewers, the PR will be closed.
+
 License
 =======
 Copyright (c) 2014-2026 [SUSE](https://www.suse.com)
