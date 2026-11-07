@@ -17,6 +17,13 @@ export class ChartPage extends PagePo {
     return super.goTo(ChartPage.createPath(clusterId));
   }
 
+  /**
+   * Hidden charts are not listed on the Charts page, so they can only be opened by URL
+   */
+  static goToChart(repository: string, chart: string, clusterId = 'local'): Cypress.Chainable<Cypress.AUTWindow> {
+    return super.goTo(`${ ChartPage.createPath(clusterId) }?repo-type=cluster&repo=${ repository }&chart=${ chart }`);
+  }
+
   constructor(clusterId = 'local') {
     super(ChartPage.createPath(clusterId));
   }

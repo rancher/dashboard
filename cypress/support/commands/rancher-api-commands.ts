@@ -1643,11 +1643,13 @@ Cypress.Commands.add('restoreProductDefaultTestTheme', () => {
 const CATALOG_TYPE = 'catalog.cattle.io/type';
 const CLUSTER_TOOL = 'cluster-tool';
 const EXPERIMENTAL = 'catalog.cattle.io/experimental';
+const HIDDEN = 'catalog.cattle.io/hidden';
+const DEPRECATED = 'catalog.cattle.io/deprecated';
 
 /**
  * Returns the expected number of cluster tool charts for the cluster tools page.
  * Counts charts from the filtered rancher-charts index that have the cluster-tool type,
- * are not experimental, and are not deprecated (matching the UI's filterAndArrangeCharts logic).
+ * are not experimental, hidden or deprecated (matching the UI's filterAndArrangeCharts logic).
  */
 Cypress.Commands.add('getClusterToolsChartCount', (repoName = 'rancher-charts') => {
   const baseUrl = `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/${ repoName }`;
@@ -1674,9 +1676,10 @@ Cypress.Commands.add('getClusterToolsChartCount', (repoName = 'rancher-charts') 
 
       const isClusterTool = chart.annotations[CATALOG_TYPE] === CLUSTER_TOOL;
       const isExperimental = !!chart.annotations[EXPERIMENTAL];
-      const isDeprecated = !!chart.deprecated;
+      const isHidden = !!chart.annotations[HIDDEN];
+      const isDeprecated = !!chart.deprecated || chart.annotations[DEPRECATED] === 'true';
 
-      if (isClusterTool && !isExperimental && !isDeprecated) {
+      if (isClusterTool && !isExperimental && !isHidden && !isDeprecated) {
         count++;
       }
     }
