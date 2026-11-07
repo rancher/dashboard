@@ -226,4 +226,72 @@ describe('component: RcDropdown.vue', () => {
       wrapper.unmount();
     });
   });
+
+  describe('when the trigger is hidden', () => {
+    let reportVisibility: (isIntersecting: boolean) => void;
+    const observe = jest.fn();
+    const disconnect = jest.fn();
+    const originalIntersectionObserver = window.IntersectionObserver;
+
+    beforeEach(() => {
+      observe.mockClear();
+      disconnect.mockClear();
+      window.IntersectionObserver = jest.fn((callback: IntersectionObserverCallback) => {
+        reportVisibility = (isIntersecting) => callback([{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver);
+
+        return { observe, disconnect };
+      }) as unknown as typeof IntersectionObserver;
+      jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ width: 24, height: 24 } as DOMRect);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+      window.IntersectionObserver = originalIntersectionObserver;
+    });
+
+    const mountDropdown = (open: boolean) => mount(RcDropdown, { props: { open }, global: { components: { 'v-dropdown': vDropdownMock } } });
+
+    it('should close the menu once the trigger is scrolled out of view', async() => {
+      const wrapper = mountDropdown(true);
+
+      expect(observe).toHaveBeenCalledWith(wrapper.find('.popper').element);
+
+      reportVisibility(false);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.findComponent(vDropdownMock).props('shown')).toBe(false);
+      expect(wrapper.emitted('update:open')).toStrictEqual([[true], [false]]);
+    });
+
+    it('should stay open while the trigger is visible', async() => {
+      const wrapper = mountDropdown(true);
+
+      reportVisibility(true);
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.findComponent(vDropdownMock).props('shown')).toBe(true);
+    });
+
+    it('should stop watching the trigger once the menu closes', async() => {
+      const wrapper = mountDropdown(true);
+
+      await wrapper.setProps({ open: false });
+
+      expect(disconnect).toHaveBeenCalledWith();
+    });
+
+    it('should not watch the trigger while the menu is closed', () => {
+      mountDropdown(false);
+
+      expect(observe).not.toHaveBeenCalled();
+    });
+
+    it('should not watch a trigger without a size', () => {
+      jest.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ width: 0, height: 0 } as DOMRect);
+
+      mountDropdown(true);
+
+      expect(observe).not.toHaveBeenCalled();
+    });
+  });
 });
