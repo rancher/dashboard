@@ -62,6 +62,15 @@ export default {
     pendingUpdate: {
       type:    Object,
       default: null,
+    },
+
+    /**
+     * `{ create, remove }` on project role template bindings in this project, for a parent that already checked them.
+     * Left unset, a project editor checks them itself
+     */
+    membershipPermission: {
+      type:    Object,
+      default: null,
     }
   },
 
@@ -133,12 +142,10 @@ export default {
 
     // Schema methods are global, so read the per-project answer from the project's
     // `resourcePermissions` to only offer "Add" where the user can create a binding in THIS project.
-    if (this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId && this.mode !== _CREATE) {
+    if (!this.membershipPermission && this.type === NORMAN.PROJECT_ROLE_TEMPLATE_BINDING && this.parentId && this.mode !== _CREATE) {
       const permissions = await fetchProjectMembershipPermissions(this.$store, this.parentId);
-      const permission = permissions[normalizeId(this.parentId)];
 
-      this['canAddMember'] = !!permission?.create;
-      this['canRemoveMember'] = !!permission?.remove;
+      this['checkedPermission'] = permissions[normalizeId(this.parentId)] || {};
     }
   },
 
@@ -147,8 +154,7 @@ export default {
       schema:            this.$store.getters[`rancher/schemaFor`](this.type),
       bindings:          [],
       lastSavedBindings: [],
-      canAddMember:      true,
-      canRemoveMember:   true,
+      checkedPermission: null,
     };
   },
 
@@ -188,6 +194,19 @@ export default {
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    // The parent's answer when it passed one, otherwise this editor's own check; neither means nothing to restrict
+    projectPermission() {
+      return this.membershipPermission || this.checkedPermission;
+    },
+
+    canAddMember() {
+      return !this.projectPermission || !!this.projectPermission.create;
+    },
+
+    canRemoveMember() {
+      return !this.projectPermission || !!this.projectPermission.remove;
     },
 
     // Can add/remove members here? The add flow needs the role-template + principal reads,
