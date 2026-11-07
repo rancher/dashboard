@@ -452,7 +452,14 @@ export function init(store) {
         search:   false,
         sort:     [POD_RESTARTS_LAST_FIELD, POD_RESTARTS_COUNT_FIELD, 'metadata.name'],
       },
-      'IP',
+      {
+        name:     'ip',
+        labelKey: 'tableHeaders.iP',
+        value:    'metadata.fields.5',
+        sort:     ['ip(status.podIP)'],
+        search:   'status.podIP',
+        tooltip:  'tableHeaders.podIpTooltip',
+      },
       {
         ...POD_NODE_COL,
         search: 'spec.nodeName'
