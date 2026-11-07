@@ -1,7 +1,15 @@
 <script>
 import Type from '@shell/components/nav/Type';
 import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
+import { isTruncated } from '@shell/utils/style';
+import { observeResize } from '@shell/utils/element-resize';
 import { RcSeparator } from '@components/RcSeparator';
+
+// The indent scale for the side menu, shared by group headers and type links so that everything at
+// the same level of the tree lines up, whichever component renders it. UX owns these numbers: a top
+// level row sits 16px in from the edge of the panel, and every level below it steps in 12px more.
+const BASE_INDENT = 16;
+const INDENT_STEP = 12;
 
 export default {
   name: 'Group',
@@ -45,10 +53,44 @@ export default {
   data() {
     const id = (this.idPrefix || '') + this.group.name;
 
-    return { id };
+    return {
+      id, labelTruncated: false, stopObserving: null
+    };
   },
 
   computed: {
+    /** Indent of this group's own header, in px */
+    headerIndent() {
+      return BASE_INDENT + (this.depth * INDENT_STEP);
+    },
+
+    /** The label as plain text, without the match highlighting `labelDisplay` carries */
+    labelText() {
+      return this.group.label || '';
+    },
+
+    // Only offered once the label has actually been cut off, so the rest of the menu doesn't
+    // sprout tooltips repeating what is already on screen. It sits above the row rather than
+    // beside it: to the right it would cover the row's own expander.
+    labelTooltip() {
+      return this.labelTruncated ? { content: this.labelText, placement: 'top' } : undefined;
+    },
+
+    // The expander sits over the right hand end of the header row, so the label has to stop short
+    // of it rather than running underneath
+    showToggle() {
+      return !this.onlyHasOverview && this.canCollapse && this.hasChildren;
+    },
+
+    /**
+     * Indent of this group's children, in px. One level deeper than its own header, unless the
+     * header is hidden - a headerless group adds no visible level, so its children stay level
+     * with it rather than indenting under a header that was never drawn.
+     */
+    childIndent() {
+      return this.showHeader ? this.headerIndent + INDENT_STEP : this.headerIndent;
+    },
+
     isGroupActive() {
       return this.isOverview || (this.hasActiveRoute() && this.isExpanded && this.showHeader);
     },
@@ -106,7 +148,30 @@ export default {
     }
   },
 
+  mounted() {
+    this.checkLabelTruncated();
+
+    // A label that fits when it is first laid out can stop fitting later: the web font swaps in
+    // over the fallback it was measured with, or the panel is resized. Measuring once on mount
+    // leaves those labels cut off with no way to read them.
+    //
+    // Watching the box is enough on its own, and cheaper than re-measuring on every render: the
+    // label is a flex item that is sized to its text while it fits and clamped to the space
+    // available once it doesn't, so its width always changes as it crosses between the two.
+    if (this.$refs.label) {
+      this.stopObserving = observeResize(this.$refs.label, this.checkLabelTruncated);
+    }
+  },
+
+  beforeUnmount() {
+    this.stopObserving?.();
+  },
+
   methods: {
+    checkLabelTruncated() {
+      this.labelTruncated = isTruncated(this.$refs.label);
+    },
+
     expandGroup() {
       this.isExpanded = true;
       this.$emit('expand', this.group);
@@ -248,7 +313,8 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'has-toggle': showToggle, 'group-highlight': isGroupActive }"
+    :style="{ '--nav-indent': `${ headerIndent }px` }"
   >
     <div
       v-if="showHeader || (!onlyHasOverview && canCollapse)"
@@ -275,14 +341,22 @@ export default {
             :exact="overviewChild.exact"
           >
             <h6>
-              <span v-clean-html="group.labelDisplay || group.label" />
+              <span
+                ref="label"
+                v-clean-html="group.labelDisplay || group.label"
+                v-clean-tooltip="labelTooltip"
+              />
             </h6>
           </router-link>
           <!-- Non-linked group header -->
           <h6
             v-else-if="hasChildren"
           >
-            <span v-clean-html="group.labelDisplay || group.label" />
+            <span
+              ref="label"
+              v-clean-html="group.labelDisplay || group.label"
+              v-clean-tooltip="labelTooltip"
+            />
           </h6>
           <!-- Simple child (nav item) -->
           <ul
@@ -290,19 +364,22 @@ export default {
             class="list-unstyled body root-depth"
             v-bind="$attrs"
           >
+            <!-- A childless group is promoted to a plain nav item, so its link sits at the
+                 group's own level rather than one level in -->
             <Type
 
               :key="id+'_' + group.name + '_type'"
               :is-root="depth == 0 && !showHeader"
               :type="group"
               :depth="depth"
+              :indent="headerIndent"
               @selected="selectType($event)"
             />
           </ul>
         </slot>
       </div>
       <i
-        v-if="!onlyHasOverview && canCollapse && hasChildren"
+        v-if="showToggle"
         class="icon toggle toggle-accordion"
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         role="button"
@@ -356,6 +433,7 @@ export default {
           :is-root="depth == 0 && !showHeader"
           :type="child"
           :depth="depth"
+          :indent="childIndent"
           @selected="selectType($event)"
         />
       </template>
@@ -377,9 +455,20 @@ export default {
       text-transform: none;
       font-size: 14px;
       height: 100%;
-      padding: 8px 0 8px 16px;
-      display: inline-flex;
+      // Centred by the flex alignment rather than by vertical padding, so the label sits in the
+      // middle of its row at every level instead of needing a hand-picked pair of values per level.
+      // 12px on the right is the gutter the whole menu keeps clear of the edge of the panel.
+      padding: 0 12px 0 var(--nav-indent, 16px);
+      display: flex;
       align-items: center;
+      overflow: hidden;
+
+      > SPAN {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
 
     > A {
@@ -409,6 +498,19 @@ export default {
       height: 33px;
       outline: none;
 
+      // One rule for the expander at every level: centred in its row, and keeping the same 12px
+      // clear of the right hand edge that the rest of the menu does
+      > I {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        user-select: none;
+      }
+
       .toggle-accordion:focus-visible {
         @include focus-outline;
         outline-offset: -6px;
@@ -428,7 +530,6 @@ export default {
         background-color: var(--active);
 
         h6 {
-          padding: 8px 0 8px 16px;
           font-weight: bold;
           color: var(--on-active);
         }
@@ -451,25 +552,18 @@ export default {
   }
 
   .accordion {
+    // The expander is drawn over the right hand end of the header row, so a header that has one
+    // has to stop its label short of it rather than letting the text run underneath
+    &.has-toggle > .accordion-item > .header H6 {
+      padding-right: 36px;
+    }
+
     &.depth-0 {
       > .header {
 
         &.noHover {
           cursor: default;
         }
-
-        > H6 {
-          text-transform: none;
-          padding: 8px 0 8px 16px;
-        }
-      }
-
-      .accordion-item > I {
-        position: absolute;
-        right: 0;
-        top: 0;
-        padding: 10px 10px 9px 7px;
-        user-select: none;
       }
 
       > .body {
@@ -496,46 +590,8 @@ export default {
         }
       }
 
-      .root-depth :deep() > .child.nav-type a {
-        padding-left: 14px;
-      }
     }
 
-    &.depth-1 {
-      > .accordion-item > .header {
-        padding-left: 20px;
-        > H6 {
-          line-height: 18px;
-          padding: 8px 0 7px 5px !important;
-        }
-
-      }
-
-      .accordion-item > I {
-        padding: 10px 7px 9px 7px !important;
-      }
-
-      &:deep() .type-link > .label {
-        padding-left: 10px;
-      }
-    }
-
-    &:not(.depth-0) {
-      > .accordion-item > .header {
-        > H6 {
-          // Child groups that aren't linked themselves
-          display: inline-block;
-          padding: 5px 0 5px 5px;
-        }
-      }
-
-      .accordion-item > I {
-        position: absolute;
-        right: 0;
-        top: 0;
-        padding: 6px 8px 6px 8px;
-      }
-    }
   }
 
   .body :deep() > .child.router-link-active,
@@ -559,10 +615,8 @@ export default {
 
   .body :deep() > .child {
     A {
-      border-left: solid 5px transparent;
       line-height: 16px;
       font-size: 14px;
-      padding-left: 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -574,9 +628,6 @@ export default {
 
     &.root {
       background: transparent;
-      A {
-        padding-left: 14px;
-      }
     }
   }
 </style>

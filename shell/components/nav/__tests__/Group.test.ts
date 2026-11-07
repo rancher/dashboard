@@ -485,6 +485,171 @@ describe('component: Group', () => {
    * Type component — nesting an interactive element inside another interactive
    * element violates the nested-interactive WCAG rule.
    */
+  // Group headers and type links are rendered by different components, so they only line up if
+  // both are driven off one scale. The header reads `--nav-indent` off the accordion; links get
+  // the same scale handed to them as a prop, one level deeper.
+  describe('indentation', () => {
+    const mountGroup = (group: any, props: Record<string, unknown> = {}) => shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: '', ...props
+      },
+      global: {
+        stubs: { 'router-link': { template: '<a><slot /></a>' } },
+        mocks: {
+          $route: {
+            params: {}, path: '/x', fullPath: '/x', matched: []
+          },
+          $router: {
+            resolve:   jest.fn().mockReturnValue({ path: '/x', fullPath: '/x' }),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: (key: string) => key,
+        },
+      },
+    });
+
+    // Expanded, so the body holding the child links is actually rendered
+    const withChild = () => ({
+      name:     'g',
+      label:    'G',
+      expanded: true,
+      children: [{ name: 'leaf', route: { name: 'leaf', params: {} } }],
+    });
+
+    // 16px for a top level row, then 12px a level below it, the scale UX owns
+    it.each([
+      [0, '16px'],
+      [1, '28px'],
+      [2, '40px'],
+      [3, '52px'],
+    ])('indents the header of a depth %s group by %s', (depth, expected) => {
+      const wrapper = mountGroup(withChild(), { depth });
+
+      expect(wrapper.attributes('style')).toBe(`--nav-indent: ${ expected };`);
+    });
+
+    it.each([
+      [0, 28],
+      [1, 40],
+      [2, 52],
+    ])('puts the children of a depth %s group one level deeper, at %spx', (depth, expected) => {
+      const wrapper = mountGroup(withChild(), { depth });
+
+      expect(wrapper.findComponent(Type).props('indent')).toBe(expected);
+    });
+
+    // A headerless group draws no row of its own, so it must not indent its children for one
+    it('keeps children level with a group whose header is hidden', () => {
+      const wrapper = mountGroup(withChild(), { depth: 0, showHeader: false });
+
+      expect(wrapper.findComponent(Type).props('indent')).toBe(16);
+    });
+
+    // A childless group is promoted to a plain nav item, so its link stands in for the header
+    it('puts the link of a childless group at the header indent', () => {
+      const promoted = {
+        name: 'solo', label: 'Solo', route: { name: 'solo', params: {} }, children: []
+      };
+      const wrapper = mountGroup(promoted, { depth: 0 });
+
+      expect(wrapper.findComponent(Type).props('indent')).toBe(16);
+    });
+
+    // Type still keys the small per-level tweaks it makes off `depth` (icon spacing), so a link
+    // has to carry the depth of the group holding it
+    it.each([0, 1, 2])('passes its own depth %s on to its links', (depth) => {
+      const wrapper = mountGroup(withChild(), { depth });
+
+      expect(wrapper.findComponent(Type).props('depth')).toBe(depth);
+    });
+
+    // The whole point of the shared scale: a nested group header and a sibling link must match
+    it('gives a nested group header the same indent as a sibling link', () => {
+      const parent = mountGroup(withChild(), { depth: 0 });
+      const nested = mountGroup(withChild(), { depth: 1 });
+
+      expect(nested.attributes('style')).toBe(`--nav-indent: ${ parent.findComponent(Type).props('indent') }px;`);
+    });
+  });
+
+  // A group header that doesn't fit is ellipsised like any other nav row, so the full text has to
+  // be reachable on hover. jsdom does no layout, so the widths `isTruncated` reads are set by hand.
+  describe('truncated headers', () => {
+    const mountGroup = (group: any, props: Record<string, unknown> = {}) => shallowMount(Group as any, {
+      props: {
+        group, canCollapse: true, idPrefix: '', ...props
+      },
+      global: {
+        directives: { cleanHtml: (identity: any) => identity },
+        stubs:      { 'router-link': { template: '<a><slot /></a>' } },
+        mocks:      {
+          $route: {
+            params: {}, path: '/x', fullPath: '/x', matched: []
+          },
+          $router: {
+            resolve:   jest.fn().mockReturnValue({ path: '/x', fullPath: '/x' }),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: (key: string) => key,
+        },
+      },
+    });
+
+    const longGroup = () => ({
+      name:     'g',
+      label:    'A group name too long for the panel',
+      expanded: true,
+      children: [{ name: 'leaf', route: { name: 'leaf', params: {} } }],
+    });
+
+    const cutOffBy = (wrapper: any, scrollWidth: number, clientWidth: number) => {
+      const el = wrapper.vm.$refs.label as HTMLElement;
+
+      Object.defineProperty(el, 'scrollWidth', { configurable: true, value: scrollWidth });
+      Object.defineProperty(el, 'clientWidth', { configurable: true, value: clientWidth });
+
+      wrapper.vm.checkLabelTruncated();
+
+      return wrapper.vm.$nextTick();
+    };
+
+    it('offers no tooltip while the header fits', () => {
+      const wrapper = mountGroup({ ...longGroup(), label: 'Short' });
+
+      expect(wrapper.find('.header h6 span').classes()).not.toContain('has-clean-tooltip');
+    });
+
+    it('offers a tooltip once the header is cut off', async() => {
+      const wrapper = mountGroup(longGroup());
+
+      await cutOffBy(wrapper, 400, 120);
+
+      expect(wrapper.find('.header h6 span').classes()).toContain('has-clean-tooltip');
+    });
+
+    it('puts the whole header label in the tooltip', async() => {
+      const wrapper = mountGroup(longGroup());
+
+      await cutOffBy(wrapper, 400, 120);
+
+      expect((wrapper.vm as any).labelTooltip).toStrictEqual({ content: longGroup().label, placement: 'top' });
+    });
+
+    // The expander is drawn over the right hand end of the row, so the label needs to be told to
+    // stop short of it. The flag that reserves that room is the same one that renders the expander.
+    it('reserves room for the expander when there is one', () => {
+      const wrapper = mountGroup(longGroup());
+
+      expect(wrapper.classes()).toContain('has-toggle');
+    });
+
+    it('reserves no room for an expander on a group that cannot collapse', () => {
+      const wrapper = mountGroup(longGroup(), { canCollapse: false });
+
+      expect(wrapper.classes()).not.toContain('has-toggle');
+    });
+  });
+
   describe('header role and ARIA attributes (nested-interactive a11y fix)', () => {
     const routerMocks = {
       $route: {

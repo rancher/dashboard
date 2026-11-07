@@ -7,7 +7,7 @@
 import {
   computed, onBeforeUnmount, onMounted, onUpdated, ref
 } from 'vue';
-import { observeCellResize } from '@shell/components/SortableTable/cell-resize';
+import { observeResize } from '@shell/utils/element-resize';
 import { escapeHtml } from '@shell/utils/string';
 
 export interface CellLimits {
@@ -45,7 +45,7 @@ onMounted(() => {
 
   // The column's width follows the window and its neighbours, and with it the lines the text takes
   if (box.value) {
-    stopObserving = observeCellResize(box.value, measure);
+    stopObserving = observeResize(box.value, measure);
   }
 });
 
