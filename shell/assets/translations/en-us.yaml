@@ -180,6 +180,7 @@ generic:
 
 tabs:
   addItem: Add a new tab item
+  cloneItem: Clone selected tab item
   removeItem: Remove selected tab item
 
 graph:
