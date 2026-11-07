@@ -8,12 +8,28 @@ on:
     branches:
       - master
       - 'release-*'
+  # Required for the merge queue. A required status check that does not report on
+  # `merge_group` stalls every merge group until the status-check timeout and then
+  # ejects the pull request, so this trigger and `ci-gate` must stay in step.
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
     inputs:
       environment:
         description: 'Environment to run tests against'
         type: environment
         required: true
+
+# Only `pull_request` runs may be cancelled.
+#   - A cancelled `merge_group` run reports `cancelled`, which the merge queue reads
+#     as a failure and ejects the pull request.
+#   - A cancelled `push` run loses the post-merge master signal, which is the only
+#     e2e coverage of merged code.
+# `github.event_name` is part of the key so a PR run and a push run for the same ref
+# can never cancel one another.
+concurrency:
+  group: tests-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   TEST_USERNAME: admin
@@ -37,6 +53,8 @@ jobs:
   # bundle. Fails the PR when a dependency was added, removed, or upgraded
   # without regenerating licenses.json (see scripts/analyze-licenses).
   check-licenses:
+    # PR-only. A full `yarn build`, too slow for the merge queue.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -52,6 +70,12 @@ jobs:
         run: node ./scripts/analyze-licenses
 
   extract-e2e-runtime-rancher-version:
+    # PR-only. On `merge_group` `github.base_ref` is empty and `github.ref_name` is
+    # `gh-readonly-queue/master/pr-N-<sha>`, so get-branch-metadata.sh would resolve
+    # against a branch that does not exist in branches-metadata.json.
+    if: >-
+      github.event_name != 'merge_group' &&
+      !contains(github.event.pull_request.labels.*.name, 'ci/skip-e2e')
     runs-on: ubuntu-latest
     outputs:
       runtime-rancher-version: ${{ steps.extract.outputs.runtime-rancher-version }}
@@ -70,7 +94,10 @@ jobs:
           echo "runtime-rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
 
   e2e-ui-build:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    # PR-only. Deliberately skipped in the merge queue; `ci-gate` allows the skip.
+    if: >-
+      github.event_name != 'merge_group' &&
+      !contains(github.event.pull_request.labels.*.name, 'ci/skip-e2e')
     needs: extract-e2e-runtime-rancher-version
     runs-on: ubuntu-latest
     outputs:
@@ -101,7 +128,10 @@ jobs:
           compression-level: 9
 
   e2e-test:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    # PR-only. Deliberately skipped in the merge queue; `ci-gate` allows the skip.
+    if: >-
+      github.event_name != 'merge_group' &&
+      !contains(github.event.pull_request.labels.*.name, 'ci/skip-e2e')
     needs: e2e-ui-build
     strategy:
       fail-fast: false
@@ -201,7 +231,10 @@ jobs:
           compression-level: 9
 
   a11y-test:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    # PR-only. Deliberately skipped in the merge queue; `ci-gate` allows the skip.
+    if: >-
+      github.event_name != 'merge_group' &&
+      !contains(github.event.pull_request.labels.*.name, 'ci/skip-e2e')
     needs: e2e-ui-build
     runs-on: ubuntu-latest
     steps:
@@ -275,6 +308,15 @@ jobs:
         env:
           A11Y_RATCHET_ENFORCE: ${{ vars.A11Y_RATCHET_ENFORCE || 'true' }}
 
+  # ---------------------------------------------------------------------------
+  # The merge-queue check set: unit-test, i18n, lint, type-check. These four run on
+  # every event, including `merge_group`, and are what the queue verifies against
+  # the rebased result. They mirror the jobs in build-test.yaml.
+  #
+  # Do not add a job that consumes secrets to this group. Merge-group runs execute
+  # on a branch in this repository, so unlike fork pull request runs they are
+  # trusted and have full secret access before the code has been merged.
+  # ---------------------------------------------------------------------------
   unit-test:
     runs-on: ubuntu-latest
     steps:
@@ -334,6 +376,8 @@ jobs:
         uses: ./.github/actions/type-check
 
   check-i18n:
+    # PR-only. Advisory (`-x` swallows failures) and not worth merge-queue latency.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -352,6 +396,9 @@ jobs:
           ./scripts/check-i18n -s -x
 
   check-i18n-links:
+    # PR-only. Hits every external http link, so it fails for reasons unrelated to
+    # the change under test — never put it on the merge critical path.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -396,6 +443,8 @@ jobs:
   #       run: ./codecov --verbose upload-process -t ${{ secrets.CODECOV_TOKEN }} -n ${{github.run_number}}-${{github.run_attempt}}-coverage -F unit -f ./coverage/coverage-unit.json
 
   check-e2e-tags:
+    # PR-only. Guards e2e spec hygiene, which is meaningless when e2e is not running.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -409,6 +458,8 @@ jobs:
           ./scripts/check-e2e-tests-for-tags
 
   check-cypress-build:
+    # PR-only. Separate yarn install under cypress/; too slow for the merge queue.
+    if: github.event_name != 'merge_group'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -448,3 +499,97 @@ jobs:
         with:
           name: origin
           path: origin/
+
+  # ---------------------------------------------------------------------------
+  # Aggregate required status check, on pull requests and in the merge queue
+  # alike. Do not rename it without updating branch protection.
+  #
+  # Required-check split. Branch protection should require, alongside this gate:
+  #
+  #     lint   type-check   unit-test   i18n
+  #
+  # Those four run on every event, so they are never `skipped` and nothing stops
+  # them being required checks in their own right. Requiring them directly is
+  # what makes the merge queue fail fast, because GitHub ejects a pull request
+  # the moment a *required* check fails — and a check that reports in three
+  # minutes ejects in three minutes.
+  #
+  # Routed through this gate instead, that same failure surfaces nothing until
+  # the slowest dependency finishes: `if: always()` plus `needs` means the gate
+  # cannot report while any dependency is still running, so a lint break holds a
+  # queue slot and burns runners on results that can no longer change the
+  # outcome. Measured on a merge group carrying a deliberate lint break: `lint`
+  # concluded `failure` at 22:14:23, `unit-test` finished at 22:31:45, and the
+  # gate did not report until 22:31:55 — seventeen and a half minutes of queue
+  # slot spent on an outcome already decided.
+  #
+  # The aggregation is only load-bearing for the other nine. Those are
+  # legitimately `skipped` on merge_group, and `skipped` does not satisfy a
+  # required check, so requiring them individually would stall every merge group
+  # until the status-check timeout. Aggregate what skips; require what never
+  # does.
+  #
+  # The cost of requiring the four directly is four more job ids tracked in repo
+  # settings rather than in this file. Rename one without updating the ruleset
+  # and its required check never reports, which stalls the queue until the
+  # timeout — the same failure this gate exists to prevent, relocated.
+  #
+  # Keep it side-effect free. `auto-retry.yaml` re-runs failed jobs, and because
+  # this job also concludes `failure` it is itself re-run — after the jobs it
+  # depends on, since `gh run rerun --failed` respects the `needs` graph.
+  #
+  # `if: always()` is load-bearing. Without it the gate is skipped whenever a
+  # dependency fails, and `skipped` is not a success for branch protection or for
+  # the merge queue — the queue would wait out the status-check timeout and then
+  # eject the pull request.
+  # ---------------------------------------------------------------------------
+  ci-gate:
+    name: ci-gate
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      # Always-on. These four are the merge-queue check set: cheap, deterministic,
+      # and free of secrets (merge-group runs are trusted, unlike fork PR runs).
+      # They are also required checks in their own right — see the header. Listing
+      # them here too is deliberate belt and braces: it keeps the gate's summary
+      # complete, and it keeps them covered if one is ever dropped from the
+      # ruleset by mistake.
+      - lint
+      - type-check
+      - unit-test
+      - i18n
+      # PR-only. Legitimately `skipped` on merge_group, and skippable on PRs via
+      # the ci/skip-e2e label.
+      - check-licenses
+      - extract-e2e-runtime-rancher-version
+      - e2e-ui-build
+      - e2e-test
+      - a11y-test
+      - check-i18n
+      - check-i18n-links
+      - check-e2e-tags
+      - check-cypress-build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      # A gate that passes unconditionally would silently remove every required
+      # check in the repository, so verify the evaluator before trusting it. Two
+      # seconds, no dependencies, and it runs in the merge queue too.
+      - name: Self-test the gate evaluator
+        run: ./.github/actions/gate/evaluate-gate.test.sh
+
+      - name: Evaluate results
+        uses: ./.github/actions/gate
+        with:
+          needs: ${{ toJSON(needs) }}
+          skippable: >-
+            check-licenses extract-e2e-runtime-rancher-version e2e-ui-build e2e-test
+            a11y-test check-i18n check-i18n-links check-e2e-tags check-cypress-build
+          # check-i18n-links hits every external http link and exits non-zero on
+          # any unreachable one, so it fails for reasons unrelated to the change
+          # under test. `skippable` only excuses a `skipped` result, not a
+          # `failure`, so it needs `soft` too — otherwise one dead doc site
+          # blocks every merge through the only required check.
+          soft: check-i18n-links

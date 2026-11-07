@@ -1,5 +1,17 @@
 name: Validate Pull Request
 
+# DO NOT add these jobs to the required status checks for `master`.
+#
+# They cannot run under `merge_group`: both need `github.event.pull_request`
+# (pr-check-checklist.sh reads the PR url, pr-check-milestone.sh reads the
+# milestone), and that context does not exist for a merge group. A required check
+# that never reports stalls every merge group until the status-check timeout and
+# then ejects the pull request.
+#
+# Enforce these through review instead. The repository's required checks are the
+# aggregate gates: ci-gate, plugins-gate and docs-gate.
+#
+# No `merge_group` trigger here for the same reason.
 on:
   pull_request:
     types: [opened, edited, synchronize, milestoned, demilestoned, labeled, unlabeled]

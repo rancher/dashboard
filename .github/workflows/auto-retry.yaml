@@ -29,7 +29,19 @@ env:
 
 jobs:
   rerun-on-failure:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' || github.event_name == 'workflow_dispatch' }}
+    # Merge-group runs are excluded deliberately. The merge-queue check set is
+    # lint / type-check / unit-test / i18n, which is deterministic rather than
+    # flake-prone, and the queue ejects on the first failing status — usually
+    # before a retry could finish and report, so a retry would be racing a
+    # decision that has already been made. Re-queueing the pull request, not
+    # re-running the job, is the correct retry for a merge group.
+    #
+    # (Without this guard the job is already inert for merge groups by accident:
+    # the PR lookup by `head=<owner>:gh-readonly-queue/...` finds nothing. Being
+    # explicit keeps that from silently changing.)
+    if: >-
+      ${{ github.event.workflow_run.event != 'merge_group' &&
+      (github.event.workflow_run.conclusion == 'failure' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
     steps:
       - name: Decide whether to retry
