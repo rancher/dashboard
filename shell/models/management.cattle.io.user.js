@@ -1,4 +1,4 @@
-import { NORMAN, EXT } from '@shell/config/types';
+import { NORMAN, EXT, MANAGEMENT } from '@shell/config/types';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import day from 'dayjs';
 import { configNameOfPrincipal, providerOfConfig } from '@shell/utils/auth-providers';
@@ -189,6 +189,36 @@ export default class User extends SteveModel {
     // userId specifies the user ID. Use '*' for all users. Check the schemaDefinition for more details.
     membershipRefreshRequests.spec = { userId: this.id };
     await membershipRefreshRequests.save();
+  }
+
+  /**
+   * The groups the user was in when they last logged in (or their memberships were refreshed), from their UserAttribute.
+   * Roles bound to these groups apply to the user too.
+   *
+   * @returns map of group principal id to the group's display name. Empty if the viewer can't see UserAttributes or the user has none
+   */
+  async fetchGroupPrincipals() {
+    if (!this.$getters['schemaFor'](MANAGEMENT.USER_ATTRIBUTE)) {
+      return {};
+    }
+
+    try {
+      const userAttribute = await this.$dispatch('find', { type: MANAGEMENT.USER_ATTRIBUTE, id: this.id });
+      const groups = Object.values(userAttribute?.GroupPrincipals || {}).flatMap((provider) => provider?.Items || []);
+
+      return groups.reduce((out, group) => {
+        const id = group?.metadata?.name;
+
+        if (id) {
+          out[id] = group.displayName || group.loginName || id;
+        }
+
+        return out;
+      }, {});
+    } catch (e) {
+      // A user that has never logged in has no UserAttribute
+      return {};
+    }
   }
 
   get canRefreshMemberships() {

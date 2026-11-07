@@ -20,6 +20,9 @@ export default {
     CreateEditView
   ],
   async fetch() {
+    // Roles bound to one of the user's groups apply to the user too, so those bindings are shown alongside the user's own
+    this.groupPrincipals = await this.value.fetchGroupPrincipals();
+
     const canSeeGlobalRoles = !!this.$store.getters[`management/canList`](MANAGEMENT.GLOBAL_ROLE);
 
     if (canSeeGlobalRoles) {
@@ -53,6 +56,13 @@ export default {
       formatter:     'LiveDate',
       formatterOpts: { addSuffix: true },
       width:         '20%',
+    };
+    const grantedViaColumn = {
+      name:     'grantedVia',
+      labelKey: 'user.detail.generic.tableHeaders.grantedVia',
+      value:    (row) => this.grantedVia(row),
+      sort:     'groupPrincipalName',
+      search:   false,
     };
 
     return {
@@ -104,12 +114,37 @@ export default {
           { ...since }
         ]
       },
+      grantedViaColumn,
       globalBindings:      null,
       canSeeRoleTemplates: false,
       isAdmin:             false,
+      groupPrincipals:     {},
     };
   },
   computed: {
+    /**
+     * Only show where a role comes from when the user is in a group, otherwise every role is a direct one
+     */
+    tableHeaders() {
+      if (!Object.keys(this.groupPrincipals).length) {
+        return this.headers;
+      }
+
+      const gp = [...this.headers.gp];
+
+      gp.splice(2, 0, {
+        ...this.grantedViaColumn,
+        value: (row) => row.grantedVia.join(', '),
+        sort:  'grantedVia',
+      });
+
+      return {
+        gp,
+        cr: [...this.headers.cr.slice(0, 2), this.grantedViaColumn, ...this.headers.cr.slice(2)],
+        pr: [...this.headers.pr.slice(0, 3), this.grantedViaColumn, ...this.headers.pr.slice(3)],
+      };
+    },
+
     clusterBindings() {
       return this.canSeeRoleTemplates ? this.fetchClusterRoles(this.value.id) : null;
     },
@@ -119,6 +154,20 @@ export default {
 
   },
   methods: {
+    isBoundToUser(binding, userId) {
+      return binding.userName === userId || !!this.groupPrincipals[binding.groupPrincipalName];
+    },
+
+    grantedVia(binding) {
+      return binding.groupPrincipalName ? this.groupPrincipals[binding.groupPrincipalName] : this.t('user.detail.generic.direct');
+    },
+
+    addGrantedVia(role, via) {
+      if (!role.grantedVia.includes(via)) {
+        role.grantedVia.push(via);
+      }
+    },
+
     async fetchGlobalRoleBindings(userId) {
       try {
         const roles = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE });
@@ -130,14 +179,16 @@ export default {
 
         out.forEach((r) => {
           r.hasBound = false;
+          r.grantedVia = [];
         });
 
         const globalRoleBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.GLOBAL_ROLE_BINDING });
 
         globalRoleBindings
-          .filter((binding) => binding.userName === userId)
+          .filter((binding) => this.isBoundToUser(binding, userId))
           .forEach((binding) => {
             const globalRole = roles.find((r) => r.id === binding.globalRoleName);
+            const via = this.grantedVia(binding);
 
             if (globalRole.id === 'admin') {
               this.isAdmin = true;
@@ -147,6 +198,7 @@ export default {
               this.getEnabledRoles(globalRole, out).forEach((r) => {
                 r.hasBound = true;
                 r.bound = binding?.metadata.creationTimestamp;
+                this.addGrantedVia(r, via);
               });
             } else {
               const entry = out.find((o) => o.id === binding.globalRoleName);
@@ -154,6 +206,7 @@ export default {
               if (entry) {
                 entry.hasBound = true;
                 entry.bound = binding?.metadata.creationTimestamp;
+                this.addGrantedVia(entry, via);
               }
             }
           });
@@ -167,7 +220,7 @@ export default {
 
     fetchClusterRoles(userId) {
       const templateBindings = this.$store.getters['management/all'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
-      const userTemplateBindings = templateBindings.filter((binding) => binding.userName === userId);
+      const userTemplateBindings = templateBindings.filter((binding) => this.isBoundToUser(binding, userId));
 
       // Upfront load clusters
       userTemplateBindings.map((b) => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: b.clusterName }));
@@ -177,7 +230,7 @@ export default {
 
     fetchProjectRoles(userId) {
       const templateBindings = this.$store.getters['management/all'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING );
-      const userTemplateBindings = templateBindings.filter((binding) => binding.userName === userId);
+      const userTemplateBindings = templateBindings.filter((binding) => this.isBoundToUser(binding, userId));
 
       // Upfront load projects
       userTemplateBindings.map((b) => this.$store.dispatch('management/find', { type: MANAGEMENT.PROJECT, id: b.projectId }));
@@ -252,7 +305,7 @@ export default {
         <SortableTable
           v-else
           :rows="globalBindings"
-          :headers="headers.gp"
+          :headers="tableHeaders.gp"
           key-field="id"
           :table-actions="false"
           :row-actions="false"
@@ -270,11 +323,15 @@ export default {
         </div>
         <SortableTable
           :rows="clusterBindings"
-          :headers="headers.cr"
+          :headers="tableHeaders.cr"
           key-field="id"
           :table-actions="false"
           :search="false"
-        />
+        >
+          <template #row-actions="{ row }">
+            <span v-if="row.groupPrincipalName" />
+          </template>
+        </SortableTable>
       </Tab>
       <Tab
         v-if="projectBindings"
@@ -287,11 +344,15 @@ export default {
         </div>
         <SortableTable
           :rows="projectBindings"
-          :headers="headers.pr"
+          :headers="tableHeaders.pr"
           key-field="id"
           :table-actions="false"
           :search="false"
-        />
+        >
+          <template #row-actions="{ row }">
+            <span v-if="row.groupPrincipalName" />
+          </template>
+        </SortableTable>
       </Tab>
     </ResourceTabs>
   </div>

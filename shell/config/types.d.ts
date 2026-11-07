@@ -191,6 +191,7 @@ export const MANAGEMENT: {
     ROLE_TEMPLATE: string;
     SETTING: string;
     USER: string;
+    USER_ATTRIBUTE: string;
     TOKEN: string;
     GLOBAL_ROLE: string;
     GLOBAL_ROLE_BINDING: string;
