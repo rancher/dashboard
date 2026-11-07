@@ -18,10 +18,13 @@
  * whatever `clickToClose` says; with `clickToClose` false a background click
  * does not.
  *
+ * It fades in over the page, with the dialog rising into place, and fades out
+ * again when `show` goes false. Under reduced motion it only fades.
+ *
  * Attributes that are not props land on the dialog element, so `class` and
  * `data-testid` work as usual.
  */
-import { computed } from 'vue';
+import { ref, watch } from 'vue';
 import RcModalDialog from './RcModalDialog.vue';
 import type { RcModalProps } from './types';
 
@@ -43,54 +46,67 @@ defineEmits<{
 
 const MODALS_CONTAINER = '#modals';
 
-const teleportTarget = computed(() => (props.show && document.querySelector(MODALS_CONTAINER) ? MODALS_CONTAINER : 'body'));
+const teleportTarget = ref('body');
+
+// Chosen as the modal opens, as the container can arrive after the consumer
+// mounts, and kept while it fades out so it does not jump mid-transition.
+watch(() => props.show, (show) => {
+  if (show) {
+    teleportTarget.value = document.querySelector(MODALS_CONTAINER) ? MODALS_CONTAINER : 'body';
+  }
+}, { immediate: true });
 </script>
 
 <template>
   <Teleport :to="teleportTarget">
-    <RcModalDialog
-      v-if="show"
-      v-bind="$attrs"
-      :title="title"
-      :size="size"
-      :click-to-close="clickToClose"
-      @open="$emit('open')"
-      @close="$emit('close')"
-      @cancel="$emit('cancel')"
-      @primary-action="$emit('primary-action')"
+    <Transition
+      name="rc-modal-overlay"
+      appear
     >
-      <template
-        v-if="$slots.title"
-        #title
+      <RcModalDialog
+        v-if="show"
+        v-bind="$attrs"
+        :title="title"
+        :size="size"
+        :click-to-close="clickToClose"
+        @open="$emit('open')"
+        @close="$emit('close')"
+        @cancel="$emit('cancel')"
+        @primary-action="$emit('primary-action')"
       >
-        <!-- @slot The heading, for when it needs more than the string the `title` prop takes. -->
-        <slot name="title" />
-      </template>
+        <template
+          v-if="$slots.title"
+          #title
+        >
+          <!-- @slot The heading, for when it needs more than the string the `title` prop takes. -->
+          <slot name="title" />
+        </template>
 
-      <!-- @slot The modal body. Each direct child is a content section. -->
-      <slot />
+        <!-- @slot The modal body. Each direct child is a content section. -->
+        <slot />
 
-      <template
-        v-if="$slots.actions"
-        #actions="scope"
-      >
-        <!-- @slot The whole footer row, cancel button included. Receives `close`, `cancel` and `primaryAction`. -->
-        <slot
-          name="actions"
-          v-bind="scope"
-        />
-      </template>
+        <template
+          v-if="$slots.actions"
+          #actions="scope"
+        >
+          <!-- @slot The whole footer row, cancel button included. Receives `close`, `cancel` and `primaryAction`. -->
+          <slot
+            name="actions"
+            v-bind="scope"
+          />
+        </template>
 
-      <template
-        v-if="$slots['primary-action']"
-        #primary-action="scope"
-      >
-        <!-- @slot Just the confirming button; the cancel button comes with it. Receives `close`, `cancel` and `primaryAction`. -->
-        <slot
-          name="primary-action"
-          v-bind="scope"
-        />
-      </template>
-    </RcModalDialog>
+        <template
+          v-if="$slots['primary-action']"
+          #primary-action="scope"
+        >
+          <!-- @slot Just the confirming button; the cancel button comes with it. Receives `close`, `cancel` and `primaryAction`. -->
+          <slot
+            name="primary-action"
+            v-bind="scope"
+          />
+        </template>
+      </RcModalDialog>
+    </Transition>
   </Teleport>
 </template>

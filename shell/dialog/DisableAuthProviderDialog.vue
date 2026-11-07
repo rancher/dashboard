@@ -104,7 +104,6 @@ export default {
       <RcButton
         variant="primary"
         size="large"
-        class="disable-auth-provider__confirm"
         :disabled="!acknowledged"
         :data-testid="componentTestid + '-confirm-button'"
         @click="disable(close)"
@@ -126,8 +125,6 @@ export default {
 
     &__aftermath {
       margin: 0;
-      line-height: 22px;
-      color: var(--label-secondary);
     }
 
     &__link {
@@ -148,16 +145,6 @@ export default {
         p {
           margin: 0;
         }
-      }
-    }
-
-    &__confirm.rc-button {
-      background-color: var(--error);
-      color: var(--error-text);
-
-      &:hover:not(:disabled) {
-        background-color: var(--error-hover-bg);
-        color: var(--error-hover-text);
       }
     }
   }
