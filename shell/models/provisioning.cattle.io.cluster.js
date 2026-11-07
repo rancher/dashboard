@@ -572,7 +572,11 @@ export default class ProvCluster extends SteveModel {
   }
 
   async copyKubeConfig() {
-    await this.mgmt?.copyKubeConfig();
+    const copied = await this.mgmt?.copyKubeConfig();
+
+    if (!copied) {
+      return;
+    }
 
     this.$dispatch('growl/info', {
       title:   this.t('cluster.copiedConfig'),

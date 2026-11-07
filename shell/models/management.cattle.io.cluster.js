@@ -731,29 +731,55 @@ export default class MgmtCluster extends SteveModel {
     return res.status?.value;
   }
 
-  async downloadKubeConfig() {
-    const config = await this.generateKubeConfig();
-
-    downloadFile(`${ this.nameDisplay }.yaml`, config, 'application/yaml');
+  growlKubeConfigError(err) {
+    this.$dispatch('growl/error', {
+      title:   this.t('cluster.kubeConfig.error.title'),
+      message: err?.message || this.t('cluster.kubeConfig.error.requestFailed'),
+    }, { root: true });
   }
 
-  async downloadKubeConfigBulk(items) {
-    const clusters = this.kubeConfigClusterIds(items);
-    const config = await this.generateKubeConfig(clusters);
+  async downloadKubeConfig() {
+    try {
+      const config = await this.generateKubeConfig();
 
-    if (config) {
-      downloadFile('kubeconfig.yaml', config, 'application/yaml');
+      if (config) {
+        downloadFile(`${ this.nameDisplay }.yaml`, config, 'application/yaml');
+      }
+    } catch (err) {
+      this.growlKubeConfigError(err);
     }
   }
 
+  async downloadKubeConfigBulk(items) {
+    try {
+      const clusters = this.kubeConfigClusterIds(items);
+      const config = await this.generateKubeConfig(clusters);
+
+      if (config) {
+        downloadFile('kubeconfig.yaml', config, 'application/yaml');
+      }
+    } catch (err) {
+      this.growlKubeConfigError(err);
+    }
+  }
+
+  /**
+   * Returns true only when the kubeconfig was copied to the clipboard
+   */
   async copyKubeConfig() {
     try {
       const config = await this.generateKubeConfig();
 
       if (config) {
         await copyTextToClipboard(config);
+
+        return true;
       }
-    } catch {}
+    } catch (err) {
+      this.growlKubeConfigError(err);
+    }
+
+    return false;
   }
 
   async copyKubeConfigBulk(items) {
@@ -763,8 +789,14 @@ export default class MgmtCluster extends SteveModel {
 
       if (config) {
         await copyTextToClipboard(config);
+
+        return true;
       }
-    } catch {}
+    } catch (err) {
+      this.growlKubeConfigError(err);
+    }
+
+    return false;
   }
 
   async fetchNodeMetrics() {
