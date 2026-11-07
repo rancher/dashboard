@@ -46,6 +46,10 @@ export default class ClusterManagerCreatePagePo extends ClusterManagerCreateImpo
     return this.resourceDetail().cruResource().selectSubType(2, index).click();
   }
 
+  selectTypeByName(name: string) {
+    return this.self().find(`[data-testid="cluster-manager-create-grid-${ name }"]`);
+  }
+
   commandFromCustomClusterUI() {
     return this.self().get('code').contains('--insecure');
   }
