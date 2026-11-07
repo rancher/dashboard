@@ -143,6 +143,9 @@ const SHARED_PAIRS: [string, string, number][] = [
   ['--primary-hover-text', '--primary-hover-bg', TEXT],
   ['--primary-active-text', '--primary-active-bg', TEXT],
   ['--rc-info', '--rc-info-secondary', TEXT],
+  ['--rc-unknown', '--rc-unknown-secondary', TEXT],
+  ['--rc-none', '--body-bg', TEXT],
+  ['--rc-none', '--dropdown-hover-bg', TEXT],
 ];
 
 describe('theme colour contrast (WCAG 2.1 AA)', () => {
