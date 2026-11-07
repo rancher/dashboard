@@ -1560,7 +1560,7 @@ cluster:
         tooltip: Kubernetes 的 AWS 云提供商支持要求使用实例配置文件
       ami:
         label: AMI ID
-        placeholder: '默认：近版 Ubuntu LTS'
+        placeholder: '默认：openSUSE Leap 16.0，不可用时为近版 Ubuntu LTS'
       sshUser:
         label: 用于 AMI 的 SSH 用户名
         placeholder: '默认：ubuntu'
