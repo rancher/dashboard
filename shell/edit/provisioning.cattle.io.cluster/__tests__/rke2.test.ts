@@ -893,6 +893,46 @@ describe('component: rke2', () => {
     });
   });
 
+  describe('methods: handleMachinePoolError', () => {
+    it('should add the machine pool messages to the existing errors', () => {
+      const vm = {
+        errors:                   ['other error'],
+        machinePoolErrorMessages: [],
+        recordMachinePoolError:   jest.fn().mockReturnValue(['pool1 error']),
+      } as any;
+
+      (rke2.methods as any).handleMachinePoolError.call(vm, { pool1: ['datastore'] });
+
+      expect(vm.recordMachinePoolError).toHaveBeenCalledWith({ pool1: ['datastore'] });
+      expect(vm.errors).toStrictEqual(['other error', 'pool1 error']);
+    });
+
+    it('should replace the previous machine pool messages', () => {
+      const vm = {
+        errors:                   ['other error', 'pool1 old error'],
+        machinePoolErrorMessages: ['pool1 old error'],
+        recordMachinePoolError:   jest.fn().mockReturnValue(['pool1 new error']),
+      } as any;
+
+      (rke2.methods as any).handleMachinePoolError.call(vm, { pool1: ['folder'] });
+
+      expect(vm.errors).toStrictEqual(['other error', 'pool1 new error']);
+    });
+
+    it('should remove the previous machine pool messages when there are no more pool errors', () => {
+      const vm = {
+        errors:                   ['other error', 'pool1 old error'],
+        machinePoolErrorMessages: ['pool1 old error'],
+        recordMachinePoolError:   jest.fn().mockReturnValue([]),
+      } as any;
+
+      (rke2.methods as any).handleMachinePoolError.call(vm, { pool1: [] });
+
+      expect(vm.errors).toStrictEqual(['other error']);
+      expect(vm.machinePoolErrorMessages).toStrictEqual([]);
+    });
+  });
+
   // Characterization tests written ahead of extracting Kubernetes-version resolution
   // (versionOptions/selectedVersion/chartVersions/defaultVersion/fetchK8sVersions/cloudProviderOptions)
   // into a composable.

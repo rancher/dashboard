@@ -209,13 +209,22 @@ describe('composable: useMachinePools', () => {
       expect(result).toStrictEqual([message(1, 'pool-1', 'quantity')]);
     });
 
-    it('does NOT clear a pool\'s prior errors by reporting an empty list - lodash `merge` never shrinks an existing array', () => {
+    it('clears a pool\'s prior errors when an empty list is reported for it', () => {
       const { recordMachinePoolError } = useMachinePools();
 
       recordMachinePoolError({ 'pool-1': ['quantity'] });
       const result = recordMachinePoolError({ 'pool-1': [] });
 
-      expect(result).toStrictEqual([message(1, 'pool-1', 'quantity')]);
+      expect(result).toStrictEqual([]);
+    });
+
+    it('replaces a pool\'s prior errors instead of merging them by index', () => {
+      const { recordMachinePoolError } = useMachinePools();
+
+      recordMachinePoolError({ 'pool-1': ['quantity', 'roles'] });
+      const result = recordMachinePoolError({ 'pool-1': ['roles'] });
+
+      expect(result).toStrictEqual([message(1, 'pool-1', 'roles')]);
     });
   });
 
