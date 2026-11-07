@@ -6054,6 +6054,9 @@ inactivity:
 # Rancher Extensions
 plugins:
   altIcon: Icon for {extension} extension card
+  conflict:
+    bundleBlocked: "Cannot be installed because it contains { names }, which is already installed. Uninstall it first."
+    memberBlocked: 'Cannot be installed because it is already provided by the "{ name }" bundle.'
   deprecatedExtension: This extension is deprecated and may soon be removed from the catalog.
   incompatiblePrimeOnly: "The latest version of this extension ({ version }) needs Rancher Prime in order to be installed."
   incompatibleRancherVersion: "The latest version of this extension ({ version }) is not compatible with the current Rancher version ({ required })."

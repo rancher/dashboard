@@ -1,4 +1,17 @@
 #!/usr/bin/env bash
+# Package an extension repo's built charts and assets into an Extension Catalog Image -
+# a container serving the Helm repo and the extension JavaScript over HTTP, for
+# clusters that can't reach GitHub.
+#
+# Called by `publish -c` once the per-package build has finished; not a standalone
+# entry point. Expects assets/, charts/, extensions/, dist-pkg/ and index.yaml in the
+# working directory, plus the chart template staged at tmp/helm.
+#
+# Usage: build-catalog-image <name> <version> <registry> <org> <image-prefix> <--push> <podman>
+#
+# Not to be confused with `build-extensions-bundle`, which assembles several
+# extensions into one umbrella Helm chart. The two are independent: a catalog image
+# can contain bundles, individual extensions, or both.
 
 BASE_DIR="$(pwd)"
 
@@ -37,23 +50,26 @@ cp ${BASE_DIR}/index.yaml ${TMP}/container/plugin
 rm -f ${TMP}/container/plugin/report.html
 
 # Add extension .tgz files with proper naming
+#
+# Archives normally sit at extensions/<pkg>/<version>.tgz, but a bundle release puts
+# its members under extensions/<bundle>/<bundle-version>/<pkg>/<version>.tgz so it
+# never writes paths belonging to a member's own release. Find them wherever they are
+# rather than assuming a depth - a fixed-depth glob silently copies nothing, and the
+# image would then be missing the archives with no error to show for it.
+#
+# The served name stays <pkg>-<version>, which is what the chart endpoints point at,
+# regardless of how deeply the archive was nested.
 echo -e "${CYAN}Copying extension archives...${RESET}"
-for pkg_dir in ${BASE_DIR}/extensions/*/; do
-  pkg=$(basename "${pkg_dir}")
-  echo -e "Processing package: ${pkg}"
-  
-  # Find all .tgz files in the package directory
-  for tgz_path in "${pkg_dir}"*.tgz; do
-    if [ -f "${tgz_path}" ]; then
-      # Extract version from filename
-      version=$(basename "${tgz_path}" .tgz)
-      compressed_package_name="${pkg}-${version}.tgz"
-      
-      echo "Copying ${tgz_path} to ${TMP}/container/plugin/${compressed_package_name}"
-      cp "${tgz_path}" "${TMP}/container/plugin/${compressed_package_name}"
-    fi
-  done
-done
+while IFS= read -r tgz_path; do
+  [ -n "${tgz_path}" ] || continue
+
+  version=$(basename "${tgz_path}" .tgz)
+  pkg=$(basename "$(dirname "${tgz_path}")")
+  compressed_package_name="${pkg}-${version}.tgz"
+
+  echo "Copying ${tgz_path} to ${TMP}/container/plugin/${compressed_package_name}"
+  cp "${tgz_path}" "${TMP}/container/plugin/${compressed_package_name}"
+done < <(find "${BASE_DIR}/extensions" -name '*.tgz' -type f | sort)
 
 # Generate files.txt for each pkg and move pkg files into relative plugin directories
 for d in ${BASE_DIR}/dist-pkg/*; do

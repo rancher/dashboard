@@ -67,6 +67,12 @@ export default {
         warnings.push(this.info.incompatibilityMessage);
       }
 
+      // On the card this reason is only in a hover tooltip, which keyboard and screen
+      // reader users can't reach. Here it is readable text alongside the missing button.
+      if (this.info?.installConflictMessage) {
+        warnings.push(this.info.installConflictMessage);
+      }
+
       return warnings;
     },
 
@@ -129,8 +135,12 @@ export default {
       const selectedVersion = this.infoVersion;
       const installedVersion = this.currentVersion;
 
+      // The same gate the card applies. Without it this panel is a way round it, and
+      // the install fails with Helm's ownership error instead of an explanation.
+      const conflicted = !!this.info.installConflictMessage;
+
       if (!this.info.installed) {
-        if (this.info.installableVersions?.length) {
+        if (this.info.installableVersions?.length && !conflicted) {
           actions.push({
             label:   this.t('catalog.chart.chartButton.action.install'),
             action:  'install',
@@ -142,13 +152,15 @@ export default {
       } else {
         if (selectedVersion && installedVersion && selectedVersion !== installedVersion) {
           if (isChartVersionHigher(selectedVersion, installedVersion)) {
-            actions.push({
-              label:   this.t('catalog.chart.chartButton.action.upgrade'),
-              action:  'upgrade',
-              role:    'primary',
-              version: selectedVersion,
-              icon:    'icon-upgrade-alt'
-            });
+            if (!conflicted) {
+              actions.push({
+                label:   this.t('catalog.chart.chartButton.action.upgrade'),
+                action:  'upgrade',
+                role:    'primary',
+                version: selectedVersion,
+                icon:    'icon-upgrade-alt'
+              });
+            }
           } else {
             actions.push({
               label:   this.t('catalog.chart.chartButton.action.downgrade'),

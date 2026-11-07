@@ -186,6 +186,70 @@ if [ "${HAVE_COMMANDS}" == "false" ]; then
 fi
 
 # --------------------------------------------------------------------------------
+# Bundle releases
+#
+# A `bundle-<name>-<version>` tag releases an umbrella chart rather than a single
+# extension. Its members still have to be built first - the umbrella vendors their
+# generated charts - so resolve the tag into a member list and build exactly those.
+# parse-tag-name has already checked the name and version against rancher.bundles[].
+# --------------------------------------------------------------------------------
+BUNDLE_NAME=""
+
+if [[ "${GITHUB_RELEASE_TAG}" == bundle-* ]]; then
+  # Matched whole rather than split on a hyphen, since both the bundle name and a
+  # prerelease version (1.0.0-rc.1) can contain one. Same rule as parse-tag-name.
+  BUNDLE_ENTRY=$(jq -c --arg tag "${GITHUB_RELEASE_TAG}" \
+    '(.rancher.bundles // []) | map(select("bundle-" + .name + "-" + .version == $tag)) | .[0] // empty' ${BASE_DIR}/package.json)
+
+  if [[ -z "${BUNDLE_ENTRY}" ]]; then
+    echo -e "${YELLOW}Release tag ${BOLD}${GITHUB_RELEASE_TAG}${NORMAL} matches no entry in rancher.bundles[]${RESET}"
+    exit 1
+  fi
+
+  BUNDLE_NAME=$(jq -r '.name' <<<"${BUNDLE_ENTRY}")
+  BUNDLE_VERSION=$(jq -r '.version' <<<"${BUNDLE_ENTRY}")
+  BUNDLE_MEMBERS=$(jq -r '(.packages // []) | join(" ")' <<<"${BUNDLE_ENTRY}")
+
+  if [[ -z "${BUNDLE_MEMBERS}" ]]; then
+    echo -e "${YELLOW}Bundle ${BOLD}${BUNDLE_NAME}${NORMAL} declares no packages${RESET}"
+    exit 1
+  fi
+
+  echo -e "${CYAN}${BOLD}Bundle release: ${BUNDLE_NAME} ${BUNDLE_VERSION}${RESET}"
+  echo -e "${CYAN}  Members: ${BUNDLE_MEMBERS}${RESET}"
+
+  PLUGINS=( ${BUNDLE_MEMBERS} )
+fi
+
+# A catalog image has no tag filter, so every package is built - and without this a
+# bundle's members would also be offered as standalone charts inside it, three cards
+# where the bundle is meant to be one. Their charts are staged and vendored into the
+# bundle instead, exactly as in a bundle release.
+#
+# On a branch, which members are offered on their own is decided by which tags get
+# pushed. An image is one build with no tags, so a bundle has to say so explicitly:
+# anything in its `standaloneMembers` is published as its own chart here too, giving
+# the image the same choice a branch offers.
+BUNDLE_MEMBER_PKGS=""
+
+if [ "${GITHUB_BUILD}" == "false" ]; then
+  BUNDLE_MEMBER_PKGS=$(jq -r '
+    (([(.rancher.bundles // [])[].packages[]] | unique)
+     - ([(.rancher.bundles // [])[] | (.standaloneMembers // [])[]] | unique))
+    | join(" ")' ${BASE_DIR}/package.json)
+
+  STANDALONE_MEMBERS=$(jq -r '[(.rancher.bundles // [])[] | (.standaloneMembers // [])[]] | unique | join(" ")' ${BASE_DIR}/package.json)
+
+  if [[ -n "${BUNDLE_MEMBER_PKGS}" ]]; then
+    echo -e "${CYAN}  Bundle members (offered only via their bundle): ${BUNDLE_MEMBER_PKGS}${RESET}"
+  fi
+
+  if [[ -n "${STANDALONE_MEMBERS}" ]]; then
+    echo -e "${CYAN}  Bundle members also offered standalone: ${STANDALONE_MEMBERS}${RESET}"
+  fi
+fi
+
+# --------------------------------------------------------------------------------
 # Only do container args checks if not GitHub publish
 # --------------------------------------------------------------------------------
 if [ "${GITHUB_BUILD}" == "false" ]; then
@@ -236,6 +300,9 @@ mkdir -p ${CHARTS}
 
 TMP=${BASE_DIR}/tmp
 CHART_TMP=${BASE_DIR}/tmp/_charts
+# Member charts for a bundle release are generated here, not into charts/. They are
+# vendored into the bundle and never published in their own right - see BUNDLE_NAME.
+BUNDLE_STAGE=${BASE_DIR}/tmp/_bundle_members
 rm -rf ${TMP}
 mkdir -p ${TMP}
 
@@ -317,14 +384,30 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
   for d in pkg/*/ ; do
     pkg=$(basename $d)
 
-    if [ -z "$1" ] || [[ " ${PLUGINS[*]} " =~ " ${pkg} " ]]; then
+    # A `private` package is shared code, not a publishable extension. Skip it
+    # wherever it appears: as a release artifact it would be an extension chart that
+    # loads nothing, and as a bundle member it has no chart to vendor.
+    #
+    # The gh-pages flow hides this today because the release-tag filter below never
+    # matches a private package. A catalog image has no such filter, so without this
+    # guard every private package ends up in the image and its index.
+    if [[ "$(jq -r '.private // false' ./pkg/${pkg}/package.json)" == "true" ]]; then
+      echo -e "${YELLOW}Skipping private package ${RESET}${BOLD}${pkg}${RESET}"
+      continue
+    fi
+
+    # Scope by PLUGINS rather than by "$1": the list can be populated programmatically
+    # (a bundle release scopes it to that bundle's members), not just from the argv.
+    if [ ${#PLUGINS[@]} -eq 0 ] || [[ " ${PLUGINS[*]} " =~ " ${pkg} " ]]; then
       # Check we don't already have a published version by looking in the assets folder
       PKG_VERSION=$(jq -r .version ./pkg/${pkg}/package.json)
       PKG_NAME="${pkg}-${PKG_VERSION}"
       PKG_ASSET=${ASSETS}/${pkg}/${PKG_NAME}.tgz
 
       # Skip the build for a package that does not match the tagged release name
-      if [[ -n "${GITHUB_RELEASE_TAG}" ]] && [[ "${GITHUB_RELEASE_TAG}" != "head" ]] && [ ${GITHUB_BUILD} == "true" ] && [[ ${GITHUB_RELEASE_TAG} != ${PKG_NAME} ]]; then
+      # A bundle tag never equals <pkg>-<version>, so this filter would reject every
+      # member. PLUGINS has already been scoped to the bundle's members instead.
+      if [[ -z "${BUNDLE_NAME}" ]] && [[ -n "${GITHUB_RELEASE_TAG}" ]] && [[ "${GITHUB_RELEASE_TAG}" != "head" ]] && [ ${GITHUB_BUILD} == "true" ] && [[ ${GITHUB_RELEASE_TAG} != ${PKG_NAME} ]]; then
         echo -e "${YELLOW}Github release tag ${RESET}${BOLD}${GITHUB_RELEASE_TAG}${RESET}${YELLOW} does not match asset name${RESET}"
         echo -e "${YELLOW}Skipping ${RESET}${BOLD}${PKG_NAME}${RESET}"
         continue
@@ -347,7 +430,17 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
 
       echo -e "${CYAN}Adding extension code ...${RESET}"
 
-      EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
+      # A bundle owns its members' assets under its own namespace. Writing them to
+      # extensions/<pkg>/<version> would rewrite paths that belong to that member's
+      # own release - changing an already-published version's contents.
+      if [[ -n "${BUNDLE_NAME}" ]]; then
+        EXT_FOLDER=${BASE_DIR}/extensions/${BUNDLE_NAME}/${BUNDLE_VERSION}/${pkg}/${PKG_VERSION}
+        EXT_TGZ=${BASE_DIR}/extensions/${BUNDLE_NAME}/${BUNDLE_VERSION}/${pkg}/${PKG_VERSION}.tgz
+      else
+        EXT_FOLDER=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}
+        EXT_TGZ=${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}.tgz
+      fi
+
       PKG_DIST="${BASE_DIR}/dist-pkg/${PKG_NAME}"
 
       rm -rf ${EXT_FOLDER}
@@ -357,7 +450,7 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
       # Copy the code into the folder
       cp -R ${PKG_DIST}/* ${EXT_FOLDER}/plugin
 
-      pushd ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION} > /dev/null
+      pushd ${EXT_FOLDER} > /dev/null
       rm -f plugin/report.html
       find plugin -type f | sort > files.txt
       popd > /dev/null
@@ -366,20 +459,38 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
       # Package extensions into tgz for the compressedEndpoint
       # --------------------------------------------------------------------------------
       echo -e "${CYAN}Packaging extension into tgz${RESET}"
-      tar -czf ${BASE_DIR}/extensions/${pkg}/${PKG_VERSION}.tgz -C ${BASE_DIR}/extensions/${pkg} ${PKG_VERSION}
+      tar -czf ${EXT_TGZ} -C "$(dirname ${EXT_FOLDER})" ${PKG_VERSION}
 
       # --------------------------------------------------------------------------------
       # Create the Helm chart
       # --------------------------------------------------------------------------------
 
-      if [ -f ${PKG_ASSET} ] && [ "${FORCE}" == "false" ]; then
+      # A chart is staged, not published, when it belongs to a bundle being built
+      STAGE_CHART="false"
+
+      if [[ -n "${BUNDLE_NAME}" ]]; then
+        STAGE_CHART="true"
+      elif [[ " ${BUNDLE_MEMBER_PKGS} " == *" ${pkg} "* ]]; then
+        STAGE_CHART="true"
+      fi
+
+      # Skipped for a bundle release: its member charts are staged fresh every time
+      # and never published on their own, so there is no asset to collide with.
+      if [[ "${STAGE_CHART}" == "false" ]] && [ -f ${PKG_ASSET} ] && [ "${FORCE}" == "false" ]; then
         echo -e "${YELLOW}Helm chart has already been created - skipping (run with -f to force build)${RESET}"
         continue;
       fi
 
-      CHART_FOLDER=${CHARTS}/${pkg}/${PKG_VERSION}
+      # Stage a bundle's member charts outside the publishable tree. They exist only
+      # to be vendored into the umbrella; charts/<pkg>/ and assets/<pkg>/ belong to
+      # that member's own release and must not be written here.
+      if [[ "${STAGE_CHART}" == "true" ]]; then
+        CHART_FOLDER=${BUNDLE_STAGE}/${pkg}/${PKG_VERSION}
+      else
+        CHART_FOLDER=${CHARTS}/${pkg}/${PKG_VERSION}
+        mkdir -p ${ASSETS}/${pkg}
+      fi
 
-      mkdir -p ${ASSETS}/${pkg}
       rm -rf ${CHART_FOLDER}
       mkdir -p ${CHART_FOLDER}
 
@@ -407,13 +518,44 @@ if [ "${UPDATE_LATEST_PACAKGES}" = "true" ]; then
       ${SCRIPT_DIR}/helmpatch ${CHART_FOLDER} "${BASE_DIR}/pkg/${pkg}/package.json"
 
       # Package into a .tgz helm chart
-      helm package ${CHART_FOLDER} -d ${ASSETS}/${pkg}
-      debug_log "Chart packaged to: ${ASSETS}/${pkg}/${PKG_NAME}.tgz"
+      if [[ "${STAGE_CHART}" == "false" ]]; then
+        helm package ${CHART_FOLDER} -d ${ASSETS}/${pkg}
+        debug_log "Chart packaged to: ${ASSETS}/${pkg}/${PKG_NAME}.tgz"
+      else
+        debug_log "Bundle member staged at: ${CHART_FOLDER} (not packaged on its own)"
+      fi
 
       BUILT="true"
     fi
   done
 fi
+
+# --------------------------------------------------------------------------------
+# Assemble any umbrella charts, now that their members have been built.
+#
+# This has to happen here rather than after the script returns: everything below -
+# the Helm index, the tmp/ build artifact, the catalog image - has to see the bundle,
+# and in container mode the image is built and the working directories deleted before
+# this script exits. build-extensions-bundle is told to skip indexing for the same
+# reason; the index step below knows which --url the current flow needs.
+# --------------------------------------------------------------------------------
+BUNDLES_TO_BUILD=""
+
+if [[ -n "${BUNDLE_NAME}" ]]; then
+  # A bundle release builds exactly the bundle that was tagged
+  BUNDLES_TO_BUILD="${BUNDLE_NAME}"
+elif [ "${GITHUB_BUILD}" == "false" ]; then
+  # A catalog image is "everything in this repo", so it carries every declared bundle
+  BUNDLES_TO_BUILD=$(jq -r '(.rancher.bundles // [])[].name' ${BASE_DIR}/package.json | tr '\n' ' ')
+fi
+
+for BUNDLE in ${BUNDLES_TO_BUILD}; do
+  echo -e "${CYAN}${BOLD}Building bundle: ${BUNDLE}${RESET}"
+
+  ${SCRIPT_DIR}/build-extensions-bundle -n "${BUNDLE}" -x || exit 1
+
+  BUILT="true"
+done
 
 # Update the Helm Index for all charts, if changes were made
 if [ "${BUILT}" == "true" ]; then
@@ -474,7 +616,7 @@ if [ "${GITHUB_BUILD}" == "false" ]; then
   echo -e "${CYAN}Extension version: ${EXT_VERSION}${RESET}"
 
   # Build the container image
-  ${SCRIPT_DIR}/bundle "${BASE_EXT}" "${EXT_VERSION}" "${REGISTRY}" "${REGISTRY_ORG}" "${IMAGE_PREFIX}" "${PUSH}" "${PODMAN_CONTAINER}" || exit 1
+  ${SCRIPT_DIR}/build-catalog-image "${BASE_EXT}" "${EXT_VERSION}" "${REGISTRY}" "${REGISTRY_ORG}" "${IMAGE_PREFIX}" "${PUSH}" "${PODMAN_CONTAINER}" || exit 1
 else
   rm -rf ${CHART_TEMPLATE}
 fi

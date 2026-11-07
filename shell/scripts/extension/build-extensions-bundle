@@ -1,0 +1,684 @@
+#!/usr/bin/env bash
+# Assemble a Helm umbrella chart from extension charts already built by `publish`, so a
+# set of UI extensions installs as a single Helm release and shows as one card on the
+# Extensions screen. The bundle is declared under `rancher.bundles[]` in the extension
+# repo's root package.json. Run from the repo root, after `publish`.
+#
+#   yarn publish-pkgs -s <org>/<repo> -b gh-pages vulnerability-scanner runtime-enforcer
+#   yarn build-extensions-bundle -t bundle-security-ui-exts-1.0.0 \
+#     -s <org>/<repo> -b gh-pages
+#
+# Options:
+#   -t <tag>     Release tag, `bundle-<name>-<version>`. Name and version must match an
+#                entry in rancher.bundles[]. The usual entry point.
+#   -n <name>    Build this bundle at its declared version, without a tag. For local
+#                builds; -t is what CI uses.
+#   -s <repo>    GitHub repo (org/name) whose published index.yaml to merge against, so
+#                previously released chart versions survive. Defaults to git origin.
+#   -b <branch>  Branch holding that index.yaml (default: gh-pages)
+#   -x           Package the chart and stop. No index, no merge, no tmp/ refresh -
+#                for callers that index afterwards themselves, which is what `publish`
+#                does when it drives this script.
+#
+# A bundle release owns only paths under its own name and never touches a path a
+# member's own release owns:
+#
+#   charts/<bundle>/<version>/                      members vendored inside
+#   assets/<bundle>/<bundle>-<version>.tgz
+#   extensions/<bundle>/<version>/<member>/<mver>/  the bundle's own copy of the JS
+#
+# So `publish` building the members leaves charts/<member>/ and assets/<member>/
+# behind; this script relocates their JS under the bundle and removes the rest. That
+# keeps a bundle release from rewriting an already-published member chart - which
+# would change its digest and, worse, silently alter an immutable published version.
+#
+# It also means a repo can publish `runtime-enforcer` standalone AND a bundle that
+# contains it: two releases writing two disjoint sets of paths. Nothing is hidden or
+# overwritten to make that work.
+#
+# bash 3.2 compatible.
+set -eo pipefail
+
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+BASE_DIR="$(pwd)"
+
+CYAN="\033[96m"; YELLOW="\033[93m"; RED="\033[91m"; RESET="\033[0m"; BOLD="\033[1m"
+
+CHARTS="${BASE_DIR}/charts"
+ASSETS="${BASE_DIR}/assets"
+PKG_JSON="${BASE_DIR}/package.json"
+CHART_TEMPLATE="${SCRIPT_DIR}/helm/charts/ui-plugin-bundle"
+
+RELEASE_TAG=""; BUNDLE_NAME=""
+SKIP_INDEX="false"
+
+GITHUB_SOURCE="$(git config --get remote.origin.url 2>/dev/null | sed -e 's/^git@.*:\([[:graph:]]*\).git/\1/' -e 's|^https://github.com/||' -e 's|\.git$||')"
+GITHUB_BRANCH="gh-pages"
+
+# Identifies a member's bundle at runtime. Read from the UIPlugin CR's
+# spec.plugin.metadata by the Extensions screen.
+BUNDLE_ANNOTATION="catalog.cattle.io/ui-extensions-bundle"
+
+# First Rancher whose Extensions screen can install and uninstall a bundle as one unit
+MIN_RANCHER_VERSION="2.17"
+
+# Structural annotations a bundle must not redefine. ui-component is what makes the
+# catalog treat the chart as an extension at all, and namespace is where the release
+# and its UIPlugin CRs land - the backend only indexes CRs in the system namespace.
+# Overriding either produces a chart that publishes cleanly and then never appears.
+PROTECTED_ANNOTATIONS="catalog.cattle.io/ui-component
+catalog.cattle.io/namespace"
+
+usage() {
+  sed -n '2,39p' "$0" | sed 's/^# \{0,1\}//'
+  exit 1
+}
+
+while getopts "t:n:s:b:xh" opt; do
+  case $opt in
+    t) RELEASE_TAG="${OPTARG}" ;;
+    n) BUNDLE_NAME="${OPTARG}" ;;
+    s) GITHUB_SOURCE="${OPTARG}" ;;
+    b) GITHUB_BRANCH="${OPTARG}" ;;
+    x) SKIP_INDEX="true" ;;
+    *) usage ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+if [ ! -f "${PKG_JSON}" ]; then
+  echo -e "${RED}run from the extension repo root${RESET}"
+  exit 1
+fi
+
+for c in jq yq helm; do
+  command -v "$c" >/dev/null || { echo -e "${RED}this script requires ${BOLD}${c}${RESET}"; exit 1; }
+done
+
+if [ ! -d "${CHART_TEMPLATE}" ]; then
+  echo -e "${RED}bundle chart template missing: ${CHART_TEMPLATE}${RESET}"
+  exit 1
+fi
+
+# --------------------------------------------------- resolve the bundle entry
+# From a tag: bundle-<name>-<version>. Neither half can be split off on a hyphen - the
+# name may contain one, and so may a prerelease version like 1.0.0-rc.1 - so rebuild the
+# expected tag from each declared bundle and compare the whole string.
+if [ -n "${RELEASE_TAG}" ]; then
+  case "${RELEASE_TAG}" in
+    bundle-?*) ;;
+    *)
+      echo -e "${RED}'${RELEASE_TAG}' is not a bundle release tag${RESET}"
+      echo -e "${YELLOW}expected bundle-<name>-<version>, e.g. bundle-security-ui-exts-1.0.0${RESET}"
+      exit 1
+      ;;
+  esac
+
+  BUNDLE=$(jq -c --arg tag "${RELEASE_TAG}" \
+    '(.rancher.bundles // []) | map(select("bundle-" + .name + "-" + .version == $tag)) | .[0]' "${PKG_JSON}")
+
+  if [ -z "${BUNDLE}" ] || [ "${BUNDLE}" = "null" ]; then
+    echo -e "${RED}tag '${RELEASE_TAG}' matches no entry in rancher.bundles[]${RESET}"
+    echo -e "${YELLOW}  declared:${RESET}"
+    jq -r '(.rancher.bundles // [])[] | "    bundle-\(.name)-\(.version)"' "${PKG_JSON}" >&2 ||
+      echo -e "${YELLOW}    (none)${RESET}"
+    echo -e "${YELLOW}Bump the version in package.json, or retag.${RESET}"
+    exit 1
+  fi
+
+elif [ -n "${BUNDLE_NAME}" ]; then
+  BUNDLE=$(jq -c --arg n "${BUNDLE_NAME}" \
+    '(.rancher.bundles // []) | map(select(.name == $n)) | .[0]' "${PKG_JSON}")
+
+  if [ -z "${BUNDLE}" ] || [ "${BUNDLE}" = "null" ]; then
+    echo -e "${RED}no bundle named '${BUNDLE_NAME}' in rancher.bundles[]${RESET}"
+    exit 1
+  fi
+
+else
+  echo -e "${RED}one of -t <tag> or -n <name> is required${RESET}"
+  usage
+fi
+
+NAME=$(jq -r '.name'                      <<<"${BUNDLE}")
+VERSION=$(jq -r '.version'                <<<"${BUNDLE}")
+DISPLAY_NAME=$(jq -r '.displayName // ""' <<<"${BUNDLE}")
+DESC=$(jq -r '.description // ""'         <<<"${BUNDLE}")
+ICON=$(jq -r '.icon // ""'                <<<"${BUNDLE}")
+README=$(jq -r '.readme // ""'            <<<"${BUNDLE}")
+HOMEPAGE=$(jq -r '.homepage // ""'        <<<"${BUNDLE}")
+KEYWORDS=$(jq -c '.keywords // null'      <<<"${BUNDLE}")
+NO_AUTH=$(jq -r '.noAuth // false'        <<<"${BUNDLE}")
+ANNOTATIONS=$(jq -c '.annotations // {}'  <<<"${BUNDLE}")
+PACKAGES_CSV=$(jq -r '(.packages // []) | join(",")' <<<"${BUNDLE}")
+
+if [ -z "${NAME}" ] || [ "${NAME}" = "null" ] || [ -z "${VERSION}" ] || [ "${VERSION}" = "null" ]; then
+  echo -e "${RED}bundle entry needs both 'name' and 'version'${RESET}"
+  exit 1
+fi
+
+if [ -z "${PACKAGES_CSV}" ]; then
+  echo -e "${RED}bundle '${NAME}' declares no packages${RESET}"
+  exit 1
+fi
+
+# ------------------------------------------------------ Rancher version floor
+#
+# Bundles need a Dashboard that understands them. An older one installs the umbrella
+# happily and then shows the members as loose cards whose Uninstall removes nothing,
+# leaving the bundle stuck on the cluster.
+#
+# Rancher filters chart versions by catalog.cattle.io/rancher-version server-side -
+# both the index it serves and the download itself - so declaring the floor is what
+# keeps a bundle out of reach of older versions, including airgapped installs fed
+# from a catalog image. Nothing has to change on those versions for it to work.
+#
+# Raised here rather than left to whoever writes the annotations: there is exactly
+# one correct floor, and forgetting it ships a bundle that cannot be removed. Only
+# ever raised, never lowered, and anything that cannot be rewritten safely is an
+# error rather than a guess.
+
+# True when a version's major.minor sits below MIN_RANCHER_VERSION
+version_below_floor() {
+  local mm
+  mm="$(cut -d. -f1,2 <<<"${1#v}")"
+
+  if [ "${mm}" = "${MIN_RANCHER_VERSION}" ]; then
+    return 1
+  fi
+
+  [ "$(printf '%s\n%s\n' "${mm}" "${MIN_RANCHER_VERSION}" | sort -t. -k1,1n -k2,2n | head -1)" = "${mm}" ]
+}
+
+# Sortable weight for a version's major.minor.patch, for comparing two bounds against
+# each other. Prerelease and build metadata are ignored - they never decide whether a
+# range spanning whole minors is satisfiable.
+version_weight() {
+  local v="${1#v}" major minor patch
+
+  v="${v%%[-+]*}"
+  major="$(cut -d. -f1 <<<"${v}")"
+  minor="$(cut -d. -f2 -s <<<"${v}")"
+  patch="$(cut -d. -f3 -s <<<"${v}")"
+
+  printf '%d' "$(( ${major:-0} * 1000000 + ${minor:-0} * 1000 + ${patch:-0} ))"
+}
+
+# Echoes the range to publish. Exit codes report why a range cannot be raised:
+#   2 unparseable or an OR of ranges   3 tilde/caret   4 pin below the floor
+#   5 more than one lower bound       6 upper bound leaves nothing satisfiable
+raise_rancher_version_floor() {
+  local range="$1"
+  local floor=">= v${MIN_RANCHER_VERSION}.0-0"
+  local clause_re='^[[:space:]]*(>=|<=|!=|\^|~|>|<|=)?[[:space:]]*(v?[0-9]+(\.[0-9]+)*(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?)[[:space:]]*(.*)$'
+  local work sep=" " out="" i
+  local ops=() vers=() lower_count=0 lower_idx=-1 has_pin=0
+  local effective_lower lower_weight upper_weight
+
+  # Nothing declared, so declare it
+  if [ -z "${range//[[:space:]]/}" ]; then
+    printf '%s' "${floor}"
+    return 0
+  fi
+
+  # An OR of ranges has no single lower bound to raise
+  case "${range}" in
+    *'||'*) return 2 ;;
+  esac
+
+  # Keep the author's separator, so only the clause we rewrite changes
+  case "${range}" in
+    *,*) sep=", " ;;
+  esac
+
+  work="${range//,/ }"
+
+  while [ -n "${work//[[:space:]]/}" ]; do
+    if [[ ! "${work}" =~ ${clause_re} ]]; then
+      return 2
+    fi
+
+    ops+=("${BASH_REMATCH[1]}")
+    vers+=("${BASH_REMATCH[2]}")
+    work="${BASH_REMATCH[6]}"
+  done
+
+  for i in "${!ops[@]}"; do
+    case "${ops[$i]}" in
+      '~'|'^')
+        # Carries an implied upper bound too, so raising the floor could leave a
+        # range nothing satisfies. The author has to resolve this one.
+        return 3
+        ;;
+      ''|'=')
+        # An exact pin cannot be raised without changing which version is allowed
+        if version_below_floor "${vers[$i]}"; then
+          return 4
+        fi
+
+        has_pin=1
+        ;;
+      '>='|'>')
+        lower_count=$((lower_count + 1))
+        lower_idx="${i}"
+        ;;
+    esac
+  done
+
+  if [ "${lower_count}" -gt 1 ]; then
+    return 5
+  fi
+
+  # An exact pin is its own lower bound, and it already cleared the floor above
+  if [ "${has_pin}" -eq 1 ]; then
+    printf '%s' "${range}"
+    return 0
+  fi
+
+  # The lower bound the published range will end up with, which is what any upper
+  # bound has to leave room above
+  if [ "${lower_count}" -eq 0 ] || version_below_floor "${vers[$lower_idx]}"; then
+    effective_lower="${MIN_RANCHER_VERSION}.0"
+  else
+    effective_lower="${vers[$lower_idx]}"
+  fi
+
+  # An upper bound at or below that leaves a range no Rancher can satisfy, and the
+  # extension would simply never appear. Same reason '~' and '^' are refused above:
+  # the only safe fix is the author's to make.
+  lower_weight="$(version_weight "${effective_lower}")"
+
+  for i in "${!ops[@]}"; do
+    case "${ops[$i]}" in
+      '<'|'<=')
+        upper_weight="$(version_weight "${vers[$i]}")"
+
+        if [ "${upper_weight}" -lt "${lower_weight}" ]; then
+          return 6
+        fi
+
+        if [ "${upper_weight}" -eq "${lower_weight}" ] && [ "${ops[$i]}" = "<" ]; then
+          return 6
+        fi
+        ;;
+    esac
+  done
+
+  # Only upper bounds or exclusions, so a floor can simply go in front
+  if [ "${lower_count}" -eq 0 ]; then
+    printf '%s%s%s' "${floor}" "${sep}" "${range}"
+    return 0
+  fi
+
+  if ! version_below_floor "${vers[$lower_idx]}"; then
+    printf '%s' "${range}"
+    return 0
+  fi
+
+  ops[$lower_idx]=">="
+  vers[$lower_idx]="v${MIN_RANCHER_VERSION}.0-0"
+
+  for i in "${!ops[@]}"; do
+    if [ -n "${out}" ]; then
+      out+="${sep}"
+    fi
+
+    if [ -n "${ops[$i]}" ]; then
+      out+="${ops[$i]} ${vers[$i]}"
+    else
+      out+="${vers[$i]}"
+    fi
+  done
+
+  printf '%s' "${out}"
+}
+
+RANCHER_VERSION_KEY="catalog.cattle.io/rancher-version"
+RANCHER_RANGE=$(jq -r --arg k "${RANCHER_VERSION_KEY}" '.[$k] // ""' <<<"${ANNOTATIONS}")
+RAISED_RANGE=""
+RAISE_STATUS=0
+
+RAISED_RANGE=$(raise_rancher_version_floor "${RANCHER_RANGE}") || RAISE_STATUS=$?
+
+if [ "${RAISE_STATUS}" != "0" ]; then
+  echo -e "${RED}bundle '${NAME}' has a ${RANCHER_VERSION_KEY} that cannot be raised to ${MIN_RANCHER_VERSION}${RESET}"
+  echo -e "${YELLOW}  found: '${RANCHER_RANGE}'${RESET}"
+
+  case "${RAISE_STATUS}" in
+    2) echo -e "${YELLOW}  Could not read it as a single version range.${RESET}" ;;
+    3) echo -e "${YELLOW}  A '~' or '^' range carries its own upper bound, so raising the floor${RESET}"
+       echo -e "${YELLOW}  could leave a range no Rancher satisfies.${RESET}" ;;
+    4) echo -e "${YELLOW}  It pins an exact version below ${MIN_RANCHER_VERSION}, which cannot be raised${RESET}"
+       echo -e "${YELLOW}  without changing which Rancher the bundle targets.${RESET}" ;;
+    5) echo -e "${YELLOW}  It declares more than one lower bound.${RESET}" ;;
+    6) echo -e "${YELLOW}  Its upper bound is at or below ${MIN_RANCHER_VERSION}, so raising the floor would leave${RESET}"
+       echo -e "${YELLOW}  a range no Rancher satisfies and the bundle would never appear anywhere.${RESET}"
+       echo -e "${YELLOW}  Raise the upper bound, or drop it.${RESET}" ;;
+  esac
+
+  echo -e "${YELLOW}  Extension bundles need Rancher ${MIN_RANCHER_VERSION} or later - older versions can install${RESET}"
+  echo -e "${YELLOW}  them but cannot uninstall them, so the annotation has to keep them out.${RESET}"
+  echo -e "${YELLOW}  Set this in the bundle's annotations in ${PKG_JSON}:${RESET}"
+  echo -e "${YELLOW}    \"${RANCHER_VERSION_KEY}\": \">= v${MIN_RANCHER_VERSION}.0-0\"${RESET}"
+  exit 1
+fi
+
+if [ "${RAISED_RANGE}" != "${RANCHER_RANGE}" ]; then
+  echo -e "${YELLOW}Raised ${RANCHER_VERSION_KEY} to '${RAISED_RANGE}'${RESET}"
+  echo -e "${YELLOW}  was: '${RANCHER_RANGE:-<unset>}'${RESET}"
+  echo -e "${YELLOW}  Extension bundles need Rancher ${MIN_RANCHER_VERSION} or later. Update the bundle's${RESET}"
+  echo -e "${YELLOW}  annotations in ${PKG_JSON} so the source matches what is published.${RESET}"
+
+  ANNOTATIONS=$(jq -c --arg k "${RANCHER_VERSION_KEY}" --arg v "${RAISED_RANGE}" '.[$k] = $v' <<<"${ANNOTATIONS}")
+fi
+
+# standaloneMembers names must be members. A typo here is otherwise silent - the
+# package simply stays bundle-only and nobody finds out until the image ships.
+BAD_STANDALONE=$(jq -r '((.standaloneMembers // []) - (.packages // [])) | join(", ")' <<<"${BUNDLE}")
+
+if [ -n "${BAD_STANDALONE}" ]; then
+  echo -e "${RED}bundle '${NAME}' lists ${BAD_STANDALONE} in standaloneMembers, but not in packages${RESET}"
+  exit 1
+fi
+
+# A bundle sharing a name with a pkg/ directory makes release tags ambiguous
+if [ -d "${BASE_DIR}/pkg/${NAME}" ]; then
+  echo -e "${RED}bundle name '${NAME}' collides with pkg/${NAME}${RESET}"
+  echo -e "${YELLOW}Rename the bundle - tags would be ambiguous otherwise.${RESET}"
+  exit 1
+fi
+
+# csv -> space-delimited list (no mapfile, for bash 3.2)
+PACKAGES=""
+OLD_IFS="${IFS}"; IFS=','
+for p in ${PACKAGES_CSV}; do
+  p=$(echo "${p}" | tr -d '[:space:]')
+  if [ -n "${p}" ]; then PACKAGES="${PACKAGES}${p} "; fi
+done
+IFS="${OLD_IFS}"
+
+# Helm rejects duplicate dependencies, but only at `helm package` - by then member
+# charts have already been rewritten by -m hidden. Catch it before anything is touched.
+for p in ${PACKAGES}; do
+  COUNT=0
+  for q in ${PACKAGES}; do
+    if [ "${p}" = "${q}" ]; then COUNT=$((COUNT + 1)); fi
+  done
+
+  if [ "${COUNT}" -gt 1 ]; then
+    echo -e "${RED}'${p}' is listed ${COUNT} times in bundle '${NAME}'${RESET}"
+    exit 1
+  fi
+done
+
+while IFS= read -r key; do
+  [ -n "${key}" ] || continue
+  DECLARED=$(jq -r --arg k "${key}" '.[$k] // ""' <<<"${ANNOTATIONS}")
+  EXPECTED=$(yq eval ".annotations[\"${key}\"] // \"\"" "${CHART_TEMPLATE}/Chart.yaml")
+
+  if [ -n "${DECLARED}" ] && [ "${DECLARED}" != "${EXPECTED}" ]; then
+    echo -e "${RED}bundle '${NAME}' redefines ${key}${RESET}"
+    echo -e "${YELLOW}  declared: ${DECLARED}${RESET}"
+    echo -e "${YELLOW}  required: ${EXPECTED}${RESET}"
+    echo -e "${YELLOW}Changing it produces a chart that publishes but never shows up.${RESET}"
+    exit 1
+  fi
+done <<EOF
+${PROTECTED_ANNOTATIONS}
+EOF
+
+echo -e "${CYAN}${BOLD}Building bundle ${NAME}-${VERSION}${RESET}"
+echo -e "${CYAN}  Members     : ${PACKAGES}${RESET}"
+echo -e "${CYAN}  Index merge : ${GITHUB_SOURCE:-<none>} @ ${GITHUB_BRANCH}${RESET}"
+
+DEST="${CHARTS}/${NAME}/${VERSION}"
+rm -rf "${DEST}"
+mkdir -p "${DEST}"
+cp -R "${CHART_TEMPLATE}/." "${DEST}/"
+mkdir -p "${DEST}/charts"
+
+# ------------------------------------------- vendor members + validate ranges
+# Rancher installs from the packaged .tgz served by the ClusterRepo, and Helm will not
+# resolve missing dependencies at install time. Copy the generated member charts
+# straight in: no `helm dependency update`, no network at install, airgap-safe.
+DEPS=""
+MEMBER_LIST=""
+
+for m in ${PACKAGES}; do
+  MPKG="${BASE_DIR}/pkg/${m}/package.json"
+
+  if [ ! -f "${MPKG}" ]; then
+    echo -e "${RED}bundle '${NAME}' lists '${m}', but there is no pkg/${m}${RESET}"
+    exit 1
+  fi
+
+  MVER=$(jq -r '.version' "${MPKG}")
+
+  # `publish` stages a bundle's member charts outside the publishable tree, precisely
+  # so this release never writes charts/<member>/. Fall back to charts/ for a
+  # standalone invocation of this script.
+  SRC="${BASE_DIR}/tmp/_bundle_members/${m}/${MVER}"
+
+  if [ ! -d "${SRC}" ]; then
+    SRC="${CHARTS}/${m}/${MVER}"
+  fi
+
+  if [ ! -d "${SRC}" ]; then
+    echo -e "${RED}member chart missing: charts/${m}/${MVER}${RESET}"
+    echo -e "${YELLOW}Build the members first:${RESET}"
+    echo -e "${YELLOW}  yarn publish-pkgs -s ${GITHUB_SOURCE:-<org>/<repo>} -b ${GITHUB_BRANCH} ${PACKAGES}${RESET}"
+    exit 1
+  fi
+
+  echo -e "  + vendoring ${m} ${MVER}"
+  cp -R "${SRC}" "${DEST}/charts/${m}"
+
+  DEPS="${DEPS}  - name: ${m}
+    version: ${MVER}
+    condition: ${m}.enabled
+"
+  MEMBER_LIST="${MEMBER_LIST}${m},"
+done
+MEMBER_LIST="${MEMBER_LIST%,}"
+
+# ------------------------------------------------------- patch the template
+yq -i eval ".name = \"${NAME}\"" "${DEST}/Chart.yaml"
+yq -i eval ".version = \"${VERSION}\"" "${DEST}/Chart.yaml"
+yq -i eval ".appVersion = \"${VERSION}\"" "${DEST}/Chart.yaml"
+
+if [ -n "${DESC}" ]; then yq -i eval ".description = \"${DESC}\"" "${DEST}/Chart.yaml"; fi
+if [ -n "${ICON}" ]; then yq -i eval ".icon = \"${ICON}\"" "${DEST}/Chart.yaml"; fi
+
+# Same rule helm/scripts/patch applies to a package's homepage/keywords: when the
+# author hasn't declared one, drop the field rather than let the template's default
+# stand in. A bundle inheriting "home: rancher.com" would misattribute a partner or
+# community suite.
+if [ -n "${HOMEPAGE}" ]; then
+  yq -i eval ".home = \"${HOMEPAGE}\"" "${DEST}/Chart.yaml"
+else
+  yq -i eval "del(.home)" "${DEST}/Chart.yaml"
+fi
+
+if [ -n "${KEYWORDS}" ] && [ "${KEYWORDS}" != "null" ]; then
+  yq -i -I2 eval ".keywords = ${KEYWORDS}" "${DEST}/Chart.yaml"
+else
+  yq -i eval "del(.keywords)" "${DEST}/Chart.yaml"
+fi
+
+if [ -n "${DISPLAY_NAME}" ]; then
+  yq -i eval ".annotations[\"catalog.cattle.io/display-name\"] = \"${DISPLAY_NAME}\"" "${DEST}/Chart.yaml"
+fi
+
+# The bundle's own compatibility and certification annotations. Only these gate
+# anything - the members' copies are invisible to the catalog.
+echo "${ANNOTATIONS}" | jq -r 'to_entries[] | @base64' | while read -r ann; do
+  [ -n "${ann}" ] || continue
+  key=$(echo "${ann}" | base64 --decode | jq -r '.key')
+  value=$(echo "${ann}" | base64 --decode | jq -r '.value')
+
+  yq -i eval ".annotations[\"${key}\"] = \"${value}\"" "${DEST}/Chart.yaml"
+done
+
+yq -i eval ".annotations[\"catalog.cattle.io/ui-extensions-bundle-members\"] = \"${MEMBER_LIST}\"" "${DEST}/Chart.yaml"
+
+# Vendored subcharts still need declaring, so Helm honours the condition flags
+printf 'dependencies:\n%s' "${DEPS}" >> "${DEST}/Chart.yaml"
+
+# ----------------------------------------------------------- parent README
+# Helm only surfaces the top-level chart's README, so the member READMEs vendored into
+# charts/ are invisible. Without this the extension info panel is blank.
+if [ -n "${README}" ]; then
+  if [ ! -f "${BASE_DIR}/${README}" ]; then
+    echo -e "${RED}readme not found: ${README}${RESET}"
+    echo -e "${YELLOW}Declared in rancher.bundles[].readme${RESET}"
+    exit 1
+  fi
+
+  cp "${BASE_DIR}/${README}" "${DEST}/README.md"
+  echo -e "${CYAN}README      : ${README}${RESET}"
+else
+  echo -e "${YELLOW}No README declared - the extension info panel will be empty${RESET}"
+fi
+
+# ------------------------------- parent values - only what the parent knows
+# Patched with yq rather than appended as text, so the template can declare its own
+# defaults without risking a duplicate root key.
+#
+# noAuth has to be set in two scopes, because two consumers read two different places
+# and neither can see the other's:
+#
+#   root plugin.noAuth       the install dialog's warning. Rancher's InfoFromTarball
+#                            decodes only the chart's top-level values.yaml, so this
+#                            is the one place the Dashboard can find it.
+#   <member>.plugin.noAuth   what cr.yaml actually renders into the UIPlugin CR. A
+#                            subchart's .Values is scoped to its own key - the parent's
+#                            root values are invisible to it - so the root copy alone
+#                            would warn about behaviour that never happens.
+VALUES="${DEST}/values.yaml"
+
+if [ "${NO_AUTH}" = "true" ]; then
+  yq -i eval '.plugin.noAuth = true' "${VALUES}"
+fi
+
+for m in ${PACKAGES}; do
+  yq -i eval ".\"${m}\".enabled = true" "${VALUES}"
+  yq -i eval ".\"${m}\".fullnameOverride = \"${m}\"" "${VALUES}"
+  yq -i eval ".\"${m}\".plugin.metadata.\"${BUNDLE_ANNOTATION}\" = \"${NAME}\"" "${VALUES}"
+
+  if [ "${NO_AUTH}" = "true" ]; then
+    yq -i eval ".\"${m}\".plugin.noAuth = true" "${VALUES}"
+  fi
+done
+
+# ------------------------------------------- repoint the vendored members
+# `publish` wrote each member's JS under this bundle's namespace, but helmpatch had
+# already composed the endpoint as if the member were releasing on its own. Correct it
+# to where the files actually are.
+#
+# Only the GitHub form is rewritten. A catalog image serves from a flattened
+# plugin/<member>-<version> path that is unaffected, and its endpoint will not match.
+for m in ${PACKAGES}; do
+  MVER=$(jq -r '.version' "${BASE_DIR}/pkg/${m}/package.json")
+  MVALUES="${DEST}/charts/${m}/values.yaml"
+  OLD_PATH="extensions/${m}/${MVER}"
+  NEW_PATH="extensions/${NAME}/${VERSION}/${m}/${MVER}"
+
+  REPOINTED="false"
+
+  for KEY in endpoint compressedEndpoint; do
+    CURRENT=$(yq eval ".plugin.${KEY}" "${MVALUES}")
+
+    case "${CURRENT}" in
+      *"/${OLD_PATH}"*)
+        yq -i eval ".plugin.${KEY} = \"${CURRENT/${OLD_PATH}/${NEW_PATH}}\"" "${MVALUES}"
+        REPOINTED="true"
+        ;;
+    esac
+  done
+
+  if [ "${REPOINTED}" = "true" ]; then
+    echo -e "  - ${m} ${MVER} -> ${NEW_PATH}"
+  fi
+done
+
+# --------------------------------------------------------- package + index
+mkdir -p "${ASSETS}/${NAME}"
+helm package "${DEST}" -d "${ASSETS}/${NAME}"
+
+# `publish` indexes and assembles tmp/ itself, right after it calls us, and it knows
+# which --url to use for the flow it is running. Doing either here would duplicate
+# that work and get the catalog-image URL wrong.
+if [ "${SKIP_INDEX}" = "true" ]; then
+  echo -e "${CYAN}${BOLD}Done: assets/${NAME}/${NAME}-${VERSION}.tgz (indexing left to the caller)${RESET}"
+  exit 0
+fi
+
+# The published index is the merge base whenever we know where to find it. A local
+# index.yaml is not trustworthy: `publish` writes one covering only the packages it just
+# built, so merging against that would quietly drop everything else. Local assets are
+# scanned regardless, so preferring the remote loses nothing.
+MERGE_INDEX=""
+
+if [ -n "${GITHUB_SOURCE}" ]; then
+  INDEX_URL="https://raw.githubusercontent.com/${GITHUB_SOURCE}/${GITHUB_BRANCH}/index.yaml"
+  REMOTE_INDEX="${BASE_DIR}/.published-index.yaml"
+
+  echo -e "${CYAN}Fetching the published index to merge against${RESET}"
+  echo -e "${CYAN}  ${INDEX_URL}${RESET}"
+
+  if curl -sfL "${INDEX_URL}" -o "${REMOTE_INDEX}"; then
+    MERGE_INDEX="${REMOTE_INDEX}"
+    echo -e "  + merging $(yq eval '.entries | length' "${MERGE_INDEX}") published chart(s)"
+  else
+    rm -f "${REMOTE_INDEX}"
+    echo -e "${YELLOW}  ! could not fetch it${RESET}"
+
+    if [ -f "${BASE_DIR}/index.yaml" ]; then
+      MERGE_INDEX="${BASE_DIR}/index.yaml"
+      echo -e "${YELLOW}    falling back to the local index.yaml, which may be incomplete${RESET}"
+    else
+      echo -e "${YELLOW}    no merge base at all. If that branch already has published${RESET}"
+      echo -e "${YELLOW}    charts, STOP - indexing now would drop them. Check -s / -b.${RESET}"
+    fi
+  fi
+elif [ -f "${BASE_DIR}/index.yaml" ]; then
+  MERGE_INDEX="${BASE_DIR}/index.yaml"
+fi
+
+if [ -n "${MERGE_INDEX}" ] && [ -f "${MERGE_INDEX}" ]; then
+  helm repo index "${ASSETS}" --url assets/ --merge "${MERGE_INDEX}"
+else
+  helm repo index "${ASSETS}" --url assets/
+fi
+
+# No pruning. `--merge` keeps entries whose archive is absent, which is exactly what is
+# wanted here: a member released standalone in the past keeps its index entry, its
+# archive and its card, untouched by this bundle release. The member archives this run
+# produced were removed above, so nothing new is added for them either.
+
+cp "${ASSETS}/index.yaml" "${BASE_DIR}/index.yaml"
+rm -f "${BASE_DIR}/.published-index.yaml"
+
+# ------------------------------------------------------- refresh tmp/ for CI
+# `publish` assembles tmp/ as the last thing it does, and tmp/ is what the workflow
+# uploads as the build artifact. Anything written afterwards - i.e. this whole script -
+# is invisible to the release job unless tmp/ is brought back in sync. Mirror rather
+# than merge: exclude mode removes member archives, and a merge would leave the stale
+# copies publish already staged.
+if [ -d "${BASE_DIR}/tmp" ]; then
+  echo -e "${CYAN}Refreshing tmp/ so the bundle reaches the release job${RESET}"
+
+  rm -rf "${BASE_DIR}/tmp/assets" "${BASE_DIR}/tmp/charts"
+  mkdir -p "${BASE_DIR}/tmp/assets" "${BASE_DIR}/tmp/charts" "${BASE_DIR}/tmp/extensions"
+
+  cp -R "${ASSETS}/." "${BASE_DIR}/tmp/assets/"
+  cp -R "${CHARTS}/." "${BASE_DIR}/tmp/charts/"
+  cp "${BASE_DIR}/index.yaml" "${BASE_DIR}/tmp/index.yaml"
+
+  if [ -d "${BASE_DIR}/extensions" ]; then
+    cp -R "${BASE_DIR}/extensions/." "${BASE_DIR}/tmp/extensions/"
+  fi
+fi
+
+echo -e "${CYAN}${BOLD}Done: assets/${NAME}/${NAME}-${VERSION}.tgz${RESET}"
+echo -e "${CYAN}Verify: helm template ${NAME} ${DEST} -n cattle-ui-plugin-system${RESET}"
