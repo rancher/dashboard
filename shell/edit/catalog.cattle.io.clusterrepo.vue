@@ -517,6 +517,7 @@ export default {
       :register-before-hook="registerBeforeHook"
       :namespace="secretNamespace"
       :limit-to-namespace="false"
+      :allow-namespace-select="true"
       :in-store="inStore"
       :allow-ssh="clusterRepoType !== CLUSTER_REPO_TYPES.OCI_URL"
       :pre-select="clusterRepoType === CLUSTER_REPO_TYPES.SUSE_APP_COLLECTION ? { selected: AUTH_TYPE._BASIC } : null"

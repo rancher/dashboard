@@ -110,6 +110,15 @@ describe('component: SelectOrCreateAuthSecret', () => {
 
       expect(rule('value')).toStrictEqual(undefined);
     });
+
+    it.each([
+      'auth-secret-ssh-public-key',
+      'auth-secret-ssh-private-key',
+    ])('should give the %p textarea a one line minimum height', (testId) => {
+      const textArea = findCredentialInput(AUTH_TYPE._SSH, testId).findComponent({ name: 'TextAreaAutoGrow' });
+
+      expect(textArea.props('minHeight')).toStrictEqual(19);
+    });
   });
 
   describe('GitHub App auth', () => {
@@ -231,6 +240,139 @@ describe('component: SelectOrCreateAuthSecret', () => {
 
       expect(optionValues).toContain('default/gh-app');
       expect(optionValues).not.toContain('default/plain');
+    });
+  });
+
+  describe('namespace select for a new secret', () => {
+    const createSecret = jest.fn();
+
+    const namespaceSetup = (props: Record<string, unknown> = {}, selected: string = AUTH_TYPE._SSH) => {
+      const $store = {
+        getters: {
+          'i18n/t':      (key: string) => key,
+          'cluster/all': () => [{ id: 'fleet-default' }, { id: 'cattle-system' }, { id: 'apps' }],
+        },
+        dispatch: (action: string, data: unknown) => action === 'cluster/create' ? createSecret(data) : undefined,
+      };
+
+      return mount(SelectOrCreateAuthSecret, {
+        global: { ...requiredSetup().global, mocks: { $fetchState: {}, $store } },
+        props:  {
+          mode:               _EDIT,
+          namespace:          'cattle-system',
+          registerBeforeHook: () => {},
+          ...props,
+        },
+        data() {
+          return { selected } as any;
+        }
+      });
+    };
+
+    const findNamespaceSelect = (wrapper: ReturnType<typeof namespaceSetup>) => wrapper.find('[data-testid="auth-secret-namespace-select"]');
+
+    beforeEach(() => {
+      createSecret.mockReset();
+      createSecret.mockImplementation(({ metadata }) => ({
+        id:   `${ metadata.namespace }/auth-abc`,
+        metadata,
+        save: jest.fn(),
+      }));
+    });
+
+    it('should not show the namespace select when allowNamespaceSelect is not set', () => {
+      const wrapper = namespaceSetup();
+
+      expect(findNamespaceSelect(wrapper).exists()).toStrictEqual(false);
+    });
+
+    it.each([
+      AUTH_TYPE._SSH,
+      AUTH_TYPE._BASIC,
+      AUTH_TYPE._IMAGE_PULL_SECRET,
+    ])('should show the namespace select for %p when allowNamespaceSelect is true', (selected) => {
+      const wrapper = namespaceSetup({ allowNamespaceSelect: true }, selected);
+
+      expect(findNamespaceSelect(wrapper).exists()).toStrictEqual(true);
+    });
+
+    it.each([
+      AUTH_TYPE._NONE,
+      AUTH_TYPE._S3,
+      AUTH_TYPE._RKE,
+      AUTH_TYPE._GITHUB_APP,
+      'cattle-system/existing-secret',
+    ])('should not show the namespace select for %p when allowNamespaceSelect is true', (selected) => {
+      const wrapper = namespaceSetup({ allowNamespaceSelect: true }, selected);
+
+      expect(findNamespaceSelect(wrapper).exists()).toStrictEqual(false);
+    });
+
+    it('should default the selected namespace to the namespace prop', () => {
+      const wrapper = namespaceSetup({ allowNamespaceSelect: true });
+
+      expect((wrapper.vm as any).createNamespace).toStrictEqual('cattle-system');
+    });
+
+    it('should list the namespaces of the store in alphabetical order', () => {
+      const wrapper = namespaceSetup({ allowNamespaceSelect: true });
+
+      expect((wrapper.vm as any).namespaceOptions).toStrictEqual(['apps', 'cattle-system', 'fleet-default']);
+    });
+
+    it('should follow the namespace prop when it changes', async() => {
+      const wrapper = namespaceSetup({ allowNamespaceSelect: true });
+
+      await wrapper.setProps({ namespace: 'apps' });
+
+      expect((wrapper.vm as any).createNamespace).toStrictEqual('apps');
+    });
+
+    it.each([
+      [false, 'col span-3', 'col span-3'],
+      [true, 'col span-3', 'col span-2'],
+    ])('should use four columns when the namespace select is shown (showSshKnownHosts %p)', (showSshKnownHosts, firstCol, moreCols) => {
+      const wrapper = namespaceSetup({ allowNamespaceSelect: true, showSshKnownHosts });
+
+      expect([(wrapper.vm as any).firstCol, (wrapper.vm as any).moreCols]).toStrictEqual([firstCol, moreCols]);
+    });
+
+    it.each([
+      [false, 'col span-4', 'col span-4'],
+      [true, 'col span-4', 'col span-3'],
+    ])('should keep the default columns when the namespace select is not shown (showSshKnownHosts %p)', (showSshKnownHosts, firstCol, moreCols) => {
+      const wrapper = namespaceSetup({ showSshKnownHosts });
+
+      expect([(wrapper.vm as any).firstCol, (wrapper.vm as any).moreCols]).toStrictEqual([firstCol, moreCols]);
+    });
+
+    it('should create the secret in the selected namespace', async() => {
+      const wrapper = namespaceSetup({ allowNamespaceSelect: true });
+
+      await wrapper.setData({ createNamespace: 'apps' });
+      await (wrapper.vm as any).doCreate();
+
+      expect(createSecret).toHaveBeenCalledWith({ type: 'secret', metadata: { namespace: 'apps', generateName: 'auth-' } });
+    });
+
+    it('should create the secret in the namespace prop when allowNamespaceSelect is not set', async() => {
+      const wrapper = namespaceSetup();
+
+      await wrapper.setData({ createNamespace: 'apps' });
+      await (wrapper.vm as any).doCreate();
+
+      expect(createSecret).toHaveBeenCalledWith({ type: 'secret', metadata: { namespace: 'cattle-system', generateName: 'auth-' } });
+    });
+
+    it('should emit the namespace and name of the new secret when limitToNamespace is false', async() => {
+      const wrapper = namespaceSetup({ allowNamespaceSelect: true, limitToNamespace: false });
+
+      await wrapper.setData({ createNamespace: 'apps' });
+      await (wrapper.vm as any).doCreate();
+
+      const emitted = wrapper.emitted('update:value') as any[];
+
+      expect(emitted[emitted.length - 1][0]).toStrictEqual({ namespace: 'apps', name: 'auth-abc' });
     });
   });
 });
