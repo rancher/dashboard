@@ -574,3 +574,108 @@ describe('harvester machine config: storage options', () => {
     });
   });
 });
+
+describe('harvester machine config: Windows machines', () => {
+  describe('fetchHasMachineOS', () => {
+    const run = async(pathExists: boolean, fail = false) => {
+      const pathExistsInSchema = jest.fn(() => pathExists);
+      const fetchResourceFields = jest.fn().mockImplementation(() => (fail ? Promise.reject(new Error('no access')) : Promise.resolve()));
+      const ctx = {
+        hasMachineOS: false,
+        $store:       {
+          getters: {
+            'management/schemaFor':          () => ({ fetchResourceFields }),
+            'management/pathExistsInSchema': pathExistsInSchema,
+          }
+        },
+      };
+
+      await harvester.methods.fetchHasMachineOS.call(ctx);
+
+      if (!fail) {
+        expect(pathExistsInSchema).toHaveBeenCalledWith(HCI.HARVESTER_CONFIG, 'os');
+      }
+
+      return ctx.hasMachineOS;
+    };
+
+    it('should show the OS selector when the driver schema has the os field', async() => {
+      expect(await run(true)).toStrictEqual(true);
+    });
+
+    it('should hide the OS selector with a driver that does not support Windows', async() => {
+      expect(await run(false)).toStrictEqual(false);
+    });
+
+    it('should hide the OS selector when the schema cannot be read', async() => {
+      expect(await run(true, true)).toStrictEqual(false);
+    });
+  });
+
+  describe('isWindows', () => {
+    it.each([
+      ['windows', true],
+      ['linux', false],
+      [undefined, false],
+    ])('os=%p -> %p', (os, expected) => {
+      expect(harvester.computed.isWindows.call({ value: { os } })).toBe(expected);
+    });
+  });
+
+  describe('osDisabled', () => {
+    it('should lock the OS of an existing machine pool', () => {
+      expect(harvester.computed.osDisabled.call({
+        disabled: false, isEdit: true, value: { id: 'fleet-default/nc-x' }
+      })).toBe(true);
+    });
+
+    it('should allow choosing the OS for a new machine pool', () => {
+      expect(harvester.computed.osDisabled.call({
+        disabled: false, isEdit: true, value: {}
+      })).toBe(false);
+      expect(harvester.computed.osDisabled.call({
+        disabled: false, isEdit: false, value: {}
+      })).toBe(false);
+    });
+  });
+
+  describe('updateAgent', () => {
+    const QGA_USER_DATA = '#cloud-config\npackage_update: true\npackages:\n  - qemu-guest-agent\nruncmd:\n  - - systemctl\n    - enable\n    - --now\n    - qemu-guest-agent.service\n';
+
+    it('should remove the guest agent stanza even when the user data editor is not rendered', () => {
+      const ctx: any = {
+        userData: QGA_USER_DATA,
+        $refs:    {},
+      };
+
+      ctx.addGuestAgent = harvester.methods.addGuestAgent.bind(ctx);
+      ctx.deleteGuestAgent = harvester.methods.deleteGuestAgent.bind(ctx);
+      ctx.deleteYamlDocProp = harvester.methods.deleteYamlDocProp.bind(ctx);
+      ctx.hasCloudConfigComment = harvester.methods.hasCloudConfigComment.bind(ctx);
+
+      harvester.methods.updateAgent.call(ctx, false);
+
+      expect(ctx.userData).not.toContain('qemu-guest-agent');
+      expect(ctx.userData.startsWith('#cloud-config')).toBe(true);
+    });
+  });
+
+  describe('watch isWindows', () => {
+    it('should remove the cloud-init guest agent stanza when switching to Windows', () => {
+      const ctx = { installAgent: true, updateAgent: jest.fn() };
+
+      harvester.watch.isWindows.call(ctx, true);
+
+      expect(ctx.installAgent).toBe(false);
+      expect(ctx.updateAgent).toHaveBeenCalledWith(false);
+    });
+
+    it('should not touch user data when switching back to Linux', () => {
+      const ctx = { installAgent: false, updateAgent: jest.fn() };
+
+      harvester.watch.isWindows.call(ctx, false);
+
+      expect(ctx.updateAgent).not.toHaveBeenCalled();
+    });
+  });
+});
