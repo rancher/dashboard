@@ -49,6 +49,11 @@ export default {
       default: () => ({})
     },
 
+    previousKubeVersion: {
+      type:    String,
+      default: null
+    },
+
     infrastructureCluster: {
       type:    Object,
       default: () => ({})
@@ -408,6 +413,7 @@ export default {
       v-model:is-ipv6="value.isIpv6"
       v-model:is-dualStack="value.isDualStack"
       :cluster="cluster"
+      :previous-kube-version="previousKubeVersion"
       :infrastructure-cluster="infrastructureCluster"
       :uuid="uuid"
       :mode="mode"
