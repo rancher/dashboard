@@ -1,11 +1,13 @@
 <script>
 import { mapGetters } from 'vuex';
 import { Card } from '@components/Card';
+import { Banner } from '@components/Banner';
 import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
 import { RcHeading } from '@components/RcHeading';
+import { exceptionToErrorsArray } from '@shell/utils/error';
 
 const NONE_VALUE = ' ';
 
@@ -13,7 +15,7 @@ export default {
   emits: ['close'],
 
   components: {
-    AsyncButton, Card, LabeledSelect, RcHeading
+    AsyncButton, Banner, Card, LabeledSelect, RcHeading
   },
 
   props: {
@@ -40,7 +42,8 @@ export default {
     return {
       projects:      [],
       toMove:        [],
-      targetProject: null
+      targetProject: null,
+      errors:        []
     };
   },
 
@@ -88,21 +91,38 @@ export default {
       const cluster = this.$store.getters['currentCluster'];
       const clusterWithProjectId = this.targetProject && this.targetProject !== NONE_VALUE ? `${ cluster.id }:${ this.targetProject }` : null;
 
-      const promises = this.toMove.map((namespace) => {
+      this.errors = [];
+
+      const results = await Promise.allSettled(this.toMove.map(async(namespace) => {
+        // The namespace is the same object the list shows, so put the old project back if the save fails
+        const previousLabel = namespace.metadata?.labels?.[PROJECT];
+        const previousAnnotation = namespace.metadata?.annotations?.[PROJECT];
+
         namespace.setLabel(PROJECT, this.targetProject && this.targetProject !== NONE_VALUE ? this.targetProject : null);
         namespace.setAnnotation(PROJECT, clusterWithProjectId);
 
-        return namespace.save();
-      });
+        try {
+          await namespace.save();
+        } catch (err) {
+          namespace.setLabel(PROJECT, previousLabel);
+          namespace.setAnnotation(PROJECT, previousAnnotation);
 
-      try {
-        await Promise.all(promises);
-        finish(true);
-        this.targetProject = null;
-        this.close({ performCallback: true, moveNamespaceCb: true });
-      } catch (ex) {
+          throw err;
+        }
+      }));
+
+      const failures = results.filter((result) => result.status === 'rejected');
+
+      if (failures.length) {
+        this.errors = failures.flatMap((failure) => exceptionToErrorsArray(failure.reason));
         finish(false);
+
+        return;
       }
+
+      finish(true);
+      this.targetProject = null;
+      this.close({ performCallback: true, moveNamespaceCb: true });
     }
   }
 };
@@ -136,6 +156,13 @@ export default {
         v-model:value="targetProject"
         :options="projectOptions"
         :label="t('moveModal.targetProject')"
+      />
+      <Banner
+        v-for="(error, i) in errors"
+        :key="i"
+        role="alert"
+        color="error"
+        :label="error"
       />
     </template>
     <template #actions>
