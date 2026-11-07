@@ -1,31 +1,30 @@
+import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import * as reveal from '@components/utils/reveal';
 
 describe('component: TextAreaAutoGrow', () => {
-  it('should recalculate its height when the value changes programmatically and resizeOnValueChangeAndResizeWindow is set', async() => {
-    const wrapper = mount(TextAreaAutoGrow, { props: { value: 'initial', resizeOnValueChangeAndResizeWindow: true } });
+  it('should grow to fit a multi-line value set programmatically', async() => {
+    jest.useFakeTimers();
 
-    // queueResize is the (debounced) entrypoint that triggers autoSize
-    const queueResize = jest.fn();
+    const wrapper = mount(TextAreaAutoGrow, {
+      props: {
+        value: 'one line', minHeight: 25, maxHeight: 200
+      }
+    });
+    const el = wrapper.find('textarea').element as HTMLTextAreaElement;
 
-    wrapper.vm.queueResize = queueResize;
+    (wrapper.vm as unknown as { measureContentHeight: (ta: HTMLTextAreaElement) => number }).measureContentHeight = (ta) => ta.value.split('\n').length * 20;
 
-    await wrapper.setProps({ value: 'a\nmuch\nlonger\nvalue\nset\nfrom\noutside' });
+    await nextTick();
+    expect(el.style.height).toBe('25px');
 
-    expect(queueResize).toHaveBeenCalledWith();
-  });
+    await wrapper.setProps({ value: 'line 1\nline 2\nline 3\nline 4' });
+    jest.advanceTimersByTime(150);
 
-  it('should not recalculate its height on programmatic value change by default', async() => {
-    const wrapper = mount(TextAreaAutoGrow, { props: { value: 'initial' } });
+    expect(el.style.height).toBe('80px');
 
-    const queueResize = jest.fn();
-
-    wrapper.vm.queueResize = queueResize;
-
-    await wrapper.setProps({ value: 'a\nmuch\nlonger\nvalue\nset\nfrom\noutside' });
-
-    expect(queueResize).not.toHaveBeenCalled();
+    jest.useRealTimers();
   });
 
   it('should recalculate its height synchronously on user input', async() => {

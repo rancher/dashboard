@@ -93,9 +93,8 @@ export default defineComponent({
     },
 
     /**
-     * Recalculate the height when the value is changed programmatically (e.g.
-     * populated from a file) and when the window is resized, not just on user
-     * input. Opt-in to avoid changing the behaviour of existing usages.
+     * Recalculate the height when the window is resized. The height always
+     * follows the value, however it changes.
      */
     resizeOnValueChangeAndResizeWindow: {
       type:    Boolean,
@@ -144,12 +143,8 @@ export default defineComponent({
   },
 
   watch: {
-    // Recalculate the height when the value is changed programmatically (e.g.
-    // populated from a file), not just on user input. Opt-in via resizeOnValueChangeAndResizeWindow.
     value() {
-      if (this.resizeOnValueChangeAndResizeWindow) {
-        this.queueResize();
-      }
+      this.queueResize();
     },
 
     $attrs: {
