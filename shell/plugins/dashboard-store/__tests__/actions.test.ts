@@ -20,6 +20,7 @@ describe('dashboard-store: actions', () => {
         haveAllNamespace: jest.fn(() => false),
         all:              jest.fn((type: string) => 'getters.all'),
         urlFor:           jest.fn(() => 'getters.urlFor'), // we're not testing the urlFor getter so we don't need to do anything with opt here
+        havePage:         jest.fn((type: string): object | null => null),
       };
       const rootGetters = {
         'type-map/optionsFor': jest.fn(),
@@ -172,6 +173,43 @@ describe('dashboard-store: actions', () => {
           expect(value)[assertionMethod as 'toBe'](valueExpected);
         }
       );
+    });
+
+    describe('when a page is loaded whilst the request is in flight', () => {
+      it('should not store or watch the result', async() => {
+        const {
+          dispatch, commit, getters, rootGetters, state
+        } = setupContext();
+
+        // No page when the request is made, a page once the request returns
+        getters.havePage.mockReturnValueOnce(null).mockReturnValue({ page: 1 });
+
+        const result = await findAll({
+          dispatch, commit, getters, rootGetters, state
+        }, { type: 'type', opt: {} });
+
+        expect(result).toBeUndefined();
+        expect(commit.mock.calls).toStrictEqual([['registerType', 'getters.normalizeType']]);
+        expect(dispatch.mock.calls.map(([action]) => action)).toStrictEqual(['request']);
+      });
+    });
+
+    describe('when a page is loaded before the request is made', () => {
+      it('should store and watch the result', async() => {
+        const {
+          dispatch, commit, getters, rootGetters, state
+        } = setupContext();
+
+        getters.havePage.mockReturnValue({ page: 1 });
+
+        const result = await findAll({
+          dispatch, commit, getters, rootGetters, state
+        }, { type: 'type', opt: {} });
+
+        expect(result).toBe('getters.all');
+        expect(commit.mock.calls.map(([mutation]) => mutation)).toStrictEqual(['registerType', 'loadAll']);
+        expect(dispatch.mock.calls.map(([action]) => action)).toStrictEqual(['request', 'watch']);
+      });
     });
   });
 
