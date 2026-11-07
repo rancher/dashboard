@@ -1,6 +1,6 @@
 import { useWorkloadDashboard } from '@shell/pages/c/_cluster/explorer/workload-dashboard/composable';
 import { WORKLOAD_DASHBOARD_RESOURCE_TYPES } from '@shell/pages/c/_cluster/explorer/workload-dashboard/types';
-import { WORKLOAD_TYPES } from '@shell/config/types';
+import { POD, WORKLOAD_TYPES } from '@shell/config/types';
 import { defineComponent, h } from 'vue';
 import { shallowMount, flushPromises } from '@vue/test-utils';
 
@@ -73,20 +73,39 @@ const summaryResponse = {
 // total workload count scales with the number of workload dashboard resource types.
 const TOTAL_WORKLOAD_COUNT = WORKLOAD_DASHBOARD_RESOURCE_TYPES.length * 7;
 
-function mountComposable(getterOverrides: Record<string, any> = {}, dispatchResponse: any = summaryResponse) {
+const ERROR_FILTER = 'filter=metadata.state.error=true';
+const TRANSITIONING_FILTER = 'filter=metadata.state.error=false&filter=metadata.state.transitioning=true';
+
+interface ExtraResponses {
+  error?: any;
+  transitioning?: any;
+  sample?: any;
+}
+
+function mountComposable(getterOverrides: Record<string, any> = {}, dispatchResponse: any = summaryResponse, extraResponses: ExtraResponses = {}) {
   setupGetters({
     'cluster/schemaFor': () => ({ links: { collection: '/v1/test' } }),
-    'cluster/urlFor':    () => '/v1/test',
+    'cluster/urlFor':    (type: string) => `/v1/${ type }?`,
     'cluster/canList':   () => true,
     ...getterOverrides,
   });
 
-  mockDispatch.mockImplementation((action: string) => {
-    if (action === 'cluster/request') {
-      return Promise.resolve(dispatchResponse);
+  mockDispatch.mockImplementation((action: string, { url = '' }: { url?: string } = {}) => {
+    if (action !== 'cluster/request') {
+      return Promise.resolve();
     }
 
-    return Promise.resolve();
+    let response = dispatchResponse;
+
+    if (url.includes(ERROR_FILTER)) {
+      response = extraResponses.error ?? { data: [] };
+    } else if (url.includes(TRANSITIONING_FILTER)) {
+      response = extraResponses.transitioning ?? { data: [] };
+    } else if (!url.includes('summary=')) {
+      response = extraResponses.sample ?? dispatchResponse;
+    }
+
+    return response instanceof Error ? Promise.reject(response) : Promise.resolve(response);
   });
 
   let result: ReturnType<typeof useWorkloadDashboard>;
@@ -589,6 +608,183 @@ describe('composable: useWorkloadDashboard', () => {
       const defaultCard = result.byNamespaceCards.value.find((c) => c.title === 'default');
 
       expect([defaultCard?.key, defaultCard?.selectable]).toStrictEqual(['default', true]);
+      wrapper.unmount();
+    });
+  });
+
+  describe('state flags', () => {
+    function stateResponse(counts: Record<string, { total: number; namespace: Record<string, number> }>) {
+      return { summary: [{ property: 'metadata.state.name', counts }], data: [] };
+    }
+
+    const runningResponse = stateResponse({ running: { total: 4, namespace: { default: 3, other: 1 } } });
+    const oneRunningFlaggedResponse = stateResponse({ running: { total: 1, namespace: { other: 1 } } });
+
+    const podsOnly = { 'cluster/canList': (type: string) => type === POD };
+
+    function podRows(result: ReturnType<typeof useWorkloadDashboard>) {
+      return result.byTypeCards.value.find((c) => c.key === POD)?.rows.map(({
+        key, label, color, count
+      }) => ({
+        key, label, color, count
+      }));
+    }
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it.each([
+      ['in error', 'error', { error: oneRunningFlaggedResponse }],
+      ['transitioning', 'info', { transitioning: oneRunningFlaggedResponse }],
+    ])('should count the resources of a state that are %s as %s and the rest by the state name', async(_, color, extraResponses) => {
+      const { wrapper, result } = mountComposable(podsOnly, runningResponse, extraResponses);
+
+      await flushPromises();
+
+      expect(podRows(result)).toStrictEqual([
+        {
+          key: `running:${ color }`, label: 'Running', color, count: 1
+        },
+        {
+          key: 'running:success', label: 'Running', color: 'success', count: 3
+        },
+      ]);
+      wrapper.unmount();
+    });
+
+    it.each([
+      ['pending', 'Pending', 'info', 3, 'transitioning'],
+      ['error', 'Error', 'error', 2, 'error'],
+    ])('should count the flagged %s resources in one row when the state name has the flag color', async(state, label, color, total, flag) => {
+      const response = stateResponse({ [state]: { total, namespace: { default: total } } });
+      const flaggedResponse = stateResponse({ [state]: { total: 1, namespace: { default: 1 } } });
+      const { wrapper, result } = mountComposable(podsOnly, response, { [flag]: flaggedResponse });
+
+      await flushPromises();
+
+      expect(podRows(result)).toStrictEqual([{
+        key: `${ state }:${ color }`, label, color, count: total
+      }]);
+      wrapper.unmount();
+    });
+
+    it('should list a split state first among the rows of each color', async() => {
+      const response = stateResponse({
+        completed: { total: 1, namespace: { default: 1 } },
+        running:   { total: 4, namespace: { default: 4 } },
+      });
+      const { wrapper, result } = mountComposable(podsOnly, response, { transitioning: stateResponse({ running: { total: 1, namespace: { default: 1 } } }) });
+
+      await flushPromises();
+
+      expect(podRows(result)?.map(({ label, color }) => [label, color])).toStrictEqual([['Running', 'info'], ['Running', 'success'], ['Completed', 'success']]);
+      wrapper.unmount();
+    });
+
+    it('should not count more flagged resources than the summary has in a namespace', async() => {
+      const flaggedResponse = stateResponse({ running: { total: 3, namespace: { other: 2, gone: 1 } } });
+      const { wrapper, result } = mountComposable(podsOnly, runningResponse, { transitioning: flaggedResponse });
+
+      await flushPromises();
+
+      expect(podRows(result)?.map(({ color, count }) => [color, count])).toStrictEqual([['info', 1], ['success', 3]]);
+      wrapper.unmount();
+    });
+
+    it('should put only the transitioning resources in the info state card', async() => {
+      const { wrapper, result } = mountComposable(podsOnly, runningResponse, { transitioning: oneRunningFlaggedResponse });
+
+      await flushPromises();
+
+      const { hero, cards } = result.byStateLayout.value;
+
+      expect([hero, ...cards].map((card) => [card?.color, card?.rows.map((row) => row.counts[0].count)])).toStrictEqual([['success', [3]], ['info', [1]]]);
+      wrapper.unmount();
+    });
+
+    it('should count the transitioning resources by namespace', async() => {
+      const { wrapper, result } = mountComposable(podsOnly, runningResponse, { transitioning: oneRunningFlaggedResponse });
+
+      await flushPromises();
+
+      const countsIn = (ns: string) => result.byNamespaceCards.value.find((c) => c.key === ns)?.rows[0].counts.map(({ color, count }) => ({ color, count }));
+
+      expect([countsIn('default'), countsIn('other')]).toStrictEqual([
+        [{ color: 'success', count: 3 }],
+        [{ color: 'info', count: 1 }],
+      ]);
+      wrapper.unmount();
+    });
+
+    it('should request the flagged counts only for types that can be filtered by state flags', async() => {
+      const { wrapper } = mountComposable();
+
+      await flushPromises();
+
+      const flaggedUrls = mockDispatch.mock.calls.map(([, opts]) => opts?.url).filter((url) => url?.includes('filter=metadata.state'));
+
+      expect(flaggedUrls).toStrictEqual([
+        `/v1/${ WORKLOAD_TYPES.JOB }?&${ ERROR_FILTER }&summary=metadata.state.name&summaryonly&summarynamespaced`,
+        `/v1/${ WORKLOAD_TYPES.JOB }?&${ TRANSITIONING_FILTER }&summary=metadata.state.name&summaryonly&summarynamespaced`,
+        `/v1/${ POD }?&${ ERROR_FILTER }&summary=metadata.state.name&summaryonly&summarynamespaced`,
+        `/v1/${ POD }?&${ TRANSITIONING_FILTER }&summary=metadata.state.name&summaryonly&summarynamespaced`,
+      ]);
+      wrapper.unmount();
+    });
+
+    describe('when the flagged counts cannot be fetched', () => {
+      const invalidResponse = { summary: [{ property: 'metadata.state.name', counts: { running: { namespace: {} } } }], data: [] };
+
+      it.each([
+        ['the request fails', 'containercreating', 'Containercreating', new Error('column is invalid')],
+        ['the response is invalid', 'terminating', 'Terminating', invalidResponse],
+      ])('should color every resource of a state with the sampled state color when %s', async(_, state, label, transitioning) => {
+        const sample = {
+          data: [{
+            metadata: {
+              state: {
+                name: state, error: false, transitioning: true
+              }
+            }
+          }]
+        };
+        const response = stateResponse({ [state]: { total: 2, namespace: { default: 2 } } });
+        const { wrapper, result } = mountComposable(podsOnly, response, { transitioning, sample });
+
+        await flushPromises();
+
+        expect(podRows(result)).toStrictEqual([{
+          key: `${ state }:info`, label, color: 'info', count: 2
+        }]);
+        wrapper.unmount();
+      });
+
+      it('should not redirect to the deployment list', async() => {
+        const { wrapper } = mountComposable(podsOnly, runningResponse, { transitioning: new Error('column is invalid') });
+
+        await flushPromises();
+
+        expect(mockRouterPush).not.toHaveBeenCalled();
+        wrapper.unmount();
+      });
+    });
+
+    it('should recount the states on the next poll', async() => {
+      jest.useFakeTimers({ doNotFake: ['setImmediate', 'nextTick'] });
+
+      const extraResponses: ExtraResponses = { transitioning: oneRunningFlaggedResponse };
+      const { wrapper, result } = mountComposable(podsOnly, runningResponse, extraResponses);
+      const colorCounts = () => podRows(result)?.map(({ color, count }) => [color, count]);
+
+      await flushPromises();
+      const before = colorCounts();
+
+      delete extraResponses.transitioning;
+      jest.advanceTimersByTime(5000);
+      await flushPromises();
+
+      expect([before, colorCounts()]).toStrictEqual([[['info', 1], ['success', 3]], [['success', 4]]]);
       wrapper.unmount();
     });
   });
