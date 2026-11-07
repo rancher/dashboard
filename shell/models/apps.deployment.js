@@ -10,6 +10,8 @@ const IGNORED_ANNOTATIONS = [
   'deprecated.deployment.rollback.to',
 ];
 
+const CHANGE_CAUSE_ANNOTATION = 'kubernetes.io/change-cause';
+
 const replicasRegEx = /Replicas: (\d+)/;
 
 export default class Deployment extends Workload {
@@ -35,6 +37,16 @@ export default class Deployment extends Workload {
   }
 
   async rollBack(cluster, deployment, revision) {
+    // Keep the deployment annotations, but the change cause describes a revision so it must come from the restored one
+    const annotations = { ...deployment.metadata?.annotations };
+    const changeCause = revision.metadata?.annotations?.[CHANGE_CAUSE_ANNOTATION];
+
+    if (changeCause === undefined) {
+      delete annotations[CHANGE_CAUSE_ANNOTATION];
+    } else {
+      annotations[CHANGE_CAUSE_ANNOTATION] = changeCause;
+    }
+
     const body = [
       {
         op:    'replace',
@@ -60,9 +72,10 @@ export default class Deployment extends Workload {
           spec: revision.spec.template.spec
         }
       }, {
-        op:    'replace',
+        // add replaces the annotations if they exist and creates them if not
+        op:    'add',
         path:  '/metadata/annotations',
-        value: { 'deployment.kubernetes.io/revision': revision.metadata.annotations['deployment.kubernetes.io/revision'] }
+        value: annotations
       }
     ];
 
