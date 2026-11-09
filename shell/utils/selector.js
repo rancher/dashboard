@@ -1,4 +1,5 @@
-import { isArray, addObject, findBy } from '@shell/utils/array';
+import isEqual from 'lodash/isEqual';
+import { isArray, addObject } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 
 const parseCache = {};
@@ -121,23 +122,23 @@ export function convertSelectorObj(obj) {
 
 /**
  * Convert matchLabels to matchExpressions
- * Optionally combining with an existing set of matchExpressions
+ * Optionally appended to an existing set of matchExpressions, each label as its own `In` rule
+ * unless an identical rule is already there. Returns a new array and does not modify its arguments.
  */
 export function convert(matchLabelsObj, matchExpressions) {
   const keys = Object.keys(matchLabelsObj || {});
-  const out = matchExpressions || [];
+  const out = [...(matchExpressions || [])];
 
   for ( const key of keys ) {
     const value = matchLabelsObj[key];
-    const existing = findBy(out, { key, operator: 'In' });
+    const values = isArray(value) ? value : [value];
+    const duplicate = out.some((expr) => expr.key === key && expr.operator === 'In' && isEqual(expr.values, values));
 
-    if ( existing ) {
-      addObject(existing.values, value);
-    } else {
+    if ( !duplicate ) {
       out.push({
         key,
         operator: 'In',
-        values:   isArray(value) ? value : [value],
+        values,
       });
     }
   }
