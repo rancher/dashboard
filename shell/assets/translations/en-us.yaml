@@ -3081,8 +3081,8 @@ clusterIndexPage:
   sections:
     capacity:
       label: Capacity
-      countedNodes: "{counted} of {total} nodes. Cordoned nodes, and control plane or etcd nodes that don't run workloads, aren't counted"
-      reportingNodes: "Used only covers {reporting} of {counted} nodes, so it reads low. The rest aren't reporting metrics"
+      countedNodes: "{counted} of {total} nodes. Cordoned nodes, and control plane or etcd nodes that don't run workloads, aren't counted."
+      reportingNodes: "Used only covers {reporting} of {counted} nodes, so it reads low. The rest aren't reporting metrics."
     events:
       label: Events
       resource:

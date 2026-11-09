@@ -697,11 +697,13 @@ export default {
       </SimpleBox>
     </div>
 
-    <h3
+    <div
       v-if="hasStats"
-      class="mmt-7 mmb-4 text-deemphasized"
+      class="mmt-7 mmb-4"
     >
-      {{ t('clusterIndexPage.sections.capacity.label') }}
+      <h3 class="inline text-deemphasized">
+        {{ t('clusterIndexPage.sections.capacity.label') }}
+      </h3>
       <span
         v-if="haveNodes && countedNodes.length < nodes.length"
         class="counted-nodes text-muted"
@@ -716,7 +718,7 @@ export default {
       >
         {{ t('clusterIndexPage.sections.capacity.reportingNodes', { reporting: reportingNodes, counted: countedNodes.length }, true) }}
       </span>
-    </h3>
+    </div>
     <div
       v-if="hasStats"
       class="hardware-resource-gauges"
@@ -861,7 +863,6 @@ export default {
 
 .counted-nodes {
   font-size: 14px;
-  font-weight: normal;
   margin-left: 10px;
 }
 

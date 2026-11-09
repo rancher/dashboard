@@ -450,6 +450,15 @@ describe('page: cluster dashboard', () => {
       expect(wrapper.find('[data-testid="capacity-counted-nodes"]').exists()).toBe(false);
     });
 
+    it('should keep both notes out of the capacity heading, so moving between headings reads only its label', async() => {
+      const wrapper = createWrapper({ nodes: [node('counted-1', true), node('counted-2', true), node('no-metrics', true, 1, null), cordoned] });
+
+      await flushPromises();
+
+      expect(wrapper.findAll('[data-testid="capacity-counted-nodes"], [data-testid="capacity-reporting-nodes"]')).toHaveLength(2);
+      expect(wrapper.findAll('h3 [data-testid="capacity-counted-nodes"], h3 [data-testid="capacity-reporting-nodes"]')).toHaveLength(0);
+    });
+
     it('should not show the capacity when no node is counted', async() => {
       const wrapper = createWrapper({ nodes: [node('cordoned', false)] });
 
