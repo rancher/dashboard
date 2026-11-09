@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import HardwareResourceGauge from '@shell/components/HardwareResourceGauge.vue';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 describe('component: HardwareResourceGauge', () => {
   const createWrapper = (props = {}) => mount(HardwareResourceGauge, {
@@ -41,21 +42,25 @@ describe('component: HardwareResourceGauge', () => {
     it('should explain used and reserved when given what to say', () => {
       const wrapper = createWrapperWithGauges({ usedTooltip: 'used text', reservedTooltip: 'reserved text' });
 
-      expect(wrapper.find('[data-testid="hardware-resource-gauge-used-tooltip"]').attributes('aria-label')).toStrictEqual('used text');
-      expect(wrapper.find('[data-testid="hardware-resource-gauge-reserved-tooltip"]').attributes('aria-label')).toStrictEqual('reserved text');
+      expect(wrapper.findAllComponents(RcIconTooltip).map((tooltip) => tooltip.props('content'))).toStrictEqual(['reserved text', 'used text']);
     });
 
-    it('should reach the tooltips with the keyboard', () => {
+    it.each([
+      ['used', 'used text'],
+      ['reserved', 'reserved text'],
+    ])('should read the %s explanation once, as the description of a button with a generic name', (kind, text) => {
       const wrapper = createWrapperWithGauges({ usedTooltip: 'used text', reservedTooltip: 'reserved text' });
+      const button = wrapper.find(`[data-testid="hardware-resource-gauge-${ kind }-tooltip"]`);
 
-      expect(wrapper.find('[data-testid="hardware-resource-gauge-used-tooltip"]').attributes('tabindex')).toStrictEqual('0');
-      expect(wrapper.find('[data-testid="hardware-resource-gauge-reserved-tooltip"]').attributes('tabindex')).toStrictEqual('0');
+      expect(button.element.tagName).toStrictEqual('BUTTON');
+      expect(button.attributes('aria-label')).toStrictEqual('%generic.moreInfo%');
+      expect(document.getElementById(button.attributes('aria-describedby') as string)?.textContent).toStrictEqual(text);
     });
 
     it('should not show them otherwise, e.g. for the pods gauge', () => {
       const wrapper = createWrapperWithGauges();
 
-      expect(wrapper.find('.icon-info').exists()).toBe(false);
+      expect(wrapper.findAllComponents(RcIconTooltip)).toHaveLength(0);
     });
   });
 });

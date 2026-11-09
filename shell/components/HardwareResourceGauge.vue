@@ -1,11 +1,14 @@
 <script>
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
 import Card from '@shell/components/Resource/Detail/Card/index.vue';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 import { USAGE_COLOR_STOPS } from '@shell/utils/color';
 
 export default {
-  components: { ConsumptionGauge, Card },
-  props:      {
+  components: {
+    ConsumptionGauge, Card, RcIconTooltip
+  },
+  props: {
     name: {
       type:     String,
       required: true
@@ -99,13 +102,10 @@ export default {
           <template #title>
             <span>
               {{ reservedTitle ?? t('clusterIndexPage.hardwareResourceGauge.reserved') }}
-              <i
+              <RcIconTooltip
                 v-if="reservedTooltip"
-                v-clean-tooltip="{ content: reservedTooltip, triggers: ['hover', 'touch', 'focus'] }"
-                class="icon icon-info text-muted"
-                role="img"
-                tabindex="0"
-                :aria-label="reservedTooltip"
+                :content="reservedTooltip"
+                class="mml-1"
                 data-testid="hardware-resource-gauge-reserved-tooltip"
               />
               <span class="values text-muted">
@@ -143,13 +143,10 @@ export default {
           <template #title>
             <span>
               {{ usedTitle ?? t('clusterIndexPage.hardwareResourceGauge.used') }}
-              <i
+              <RcIconTooltip
                 v-if="usedTooltip"
-                v-clean-tooltip="{ content: usedTooltip, triggers: ['hover', 'touch', 'focus'] }"
-                class="icon icon-info text-muted"
-                role="img"
-                tabindex="0"
-                :aria-label="usedTooltip"
+                :content="usedTooltip"
+                class="mml-1"
                 data-testid="hardware-resource-gauge-used-tooltip"
               />
               <span class="values text-muted">
@@ -184,10 +181,6 @@ export default {
       display: flex;
       flex-direction: column;
       gap: var(--gap-lg);
-    }
-
-    .icon-info {
-      margin-left: 4px;
     }
 
     .values {
