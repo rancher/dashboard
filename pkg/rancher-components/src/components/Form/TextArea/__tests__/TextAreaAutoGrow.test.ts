@@ -177,6 +177,17 @@ describe('component: TextAreaAutoGrow', () => {
       expect(el.style.overflowY).toBe('hidden');
     });
 
+    it('should keep its height while it has no width to measure against', () => {
+      const wrapper = mount(TextAreaAutoGrow, { props: { value: 'a\nb\nc\nd' } });
+      const el = wrapper.find('textarea').element as HTMLTextAreaElement;
+
+      Object.defineProperty(el, 'clientWidth', { configurable: true, value: 0 });
+      el.style.height = '94px';
+      wrapper.vm.autoSize();
+
+      expect(el.style.height).toBe('94px');
+    });
+
     it('should not shrink the textarea to 1px during measurement (avoids the up/down jump in #6041)', () => {
       const wrapper = mount(TextAreaAutoGrow, {
         props: {

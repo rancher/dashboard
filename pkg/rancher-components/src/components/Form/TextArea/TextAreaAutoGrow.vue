@@ -233,6 +233,11 @@ export default defineComponent({
       }
 
       const contentHeight = this.measureContentHeight(el);
+
+      if (contentHeight === null) {
+        return;
+      }
+
       const neu = Math.max(this.minHeight, Math.min(contentHeight, this.maxHeight));
       const overflows = contentHeight > this.maxHeight;
 
@@ -254,9 +259,14 @@ export default defineComponent({
      * Measures the required content height for the given textarea by mirroring
      * its text into an off-screen div sized to match the textarea's rendering.
      * Returns the border-box height needed to display all content without
-     * scrolling.
+     * scrolling, or null when the textarea has no width to wrap against (e.g.
+     * it is hidden).
      */
-    measureContentHeight(el: HTMLTextAreaElement): number {
+    measureContentHeight(el: HTMLTextAreaElement): number | null {
+      if (!el.clientWidth) {
+        return null;
+      }
+
       const cs = getComputedStyle(el);
 
       let mirror = this.mirror;
