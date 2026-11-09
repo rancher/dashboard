@@ -63,7 +63,7 @@ export default async function(context) {
     context.$extension.loadBuiltinExtensions();
 
     if (res.plugins?.status === 'rejected') {
-      throw new Error(res.reason);
+      throw res.plugins.reason;
     }
 
     const kubeVersion = getKubeVersionData()?.gitVersion;
@@ -82,7 +82,7 @@ export default async function(context) {
       }
     });
   } catch (e) {
-    if (e?.code === 404) {
+    if (e?._status === 404) {
       // Not found, so extensions operator probably not installed
       console.log('Could not load UI Extensions list (Extensions Operator may not be installed)'); // eslint-disable-line no-console
     } else {
