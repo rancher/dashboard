@@ -122,8 +122,8 @@ export default {
       } else {
         const spec = {
           ...this.value,
-          failedJobsHistoryLimit:     this.failedJobsHistoryLimit,
-          successfulJobsHistoryLimit: this.successfulJobsHistoryLimit,
+          failedJobsHistoryLimit:     this.failedJobsHistoryLimit === '' ? null : this.failedJobsHistoryLimit,
+          successfulJobsHistoryLimit: this.successfulJobsHistoryLimit === '' ? null : this.successfulJobsHistoryLimit,
           suspend:                    this.suspend,
           concurrencyPolicy:          this.concurrencyPolicy,
           startingDeadlineSeconds:    this.startingDeadlineSeconds,
@@ -218,7 +218,7 @@ export default {
             :mode="mode"
             label-key="workload.job.successfulJobsHistoryLimit.label"
             tooltip-key="workload.job.successfulJobsHistoryLimit.tip"
-            @input="update"
+            @update:value="update"
           />
         </div>
         <div
@@ -230,7 +230,7 @@ export default {
             :mode="mode"
             label-key="workload.job.failedJobsHistoryLimit.label"
             tooltip-key="workload.job.failedJobsHistoryLimit.tip"
-            @input="update"
+            @update:value="update"
           />
         </div>
       </div>
