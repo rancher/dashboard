@@ -7738,6 +7738,7 @@ tableHeaders:
   customVerbs: Custom Verbs
   description: Description
   cpu: CPU
+  cpuUsed: CPU Used
   currentReplicas: Current Replicas
   date: Date
   data: Data
@@ -7807,6 +7808,7 @@ tableHeaders:
   maxReplicas: Maximum Replicas
   missingPL: MissingPL
   memory: Memory
+  memoryUsed: Memory Used
   monitored: Monitored
   name: Name
   nameDisplay: Display Name
@@ -7844,7 +7846,6 @@ tableHeaders:
   publicPorts: Public Ports
   queues: Queues
   queueLengthLimit: Queue Length Limit
-  ram: RAM
   rbac:
     create: Create
     delete: Delete
