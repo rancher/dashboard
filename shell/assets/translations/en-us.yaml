@@ -8277,6 +8277,9 @@ workloadDashboard:
     byState: By State
     byType: By Type
     byNamespace: By Namespace
+  flaggedState:
+    error: "{state} (error)"
+    info: "{state} (transitioning)"
   search:
     ariaLabel: Find workloads in the selected namespaces...
     placeholder: Find workloads in the selected namespaces...

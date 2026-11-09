@@ -246,16 +246,24 @@ export function useWorkloadDashboard() {
   const byTypeCards = computed<StatusSummaryCardItem[]>(() => {
     return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
       const names = w.states.map((s) => s.name);
+      const splitNames = names.filter((name, i) => names.indexOf(name) !== i);
       const card = buildStatusSummaryCard({
         key:        w.type,
         title:      w.label,
         to:         resourceRoute(w.type),
         states:     w.states,
         stateRoute: (name) => resourceRoute(w.type, [name]),
-        stateOrder: names.filter((name, i) => names.indexOf(name) !== i),
+        stateOrder: splitNames,
       });
 
-      return { ...card, rows: card.rows.map((row) => ({ ...row, key: `${ row.key }:${ row.color }` })) };
+      return {
+        ...card,
+        rows: card.rows.map((row) => ({
+          ...row,
+          key:   `${ row.key }:${ row.color }`,
+          label: splitNames.includes(row.key) && row.color !== stateNameColor(row.key) ? t(`workloadDashboard.flaggedState.${ row.color }`, { state: row.label }) : row.label,
+        })),
+      };
     });
   });
 

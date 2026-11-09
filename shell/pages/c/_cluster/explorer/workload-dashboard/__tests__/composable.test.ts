@@ -644,7 +644,7 @@ describe('composable: useWorkloadDashboard', () => {
 
       expect(podRows(result)).toStrictEqual([
         {
-          key: `running:${ color }`, label: 'Running', color, count: 1
+          key: `running:${ color }`, label: `%workloadDashboard.flaggedState.${ color }%{"state":"Running"}`, color, count: 1
         },
         {
           key: 'running:success', label: 'Running', color: 'success', count: 3
@@ -678,7 +678,33 @@ describe('composable: useWorkloadDashboard', () => {
 
       await flushPromises();
 
-      expect(podRows(result)?.map(({ label, color }) => [label, color])).toStrictEqual([['Running', 'info'], ['Running', 'success'], ['Completed', 'success']]);
+      expect(podRows(result)?.map(({ key }) => key)).toStrictEqual(['running:info', 'running:success', 'completed:success']);
+      wrapper.unmount();
+    });
+
+    it('should keep the state label when every resource of the state is flagged', async() => {
+      const response = stateResponse({ running: { total: 1, namespace: { default: 1 } } });
+      const { wrapper, result } = mountComposable(podsOnly, response, { transitioning: response });
+
+      await flushPromises();
+
+      expect(podRows(result)).toStrictEqual([{
+        key: 'running:info', label: 'Running', color: 'info', count: 1
+      }]);
+      wrapper.unmount();
+    });
+
+    it('should name each flagged row of a split state that has no unflagged resources', async() => {
+      const response = stateResponse({ running: { total: 2, namespace: { default: 2 } } });
+      const oneFlagged = stateResponse({ running: { total: 1, namespace: { default: 1 } } });
+      const { wrapper, result } = mountComposable(podsOnly, response, { error: oneFlagged, transitioning: oneFlagged });
+
+      await flushPromises();
+
+      expect(podRows(result)?.map(({ label }) => label)).toStrictEqual([
+        '%workloadDashboard.flaggedState.error%{"state":"Running"}',
+        '%workloadDashboard.flaggedState.info%{"state":"Running"}',
+      ]);
       wrapper.unmount();
     });
 
