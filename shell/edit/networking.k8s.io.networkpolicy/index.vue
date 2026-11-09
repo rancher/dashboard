@@ -10,7 +10,6 @@ import Labels from '@shell/components/form/Labels';
 import { POD } from '@shell/config/types';
 import { convert, simplify } from '@shell/utils/selector';
 import { matching } from '@shell/utils/selector-typed';
-import { clone } from '@shell/utils/object';
 
 import { Checkbox } from '@components/Form/Checkbox';
 import { addObject, removeObject } from '@shell/utils/array';
@@ -127,7 +126,7 @@ export default {
       get() {
         return convert(
           this.value.spec.podSelector.matchLabels || {},
-          clone(this.value.spec.podSelector.matchExpressions || [])
+          this.value.spec.podSelector.matchExpressions || []
         );
       },
       set(podSelectorExpressions) {

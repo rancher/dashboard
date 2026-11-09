@@ -5,7 +5,6 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { _EDIT } from '@shell/config/query-params';
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 import { convert, simplify } from '@shell/utils/selector';
-import { clone } from '@shell/utils/object';
 import { NAMESPACE, POD } from '@shell/config/types';
 import ArrayList from '@shell/components/form/ArrayList';
 import { Banner } from '@components/Banner';
@@ -84,7 +83,7 @@ export default {
       get() {
         return convert(
           this.value[TARGET_OPTIONS.POD_SELECTOR]?.matchLabels || {},
-          clone(this.value[TARGET_OPTIONS.POD_SELECTOR]?.matchExpressions || [])
+          this.value[TARGET_OPTIONS.POD_SELECTOR]?.matchExpressions || []
         );
       },
       set(podSelectorExpressions) {
@@ -98,7 +97,7 @@ export default {
       get() {
         return convert(
           this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR]?.matchLabels || {},
-          clone(this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR]?.matchExpressions || [])
+          this.value[TARGET_OPTIONS.NAMESPACE_SELECTOR]?.matchExpressions || []
         );
       },
       set(namespaceSelectorExpressions) {
