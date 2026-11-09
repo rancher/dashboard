@@ -15,6 +15,13 @@ Primary color classes from _light.scss
 
 import Color from 'color';
 
+/**
+ * The colours of a bar showing how much of a resource is used, for a `PercentageBar`
+ */
+export const USAGE_COLOR_STOPS = {
+  0: '--success', 30: '--warning', 70: '--error'
+};
+
 export function createCssVars(color, theme = 'light', name = 'primary') {
   const contrastOpts = theme === 'light' ? LIGHT_CONTRAST_COLORS : DARK_CONTRAST_COLORS;
 

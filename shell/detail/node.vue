@@ -1,6 +1,5 @@
 <script>
-import ConsumptionGauge from '@shell/components/ConsumptionGauge';
-import Card from '@shell/components/Resource/Detail/Card/index.vue';
+import HardwareResourceGauge from '@shell/components/HardwareResourceGauge';
 import Alert from '@shell/components/Alert';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -14,7 +13,7 @@ import {
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { METRIC, POD } from '@shell/config/types';
 import createEditView from '@shell/mixins/create-edit-view';
-import { formatSi } from '@shell/utils/units';
+import { createMemoryGaugeValues } from '@shell/utils/units';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
@@ -32,9 +31,8 @@ export default {
 
   components: {
     Alert,
-    Card,
-    ConsumptionGauge,
     DashboardMetrics,
+    HardwareResourceGauge,
     Loading,
     ResourceTabs,
     Tab,
@@ -152,20 +150,36 @@ export default {
 
     graphVars() {
       return { instance: `${ this.value.internalIp }:9796` };
+    },
+
+    podsUsed() {
+      return { total: this.value.podAllocatable, useful: this.value.podReserved };
+    },
+
+    cpuReserved() {
+      return this.cpuValues(this.value.cpuAllocatable, this.value.cpuReserved);
+    },
+
+    cpuUsed() {
+      return this.value.usage ? this.cpuValues(this.value.cpuCapacity, this.value.cpuUsage) : null;
+    },
+
+    ramReserved() {
+      return createMemoryGaugeValues(this.value.ramAllocatable, this.value.ramReserved);
+    },
+
+    ramUsed() {
+      return this.value.usage ? createMemoryGaugeValues(this.value.ramCapacity, this.value.ramUsage) : null;
     }
   },
 
   methods: {
-    memoryFormatter(value) {
-      // Each value is scaled independently, so it has to carry its own unit -
-      // a node using 900MiB of 62GiB must not read "900 GiB of 62 GiB".
-      const formatOptions = {
-        increment:   1024,
-        suffix:      'iB',
-        firstSuffix: 'B',
+    cpuValues(total, useful) {
+      return {
+        total,
+        useful,
+        units: this.t('clusterIndexPage.hardwareResourceGauge.units.cores', { count: total })
       };
-
-      return formatSi(value, formatOptions);
     },
 
     mapToStatus(isOk) {
@@ -217,32 +231,25 @@ export default {
       />
     </div>
     <div class="mt-20 resources">
-      <Card :title="t('node.detail.glance.consumptionGauge.cpu')">
-        <ConsumptionGauge
-          class="mmb-1"
-          :capacity="value.cpuAllocatable"
-          :used="value.cpuUsage"
-          bar-size="small"
-        />
-      </Card>
-      <Card :title="t('node.detail.glance.consumptionGauge.memory')">
-        <ConsumptionGauge
-          class="mmb-1"
-          :capacity="value.ramAllocatable"
-          :used="value.ramUsage"
-          :number-formatter="memoryFormatter"
-          bar-size="small"
-        />
-      </Card>
-      <Card :title="t('node.detail.glance.consumptionGauge.pods')">
-        <ConsumptionGauge
-          class="mmb-1"
-          :capacity="value.podCapacity"
-          :used="value.podConsumed"
-          :used-label="t('node.detail.glance.consumptionGauge.running')"
-          bar-size="small"
-        />
-      </Card>
+      <!-- The same cards as the cluster dashboard: reserved is what pods request out of the allocatable, used is the usage of the whole node out of its capacity -->
+      <HardwareResourceGauge
+        :name="t('node.detail.glance.consumptionGauge.cpu')"
+        :reserved="cpuReserved"
+        :used="cpuUsed"
+        :used-tooltip="t('clusterIndexPage.hardwareResourceGauge.usedTooltip')"
+        :reserved-tooltip="t('clusterIndexPage.hardwareResourceGauge.reservedTooltip')"
+      />
+      <HardwareResourceGauge
+        :name="t('node.detail.glance.consumptionGauge.memory')"
+        :reserved="ramReserved"
+        :used="ramUsed"
+        :used-tooltip="t('clusterIndexPage.hardwareResourceGauge.usedTooltip')"
+        :reserved-tooltip="t('clusterIndexPage.hardwareResourceGauge.reservedTooltip')"
+      />
+      <HardwareResourceGauge
+        :name="t('node.detail.glance.consumptionGauge.pods')"
+        :used="podsUsed"
+      />
     </div>
     <div class="spacer" />
     <ResourceTabs
@@ -331,7 +338,7 @@ export default {
 <style lang="scss" scoped>
 .resources {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--gap-md);
 }
 </style>

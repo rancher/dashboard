@@ -209,6 +209,22 @@ export function createMemoryValues(total, useful) {
   };
 }
 
+/**
+ * What a card needs to show an amount of memory out of a total: the exact values, so its percentage isn't worked out from rounded
+ * ones, and how to show them, in the unit of the total
+ */
+export function createMemoryGaugeValues(total, useful) {
+  const { total: shownTotal, useful: shownUseful, units } = createMemoryValues(total, useful);
+
+  return {
+    total:           parseSi((total || '0').toString()),
+    useful:          parseSi((useful || '0').toString()),
+    formattedTotal:  `${ shownTotal } ${ units }`,
+    formattedUseful: `${ shownUseful }`,
+    units,
+  };
+}
+
 export default {
   exponentNeeded,
   formatSi,

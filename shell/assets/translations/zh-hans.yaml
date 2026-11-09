@@ -5423,7 +5423,6 @@ tableHeaders:
   publicPorts: 公共端口
   queues: 队列
   queueLengthLimit: 队列长度限制
-  ram: 内存（RAM）
   rbac:
     create: Create
     delete: Delete

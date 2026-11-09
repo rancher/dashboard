@@ -220,8 +220,8 @@ export const VERSION = {
 
 export const CPU = {
   name:      'cpu',
-  labelKey:  'tableHeaders.cpu',
-  sort:      'cpuUsage',
+  labelKey:  'tableHeaders.cpuUsed',
+  sort:      'cpuUsageRatio',
   search:    false,
   value:     'cpuUsagePercentage',
   formatter: 'PercentageBar',
@@ -230,8 +230,8 @@ export const CPU = {
 
 export const RAM = {
   name:      'ram',
-  labelKey:  'tableHeaders.ram',
-  sort:      'ramUsage',
+  labelKey:  'tableHeaders.memoryUsed',
+  sort:      'ramUsageRatio',
   search:    false,
   value:     'ramUsagePercentage',
   formatter: 'PercentageBar',
@@ -249,9 +249,9 @@ export const PRINCIPAL = {
 export const PODS = {
   name:      'pods',
   labelKey:  'tableHeaders.pods',
-  sort:      'podConsumed',
+  sort:      'podReserved',
   search:    false,
-  value:     (row) => row.podConsumedUsage,
+  value:     (row) => row.podUsagePercentage,
   formatter: 'PercentageBar',
   width:     120,
 };

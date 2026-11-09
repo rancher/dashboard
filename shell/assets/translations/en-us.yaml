@@ -3063,7 +3063,9 @@ clusterIndexPage:
     pods: Pods
     ram: Memory
     used: Used
+    usedTooltip: The amount in use right now, including by the system, out of the total capacity.
     reserved: Reserved
+    reservedTooltip: The amount pods have requested, out of what is available to pods, which is the total capacity minus what is set aside for the system.
     allocated: Allocated
     units:
       cores: |-
@@ -3080,6 +3082,8 @@ clusterIndexPage:
   sections:
     capacity:
       label: Capacity
+      countedNodes: "{counted} of {total} nodes. Cordoned nodes, and control plane or etcd nodes that don't run workloads, aren't counted."
+      reportingNodes: "Used only covers {reporting} of {counted} nodes, so it reads low. The rest aren't reporting metrics."
     events:
       label: Events
       resource:
@@ -5630,7 +5634,6 @@ node:
         cpu: CPU
         memory: Memory
         pods: Pods
-        running: Running
       diskPressure: Disk Pressure
       kubelet: kubelet
       memoryPressure: Memory Pressure
@@ -7736,6 +7739,7 @@ tableHeaders:
   customVerbs: Custom Verbs
   description: Description
   cpu: CPU
+  cpuUsed: CPU Used
   currentReplicas: Current Replicas
   date: Date
   data: Data
@@ -7805,6 +7809,7 @@ tableHeaders:
   maxReplicas: Maximum Replicas
   missingPL: MissingPL
   memory: Memory
+  memoryUsed: Memory Used
   monitored: Monitored
   name: Name
   nameDisplay: Display Name
@@ -7842,7 +7847,6 @@ tableHeaders:
   publicPorts: Public Ports
   queues: Queues
   queueLengthLimit: Queue Length Limit
-  ram: RAM
   rbac:
     create: Create
     delete: Delete
