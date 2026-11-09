@@ -1,8 +1,10 @@
 import TopLevelMenuHelperService, { TopLevelMenuHelperLegacy, TopLevelMenuHelperPagination, visibleRecentClusters } from '../TopLevelMenu.helper';
 import { CAPI, MANAGEMENT, SAVED_COUNTS } from '@shell/config/types';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
-import { RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
-import { clusterFilterSignature, filterHiddenLocalCluster, isLocalClusterHidden, paginationFilterClusters } from '@shell/utils/cluster';
+import { PINNED_CLUSTERS, RECENT_CLUSTERS_FETCHED } from '@shell/store/prefs';
+import {
+  clusterFilterSignature, filterHiddenLocalCluster, filterOnlyKubernetesClusters, isLocalClusterHidden, paginationFilterClusters
+} from '@shell/utils/cluster';
 
 // Mock dependencies
 jest.mock('@shell/utils/pagination-wrapper');
@@ -24,6 +26,7 @@ describe('topLevelMenu.helper', () => {
     (isLocalClusterHidden as jest.Mock).mockReturnValue(false);
     (clusterFilterSignature as jest.Mock).mockReturnValue('[]');
     (filterHiddenLocalCluster as jest.Mock).mockImplementation((clusters) => clusters);
+    (filterOnlyKubernetesClusters as jest.Mock).mockImplementation((clusters) => clusters);
     (paginationFilterClusters as jest.Mock).mockReturnValue([]);
     prefsData = { 'pinned-clusters': [], 'recent-clusters': [] };
     mockStore = {
@@ -33,7 +36,7 @@ describe('topLevelMenu.helper', () => {
         'management/paginationEnabled': jest.fn(),
         'prefs/get':                    (key: string) => prefsData[key],
       },
-      dispatch: jest.fn(),
+      dispatch: jest.fn(() => Promise.resolve()),
     };
 
     jest.clearAllMocks();
@@ -477,6 +480,87 @@ describe('topLevelMenu.helper', () => {
       // from the cache). We do NOT backfill — the shelf just shows c5.
       await helper.update(args);
       expect(helper.clustersPinned.map((c) => c.id)).toStrictEqual(['c5']);
+    });
+
+    describe('the context fetch', () => {
+      const optimisticWrites = () => mockStore.dispatch.mock.calls
+        .filter(([action]: any[]) => action === 'prefs/applyPrefsOptimistic')
+        .map(([, mutations]: any[]) => mutations);
+
+      const updateWith = async(returned: string[], pinned: string[]) => {
+        mockStore.getters['management/schemaFor'].mockReturnValue(true);
+
+        const data = returned.map((id) => ({
+          id, nameDisplay: id, canExplore: true, isLocal: id === 'local', pin: jest.fn(), unpin: jest.fn()
+        }));
+
+        const request = jest.fn().mockResolvedValue({ data });
+
+        (PaginationWrapper as unknown as jest.Mock)
+          .mockImplementationOnce(() => ({ request, onDestroy: jest.fn() }));
+
+        prefsData[PINNED_CLUSTERS] = pinned;
+
+        const helper = new TopLevelMenuHelperPagination({ $store: mockStore });
+
+        await helper.update({ searchTerm: '', pinnedIds: pinned });
+
+        return { helper, request };
+      };
+
+      it('unpins the pinned clusters it no longer returns, in one write that keeps every other pin', async() => {
+        await updateWith(['local', 'c5'], ['c9', 'c5', 'c7']);
+
+        const writes = optimisticWrites();
+
+        expect(writes).toHaveLength(1);
+        expect(writes[0].map((m: any) => m.key)).toStrictEqual([PINNED_CLUSTERS]);
+        expect(writes[0][0].apply(['c1', 'c9', 'c5', 'c7'])).toStrictEqual(['c1', 'c5']);
+      });
+
+      it('leaves the pinned pref alone when every pinned cluster comes back', async() => {
+        await updateWith(['c5'], ['c5']);
+
+        expect(optimisticWrites()).toStrictEqual([]);
+      });
+
+      it('asks by id alone, without the display filters', async() => {
+        const harvesterFilter = { param: 'filter', fields: [{ field: 'status.provider', value: 'harvester' }] };
+
+        (paginationFilterClusters as jest.Mock).mockReturnValue([harvesterFilter]);
+
+        const { request } = await updateWith(['local'], ['cH']);
+
+        expect(request.mock.calls[0][0].pagination.filters).not.toContainEqual(harvesterFilter);
+      });
+
+      it('keeps the pin of a cluster the display filters hide, off the shelf', async() => {
+        (filterOnlyKubernetesClusters as jest.Mock).mockImplementation((clusters) => clusters.filter((c: any) => c.id !== 'cH'));
+
+        const { helper } = await updateWith(['local', 'cH'], ['cH']);
+
+        expect(optimisticWrites()).toStrictEqual([]);
+        expect(helper.clustersPinned).toStrictEqual([]);
+      });
+
+      it('takes a pinned cluster off the shelf once the display filters hide it', async() => {
+        const { helper } = await updateWith(['local', 'cH'], ['cH']);
+
+        expect(helper.clustersPinned.map((c) => c.id)).toStrictEqual(['cH']);
+
+        (filterOnlyKubernetesClusters as jest.Mock).mockImplementation((clusters) => clusters.filter((c: any) => c.id !== 'cH'));
+        await helper.update({ searchTerm: '', pinnedIds: ['cH'] });
+
+        expect(helper.clustersPinned).toStrictEqual([]);
+      });
+
+      it('leaves local off the local tile when hide-local-cluster hides it', async() => {
+        (filterHiddenLocalCluster as jest.Mock).mockImplementation((clusters) => clusters.filter((c: any) => c.id !== 'local'));
+
+        const { helper } = await updateWith(['local'], []);
+
+        expect(helper.clustersLocal).toStrictEqual([]);
+      });
     });
 
     it('runs the context query on update even while a search term is set', async() => {
