@@ -1,0 +1,69 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcDrawerFooterStories from './RcDrawerFooter.stories';
+
+<Meta of={RcDrawerFooterStories} />
+
+# RcDrawerFooter
+
+`RcDrawerFooter` is the standard footer of an `RcDrawer`: a secondary button
+that closes the drawer, then the drawer's primary action. Put it in the
+drawer's `footer` slot.
+
+<Canvas of={RcDrawerFooterStories.Default} />
+
+<Controls of={RcDrawerFooterStories.Default} />
+
+## Labels
+
+Each button takes its label from a prop. `secondaryLabel` defaults to Close, and
+the secondary button closes the drawer whatever it says. `primaryLabel` labels
+the primary button, which emits `primary` when it is clicked.
+
+```vue
+<template #footer>
+  <RcDrawerFooter primary-label="Edit Config" @primary="edit" />
+</template>
+```
+
+<Canvas of={RcDrawerFooterStories.CustomLabels} />
+
+A drawer with no action of its own has no footer: Close alone would only repeat
+the X, Escape and a click outside. When the action can be missing, give the
+`RcDrawerFooter` a `v-if`.
+
+## Buttons of your own
+
+The `primary` and `secondary` slots replace their button, for one that needs
+more than a label, such as an icon or a test id, or for several actions. Make
+them `size="large"`, with `variant="primary"` for the main one, and keep the
+icon a button had before it moved into the drawer, with `left-icon`. Both slots
+receive `close`, which closes the drawer.
+
+```vue
+<RcDrawerFooter>
+  <template #primary>
+    <RcButton variant="secondary" size="large" left-icon="trash" @click="uninstall">Uninstall</RcButton>
+    <RcButton variant="primary" size="large" left-icon="upgrade-alt" @click="upgrade">Upgrade</RcButton>
+  </template>
+</RcDrawerFooter>
+```
+
+<Canvas of={RcDrawerFooterStories.CustomButtons} />
+
+## More actions than room
+
+When the footer has no room for every action, such as in a narrow drawer, put
+the main action on an `RcButtonSplit` in the `primary` slot and the rest in its
+menu.
+
+<Canvas of={RcDrawerFooterStories.SplitButton} />
+
+When Close might not fit beside the actions, leave it out: put the actions
+straight in the drawer's `footer` instead of an `RcDrawerFooter`. The X, Escape
+and a click outside still close the drawer.
+
+## Accessibility
+
+- The Close button is labeled with the drawer's title, so a screen reader
+  announces which drawer it closes. A `secondaryLabel` is the button's whole
+  name, so what a screen reader announces matches what the button says.

@@ -1,0 +1,65 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcDrawerHeaderStories from './RcDrawerHeader.stories';
+
+<Meta of={RcDrawerHeaderStories} />
+
+# RcDrawerHeader
+
+`RcDrawerHeader` is the header every `RcDrawer` has: the title, the header
+actions and the close button. Put it in the drawer's `header` slot.
+
+<Canvas of={RcDrawerHeaderStories.Default} />
+
+<Controls of={RcDrawerHeaderStories.Default} />
+
+## The title
+
+`title` is the header text, and it also names the drawer and both of its close
+buttons for assistive technology.
+
+```vue
+<template #header>
+  <RcDrawerHeader :title="title" />
+</template>
+```
+
+## Titles that need markup
+
+What goes in the default slot replaces the title the header shows, such as the
+state dot Show Configuration puts before the resource name. `title` still names
+the drawer, so set it to the plain text of what the header shows.
+
+```vue
+<RcDrawerHeader :title="title">
+  <StateDot :color="resource.stateSimpleColor" />
+  {{ title }}
+</RcDrawerHeader>
+```
+
+<Canvas of={RcDrawerHeaderStories.RichTitle} />
+
+## Actions
+
+Buttons that act on the drawer's content, such as Dock to shell or Expand all,
+go in `actions`, beside the close button. Make them icon buttons sized like it,
+each with an `aria-label` and a tooltip that name it.
+
+```vue
+<RcDrawerHeader :title="title">
+  <template #actions>
+    <button type="button" class="btn role-link" :aria-label="dockLabel" @click="dock">
+      <i class="icon icon-dock" />
+    </button>
+  </template>
+</RcDrawerHeader>
+```
+
+<Canvas of={RcDrawerHeaderStories.Actions} />
+
+## Accessibility
+
+- The title is a level 2 heading, so screen reader users can jump to it like
+  any other section of the page. Put no heading or button in the default slot,
+  which renders inside it; buttons go in `actions`.
+- The close button is labeled with the title, so a screen reader announces
+  which drawer it closes.
