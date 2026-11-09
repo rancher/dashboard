@@ -5,6 +5,7 @@ import { useStore } from 'vuex';
 import { useRouter, type RouteLocationRaw } from 'vue-router';
 import { WORKLOAD_TYPES } from '@shell/config/types';
 import type { StateColor } from '@shell/utils/style';
+import { colorForState } from '@shell/plugins/dashboard-store/resource-class';
 import { resourceListRoute, isValidSummaryResponse } from '@shell/utils/resource-state-summary';
 import { useI18n } from '@shell/composables/useI18n';
 import { useStateColor } from '@shell/composables/useStateColor';
@@ -20,13 +21,32 @@ import { buildStatusSummaryCard, compareStateColors } from '@shell/components/Re
 import type { StatusBreakdownCardItem } from '@shell/components/Resource/Detail/Card/StatusBreakdownCard/types';
 import {
   WORKLOAD_DASHBOARD_RESOURCE_TYPES,
+  WORKLOAD_DASHBOARD_STATE_FLAG_TYPES,
   type WorkloadDashboardSummaryEntry,
+  type WorkloadDashboardFlaggedCounts,
+  type WorkloadDashboardStateCounts,
+  type WorkloadDashboardStateCount,
   type WorkloadDashboardEntry,
   type WorkloadDashboardStateCard,
   type WorkloadDashboardByStateLayout,
 } from './types';
 
 const WORKLOAD_DASHBOARD_ROUTE = 'c-cluster-explorer-workload-dashboard';
+
+const STATE_FLAG_FILTERS: { color: StateColor; filter: string }[] = [
+  { color: 'error', filter: 'filter=metadata.state.error=true' },
+  { color: 'info', filter: 'filter=metadata.state.error=false&filter=metadata.state.transitioning=true' },
+];
+
+function stateNameCounts(summary: WorkloadDashboardSummaryEntry['summary'] | undefined): WorkloadDashboardStateCounts {
+  return summary?.find((s) => s.property === 'metadata.state.name')?.counts || {};
+}
+
+function stateNameColor(state: string): StateColor {
+  const color = colorForState(state, false, false).replace('text-', '');
+
+  return (color === 'darker' ? 'disabled' : color) as StateColor;
+}
 
 /**
  * Singleton (module-level) cache of cluster ids whose workload summary responses
@@ -100,28 +120,55 @@ export function useWorkloadDashboard() {
 
   // ── Workload data ──
 
-  const workloadData = computed<WorkloadDashboardEntry[]>(() => {
-    return summaries.value.map((entry) => {
-      const label = t(`typeLabel."${ entry.type }"`, { count: 2 })?.trim() || entry.type;
-      const stateCounts: Record<string, number> = {};
-      let total = 0;
+  function stateCounts({ type, summary, flaggedCounts }: WorkloadDashboardSummaryEntry): WorkloadDashboardStateCount[] {
+    const states: WorkloadDashboardStateCount[] = [];
 
-      if (entry.summary) {
-        for (const s of entry.summary) {
-          if (s.property === 'metadata.state.name') {
-            for (const [state, detail] of Object.entries(s.counts)) {
-              stateCounts[state] = detail.total;
-              total += detail.total;
-            }
+    for (const [name, { total, namespace }] of Object.entries(stateNameCounts(summary))) {
+      if (!flaggedCounts) {
+        states.push({
+          name, color: toStateColor(name, type), count: total, namespace
+        });
+        continue;
+      }
+
+      const rest = { ...namespace };
+      const byColor: Record<string, Record<string, number>> = {};
+      const parts = [
+        ...flaggedCounts.map(({ color, counts }) => ({ color, namespace: counts[name]?.namespace || {} })),
+        { color: stateNameColor(name), namespace },
+      ];
+
+      for (const part of parts) {
+        for (const [ns, nsCount] of Object.entries(part.namespace)) {
+          const count = Math.min(nsCount, rest[ns] || 0);
+
+          if (count > 0) {
+            byColor[part.color] = { ...byColor[part.color], [ns]: (byColor[part.color]?.[ns] || 0) + count };
+            rest[ns] -= count;
           }
         }
       }
 
+      for (const [color, nsCounts] of Object.entries(byColor)) {
+        states.push({
+          name, color: color as StateColor, count: Object.values(nsCounts).reduce((sum, nsCount) => sum + nsCount, 0), namespace: nsCounts
+        });
+      }
+    }
+
+    return states;
+  }
+
+  const workloadData = computed<WorkloadDashboardEntry[]>(() => {
+    return summaries.value.map((entry) => {
+      const label = t(`typeLabel."${ entry.type }"`, { count: 2 })?.trim() || entry.type;
+      const states = stateCounts(entry);
+
       return {
         type:  entry.type,
         label,
-        total,
-        stateCounts,
+        total: states.reduce((sum, s) => sum + s.count, 0),
+        states,
         error: entry.error,
       };
     });
@@ -147,16 +194,14 @@ export function useWorkloadDashboard() {
         continue;
       }
 
-      for (const [state, count] of Object.entries(w.stateCounts)) {
-        const color = toStateColor(state, w.type);
-
+      for (const { name, color, count } of w.states) {
         if (!colorGroups[color][w.label]) {
           colorGroups[color][w.label] = {
             count: 0, type: w.type, stateNames: new Set()
           };
         }
         colorGroups[color][w.label].count += count;
-        colorGroups[color][w.label].stateNames.add(state);
+        colorGroups[color][w.label].stateNames.add(name);
       }
     }
 
@@ -199,15 +244,27 @@ export function useWorkloadDashboard() {
   // ── By Type cards ──
 
   const byTypeCards = computed<StatusSummaryCardItem[]>(() => {
-    return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => buildStatusSummaryCard({
-      key:    w.type,
-      title:  w.label,
-      to:     resourceRoute(w.type),
-      states: Object.entries(w.stateCounts).map(([name, count]) => ({
-        name, count, color: toStateColor(name, w.type)
-      })),
-      stateRoute: (name) => resourceRoute(w.type, [name]),
-    }));
+    return workloadData.value.filter((w) => !w.error && w.total > 0).map((w) => {
+      const names = w.states.map((s) => s.name);
+      const splitNames = names.filter((name, i) => names.indexOf(name) !== i);
+      const card = buildStatusSummaryCard({
+        key:        w.type,
+        title:      w.label,
+        to:         resourceRoute(w.type),
+        states:     w.states,
+        stateRoute: (name) => resourceRoute(w.type, [name]),
+        stateOrder: splitNames,
+      });
+
+      return {
+        ...card,
+        rows: card.rows.map((row) => ({
+          ...row,
+          key:   `${ row.key }:${ row.color }`,
+          label: splitNames.includes(row.key) && row.color !== stateNameColor(row.key) ? t(`workloadDashboard.flaggedState.${ row.color }`, { state: row.label }) : row.label,
+        })),
+      };
+    });
   });
 
   // ── By Namespace cards ──
@@ -216,32 +273,20 @@ export function useWorkloadDashboard() {
     // namespace -> type -> color -> { count, stateNames }
     const nsMap: Record<string, Record<string, Record<string, { count: number; stateNames: Set<string> }>>> = {};
 
-    for (const entry of summaries.value) {
-      if (entry.error || !entry.summary) {
-        continue;
-      }
-
-      for (const s of entry.summary) {
-        if (s.property !== 'metadata.state.name') {
-          continue;
-        }
-
-        for (const [state, detail] of Object.entries(s.counts)) {
-          const color = toStateColor(state, entry.type);
-
-          for (const [ns, count] of Object.entries(detail.namespace)) {
-            if (!nsMap[ns]) {
-              nsMap[ns] = {};
-            }
-            if (!nsMap[ns][entry.type]) {
-              nsMap[ns][entry.type] = {};
-            }
-            if (!nsMap[ns][entry.type][color]) {
-              nsMap[ns][entry.type][color] = { count: 0, stateNames: new Set() };
-            }
-            nsMap[ns][entry.type][color].count += count;
-            nsMap[ns][entry.type][color].stateNames.add(state);
+    for (const w of workloadData.value) {
+      for (const { name, color, namespace } of w.states) {
+        for (const [ns, count] of Object.entries(namespace)) {
+          if (!nsMap[ns]) {
+            nsMap[ns] = {};
           }
+          if (!nsMap[ns][w.type]) {
+            nsMap[ns][w.type] = {};
+          }
+          if (!nsMap[ns][w.type][color]) {
+            nsMap[ns][w.type][color] = { count: 0, stateNames: new Set() };
+          }
+          nsMap[ns][w.type][color].count += count;
+          nsMap[ns][w.type][color].stateNames.add(name);
         }
       }
     }
@@ -312,6 +357,37 @@ export function useWorkloadDashboard() {
     router.push(resourceRoute(WORKLOAD_TYPES.DEPLOYMENT));
   }
 
+  function summaryUrl(type: string, filter?: string): string {
+    let url = `${ store.getters['cluster/urlFor'](type) }`;
+
+    if (namespaceFilterParam.value) {
+      url += `&${ namespaceFilterParam.value }`;
+    }
+    if (filter) {
+      url += `&${ filter }`;
+    }
+
+    return `${ url }&summary=metadata.state.name&summaryonly&summarynamespaced`;
+  }
+
+  async function fetchFlaggedCounts(type: string): Promise<WorkloadDashboardFlaggedCounts[] | null> {
+    if (!WORKLOAD_DASHBOARD_STATE_FLAG_TYPES.includes(type)) {
+      return null;
+    }
+
+    try {
+      const responses = await Promise.all(STATE_FLAG_FILTERS.map(({ filter }) => store.dispatch('cluster/request', { url: summaryUrl(type, filter) })));
+
+      if (!responses.every((res) => isValidSummaryResponse(res))) {
+        return null;
+      }
+
+      return STATE_FLAG_FILTERS.map(({ color }, i) => ({ color, counts: stateNameCounts(responses[i].summary) }));
+    } catch {
+      return null;
+    }
+  }
+
   async function fetchSummaries(): Promise<void> {
     // If this cluster's data was already found to be malformed, skip the requests
     // and redirect straight away (cleared on reload via the in-memory singleton).
@@ -331,27 +407,23 @@ export function useWorkloadDashboard() {
 
       const workloadPromises = accessibleTypes.map(async(type): Promise<WorkloadDashboardSummaryEntry> => {
         try {
-          let url = `${ store.getters['cluster/urlFor'](type) }`;
-
-          if (namespaceFilterParam.value) {
-            url += `&${ namespaceFilterParam.value }`;
-          }
-          url += `&summary=metadata.state.name&summaryonly&summarynamespaced`;
-
-          const res = await store.dispatch('cluster/request', { url });
+          const [res, flaggedCounts] = await Promise.all([
+            store.dispatch('cluster/request', { url: summaryUrl(type) }),
+            fetchFlaggedCounts(type),
+          ]);
 
           if (!hasInvalidResponse && !isValidSummaryResponse(res)) {
             hasInvalidResponse = true;
           }
 
           return {
-            type, summary: res.summary || [], error: null
+            type, summary: res.summary || [], flaggedCounts, error: null
           };
         } catch (e: unknown) {
           const message = e instanceof Error ? e.message : t('workloadDashboard.errors.fetchType', { type });
 
           return {
-            type, summary: null, error: message
+            type, summary: null, flaggedCounts: null, error: message
           };
         }
       });
@@ -368,7 +440,7 @@ export function useWorkloadDashboard() {
         return;
       }
 
-      await resolveStateColors(results);
+      await resolveStateColors(results.filter((r) => !r.flaggedCounts));
       summaries.value = results;
       fetchError.value = null;
     } catch (e: unknown) {
