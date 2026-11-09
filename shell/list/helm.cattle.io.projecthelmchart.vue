@@ -38,9 +38,7 @@ export default {
     this.$store.dispatch('type-map/configureType', { match: HELM.PROJECTHELMCHART, isCreatable: true });
     this.headers = this.$store.getters['type-map/headersFor'](this.projectHelmChartSchema).map((header) => {
       if (header.name === 'name') {
-        return {
-          ...header, value: 'projectDisplayName', labelKey: 'tableHeaders.project'
-        };
+        return { ...header, labelKey: 'tableHeaders.project' };
       }
       if (header.name === 'namespace') {
         return { ...header, labelKey: 'tableHeaders.registrationNamespace' };
