@@ -22,6 +22,6 @@ describe('Can describe resource', { testIsolation: false, tags: ['@explorer2', '
     slideIn.checkExists();
     slideIn.checkVisible();
     slideIn.closeButton().click();
-    slideIn.checkNotVisible();
+    slideIn.checkNotExists();
   });
 });

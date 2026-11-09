@@ -916,6 +916,30 @@ describe('class: Resource', () => {
     });
   });
 
+  describe('method: showConfiguration', () => {
+    it('should open the resource detail drawer in the slide-in and leave closing to it', () => {
+      const commit = jest.fn();
+      const resource = new Resource({ type: 'test' }, {
+        commit, getters: { schemaFor: jest.fn() }, rootGetters: { 'i18n/t': jest.fn() }
+      });
+
+      resource.showConfiguration('.trigger', 'yaml-tab');
+
+      expect(commit).toHaveBeenCalledWith('slideInPanel/open', {
+        component:      expect.anything(),
+        componentProps: {
+          resource,
+          width:               'wide',
+          height:              'full',
+          closeOnRouteChange:  ['name', 'params', 'query'],
+          triggerFocusTrap:    true,
+          returnFocusSelector: '.trigger',
+          defaultTab:          'yaml-tab',
+        }
+      }, { root: true });
+    });
+  });
+
   describe('method: dryRunCreate', () => {
     const collectionUrl = '/v1/test.resources';
 
