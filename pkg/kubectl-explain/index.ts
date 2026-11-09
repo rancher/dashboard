@@ -25,7 +25,7 @@ export default function(plugin: IPlugin, internal: IInternal): void {
     labelKey:     'kubectl-explain.action',
     tooltipKey:   'kubectl-explain.tooltip',
     svg:          require('./explain.svg'),
-    ariaExpanded: () => isExplainPanelOpen.value,
+    ariaExpanded: () => isExplainPanelOpen(store),
     invoke:       (opts, res, globals) => {
       explain(store, globals.$route);
     }

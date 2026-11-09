@@ -450,7 +450,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
           cy.checkPageAccessibility();
 
           slideIn.closeButton().click();
-          slideIn.checkNotVisible();
+          slideIn.checkNotExists();
         });
 
         it('Storage Class - Create', () => {

@@ -57,7 +57,6 @@ export default {
     ActionMenu,
     IconMessage,
     Banner,
-    PluginInfoPanel,
     Tab,
     Tabbed,
     SetupUIPlugins,
@@ -678,7 +677,15 @@ export default {
     showPluginDetail(plugin) {
       const tags = this.getFooterItems(plugin);
 
-      this.$refs.infoPanel.show({ ...plugin, tags });
+      this.$shell.slideIn.open(PluginInfoPanel, {
+        props: {
+          info:     { ...plugin, tags },
+          onAction: this.handlePanelAction
+        },
+        width:              'medium',
+        height:             'full',
+        closeOnRouteChange: ['name', 'params', 'query'],
+      });
     },
 
     updatePluginInstallStatus(id, status) {
@@ -1404,12 +1411,6 @@ export default {
         </div>
       </div>
     </div>
-
-    <!-- extensions slide-in panel -->
-    <PluginInfoPanel
-      ref="infoPanel"
-      @action="handlePanelAction"
-    />
 
     <!-- extensions not enabled by feature flag -->
     <div v-if="!hasFeatureFlag">

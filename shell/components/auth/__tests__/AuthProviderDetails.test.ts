@@ -10,7 +10,7 @@ const createWrapper = (config: any, name = 'GitHub') => {
       provide: { store },
       mocks:   { $store: store },
       // The pairs are the card's content, so the card has to pass them through
-      stubs:   { DrawerCard: { template: '<div><slot /></div>' } },
+      stubs:   { RcDrawerCard: { template: '<div><slot /></div>' } },
     },
   });
 };
