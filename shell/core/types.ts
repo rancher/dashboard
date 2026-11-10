@@ -93,6 +93,8 @@ export enum TabLocation {
 /** Enum regarding card locations that are extensible in the UI */
 export enum CardLocation {
   CLUSTER_DASHBOARD_CARD = 'cluster-dashboard-card', // eslint-disable-line no-unused-vars
+  /** Card in the row of cards on a resource detail page. Rancher v2.17.0 and above */
+  RESOURCE_DETAIL_CARD = 'resource-detail-card', // eslint-disable-line no-unused-vars
 }
 
 /** Enum regarding table col locations that are extensible in the UI */
@@ -171,8 +173,11 @@ export type Panel = {
 
 /** Definition of a card (options that can be passed when defining an extension card enhancement) */
 export type Card = {
+  /** Card title */
   label?: string;
+  /** Same as `label` but allows for translation. Will supersede `label` */
   labelKey?: string;
+  /** Component rendered as the body of the card */
   component: Function;
   /**
    * Order of this card amongst the other extension cards in the same location, highest first.
