@@ -1,0 +1,116 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcDrawerStories from './RcDrawer.stories';
+
+<Meta of={RcDrawerStories} />
+
+# RcDrawer
+
+`RcDrawer` is the standard drawer, the one Show Configuration opens. Use it for
+every drawer, with an `RcDrawerHeader` in its header and an `RcDrawerFooter` in
+its footer, so they all share one header, body and footer.
+
+<Canvas of={RcDrawerStories.Default} />
+
+<Controls of={RcDrawerStories.Default} />
+
+## The API
+
+`RcDrawer` emits `close`. Everything else is a slot.
+
+| Slot | Renders |
+|---|---|
+| `header` | The header. Put an `RcDrawerHeader` in it, which gives the drawer its title, its name and the close button. It receives `close`, which closes the drawer. |
+| default | The body. Text goes straight in; wrap a form or a table in an `RcDrawerCard`. |
+| `footer` | The footer. Put an `RcDrawerFooter` in it, or your own buttons; it receives `close`, which closes the drawer. Without anything in it, the drawer has no footer. |
+
+Every close button emits `close`. The drawer never takes itself down: whatever
+opened it does that.
+
+```vue
+<script setup lang="ts">
+import { RcDrawer, RcDrawerHeader, RcDrawerFooter } from '@rancher/components';
+
+const emit = defineEmits<{ close: [] }>();
+</script>
+
+<template>
+  <RcDrawer @close="emit('close')">
+    <template #header>
+      <RcDrawerHeader :title="title" />
+    </template>
+    ...
+    <template #footer>
+      <RcDrawerFooter primary-label="Edit Config" @primary="edit" />
+    </template>
+  </RcDrawer>
+</template>
+```
+
+Attributes land on the drawer's root element, so `class` and `data-testid` work
+as usual.
+
+## Opening it
+
+The drawer fills its nearest positioned ancestor. In the shell, that is the
+slide-in panel: make `RcDrawer` the root of your component and open the
+component with the slide-in API. The panel closes when the component emits
+`close`.
+
+```ts
+import { useShell } from '@shell/apis';
+import MyDrawer from '@/components/MyDrawer.vue';
+
+const shell = useShell();
+
+shell.slideIn.open(MyDrawer, {
+  width:  'wide',
+  height: 'full',
+  props:  { resource },
+});
+```
+
+`width: 'wide'` and `height: 'full'` open it the way Show Configuration does.
+
+Do not pass `title` to `slideIn.open` for a component that renders `RcDrawer`.
+A `title` tells the slide-in to wrap the component in a drawer of its own, so
+the content would sit inside a second drawer.
+
+## Cards
+
+Text, such as a readme or a description, goes straight in the body.
+
+`RcDrawerCard` sets a form or a table apart as a panel on the tinted body, the
+way Show Configuration shows its form. Space cards apart with the spacing
+utilities, for example `class="mmb-4"`.
+
+<Canvas of={RcDrawerStories.TallContent} />
+
+Content taller than the drawer scrolls inside the body, and the header and
+footer stay in view.
+
+## Accessibility
+
+- The drawer is a modal dialog named by its `RcDrawerHeader`'s `title`.
+- The title is a level 2 heading, so screen reader users can jump to it like
+  any other section of the page.
+- The close buttons in `RcDrawerHeader` and `RcDrawerFooter` are labeled with
+  the title, so a screen reader announces which drawer they close.
+
+## Moving from `Chrome` and `DrawerCard`
+
+`@shell/components/Drawer/Chrome.vue` and `@shell/components/Drawer/DrawerCard.vue`
+are deprecated. Use `RcDrawer`, `RcDrawerHeader`, `RcDrawerFooter` and
+`RcDrawerCard` instead:
+
+| `Chrome` | `RcDrawer` |
+|---|---|
+| `aria-target` | An `RcDrawerHeader` in `#header`, with that `title` |
+| `close-label` | The `RcDrawerFooter`'s `secondary-label` |
+| `#title` | The `RcDrawerHeader`'s default slot, and only when the title needs markup |
+| `#header` | `#header` |
+| `#body` | The default slot |
+| `#footer` | `#footer` |
+| `#additional-actions` | The `RcDrawerFooter`'s `primary-label`, or its `#primary` slot |
+
+`Chrome`'s `remove-footer` prop has no replacement: a drawer has a footer only
+when it has content.

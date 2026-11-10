@@ -1,19 +1,13 @@
 <script setup lang="ts">
+/**
+ * @deprecated Use `RcDrawerCard` from `@components/RcDrawer`, which this is now
+ * built on. Kept for extensions that still import it.
+ */
+import { RcDrawerCard } from '@components/RcDrawer';
 </script>
 
 <template>
-  <div class="drawer-card">
+  <RcDrawerCard>
     <slot />
-  </div>
+  </RcDrawerCard>
 </template>
-
-<style lang="scss" scoped>
-.drawer-card {
-  background-color: var(--body-bg);
-  border-radius: var(--border-radius-md);
-  padding: 16px;
-  max-width: 100%;
-  width: 100%;
-  position: relative;
-}
-</style>
