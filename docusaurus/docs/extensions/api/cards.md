@@ -73,6 +73,8 @@ plugin.addCard(
 
 *(From Rancher version v2.17.0)*
 
+![Resource Details Card](../screenshots/resource-cards.png)
+
 Resource detail pages show a row of cards under the masthead, which Rancher fills with cards such as `Resources` and `Insights`. An extension can add its own cards to that row for any resource type, including resource types that have no cards of their own.
 
 `options` config object. Admissable parameters for the `options` with `'CardLocation.RESOURCE_DETAIL_CARD'` are:
