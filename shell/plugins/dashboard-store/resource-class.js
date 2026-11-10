@@ -43,14 +43,7 @@ import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { parse } from '@shell/utils/selector';
 import { useResourceCardRow, useResourceCardRowFromRelationships } from '@shell/components/Resource/Detail/Card/StateCard/composables';
 import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
-
-// Loaded on demand: the drawer reaches the YAML editor, and through it CodeMirror, the diff viewer
-// and the syntax highlighter. Requiring it here would put all of that in the initial bundle - and in
-// every extension's bundle, since each one compiles its own copy of this class.
-// Defined once rather than per call, so re-opening the drawer reuses the resolved component.
-const ResourceDetailDrawer = markRaw(defineAsyncComponent(() => import(
-  /* webpackChunkName: "resource-detail-drawer" */ '@shell/components/Drawer/ResourceDetailDrawer/index.vue'
-)));
+import { ResourceDetailDrawerAsync } from '@shell/components/Drawer/ResourceDetailDrawer/async';
 
 export const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
@@ -953,7 +946,7 @@ export default class Resource {
     const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
 
     this.$ctx.commit('slideInPanel/open', {
-      component:      ResourceDetailDrawer,
+      component:      ResourceDetailDrawerAsync,
       componentProps: {
         resource:           this,
         onClose,

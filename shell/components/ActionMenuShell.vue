@@ -7,6 +7,7 @@ import { isAlternate } from '@shell/utils/platform';
 import { RcDropdownMenu } from '@components/RcDropdown';
 import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
 import { DropdownOption } from '@components/RcDropdown/types';
+import { preloadResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/async';
 
 defineOptions({ inheritAttrs: false });
 
@@ -30,6 +31,10 @@ const props = defineProps <RcDropdownMenuComponentProps>();
 const openChanged = (event: boolean) => {
   if (event) {
     store.dispatch('action-menu/setResource', props.resource);
+
+    // Opening the menu is the earliest sign the drawer may be wanted - start its chunk now so the
+    // panel is not waiting on a download when Show Configuration is clicked
+    preloadResourceDetailDrawer();
   }
 
   emit('update:open', event);

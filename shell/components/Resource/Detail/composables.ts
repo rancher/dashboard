@@ -3,6 +3,7 @@ import { useStore } from 'vuex';
 import { Props as BannerProps } from '@components/Banner/Banner.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import ResourceClass from '@shell/plugins/dashboard-store/resource-class';
+import { preloadResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/async';
 
 export const useResourceDetailBannerProps = (resource: any): Ref<BannerProps | undefined> => {
   const store = useStore();
@@ -46,6 +47,10 @@ export const useResourceDetailBannerProps = (resource: any): Ref<BannerProps | u
 };
 
 export const useOnShowConfiguration = (resource: any) => {
+  // A detail page offering this action is a strong sign the drawer is about to be opened, so start
+  // its chunk now rather than when the button is clicked
+  preloadResourceDetailDrawer();
+
   return (returnFocusSelector?: string, defaultTab?: string) => {
     const resourceValue = toValue(resource);
     // Because extensions can make a copy of the resource-class it's possible that an extension will have a resource-class which predates the inclusion of showConfiguration
