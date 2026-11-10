@@ -17,7 +17,7 @@ jest.mock('@shell/components/Resource/Detail/composables', () => ({ useResourceD
 jest.mock('@shell/components/Resource/Detail/Cards.vue', () => ({
   name:     'Cards',
   template: `<div data-testid="cards">Cards</div>`,
-  props:    ['resource']
+  props:    ['resource', 'showResourceCards']
 }));
 jest.mock('@shell/components/Resource/Detail/FleetManagedBanner.vue', () => ({
   name:     'FleetManagedBanner',
@@ -53,7 +53,9 @@ describe('component: Masthead/latest', () => {
     jest.clearAllMocks();
   });
 
-  it('should render Cards when isCustomDetailOrEdit is true', () => {
+  // Cards is always rendered so that an extension can add a card to any resource detail page. The
+  // resource's own cards remain limited to pages with a custom detail or edit component
+  it('should show the cards of the resource when isCustomDetailOrEdit is true', () => {
     const props = {
       value:                { name: 'test-resource' },
       isCustomDetailOrEdit: true
@@ -62,9 +64,10 @@ describe('component: Masthead/latest', () => {
     const wrapper = mount(Latest, { props, ...defaultMocks });
 
     expect(wrapper.find('[data-testid="cards"]').exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'Cards' }).props('showResourceCards')).toBe(true);
   });
 
-  it('should not render Cards when isCustomDetailOrEdit is false', () => {
+  it('should not show the cards of the resource when isCustomDetailOrEdit is false', () => {
     const props = {
       value:                { name: 'test-resource' },
       isCustomDetailOrEdit: false
@@ -72,15 +75,25 @@ describe('component: Masthead/latest', () => {
 
     const wrapper = mount(Latest, { props, ...defaultMocks });
 
-    expect(wrapper.find('[data-testid="cards"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="cards"]').exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'Cards' }).props('showResourceCards')).toBe(false);
   });
 
-  it('should not render Cards when isCustomDetailOrEdit is not provided (defaults to false)', () => {
+  it('should not show the cards of the resource when isCustomDetailOrEdit is not provided (defaults to false)', () => {
     const props = { value: { name: 'test-resource' } };
 
     const wrapper = mount(Latest, { props, ...defaultMocks });
 
-    expect(wrapper.find('[data-testid="cards"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="cards"]').exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'Cards' }).props('showResourceCards')).toBe(false);
+  });
+
+  it('should pass the resource to Cards', () => {
+    const props = { value: { name: 'test-resource' } };
+
+    const wrapper = mount(Latest, { props, ...defaultMocks });
+
+    expect(wrapper.findComponent({ name: 'Cards' }).props('resource')).toStrictEqual(props.value);
   });
 
   it('should always render TitleBar and Metadata', () => {
