@@ -21,7 +21,7 @@ const HEX_IN_CSS = /(?<![\w&#-])#[0-9a-fA-F]{3,8}(?![\w-])/g;
 const ISSUE_NUMBER = /^#\d{4}$/;
 const RGB_TRIPLET = /^\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}(\s*,\s*[\d.]+%?)?\s*$/;
 const NAMED_WORD = /(?<![\w$#.@%-])[a-zA-Z]+(?![\w(-])/g;
-const DECLARATION_IN_STRING = /(?<![\w-])([a-z][a-z-]*)\s*:\s*([^;'"`]*)/gi;
+const DECLARATION_IN_STRING = /(?<![\w-])([a-z][a-z-]*)\s*:\s*([^;'"`]*)/g;
 
 const isHexLength = (hex) => [4, 5, 7, 9].includes(hex.length);
 

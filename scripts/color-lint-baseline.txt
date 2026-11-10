@@ -2,6 +2,31 @@
 # Regenerate with: yarn lint:colors:baseline
 # Total colors: 745
 pkg/rancher-components/src/components/RcButtonSplit/RcButtonSplit.vue:149: rgba(255, 255, 255, 0.3)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:486: #F5F7FA
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:487: #E0E0E0
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:488: #1A4FA8
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:489: #8A4B10
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:490: #9A2B94
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:491: #5B616D
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:492: #16181D
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:493: #5B626C
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:494: #E8ECF2
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:495: rgba(0, 0, 0, 0.04)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:496: rgba(255, 213, 0, 0.4)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:497: rgba(255, 140, 0, 0.5)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:600: #DCDEE7
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:742: #171C22
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:743: #303030
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:744: #79B8FF
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:745: #E0A458
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:746: #E48AD8
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:747: #9AA1AC
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:748: #E6E9EF
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:749: #9AA1AC
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:750: #3C4655
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:751: rgba(255, 255, 255, 0.04)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:752: rgba(255, 213, 0, 0.25)
+pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:753: rgba(255, 140, 0, 0.45)
 pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:69: #FFFFFF
 pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:70: #3D98D3
 pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:109: #DCDEE7
@@ -13,31 +38,6 @@ pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:143: #3D9
 pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:169: #6B6D85
 pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:191: #3D98D3
 pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:197: #3D98D3
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:484: #F5F7FA
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:485: #E0E0E0
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:486: #1A4FA8
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:487: #8A4B10
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:488: #9A2B94
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:489: #5B616D
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:490: #16181D
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:491: #5B626C
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:492: #E8ECF2
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:493: rgba(0, 0, 0, 0.04)
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:494: rgba(255, 213, 0, 0.4)
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:495: rgba(255, 140, 0, 0.5)
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:593: #DCDEE7
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:735: #171C22
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:736: #303030
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:737: #79B8FF
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:738: #E0A458
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:739: #E48AD8
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:740: #9AA1AC
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:741: #E6E9EF
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:742: #9AA1AC
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:743: #3C4655
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:744: rgba(255, 255, 255, 0.04)
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:745: rgba(255, 213, 0, 0.25)
-pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:746: rgba(255, 140, 0, 0.45)
 pkg/rancher-components/src/components/RcDropdown/RcDropdown.vue:275: rgba(0, 0, 0, 0.15)
 pkg/rancher-components/src/components/RcDropdown/RcDropdown.vue:275: rgba(0, 0, 0, 0.25)
 shell/assets/styles/base/_color-classic.scss:3: #141419
@@ -649,6 +649,28 @@ shell/components/CountGauge.vue:96: rgb(var(--resource-gauge-back-circle))
 shell/components/DashboardMetrics.vue:46: #2e3035
 shell/components/DashboardMetrics.vue:46: #f3f4f9
 shell/components/ExplorerMembers.vue:482: rgba(0, 0, 0, 0.05)
+shell/components/GradientBox.vue:56: rgba(var(
+shell/components/GrafanaDashboard.vue:34: #1b1c21
+shell/components/HardwareResourceGauge.vue:60: rgba(var(
+shell/components/Markdown.vue:93: rgb(101, 109, 118)
+shell/components/Markdown.vue:94: rgb(208, 215, 222)
+shell/components/Markdown.vue:105: #e3e7eb
+shell/components/Markdown.vue:126: #e3e7eb
+shell/components/PopoverCard.vue:194: rgba(0, 0, 0, 0.04)
+shell/components/PromptModal.vue:175: rgba(0,0,0,0)
+shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue:167: #141419
+shell/components/ResourceCancelModal.vue:123: white
+shell/components/SelectIconGrid.vue:283: white
+shell/components/Tabbed/index.vue:625: #fff
+shell/components/TableSparkLine.vue:107: #6e3daa
+shell/components/TableViews/TableViewControls.vue:692: color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)
+shell/components/TableViews/TableViewControls.vue:702: color-mix(in srgb, var(--primary) 14%, transparent)
+shell/components/TableViews/TableViewControls.vue:704: rgba(0, 0, 0, 0.28)
+shell/components/TableViews/TableViewQueryInput.vue:1235: color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)
+shell/components/TableViews/TableViewTabs.vue:1520: color-mix(in srgb, var(--primary) 14%, transparent)
+shell/components/TableViews/TableViewTabs.vue:1521: rgba(0, 0, 0, 0.28)
+shell/components/TableViews/TableViewTabs.vue:1533: color-mix(in srgb, var(--primary) 15%, transparent)
+shell/components/TableViews/TableViewTabs.vue:1679: color-mix(in srgb, var(--body-text) 8%, transparent)
 shell/components/fleet/dashboard/ResourceCard.vue:56: #DAC342
 shell/components/form/FileImageSelector.vue:116: white
 shell/components/form/GitPicker.vue:572: rgba(112, 128, 144, 0.1)
@@ -657,8 +679,6 @@ shell/components/form/GitPicker.vue:587: #fff
 shell/components/form/LabeledSelect.vue:975: #fff
 shell/components/formatter/ClusterLink.vue:113: red
 shell/components/formatter/ImagePercentageBar.vue:75: darken(#EBEEF5, 15%)
-shell/components/GradientBox.vue:56: rgba(var(
-shell/components/GrafanaDashboard.vue:34: #1b1c21
 shell/components/graph/Circle.vue:162: red
 shell/components/graph/LinePlot.vue:168: #64399a
 shell/components/graph/LinePlot.vue:173: #1b1c21
@@ -667,11 +687,6 @@ shell/components/graph/LinePlot.vue:178: #306990
 shell/components/graph/LinePlot.vue:182: white
 shell/components/graph/ProgressArc.vue:81: rgb(
 shell/components/graph/ProgressArc.vue:91: white
-shell/components/HardwareResourceGauge.vue:60: rgba(var(
-shell/components/Markdown.vue:93: rgb(101, 109, 118)
-shell/components/Markdown.vue:94: rgb(208, 215, 222)
-shell/components/Markdown.vue:105: #e3e7eb
-shell/components/Markdown.vue:126: #e3e7eb
 shell/components/nav/ClusterSwitcher.vue:966: rgba(0, 0, 0, 0.1)
 shell/components/nav/ClusterSwitcher.vue:1035: color-mix(in srgb, var(--body-text) 8%, transparent)
 shell/components/nav/ClusterSwitcher.vue:1077: color-mix(in srgb, var(--body-text) 10%, transparent)
@@ -695,21 +710,6 @@ shell/components/nav/TopLevelMenu.vue:1969: rgba(0, 0, 0, 0.28)
 shell/components/nav/TopLevelMenu.vue:2361: color-mix(in srgb, var(--on-active) 65%, transparent)
 shell/components/nav/TopLevelMenu.vue:2437: color-mix(in srgb, var(--body-text) 8%, transparent)
 shell/components/nav/WorkspaceSwitcher.vue:178: rgba(0, 0, 0, 0.05)
-shell/components/PopoverCard.vue:194: rgba(0, 0, 0, 0.04)
-shell/components/PromptModal.vue:175: rgba(0,0,0,0)
-shell/components/Resource/Detail/ResourcePopover/ResourcePopoverCard.vue:167: #141419
-shell/components/ResourceCancelModal.vue:123: white
-shell/components/SelectIconGrid.vue:283: white
-shell/components/Tabbed/index.vue:625: #fff
-shell/components/TableSparkLine.vue:107: #6e3daa
-shell/components/TableViews/TableViewControls.vue:692: color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)
-shell/components/TableViews/TableViewControls.vue:702: color-mix(in srgb, var(--primary) 14%, transparent)
-shell/components/TableViews/TableViewControls.vue:704: rgba(0, 0, 0, 0.28)
-shell/components/TableViews/TableViewQueryInput.vue:1235: color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)
-shell/components/TableViews/TableViewTabs.vue:1520: color-mix(in srgb, var(--primary) 14%, transparent)
-shell/components/TableViews/TableViewTabs.vue:1521: rgba(0, 0, 0, 0.28)
-shell/components/TableViews/TableViewTabs.vue:1533: color-mix(in srgb, var(--primary) 15%, transparent)
-shell/components/TableViews/TableViewTabs.vue:1679: color-mix(in srgb, var(--body-text) 8%, transparent)
 shell/dialog/OidcClientSecretDialog.vue:101: rgba(0,0,0,0)
 shell/edit/logging.banzaicloud.io.output/index.vue:361: white
 shell/edit/monitoring.coreos.com.alertmanagerconfig/receiverConfig.vue:422: white

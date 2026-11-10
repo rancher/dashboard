@@ -28,11 +28,12 @@ const REPO_ROOT = path.resolve(fileURLToPath(import.meta.url), '../..');
 const BASELINE_PATH = path.join(REPO_ROOT, 'scripts', 'color-lint-baseline.txt');
 const RULE = 'local-rules/no-color-literal';
 const SCOPES = ['shell', 'pkg/rancher-components'];
-const DESIGN_SYSTEM = `${ path.dirname(colorLiterals.PRIMITIVES_FILE) }/`;
+const PRIMITIVE_FILES = new Set([colorLiterals.PRIMITIVES_FILE, `${ path.posix.dirname(colorLiterals.PRIMITIVES_FILE) }/colors.ts`]);
 const ENTRY_RE = /^(.+?):(\d+): (.*)$/;
 
 const relative = (file) => path.relative(REPO_ROOT, file).split(path.sep).join('/');
 const keyOf = ({ file, color }) => `${ file }\0${ color }`;
+const byCodeUnit = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 async function findColors() {
   const [{ ESLint }, { default: stylelint }, { testFiles }, { default: stylelintConfig }] = await Promise.all([
@@ -77,8 +78,8 @@ async function findColors() {
   ];
 
   return colors
-    .filter(({ file }) => !file.startsWith(DESIGN_SYSTEM))
-    .sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.color.localeCompare(b.color));
+    .filter(({ file }) => !PRIMITIVE_FILES.has(file))
+    .sort((a, b) => byCodeUnit(a.file, b.file) || a.line - b.line || byCodeUnit(a.color, b.color));
 }
 
 /**

@@ -75,6 +75,9 @@ describe('color-literals', () => {
       ["'red'"],
       ["'Status: red'"],
       ["'background: url(red.png)'"],
+      ["'Color: Red'"],
+      ["'Fill: black'"],
+      ["'Background: Blue Team'"],
     ])('ignores %s', (text) => {
       expect(findInString(text)).toStrictEqual([]);
     });
