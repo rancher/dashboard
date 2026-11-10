@@ -31,7 +31,19 @@ const isClosing = computed(() => store.getters['slideInPanel/isClosing']);
 const currentComponent = computed(() => store.getters['slideInPanel/component']);
 const currentProps = computed(() => store.getters['slideInPanel/componentProps']);
 const openCount = computed(() => store.getters['slideInPanel/openCount']);
-const panelProps = computed(() => ({ onClose: closePanel, ...currentProps.value }));
+const panelProps = computed(() => {
+  const { onClose, ...props } = currentProps.value || {};
+
+  return {
+    ...props,
+    onClose: (...args: unknown[]) => {
+      if (typeof onClose === 'function') {
+        onClose(...args);
+      }
+      closePanel();
+    }
+  };
+});
 
 const resolvedHeightMode = computed(() => {
   if (currentProps.value?.height) {

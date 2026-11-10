@@ -206,14 +206,14 @@ describe('slideInPanelManager.vue with Teleport', () => {
       expect(closeMutation).toHaveBeenCalledWith({}, undefined);
     });
 
-    it('leaves closing to the handler the panel was opened with, when it has one', async() => {
+    it('calls the handler the panel was opened with, then closes', async() => {
       const onClose = jest.fn();
       const closeMutation = mountClosing({ onClose });
 
       await emitClose();
 
       expect(onClose).toHaveBeenCalledWith();
-      expect(closeMutation).not.toHaveBeenCalledWith({}, undefined);
+      expect(closeMutation).toHaveBeenCalledWith({}, undefined);
     });
   });
 
