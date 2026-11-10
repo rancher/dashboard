@@ -67,9 +67,9 @@ export async function fetchMonitoringVersion(store, storeName) {
   return app?.currentVersion || '';
 }
 
-async function hasEndpointSubsets(store, id) {
-  if (store.getters['cluster/schemaFor'](ENDPOINTS)) {
-    const endpoints = await store.dispatch('cluster/findAll', { type: ENDPOINTS }) || [];
+export async function hasEndpointSubsets(store, id, storeName = 'cluster') {
+  if (store.getters[`${ storeName }/schemaFor`](ENDPOINTS)) {
+    const endpoints = await store.dispatch(`${ storeName }/findAll`, { type: ENDPOINTS }) || [];
 
     const endpoint = endpoints.find((ep) => ep.id === id);
 

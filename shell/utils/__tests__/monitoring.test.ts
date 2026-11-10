@@ -1,5 +1,6 @@
 import {
   haveV2Monitoring,
+  hasEndpointSubsets,
   canViewGrafanaLink,
   canViewAlertManagerLink,
   canViewPrometheusLink,
@@ -58,14 +59,24 @@ describe('cATTLE_MONITORING_NAMESPACE', () => {
   });
 });
 
-function makeStore(endpointId: string, subsets: object[] | undefined, hasSchema = true) {
+function makeStore(endpointId: string, subsets: object[] | undefined, hasSchema = true, storeName = 'cluster') {
   return {
-    getters:  { 'cluster/schemaFor': (type: string) => (type === ENDPOINTS ? (hasSchema ? {} : null) : null) },
+    getters:  { [`${ storeName }/schemaFor`]: (type: string) => (type === ENDPOINTS ? (hasSchema ? {} : null) : null) },
     dispatch: jest.fn().mockResolvedValue(
       subsets !== undefined ? [{ id: endpointId, subsets }] : []
     ),
   };
 }
+
+describe('hasEndpointSubsets', () => {
+  it('should read the endpoints from the given store', async() => {
+    const id = 'cattle-project-p-abc123-monitoring/cattle-project-p-abc123-monitoring-grafana';
+    const store = makeStore(id, [{ addresses: [{ ip: '10.0.0.4' }] }], true, 'harvester');
+
+    expect(await hasEndpointSubsets(store, id, 'harvester')).toBe(true);
+    expect(store.dispatch).toHaveBeenCalledWith('harvester/findAll', { type: ENDPOINTS });
+  });
+});
 
 describe('canViewGrafanaLink', () => {
   it('returns true when grafana endpoint has subsets', async() => {

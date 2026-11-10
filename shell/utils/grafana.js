@@ -1,4 +1,4 @@
-import { haveV2Monitoring, fetchMonitoringVersion } from '@shell/utils/monitoring';
+import { haveV2Monitoring, fetchMonitoringVersion, hasEndpointSubsets, CATTLE_MONITORING_NAMESPACE } from '@shell/utils/monitoring';
 import { parse as parseUrl, addParam } from '@shell/utils/url';
 
 // these two versions of monitoring included a bug fix attempt that required the local cluster to use a different url
@@ -61,7 +61,16 @@ export async function dashboardExists(monitoringVersion, store, clusterId, embed
   }
 }
 
+/**
+ * @param {string | null} [projectId]
+ */
 export async function allDashboardsExist(store, clusterId, embeddedUrls, storeName = 'cluster', projectId = null) {
+  const grafanaEndpoint = projectId ? `cattle-project-${ projectId }-monitoring/cattle-project-${ projectId }-monitoring-grafana` : `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-grafana`;
+
+  if ( !haveV2Monitoring(store.getters) || !await hasEndpointSubsets(store, grafanaEndpoint, storeName) ) {
+    return false;
+  }
+
   const monitoringVersion = projectId ? '' : await fetchMonitoringVersion(store, storeName);
 
   const existPromises = embeddedUrls.map((url) => dashboardExists(monitoringVersion, store, clusterId, url, storeName, projectId));
