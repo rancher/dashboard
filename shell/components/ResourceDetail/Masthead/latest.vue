@@ -77,10 +77,14 @@ const store = useStore();
       v-bind="metadataProps"
       class="metadata-section"
     />
+    <!--
+      The resource's own cards are only shown on pages with a custom detail or edit component, but
+      an extension can add a card to any resource detail page, so Cards is always rendered
+    -->
     <Cards
-      v-if="props.isCustomDetailOrEdit"
       class="cards-section"
       :resource="props.value"
+      :show-resource-cards="props.isCustomDetailOrEdit"
     />
   </div>
 </template>
