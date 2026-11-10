@@ -15,10 +15,10 @@ export function isExplainPanelOpen(store) {
 export function explain(store, route) {
   const typeName = route.params?.resource;
   const schema = typeName ? store.getters[`cluster/schemaFor`](typeName) : undefined;
-  const cluster = store.getters['currentCluster'] || 'local';
+  const cluster = store.getters['currentCluster']?.id || 'local';
 
   store.$shell.slideIn.open(Panel, {
-    props:               { schema, cluster: cluster?.id },
+    props:               { schema, cluster },
     width:               'wide',
     height:              'full',
     closeOnRouteChange:  ['name', 'params', 'query'],

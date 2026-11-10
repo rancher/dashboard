@@ -36,6 +36,14 @@ describe('kubectl-explain: slide-in', () => {
 
       expect(store.$shell.slideIn.open).toHaveBeenCalledWith(Panel, expect.objectContaining({ props: { schema: undefined, cluster: 'c-abc12' } }));
     });
+
+    it('should explain the local cluster when there is no current cluster', () => {
+      const store = createStore({ currentCluster: undefined });
+
+      explain(store, { params: { resource: 'pod' } });
+
+      expect(store.$shell.slideIn.open).toHaveBeenCalledWith(Panel, expect.objectContaining({ props: { schema, cluster: 'local' } }));
+    });
   });
 
   describe('isExplainPanelOpen', () => {
