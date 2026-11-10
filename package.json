@@ -22,6 +22,9 @@
     "lint:js": "./node_modules/.bin/eslint --max-warnings 0 .",
     "lint:lib": "cd pkg/rancher-components && yarn lint",
     "lint:style": "./node_modules/.bin/stylelint \"{shell,pkg,storybook,docusaurus}/**/*.{vue,scss,css}\"",
+    "lint:colors": "node scripts/color-lint-diff.mjs",
+    "lint:colors:baseline": "node scripts/color-lint-diff.mjs --update",
+    "lint:colors:test": "node --test scripts/color-lint-diff.test.mjs",
     "lint-l10n": "./node_modules/.bin/yamllint ./shell/assets/translations",
     "type-check": "NODE_OPTIONS=--max_old_space_size=8192 ./node_modules/.bin/vue-tsc --noEmit -p tsconfig.type-check.json",
     "type-check:ci": "node scripts/type-check-diff.mjs",
@@ -71,7 +74,8 @@
     "docs:serve": "cd docusaurus/ && yarn serve",
     "migrate": "node ./shell/scripts/vue-migrate.js",
     "publish:lib": "cd pkg/rancher-components && npm publish",
-    "agents:generate": "./scripts/generate-agent-and-persona-mds.sh"
+    "agents:generate": "./scripts/generate-agent-and-persona-mds.sh",
+    "generate:colors": "node pkg/rancher-components/scripts/generate-colors.js"
   },
   "dependencies": {
     "@aws-sdk/client-ec2": "3.1041.0",

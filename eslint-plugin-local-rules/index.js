@@ -11,6 +11,7 @@
 
 const vCleanTooltip = require('./v-clean-tooltip');
 const noHrElement = require('./no-hr-element');
+const noColorLiteral = require('./no-color-literal');
 
 module.exports = {
   configs: {
@@ -22,7 +23,8 @@ module.exports = {
     }
   },
   rules: {
-    'v-clean-tooltip': vCleanTooltip,
-    'no-hr-element':   noHrElement,
+    'v-clean-tooltip':  vCleanTooltip,
+    'no-hr-element':    noHrElement,
+    'no-color-literal': noColorLiteral,
   }
 };
