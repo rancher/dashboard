@@ -628,6 +628,8 @@ export default {
     :tabindex="isView || disabled ? -1 : 0"
     role="combobox"
     :aria-expanded="isOpen"
+    :aria-label="$attrs['aria-label'] || undefined"
+    :aria-labelledby="$attrs['aria-labelledby'] || undefined"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
     :aria-description="keptSearch ? t('labeledSelect.keptSearch', { search: keptSearch }) : undefined"
     :aria-required="requiredField"

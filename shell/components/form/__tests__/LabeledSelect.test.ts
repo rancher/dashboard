@@ -352,6 +352,18 @@ describe('component: LabeledSelect', () => {
     expect(vSelectInput.attributes('aria-label')).toBe(`- ${ value }`);
   });
 
+  it('should name the focusable combobox from aria-label and aria-labelledby', () => {
+    const wrapper = mount(LabeledSelect, {
+      props: { value: 'value-1', options: [{ label: 'label-1', value: 'value-1' }] },
+      attrs: { 'aria-label': 'some-aria-label', 'aria-labelledby': 'some-label-id' }
+    });
+
+    const labeledSelectContainer = wrapper.find('.labeled-select');
+
+    expect(labeledSelectContainer.attributes('aria-label')).toBe('some-aria-label');
+    expect(labeledSelectContainer.attributes('aria-labelledby')).toBe('some-label-id');
+  });
+
   it('pressing space key while focused on search should not prevent event propagation', async() => {
     const value = 'value-1';
     const options = [
