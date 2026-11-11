@@ -117,6 +117,23 @@ createTestComponent() {
   cp ${SHELL_DIR}/list/catalog.cattle.io.clusterrepo.vue pkg/test-pkg/list
 }
 
+# Fail unless dist-pkg holds exactly the packages named, so that a build-pkg run
+# which quietly builds nothing, or builds more than it was asked to, is caught
+assertBuiltPkgs() {
+  local EXPECTED
+  local ACTUAL
+
+  EXPECTED=$(printf '%s\n' "$@" | sort | tr '\n' ' ')
+  ACTUAL=$(ls dist-pkg | sort | tr '\n' ' ')
+
+  if [ "${EXPECTED}" != "${ACTUAL}" ]; then
+    echo "Expected build-pkg to produce '${EXPECTED}' but dist-pkg holds '${ACTUAL}'"
+    exit 1
+  fi
+
+  echo "build-pkg produced '${ACTUAL}' as expected"
+}
+
 # Publish shell pkg (tag is needed as publish-shell is optimized to work with release-shell-pkg workflow)
 echo "Publishing Shell package to local registry"
 yarn install --frozen-lockfile
@@ -161,7 +178,22 @@ if [ "${SKIP_STANDALONE}" == "false" ]; then
   mkdir -p pkg/test-pkg/list
   createTestComponent
 
+  # A second extension, so that the build-everything run below has more than one to find
+  FORCE_COLOR=true yarn create @rancher/extension test-pkg-2 --skip-agents | cat
+
+  # A shared library rather than an extension - it has no entry point, so build-pkg
+  # must leave it alone rather than try to build it
+  mkdir -p pkg/test-lib
+  echo '{ "name": "test-lib", "version": "0.1.0", "private": true }' > pkg/test-lib/package.json
+
+  # Given a name, build-pkg builds only that extension
   FORCE_COLOR=true yarn build-pkg test-pkg | cat
+  assertBuiltPkgs "test-pkg-0.1.0"
+
+  # Given no name, build-pkg builds every extension under pkg/, and only those
+  rm -rf dist-pkg
+  FORCE_COLOR=true yarn build-pkg | cat
+  assertBuiltPkgs "test-pkg-0.1.0" "test-pkg-2-0.1.0"
 
   echo "Cleaning temporary dir"
   popd > /dev/null
