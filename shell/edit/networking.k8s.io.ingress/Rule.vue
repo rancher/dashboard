@@ -175,9 +175,6 @@ export default {
 #host {
   align-self: center;
 }
-.rule-path :deep(.unlabeled-select:not(.in-input)) {
-  min-width: 0;
-}
 .close {
   float: right;
   padding: 0px;

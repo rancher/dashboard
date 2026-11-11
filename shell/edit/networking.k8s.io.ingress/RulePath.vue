@@ -228,6 +228,9 @@ $row-height: 40px;
 
   :deep(.unlabeled-select) {
     height: 100%;
+  }
+
+  :deep(.in-input.unlabeled-select) {
     min-width: 200px;
   }
 }
