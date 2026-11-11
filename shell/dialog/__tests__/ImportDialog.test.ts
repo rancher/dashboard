@@ -1,147 +1,250 @@
-import { shallowMount } from '@vue/test-utils';
+import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
 import ImportDialog from '@shell/dialog/ImportDialog.vue';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
+jest.mock('focus-trap', () => ({
+  createFocusTrap: jest.fn(() => ({
+    activate:   jest.fn(),
+    deactivate: jest.fn(),
+  })),
+}));
+
 jest.mock('@shell/utils/error', () => ({ exceptionToErrorsArray: jest.fn(() => ['Import failed']) }));
 
-const mockUpdateValue = jest.fn();
-const mockExceptionToErrorsArray = exceptionToErrorsArray as jest.Mock;
+const updateValue = jest.fn();
 
 const YamlEditorStub = {
   name:     'YamlEditor',
+  emits:    ['update:value', 'onReady'],
   template: '<div />',
-  methods:  { updateValue: mockUpdateValue },
+  methods:  { updateValue },
 };
 
-const RcModalStub = {
-  name:     'RcModal',
-  props:    ['show', 'size'],
-  template: '<div><slot name="title" /><slot /><slot name="actions" /></div>',
+const FileSelectorStub = {
+  name:     'FileSelector',
+  emits:    ['selected'],
+  template: '<div />',
 };
 
-const createWrapper = (options: {
-  modal?: { show: boolean, onClose: jest.Mock },
-  currentCluster?: { doAction: jest.Mock },
-  props?: Record<string, unknown>,
-} = {}) => {
-  const modal = options.modal || { show: true, onClose: jest.fn() };
-  const currentCluster = options.currentCluster || { doAction: jest.fn() };
-  const wrapper = shallowMount(ImportDialog, {
-    props: {
-      modal,
-      ...options.props,
-    },
-    global: {
-      mocks: {
-        $store: { getters: { currentCluster } },
-        t:      (key: string) => key,
-      },
-      stubs: {
-        RcModal:    RcModalStub,
-        YamlEditor: YamlEditorStub,
-      },
-    },
-  });
+const SelectStub = {
+  name:     'Select',
+  props:    ['value', 'options'],
+  template: '<div />',
+};
 
-  return {
-    wrapper, modal, currentCluster
-  };
+const SortableTableStub = {
+  name:     'SortableTable',
+  props:    ['rows'],
+  emits:    ['rowClick'],
+  template: '<div />',
+};
+
+interface Modal {
+  show: boolean;
+  onClose: jest.Mock;
+}
+
+const createWrapper = ({
+  modal = { show: true, onClose: jest.fn() } as Modal,
+  doAction = jest.fn(),
+  namespaces = [] as { name: string }[],
+} = {}) => mount(ImportDialog, {
+  props:  { modal },
+  global: {
+    mocks: {
+      $store: {
+        getters:  { currentCluster: { doAction } },
+        dispatch: jest.fn().mockResolvedValue(namespaces),
+      },
+    },
+    stubs: {
+      teleport:      true,
+      YamlEditor:    YamlEditorStub,
+      FileSelector:  FileSelectorStub,
+      Select:        SelectStub,
+      SortableTable: SortableTableStub,
+    },
+  },
+});
+
+type Wrapper = ReturnType<typeof createWrapper>;
+
+const title = (wrapper: VueWrapper) => wrapper.find('[data-testid="rc-modal-title"]');
+const importButton = (wrapper: VueWrapper) => wrapper.find('[data-testid="import-yaml-import-action"]');
+const cancelButton = (wrapper: VueWrapper) => wrapper.find('[data-testid="rc-modal-cancel"]');
+const closeButton = (wrapper: VueWrapper) => wrapper.find('[data-testid="import-yaml-close"]');
+const onClose = (wrapper: Wrapper) => wrapper.props('modal').onClose;
+
+const loadNamespaces = async(wrapper: Wrapper) => {
+  await wrapper.vm.$options.fetch.call(wrapper.vm);
+  await flushPromises();
+};
+
+const enterYaml = async(wrapper: VueWrapper, yaml = 'kind: Pod') => {
+  await wrapper.findComponent(YamlEditorStub).vm.$emit('update:value', yaml);
 };
 
 describe('component: ImportDialog', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockExceptionToErrorsArray.mockReturnValue(['Import failed']);
+  it('should render nothing until it is told to show', () => {
+    const wrapper = createWrapper({ modal: { show: false, onClose: jest.fn() } });
+
+    expect(title(wrapper).exists()).toBe(false);
   });
 
-  it('should pass modal visibility and size to RcModal', () => {
-    const { wrapper } = createWrapper();
-    const modal = wrapper.findComponent(RcModalStub);
+  it('should show the title and how to import several resources at once', () => {
+    const wrapper = createWrapper();
 
-    expect(modal.props('show')).toStrictEqual(true);
-    expect(modal.props('size')).toStrictEqual('large');
+    expect(title(wrapper).text()).toBe('%import.title%');
+    expect(wrapper.find('[data-testid="banner-content"]').text()).toBe('%import.instructions%');
   });
 
-  it('should derive the resource label and sort namespace options', () => {
-    const { wrapper } = createWrapper({ props: { resourceName: 'Workloads' } });
+  it('should name the namespace select with its visible label', () => {
+    const wrapper = createWrapper();
+    const labelId = wrapper.findComponent(SelectStub).attributes('aria-labelledby');
 
-    (wrapper.vm as any).allNamespaces = [{ name: 'zeta' }, { name: 'alpha' }];
+    expect(wrapper.find(`#${ labelId }`).text()).toBe('%import.defaultNamespace.label%');
+  });
 
-    expect((wrapper.vm as any).resourceNameLabel).toStrictEqual('Workloads');
-    expect((wrapper.vm as any).namespaceOptions).toStrictEqual([
+  it('should offer the namespaces sorted by name, starting on default', async() => {
+    const wrapper = createWrapper({ namespaces: [{ name: 'zeta' }, { name: 'default' }, { name: 'alpha' }] });
+
+    await loadNamespaces(wrapper);
+
+    const select = wrapper.findComponent(SelectStub);
+
+    expect(select.props('options')).toStrictEqual([
       { label: 'alpha', value: 'alpha' },
+      { label: 'default', value: 'default' },
       { label: 'zeta', value: 'zeta' },
     ]);
+    expect(select.props('value')).toBe('default');
   });
 
-  it('should update the YAML editor and clear existing errors when a file is selected', () => {
-    const { wrapper } = createWrapper();
+  it('should start on the first namespace when default is not available', async() => {
+    const wrapper = createWrapper({ namespaces: [{ name: 'zeta' }, { name: 'alpha' }] });
 
-    (wrapper.vm as any).errors = ['Previous error'];
-    (wrapper.vm as any).onFileSelected('kind: Pod');
+    await loadNamespaces(wrapper);
 
-    expect(mockUpdateValue).toHaveBeenCalledWith('kind: Pod');
-    expect((wrapper.vm as any).errors).toBeNull();
+    expect(wrapper.findComponent(SelectStub).props('value')).toBe('zeta');
   });
 
-  it('should apply YAML in the selected namespace and show the results on success', async() => {
+  it('should hold the import button until there is YAML to import', async() => {
+    const wrapper = createWrapper();
+
+    expect(importButton(wrapper).attributes('disabled')).toBeDefined();
+
+    await enterYaml(wrapper);
+
+    expect(importButton(wrapper).attributes('disabled')).toBeUndefined();
+  });
+
+  it('should load a selected file into the editor', async() => {
+    const wrapper = createWrapper();
+
+    await wrapper.findComponent(FileSelectorStub).vm.$emit('selected', 'kind: Pod');
+
+    expect(updateValue).toHaveBeenCalledWith('kind: Pod');
+  });
+
+  it('should apply the YAML in the selected namespace and list what was applied', async() => {
     const rows = [{ _key: 'pod-1' }];
-    const currentCluster = { doAction: jest.fn().mockResolvedValue(rows) };
-    const { wrapper } = createWrapper({ currentCluster });
-    const buttonCallback = jest.fn();
+    const doAction = jest.fn().mockResolvedValue(rows);
+    const wrapper = createWrapper({ doAction });
 
-    (wrapper.vm as any).currentYaml = 'kind: Pod';
-    (wrapper.vm as any).selectedNamespace = 'team-a';
-    await (wrapper.vm as any).importYaml(buttonCallback);
+    await wrapper.findComponent(SelectStub).vm.$emit('update:value', 'team-a');
+    await enterYaml(wrapper);
+    await importButton(wrapper).trigger('click');
+    await flushPromises();
 
-    expect(currentCluster.doAction).toHaveBeenCalledWith('apply', {
-      yaml:             'kind: Pod',
-      defaultNamespace: 'team-a',
-    });
-    expect(buttonCallback).toHaveBeenCalledWith(true);
-    expect((wrapper.vm as any).rows).toStrictEqual(rows);
-    expect((wrapper.vm as any).done).toBe(true);
+    expect(doAction).toHaveBeenCalledWith('apply', { yaml: 'kind: Pod', defaultNamespace: 'team-a' });
+    expect(wrapper.find('[data-testid="import-yaml-success"]').text()).toBe('%import.success%');
+    expect(wrapper.findComponent(SortableTableStub).props('rows')).toStrictEqual(rows);
   });
 
-  it('should report errors and keep the result view closed when the import fails', async() => {
+  it('should show the errors and stay on the form when the import fails', async() => {
     const error = new Error('Import failed');
-    const currentCluster = { doAction: jest.fn().mockRejectedValue(error) };
-    const { wrapper } = createWrapper({ currentCluster });
-    const buttonCallback = jest.fn();
+    const doAction = jest.fn().mockRejectedValue(error);
+    const wrapper = createWrapper({ doAction });
 
-    await (wrapper.vm as any).importYaml(buttonCallback);
+    await enterYaml(wrapper);
+    await importButton(wrapper).trigger('click');
+    await flushPromises();
 
-    expect(mockExceptionToErrorsArray).toHaveBeenCalledWith(error);
-    expect(buttonCallback).toHaveBeenCalledWith(false);
-    expect((wrapper.vm as any).errors).toStrictEqual(['Import failed']);
-    expect((wrapper.vm as any).done).toBe(false);
+    expect(exceptionToErrorsArray).toHaveBeenCalledWith(error);
+    expect(wrapper.find('[role="alert"]').text()).toBe('Import failed');
+    expect(importButton(wrapper).attributes('disabled')).toBeUndefined();
   });
 
-  it('should close the modal when the close method is called', () => {
-    const { wrapper, modal } = createWrapper();
+  it('should close when cancelled', async() => {
+    const wrapper = createWrapper();
 
-    (wrapper.vm as any).close();
+    await cancelButton(wrapper).trigger('click');
 
-    expect(modal.onClose).toHaveBeenCalledWith();
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(onClose(wrapper)).toHaveBeenCalledTimes(1);
   });
 
-  it('should close after a link is clicked but not after other content is clicked', () => {
-    const { wrapper, modal } = createWrapper();
+  // Closing mid-import would hide whether the resources were applied
+  it('should stay open while the import is in flight', async() => {
+    const doAction = jest.fn(() => new Promise(() => {}));
+    const wrapper = createWrapper({ doAction });
 
-    (wrapper.vm as any).rowClick({ target: { tagName: 'DIV' } });
-    expect(modal.onClose).not.toHaveBeenCalled();
+    await enterYaml(wrapper);
+    await importButton(wrapper).trigger('click');
+    await cancelButton(wrapper).trigger('click');
 
-    (wrapper.vm as any).rowClick({ target: { tagName: 'A' } });
-    expect(modal.onClose).toHaveBeenCalledWith();
+    expect(importButton(wrapper).attributes('aria-busy')).toBe('true');
+    expect(onClose(wrapper)).not.toHaveBeenCalled();
   });
 
-  it('should forward the YAML editor ready event', () => {
-    const { wrapper } = createWrapper();
+  it('should close from the results', async() => {
+    const wrapper = createWrapper({ doAction: jest.fn().mockResolvedValue([]) });
+
+    await enterYaml(wrapper);
+    await importButton(wrapper).trigger('click');
+    await flushPromises();
+    await closeButton(wrapper).trigger('click');
+
+    expect(onClose(wrapper)).toHaveBeenCalledTimes(1);
+  });
+
+  it('should close when a link in the results is followed, but not on other clicks', async() => {
+    const wrapper = createWrapper({ doAction: jest.fn().mockResolvedValue([]) });
+
+    await enterYaml(wrapper);
+    await importButton(wrapper).trigger('click');
+    await flushPromises();
+
+    const table = wrapper.findComponent(SortableTableStub);
+
+    await table.vm.$emit('rowClick', { target: { tagName: 'DIV' } });
+    expect(onClose(wrapper)).not.toHaveBeenCalled();
+
+    await table.vm.$emit('rowClick', { target: { tagName: 'A' } });
+    expect(onClose(wrapper)).toHaveBeenCalledTimes(1);
+  });
+
+  it('should pass on the editor once it is ready', async() => {
+    const wrapper = createWrapper();
     const editor = { focus: jest.fn() };
 
-    (wrapper.vm as any).onReadyYamlEditor(editor);
+    await wrapper.findComponent(YamlEditorStub).vm.$emit('onReady', editor);
 
     expect(wrapper.emitted('onReadyYamlEditor')).toStrictEqual([[editor]]);
+  });
+
+  it('should keep the props it was not given off the dialog element', () => {
+    const wrapper = mount(ImportDialog, {
+      props:  { modal: { show: true, onClose: jest.fn() } },
+      attrs:  { resources: [], cluster: {} },
+      global: {
+        stubs: {
+          teleport: true, YamlEditor: YamlEditorStub, FileSelector: FileSelectorStub, Select: SelectStub
+        },
+      },
+    });
+    const dialog = wrapper.find('[data-testid="import-yaml"]');
+
+    expect(dialog.attributes('resources')).toBeUndefined();
+    expect(dialog.attributes('cluster')).toBeUndefined();
   });
 });

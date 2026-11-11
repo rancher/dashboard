@@ -1,45 +1,47 @@
 <script>
 import { mapGetters } from 'vuex';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
+import { RcModal } from '@components/RcModal';
 import YamlEditor from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
-import AsyncButton from '@shell/components/AsyncButton';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import Select from '@shell/components/form/Select';
 import SortableTable from '@shell/components/SortableTable';
 import { sortBy } from '@shell/utils/sort';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
-import RcButton from '@components/RcButton/RcButton.vue';
-import { RcModal } from '@components/RcModal';
 
 export default {
-  emits: ['close', 'onReadyYamlEditor'],
+  emits: ['onReadyYamlEditor'],
+
+  // PromptModal also passes `resources`, and the header passes `cluster`, which this dialog doesn't use,
+  // so keep stray attributes off RcModal's dialog element.
+  inheritAttrs: false,
 
   components: {
-    AsyncButton,
     Banner,
-    YamlEditor,
     FileSelector,
-    LabeledSelect,
-    SortableTable,
     RcButton,
-    RcModal
+    RcModal,
+    Select,
+    SortableTable,
+    YamlEditor
   },
 
   props: {
+    /**
+     * `show` and the `close` handler, from whoever owns this dialog's visibility
+     */
     modal: {
       type:     Object,
       required: true
     },
+
     defaultNamespace: {
       type:    String,
       default: undefined
     },
-    resourceName: {
-      type:    String,
-      default: undefined
-    }
   },
 
   async fetch() {
@@ -60,16 +62,13 @@ export default {
       errors:            null,
       rows:              null,
       done:              false,
+      importing:         false,
       selectedNamespace: this.defaultNamespace,
     };
   },
 
   computed: {
     ...mapGetters(['currentCluster']),
-
-    resourceNameLabel() {
-      return this.resourceName || this.t('import.defaultResourceName');
-    },
 
     namespaceOptions() {
       const out = this.allNamespaces.map((obj) => {
@@ -80,6 +79,10 @@ export default {
       });
 
       return sortBy(out, 'label');
+    },
+
+    importDisabled() {
+      return this.importing || !this.currentYaml.length;
     },
 
     headers() {
@@ -94,8 +97,12 @@ export default {
 
   methods: {
     close() {
+      // Stay open while the import is in flight, so its outcome is never lost
+      if (this.importing) {
+        return;
+      }
+
       this.modal.onClose();
-      this.$emit('close');
     },
 
     onFileSelected(value) {
@@ -107,23 +114,26 @@ export default {
       }
     },
 
-    async importYaml(btnCb) {
-      try {
-        this.errors = [];
+    async importYaml() {
+      if (this.importDisabled) {
+        return;
+      }
 
+      this.errors = [];
+      this.importing = true;
+
+      try {
         const res = await this.currentCluster.doAction('apply', {
           yaml:             this.currentYaml,
           defaultNamespace: this.selectedNamespace,
         });
 
-        btnCb(true);
-
         this.rows = res;
         this.done = true;
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
-        this.done = false;
-        btnCb(false);
+      } finally {
+        this.importing = false;
       }
     },
 
@@ -141,11 +151,14 @@ export default {
 </script>
 
 <template>
+  <!-- Not v-bind="modal": closing goes through close(), which refuses while an import is in flight -->
   <RcModal
     :show="modal.show"
     size="large"
+    :click-to-close="!importing"
     data-testid="import-yaml"
     @close="close"
+    @primary-action="importYaml"
   >
     <template #title>
       <span
@@ -154,112 +167,92 @@ export default {
       >
         {{ t('import.success', {count: rows.length}) }}
       </span>
-      <span v-else>
+      <template v-else>
         {{ t('import.title') }}
-      </span>
-    </template>
-    <div>
-      <template v-if="!done">
-        <Banner
-          class="import-instruction-banner"
-          color="info"
-        >
-          <span class="banner-text">
-            {{ t('import.instructions', { resourceName: resourceNameLabel }) }}
-          </span>
-        </Banner>
-        <div class="row mb-24">
-          <div class="col span-6">
-            <FileSelector
-              :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
-              variant="secondary"
-              class="pull-left"
-              :label="t('generic.readFromFile')"
-              @selected="onFileSelected"
-            />
-          </div>
-          <div class="col span-6 namespace-col">
-            <label>{{ t('import.namespace') }}</label>
-            <LabeledSelect
-              v-model:value="selectedNamespace"
-              class="namespace-select"
-              :options="namespaceOptions"
-              size="medium"
-              mode="edit"
-            />
-          </div>
-        </div>
-        <YamlEditor
-          ref="yamleditor"
-          v-model:value="currentYaml"
-          class="yaml-editor"
-          @onReady="onReadyYamlEditor"
-        />
-        <Banner
-          v-for="(err, i) in errors"
-          :key="i"
-          color="error"
-          role="alert"
-          :label="err"
-        />
       </template>
-      <div
-        v-else
-        class="results"
-      >
-        <SortableTable
-          :rows="rows"
-          :headers="headers"
-          mode="view"
-          key-field="_key"
-          :search="false"
-          :paging="true"
-          :row-actions="false"
-          :table-actions="false"
-          :sub-rows-description="false"
-          @rowClick="rowClick"
+    </template>
+
+    <template v-if="!done">
+      <Banner
+        class="m-0"
+        color="info"
+        :label="t('import.instructions')"
+      />
+      <div class="import-controls">
+        <FileSelector
+          :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
+          variant="secondary"
+          :label="t('generic.readFromFile')"
+          @selected="onFileSelected"
         />
+        <div class="namespace">
+          <label id="import-yaml-namespace-label">{{ t('import.defaultNamespace.label') }}</label>
+          <Select
+            v-model:value="selectedNamespace"
+            class="namespace-select"
+            :options="namespaceOptions"
+            aria-labelledby="import-yaml-namespace-label"
+          />
+        </div>
       </div>
-    </div>
-    <template #actions>
-      <div
-        v-if="done"
-        class="button-section"
+      <YamlEditor
+        ref="yamleditor"
+        v-model:value="currentYaml"
+        class="yaml-editor"
+        @onReady="onReadyYamlEditor"
+      />
+      <Banner
+        v-for="(err, i) in errors"
+        :key="i"
+        class="m-0"
+        color="error"
+        role="alert"
+        :label="err"
+      />
+    </template>
+    <SortableTable
+      v-else
+      :rows="rows"
+      :headers="headers"
+      mode="view"
+      key-field="_key"
+      :search="false"
+      :paging="true"
+      :row-actions="false"
+      :table-actions="false"
+      :sub-rows-description="false"
+      @rowClick="rowClick"
+    />
+
+    <template
+      v-if="done"
+      #actions
+    >
+      <RcButton
+        variant="primary"
+        size="large"
+        data-testid="import-yaml-close"
+        @click="close"
       >
-        <RcButton
-          variant="primary"
-          size="large"
-          :aria-label="t('generic.close')"
-          data-testid="import-yaml-close"
-          @click="close"
-        >
-          {{ t('generic.close') }}
-        </RcButton>
-      </div>
-      <div
-        v-else
-        class="text-right button-section"
-        style="width: 100%"
+        {{ t('generic.close') }}
+      </RcButton>
+    </template>
+    <template
+      v-else
+      #primary-action="{ primaryAction }"
+    >
+      <RcButton
+        variant="primary"
+        size="large"
+        left-icon="upload"
+        :disabled="importDisabled"
+        :aria-busy="importing"
+        :aria-label="t('import.title')"
+        data-testid="import-yaml-import-action"
+        @click="primaryAction"
       >
-        <RcButton
-          variant="link"
-          size="large"
-          class="cancel-btn"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </RcButton>
-        <AsyncButton
-          v-if="!done"
-          mode="import"
-          class="import-btn"
-          icon="icon-upload"
-          :disabled="!currentYaml.length"
-          data-testid="import-yaml-import-action"
-          :aria-label="t('import.title')"
-          @click="importYaml"
-        />
-      </div>
+        {{ t('import.action') }}
+      </RcButton>
     </template>
   </RcModal>
 </template>
@@ -267,6 +260,28 @@ export default {
 <style lang='scss' scoped>
   $min: 50vh;
   $max: 50vh;
+
+  .import-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .namespace {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    label {
+      margin: 0;
+      white-space: nowrap;
+    }
+  }
+
+  .namespace-select {
+    width: 300px;
+  }
 
   .yaml-editor {
     flex: 1;
@@ -279,52 +294,5 @@ export default {
         max-height: $max;
       }
     }
-  }
-
-  .import-instruction-banner {
-    margin: 0 0 24px 0;
-  }
-
-  .medium {
-    height: 32px;
-    min-height: 32px;
-    padding: 0 12px;
-  }
-
-  .namespace-select {
-    max-width: 300px;
-  }
-
-  .namespace-col {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-
-    label {
-      margin: 0;
-      white-space: nowrap;
-    }
-  }
-
-  .import-btn {
-    padding-left: 16px;
-    padding-right: 16px;
-    margin-left: 8px;
-  }
-
-  .cancel-btn {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  .button-section {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-  }
-
-  .mb-24 {
-    margin-bottom: 24px;
   }
 </style>

@@ -4245,9 +4245,8 @@ hpa:
 
 import:
   title: Import YAML
-  instructions: You can import multiple {resourceName} at the same time by separating their YAML using `---` as divider.
-  defaultResourceName: resources
-  namespace: Namespace
+  action: Import
+  instructions: You can import multiple resources at the same time by separating their YAML using `---` as divider.
   editor:
     label: YAML Editor
   defaultNamespace:
