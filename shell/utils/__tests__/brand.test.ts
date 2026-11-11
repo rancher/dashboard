@@ -64,7 +64,7 @@ describe('fx: getBrandMeta', () => {
     },
     {
       desc:  'meta with only banner',
-      brand: 'rancher',
+      brand: 'example-brand',
       meta:  { banner: { textAlign: 'left' } },
     },
     {
@@ -77,7 +77,7 @@ describe('fx: getBrandMeta', () => {
     },
     {
       desc:  'empty meta object',
-      brand: 'rgs',
+      brand: 'custom-brand',
       meta:  {},
     },
   ])('returns correct meta for $desc', ({ brand, meta }) => {
