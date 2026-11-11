@@ -217,6 +217,8 @@ yarn build-pkg my-app
 
 This will build the extension as a Vue library and the built extension will be placed in the `dist-pkg` folder.
 
+If you leave the name off, every extension under `pkg/` is built. In a repo with a single extension, `yarn build-pkg` on its own is all you need.
+
 ## Loading Into Rancher in a quick way (Developer Load)
 
 ### Test built extension by doing a Developer load
