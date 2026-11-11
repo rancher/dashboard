@@ -3,6 +3,7 @@ import { mapGetters } from 'vuex';
 import { AUTO, CENTER, fitOnScreen } from '@shell/utils/position';
 import { isAlternate } from '@shell/utils/platform';
 import IconOrSvg from '@shell/components/IconOrSvg';
+import { preloadResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/async';
 
 const HIDDEN = 'hide';
 const CALC = 'calculate';
@@ -108,6 +109,10 @@ export default {
     shouldShow: {
       handler(show) {
         if ( show ) {
+          // Opening the menu is the earliest sign the drawer may be wanted - start its chunk now so
+          // the panel is not waiting on a download when Show Configuration is clicked
+          preloadResourceDetailDrawer();
+
           this.phase = CALC;
           this.updateStyle();
           this.$nextTick(() => {

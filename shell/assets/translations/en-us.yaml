@@ -10188,6 +10188,8 @@ component:
       close: Close
     resourceDetailDrawer:
       title: "{resourceName} ({resourceType}) - Configuration"
+      loading: Loading configuration
+      loadFailed: Could not load the configuration drawer
       editConfig: Edit Config
       editYaml: Edit YAML
       ariaLabel:

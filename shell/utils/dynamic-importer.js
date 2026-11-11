@@ -114,6 +114,10 @@ export function importCustomPromptRemove(name) {
   return defineAsyncComponent(() => import(/* webpackChunkName: "custom-prompt-remove" */ `@shell/promptRemove/${ name }`));
 }
 
+export function resolveCustomPromptRemove(key) {
+  return require.resolve(`@shell/promptRemove/${ key }`);
+}
+
 export function resolveList(key) {
   return require.resolve(`@shell/list/${ key }`);
 }

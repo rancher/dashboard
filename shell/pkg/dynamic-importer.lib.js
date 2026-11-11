@@ -53,6 +53,10 @@ export function importCustomPromptRemove(name) {
   return () => undefined;
 }
 
+export function resolveCustomPromptRemove(key) {
+  return undefined;
+}
+
 export function resolveList(key) {
   return undefined;
 }
