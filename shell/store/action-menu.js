@@ -1,4 +1,5 @@
 import { filterBy, isArray } from '@shell/utils/array';
+import { preloadResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/async';
 
 export const state = function() {
   return {
@@ -118,6 +119,12 @@ export const actions = {
     return _execute(state.resources, action, args, opts);
   },
   setResource({ commit }, resource) {
+    // Opening a resource's action menu is the earliest sign its detail drawer may be wanted, so
+    // start that chunk now rather than when Show Configuration is clicked. Done here rather than in
+    // ActionMenuShell, which @rancher/components also builds against - importing the drawer from
+    // there would pull the YAML editor into the published component library.
+    preloadResourceDetailDrawer();
+
     commit('SET_RESOURCE', resource);
   },
   clearCallbackData({ commit }) {
