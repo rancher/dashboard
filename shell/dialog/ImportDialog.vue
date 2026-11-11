@@ -5,7 +5,7 @@ import { RcButton } from '@components/RcButton';
 import { RcModal } from '@components/RcModal';
 import YamlEditor from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
-import Select from '@shell/components/form/Select';
+import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SortableTable from '@shell/components/SortableTable';
 import { sortBy } from '@shell/utils/sort';
 import { exceptionToErrorsArray } from '@shell/utils/error';
@@ -22,9 +22,9 @@ export default {
   components: {
     Banner,
     FileSelector,
+    LabeledSelect,
     RcButton,
     RcModal,
-    Select,
     SortableTable,
     YamlEditor
   },
@@ -187,10 +187,11 @@ export default {
         />
         <div class="namespace">
           <label id="import-yaml-namespace-label">{{ t('import.defaultNamespace.label') }}</label>
-          <Select
+          <LabeledSelect
             v-model:value="selectedNamespace"
             class="namespace-select"
             :options="namespaceOptions"
+            size="medium"
             aria-labelledby="import-yaml-namespace-label"
           />
         </div>

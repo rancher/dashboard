@@ -26,8 +26,8 @@ const FileSelectorStub = {
   template: '<div />',
 };
 
-const SelectStub = {
-  name:     'Select',
+const LabeledSelectStub = {
+  name:     'LabeledSelect',
   props:    ['value', 'options'],
   template: '<div />',
 };
@@ -61,7 +61,7 @@ const createWrapper = ({
       teleport:      true,
       YamlEditor:    YamlEditorStub,
       FileSelector:  FileSelectorStub,
-      Select:        SelectStub,
+      LabeledSelect: LabeledSelectStub,
       SortableTable: SortableTableStub,
     },
   },
@@ -100,7 +100,7 @@ describe('component: ImportDialog', () => {
 
   it('should name the namespace select with its visible label', () => {
     const wrapper = createWrapper();
-    const labelId = wrapper.findComponent(SelectStub).attributes('aria-labelledby');
+    const labelId = wrapper.findComponent(LabeledSelectStub).attributes('aria-labelledby');
 
     expect(wrapper.find(`#${ labelId }`).text()).toBe('%import.defaultNamespace.label%');
   });
@@ -110,7 +110,7 @@ describe('component: ImportDialog', () => {
 
     await loadNamespaces(wrapper);
 
-    const select = wrapper.findComponent(SelectStub);
+    const select = wrapper.findComponent(LabeledSelectStub);
 
     expect(select.props('options')).toStrictEqual([
       { label: 'alpha', value: 'alpha' },
@@ -125,7 +125,7 @@ describe('component: ImportDialog', () => {
 
     await loadNamespaces(wrapper);
 
-    expect(wrapper.findComponent(SelectStub).props('value')).toBe('zeta');
+    expect(wrapper.findComponent(LabeledSelectStub).props('value')).toBe('zeta');
   });
 
   it('should hold the import button until there is YAML to import', async() => {
@@ -151,7 +151,7 @@ describe('component: ImportDialog', () => {
     const doAction = jest.fn().mockResolvedValue(rows);
     const wrapper = createWrapper({ doAction });
 
-    await wrapper.findComponent(SelectStub).vm.$emit('update:value', 'team-a');
+    await wrapper.findComponent(LabeledSelectStub).vm.$emit('update:value', 'team-a');
     await enterYaml(wrapper);
     await importButton(wrapper).trigger('click');
     await flushPromises();
@@ -238,7 +238,7 @@ describe('component: ImportDialog', () => {
       attrs:  { resources: [], cluster: {} },
       global: {
         stubs: {
-          teleport: true, YamlEditor: YamlEditorStub, FileSelector: FileSelectorStub, Select: SelectStub
+          teleport: true, YamlEditor: YamlEditorStub, FileSelector: FileSelectorStub, LabeledSelect: LabeledSelectStub
         },
       },
     });
