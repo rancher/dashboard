@@ -50,6 +50,7 @@ _Arguments_
 |`label`| String | Card title |
 |`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
 |`component`| Function | Component to be rendered aas content of a "Cluster Dashboard Card" |
+|`weight` *(From Rancher version v2.17.0)*| Number | Optional. Order of the card amongst the other extension cards in the same location, highest first. Cards with the same weight keep the order they were added in |
 
 Usage example for `'CardLocation.CLUSTER_DASHBOARD_CARD'`:
 
@@ -60,7 +61,8 @@ plugin.addCard(
   {
     label:     'some-label',
     labelKey:  'generic.comingSoon',
-    component: () => import('./MastheadDetailsComponent.vue')
+    component: () => import('./MastheadDetailsComponent.vue'),
+    weight:    100
   }
 );
 ```
