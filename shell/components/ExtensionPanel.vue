@@ -20,7 +20,11 @@ export default {
     },
   },
   data() {
-    return { extensionData: getApplicableExtensionEnhancements(this, this.type, this.location, this.$route) };
+    const panels = getApplicableExtensionEnhancements(this, this.type, this.location, this.$route);
+
+    // Panels are ordered by `weight`, highest first. The sort is stable, so panels sharing a
+    // weight keep the order they were added in
+    return { extensionData: [...panels].sort((a, b) => (b.weight || 0) - (a.weight || 0)) };
   },
 };
 </script>
