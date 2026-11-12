@@ -1042,6 +1042,15 @@ export class RecordReplayServer {
       target = candidates[0]._mutations;
     }
 
+    const servedOf = (mutations: number) => scope.served.get(`${ key }#${ mutations }${ state }`) || 0;
+    const later = candidates
+      .filter((e) => e._mutations > target && servedOf(e._mutations) < candidates.filter((c) => c._mutations === e._mutations).length)
+      .sort((a, b) => a._mutations - b._mutations)[0];
+
+    if (later && servedOf(target) >= candidates.filter((e) => e._mutations === target).length) {
+      target = later._mutations;
+    }
+
     const group = candidates.filter((e) => e._mutations === target);
     const counter = `${ key }#${ target }${ state }`;
     const served = scope.served.get(counter) || 0;
