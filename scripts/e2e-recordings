@@ -1,0 +1,162 @@
+#!/usr/bin/env node
+
+/**
+ * Maintain the recordings the e2e tests replay in integration mode (TEST_MODE=integration).
+ *
+ *   scripts/e2e-recordings merge <dir>...  Merge recordings made by `TEST_MODE=generate` runs (e.g. the e2e-recordings-*
+ *                                          artifacts of the CI's generate jobs) into cypress/recordings. Where both
+ *                                          have a test, the most recently recorded one is kept
+ *   scripts/e2e-recordings prune           Delete response bodies no recording refers to any more
+ *   scripts/e2e-recordings stats           What the recordings hold
+ *
+ * See cypress/support/e2e-modes/recordings.ts for the format.
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const ROOT = path.resolve(__dirname, '..');
+const RECORDINGS = path.resolve(ROOT, process.env.TEST_RECORDINGS_DIR || 'cypress/recordings');
+const BODIES = 'bodies';
+
+function walk(dir, filter, found = []) {
+  if (!fs.existsSync(dir)) {
+    return found;
+  }
+
+  fs.readdirSync(dir, { withFileTypes: true }).forEach((d) => {
+    const full = path.join(dir, d.name);
+
+    if (d.isDirectory()) {
+      walk(full, filter, found);
+    } else if (filter(d.name)) {
+      found.push(full);
+    }
+  });
+
+  return found;
+}
+
+const hars = (dir) => walk(dir, (name) => name.endsWith('.har')).filter((f) => !path.relative(dir, f).startsWith(`${ BODIES }${ path.sep }`));
+const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+
+// Matches `serialize` in cypress/support/e2e-modes/recordings.ts
+function write(file, har) {
+  const { pages, entries, ...log } = har.log;
+  const lines = (items) => items.map((item) => JSON.stringify(item)).join(',\n');
+
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `{"log":${ JSON.stringify(log).replace(/}$/, '') },\n"pages":[\n${ lines(pages) }\n],\n"entries":[\n${ lines(entries) }\n]}}\n`);
+}
+
+function merge(sources) {
+  if (!sources.length) {
+    console.error('Usage: scripts/e2e-recordings merge <dir>...');
+    process.exit(1);
+  }
+
+  let tests = 0;
+  let bodies = 0;
+
+  sources.forEach((source) => {
+    const from = path.resolve(source);
+
+    walk(path.join(from, BODIES), () => true).forEach((file) => {
+      const to = path.join(RECORDINGS, path.relative(from, file));
+
+      if (!fs.existsSync(to)) {
+        fs.mkdirSync(path.dirname(to), { recursive: true });
+        fs.copyFileSync(file, to);
+        bodies++;
+      }
+    });
+
+    hars(from).forEach((file) => {
+      const to = path.join(RECORDINGS, path.relative(from, file));
+      const incoming = read(file);
+      const existing = fs.existsSync(to) ? read(to) : undefined;
+
+      if (!existing) {
+        write(to, incoming);
+        tests += incoming.log.pages.length;
+
+        return;
+      }
+
+      const current = new Map(existing.log.pages.map((p) => [p.id, p]));
+      const newer = new Set(incoming.log.pages
+        .filter((p) => !current.has(p.id) || current.get(p.id).startedDateTime < p.startedDateTime)
+        .map((p) => p.id));
+
+      existing.log.pages = existing.log.pages.filter((p) => !newer.has(p.id)).concat(incoming.log.pages.filter((p) => newer.has(p.id)));
+      existing.log.entries = existing.log.entries.filter((e) => !newer.has(e.pageref)).concat(incoming.log.entries.filter((e) => newer.has(e.pageref)));
+      write(to, existing);
+      tests += newer.size;
+    });
+  });
+
+  console.log(`Merged ${ tests } tests and hooks, and ${ bodies } new response bodies, into ${ path.relative(ROOT, RECORDINGS) }`);
+}
+
+function prune() {
+  const used = new Set();
+
+  hars(RECORDINGS).forEach((file) => read(file).log.entries.forEach((e) => {
+    if (e.response.content._file) {
+      used.add(e.response.content._file);
+    }
+  }));
+
+  const root = path.join(RECORDINGS, BODIES);
+  let removed = 0;
+
+  walk(root, () => true).forEach((file) => {
+    if (!used.has(path.relative(root, file).split(path.sep).join('/'))) {
+      fs.rmSync(file);
+      removed++;
+    }
+  });
+
+  console.log(`Removed ${ removed } response bodies no recording refers to`);
+}
+
+function stats() {
+  const files = hars(RECORDINGS);
+  let pages = 0;
+  let entries = 0;
+  let frames = 0;
+  let harBytes = 0;
+
+  files.forEach((file) => {
+    const har = read(file);
+
+    pages += har.log.pages.length;
+    entries += har.log.entries.length;
+    frames += har.log.entries.reduce((n, e) => n + (e._webSocketMessages || []).length, 0);
+    harBytes += fs.statSync(file).size;
+  });
+
+  const bodyFiles = walk(path.join(RECORDINGS, BODIES), () => true);
+  const bodyBytes = bodyFiles.reduce((n, f) => n + fs.statSync(f).size, 0);
+  const mb = (n) => `${ (n / 1024 / 1024).toFixed(1) }MB`;
+
+  console.log(`${ files.length } specs, ${ pages } tests and hooks, ${ entries } requests, ${ frames } web socket frames`);
+  console.log(`HAR files: ${ mb(harBytes) }, ${ bodyFiles.length } response bodies: ${ mb(bodyBytes) }`);
+}
+
+const [command, ...args] = process.argv.slice(2);
+
+switch (command) {
+case 'merge':
+  merge(args);
+  break;
+case 'prune':
+  prune();
+  break;
+case 'stats':
+  stats();
+  break;
+default:
+  console.log('Usage: scripts/e2e-recordings merge <dir>... | prune | stats');
+  process.exit(command ? 1 : 0);
+}

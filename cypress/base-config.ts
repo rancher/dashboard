@@ -2,6 +2,7 @@
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
 import { CypressFailedAttempt, formatFailedCypressAttempt } from './support/utils/retry-logging';
+import { e2eModeFromEnv, e2eModeUrls, e2eRecordingSet, startE2EModeServer } from './support/e2e-modes/config';
 import path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
@@ -67,6 +68,8 @@ const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.spli
 const rancherVersion = process.env.RANCHER_VERSION;
 const noPassedVideos = process.env.TEST_NO_PASSED_VIDEOS === 'true';
 const passedSpecVideo = path.join(__dirname, 'support', 'assets', 'passed-spec.mp4');
+const e2eMode = e2eModeFromEnv(process.env);
+const modeUrls = e2eModeUrls(e2eMode, baseUrl, apiUrl, process.env);
 
 if (process.env.TEST_A11Y) {
   testDirs = ['accessibility'];
@@ -79,6 +82,7 @@ if (process.env.TEST_A11Y) {
  */
 console.log('E2E Test Configuration');
 console.log('');
+console.log(`    Mode: ${ e2eMode }`);
 console.log(`    Username: ${ username }`);
 
 if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
@@ -98,6 +102,9 @@ console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
 console.log(`    Dashboard URL: ${ baseUrl }`);
 console.log(`    Rancher API URL: ${ apiUrl }`);
 console.log(`    Rancher version: ${ rancherVersion || 'not provided' }`);
+if (e2eMode !== 'full') {
+  console.log(`    Record/replay server: ${ modeUrls.origin } (recording set '${ e2eRecordingSet(process.env, username) }')`);
+}
 
 // Check API - sometimes in dev, you might have API set to a different system to the base url - this won't work
 // as the login cookie will be for the base url and any API requests will fail as not authenticated
@@ -152,9 +159,10 @@ const baseConfig = defineConfig({
     },
   },
   env: {
-    baseUrl,
+    baseUrl:                  modeUrls.baseUrl,
     rancherVersion,
-    api:                      apiUrl,
+    api:                      modeUrls.api,
+    e2eMode,
     username,
     password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
     bootstrapPassword:        process.env.CATTLE_BOOTSTRAP_PASSWORD,
@@ -181,7 +189,7 @@ const baseConfig = defineConfig({
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
-    setupNodeEvents(on, config) {
+    async setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
       // @cypress/grep v6 moved the plugin to `@cypress/grep/plugin` and exports it as a
@@ -238,6 +246,12 @@ const baseConfig = defineConfig({
       config.env.hasRetryLogging = true;
       websocketTasks(on, config);
 
+      const e2eModeServer = await startE2EModeServer(e2eMode, modeUrls, process.env, config.projectRoot, username);
+
+      if (e2eModeServer) {
+        on('task', e2eModeServer.tasks());
+      }
+
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
         outputRoot:           `${ config.projectRoot }/browser-logs/`,
         outputTarget:         { 'out.html': 'html' },
@@ -267,6 +281,8 @@ const baseConfig = defineConfig({
         });
 
         on('after:spec', (spec, results) => {
+          e2eModeServer?.afterSpec(spec.relative);
+
           if (!noPassedVideos || !results?.video) {
             return;
           }
@@ -288,7 +304,7 @@ const baseConfig = defineConfig({
       return config;
     },
     specPattern: getSpecPattern(testDirs, process.env),
-    baseUrl
+    baseUrl:     modeUrls.baseUrl
   },
   videoCompression:       15,
   screenshotOnRunFailure: process.env.TEST_NO_SCREENSHOTS !== 'true',

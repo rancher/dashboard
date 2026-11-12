@@ -1,3 +1,4 @@
+import './e2e-modes/hooks';
 import 'cypress-real-events/support';
 import '@cypress/code-coverage/support';
 import './commands/commands';
