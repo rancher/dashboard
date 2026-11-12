@@ -1047,7 +1047,7 @@ export class RecordReplayServer {
       .filter((e) => e._mutations > target && servedOf(e._mutations) < candidates.filter((c) => c._mutations === e._mutations).length)
       .sort((a, b) => a._mutations - b._mutations)[0];
 
-    if (later && servedOf(target) >= candidates.filter((e) => e._mutations === target).length) {
+    if (later && target < scope.mutations && servedOf(target) >= candidates.filter((e) => e._mutations === target).length) {
       target = later._mutations;
     }
 
