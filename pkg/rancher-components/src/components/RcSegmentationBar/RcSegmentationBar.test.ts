@@ -158,6 +158,16 @@ describe('component: RcSegmentationBar', () => {
     expect(wrapper.attributes('aria-hidden')).toBe('true');
   });
 
+  it.each([
+    ['no segments', [], true],
+    ['only zero values', [segment(0, 'error', 'Error')], true],
+    ['a positive value', [segment(0, 'error', 'Error'), segment(2, 'success', 'Success')], false],
+  ] as [string, RcSegment[], boolean][])('marks the bar as empty, showing the track, when there are %s: %s', (_label, segments, empty) => {
+    const wrapper = mountBar({ segments });
+
+    expect(wrapper.classes('empty')).toBe(empty);
+  });
+
   it('keeps an empty bar in the accessibility tree when it has an ariaLabel', () => {
     const wrapper = mountBar({ segments: [], ariaLabel: 'No vulnerabilities' });
 

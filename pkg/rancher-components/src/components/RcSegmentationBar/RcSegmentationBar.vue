@@ -64,7 +64,7 @@ const accessibleName = computed(() => props.ariaLabel || summary.value);
 <template>
   <div
     class="rc-segmentation-bar"
-    :class="props.size"
+    :class="[props.size, { empty: !visibleSegments.length }]"
     :role="accessibleName ? 'img' : undefined"
     :aria-label="accessibleName || undefined"
     :aria-hidden="accessibleName ? undefined : 'true'"
@@ -87,6 +87,14 @@ const accessibleName = computed(() => props.ariaLabel || summary.value);
   height: 4px;
   border-radius: 4px;
   overflow: hidden;
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: background-color 0.3s ease;
+  }
+
+  &.empty {
+    background-color: var(--rc-bar-track);
+  }
 
   &.medium {
     height: 7px;
