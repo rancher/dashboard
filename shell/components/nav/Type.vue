@@ -4,6 +4,8 @@ import { TYPE_MODES } from '@shell/store/type-map';
 
 import TabTitle from '@shell/components/TabTitle';
 import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
+import { isTruncated } from '@shell/utils/style';
+import { observeResize } from '@shell/utils/element-resize';
 
 const showFavoritesFor = [TYPE_MODES.FAVORITE, TYPE_MODES.USED];
 
@@ -28,13 +30,41 @@ export default {
       type:    Number,
       default: 0,
     },
+
+    /**
+     * Left indent of this link in px, on the same scale Group indents its headers with, so a link
+     * lines up with the group headers that sit at the same level of the tree. Set by Group, which
+     * is the only thing that knows how deep this link sits.
+     */
+    indent: {
+      type:    Number,
+      default: null,
+    },
   },
 
   data() {
-    return { near: false };
+    return {
+      near: false, labelTruncated: false, stopObserving: null
+    };
   },
 
   computed: {
+    indentStyle() {
+      return this.indent === null ? null : { paddingLeft: `${ this.indent }px` };
+    },
+
+    /** The label as plain text, without the match highlighting `labelDisplay` carries */
+    labelText() {
+      return this.type.labelKey ? this.t(this.type.labelKey) : (this.type.label || '');
+    },
+
+    // Only offered once the label has actually been cut off, so the rest of the menu doesn't
+    // sprout tooltips repeating what is already on screen. It sits above the row rather than
+    // beside it: to the right it would cover the row's own favourite star and resource count.
+    labelTooltip() {
+      return this.labelTruncated ? { content: this.labelText, placement: 'top' } : undefined;
+    },
+
     showFavorite() {
       return ( this.type.mode && this.near && showFavoritesFor.includes(this.type.mode) );
     },
@@ -72,7 +102,30 @@ export default {
 
   },
 
+  mounted() {
+    this.checkLabelTruncated();
+
+    // A label that fits when it is first laid out can stop fitting later: the web font swaps in
+    // over the fallback it was measured with, a count appears beside it, or the panel is resized.
+    // Measuring once on mount leaves those labels cut off with no way to read them.
+    //
+    // Watching the box is enough on its own, and cheaper than re-measuring on every render: the
+    // label is a flex item that is sized to its text while it fits and clamped to the space
+    // available once it doesn't, so its width always changes as it crosses between the two.
+    if (this.$refs.label) {
+      this.stopObserving = observeResize(this.$refs.label, this.checkLabelTruncated);
+    }
+  },
+
+  beforeUnmount() {
+    this.stopObserving?.();
+  },
+
   methods: {
+    checkLabelTruncated() {
+      this.labelTruncated = isTruncated(this.$refs.label);
+    },
+
     setNear(val) {
       this.near = val;
     },
@@ -117,6 +170,7 @@ export default {
         :aria-label="type.labelKey ? t(type.labelKey) : (type.labelDisplay || type.label)"
         :href="href"
         class="type-link"
+        :style="indentStyle"
         :aria-current="isActive ? 'page' : undefined"
         @click="selectType(); navigate($event);"
         @mouseenter="setNear(true)"
@@ -124,11 +178,15 @@ export default {
       >
         <span
           v-if="type.labelKey"
+          ref="label"
+          v-clean-tooltip="labelTooltip"
           class="label"
         ><t :k="type.labelKey" /></span>
         <span
           v-else
+          ref="label"
           v-clean-html="type.labelDisplay || type.label"
+          v-clean-tooltip="labelTooltip"
           class="label"
           :class="{'no-icon': !type.icon}"
         />
@@ -161,12 +219,17 @@ export default {
   >
     <a
       role="link"
+      :style="indentStyle"
       :href="type.link"
       :target="type.target"
       rel="noopener noreferrer nofollow"
       :aria-label="type.label"
     >
-      <span class="label">{{ type.label }}&nbsp;<i class="icon icon-external-link" /></span>
+      <span
+        ref="label"
+        v-clean-tooltip="labelTooltip"
+        class="label"
+      >{{ type.label }}&nbsp;<i class="icon icon-external-link" /></span>
     </a>
   </li>
   <li v-else>
@@ -190,13 +253,14 @@ export default {
   }
 
   .child {
-    margin: 0 var(--outline) 0 0;
-
     .label {
       align-items: center;
       grid-area: label;
       overflow: hidden;
       text-overflow: ellipsis;
+      // A flex item will not shrink below its own text unless it is told it may, and without that
+      // a long name runs under the count and is cut off square rather than ellipsised
+      min-width: 0;
 
       &:not(.nav-type) &.no-icon {
         padding-left: 3px;
@@ -221,8 +285,10 @@ export default {
       grid-column-gap: 5px;
       font-size: 14px;
       line-height: 24px;
-      padding: 7.5px 7px 7.5px 10px;
-      margin: 0 0 0 -3px;
+      // The left padding is a fallback only - Group sets it inline via the `indent` prop, which is
+      // what actually lines a link up with the group headers at the same level of the tree. The
+      // 12px on the right is the gutter the whole menu keeps clear of the edge of the panel.
+      padding: 7.5px 12px 7.5px 16px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -243,7 +309,7 @@ export default {
     }
 
     .count {
-      font-size: 12px;
+      font-size: 14px;
       justify-items: center;
       padding-right: 4px;
       display: flex;
@@ -257,25 +323,8 @@ export default {
     }
 
     &.nav-type:not(.depth-0) {
-      A {
-        padding-left: 16px;
-      }
-
       :deep() .label I {
         padding-right: 2px;
-      }
-    }
-
-    &.nav-type:is(.depth-1) {
-      A {
-        font-size: 13px;
-        padding-left: 23px;
-      }
-    }
-
-    &.nav-type:not(.depth-0):not(.depth-1) {
-      A {
-        padding-left: 14px;
       }
     }
   }
