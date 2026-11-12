@@ -1052,11 +1052,12 @@ describe('component: rke2', () => {
       const versionInfo = { questions: [] };
       const dispatch = jest.fn().mockResolvedValue(versionInfo);
       const vm: any = {
-        chartVersions:   { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
-        versionInfo:     {},
-        userChartValues: {},
-        $store:          { dispatch },
-        chartVersionKey: (n: string) => n,
+        chartVersions:    { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
+        versionInfo:      {},
+        addonChartErrors: {},
+        userChartValues:  {},
+        $store:           { dispatch },
+        chartVersionKey:  (n: string) => n,
       };
 
       await (rke2.methods as any).getChartValue.call(vm, 'rke2-ingress-nginx');
@@ -1072,11 +1073,12 @@ describe('component: rke2', () => {
       const dispatch = jest.fn().mockResolvedValue({});
       const existing = { foo: 'bar' };
       const vm: any = {
-        chartVersions:   { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
-        versionInfo:     {},
-        userChartValues: { 'rke2-ingress-nginx': existing },
-        $store:          { dispatch },
-        chartVersionKey: (n: string) => n,
+        chartVersions:    { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
+        versionInfo:      {},
+        addonChartErrors: {},
+        userChartValues:  { 'rke2-ingress-nginx': existing },
+        $store:           { dispatch },
+        chartVersionKey:  (n: string) => n,
       };
 
       await (rke2.methods as any).getChartValue.call(vm, 'rke2-ingress-nginx');
@@ -1087,14 +1089,185 @@ describe('component: rke2', () => {
     it('swallows dispatch errors without throwing', async() => {
       const dispatch = jest.fn().mockRejectedValue(new Error('network error'));
       const vm: any = {
-        chartVersions:   { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
-        versionInfo:     {},
-        userChartValues: {},
-        $store:          { dispatch },
-        chartVersionKey: (n: string) => n,
+        chartVersions:    { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
+        versionInfo:      {},
+        addonChartErrors: {},
+        userChartValues:  {},
+        $store:           { dispatch },
+        chartVersionKey:  (n: string) => n,
       };
 
       await expect((rke2.methods as any).getChartValue.call(vm, 'rke2-ingress-nginx')).resolves.toBeUndefined();
+    });
+  });
+
+  describe('unavailable add-on charts', () => {
+    const chartError = { message: 'no chart version found for rke2-calico-v3.32.100', status: 500 };
+
+    it('records the error message when the chart info request fails', async() => {
+      const vm: any = {
+        chartVersions:    { 'rke2-calico': { repo: 'rancher-rke2-charts', version: 'v3.32.100' } },
+        versionInfo:      {},
+        addonChartErrors: {},
+        userChartValues:  {},
+        $store:           { dispatch: jest.fn().mockRejectedValue(chartError) },
+        chartVersionKey:  (n: string) => n,
+      };
+
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => { });
+
+      await (rke2.methods as any).getChartValue.call(vm, 'rke2-calico');
+      consoleError.mockRestore();
+
+      expect(vm.addonChartErrors).toStrictEqual({ 'rke2-calico': 'no chart version found for rke2-calico-v3.32.100' });
+    });
+
+    it('clears a previous error when the chart info request succeeds', async() => {
+      const vm: any = {
+        chartVersions:    { 'rke2-calico': { repo: 'rancher-rke2-charts', version: 'v3.32.100' } },
+        versionInfo:      {},
+        addonChartErrors: { 'rke2-calico': 'no chart version found for rke2-calico-v3.32.100' },
+        userChartValues:  {},
+        $store:           { dispatch: jest.fn().mockResolvedValue({ chart: {} }) },
+        chartVersionKey:  (n: string) => n,
+      };
+
+      await (rke2.methods as any).getChartValue.call(vm, 'rke2-calico');
+
+      expect(vm.addonChartErrors).toStrictEqual({});
+    });
+
+    it('forgets the errors when the Kubernetes version changes', async() => {
+      const vm: any = {
+        isEdit:           false,
+        mode:             _VIEW,
+        versionInfo:      { 'rke2-calico': {} },
+        addonChartErrors: { 'rke2-calico': 'no chart version found for rke2-calico-v3.32.100' },
+        $nextTick:        jest.fn(),
+      };
+
+      await (rke2.watch as any).selectedVersion.call(vm, {});
+
+      expect(vm.addonChartErrors).toStrictEqual({});
+    });
+
+    const messageVm = (overrides: Record<string, any> = {}) => {
+      const t = jest.fn((key: string, args: Record<string, any>) => (key === 'cluster.addOns.chartUnavailable.message' ? args : key));
+      const resolve = jest.fn(() => ({ href: '/c/local/apps/catalog.cattle.io.clusterrepo/rancher-rke2-charts' }));
+
+      return {
+        addonNames:       ['rke2-calico'],
+        addonChartErrors: { 'rke2-calico': 'no chart version found for rke2-calico-v3.32.100' },
+        chartVersions:    { 'rke2-calico': { repo: 'rancher-rke2-charts', version: 'v3.32.100' } },
+        $store:           {
+          getters: {
+            'i18n/withFallback':    (key: string, args: any, fallback: string) => fallback,
+            'management/schemaFor': () => ({ resourceMethods: ['GET', 'PUT'] }),
+          }
+        },
+        $router: { resolve },
+        t,
+        ...overrides,
+      };
+    };
+
+    it('describes only the failed charts of the add-ons currently selected', () => {
+      const vm: any = messageVm({
+        addonNames:       ['rke2-calico', 'rke2-multus'],
+        addonChartErrors: {
+          'rke2-calico':        'no chart version found for rke2-calico-v3.32.100',
+          'rke2-cilium':        'no chart version found for rke2-cilium-1.0.0',
+          'rke2-ingress-nginx': 'no chart version found for rke2-ingress-nginx-4.0.0',
+        },
+      });
+
+      expect((rke2.computed as any).unavailableAddonsMessage.call(vm)).toStrictEqual({
+        count: 1, names: 'Calico', errors: 'no chart version found for rke2-calico-v3.32.100', refresh: 'cluster.addOns.chartUnavailable.refreshLink'
+      });
+      expect(vm.t).toHaveBeenCalledWith('cluster.addOns.chartUnavailable.message', expect.any(Object), true);
+    });
+
+    it('lists every failed add-on in one message', () => {
+      const vm: any = messageVm({
+        addonNames:       ['rke2-multus', 'rke2-cilium'],
+        addonChartErrors: { 'rke2-multus': 'multus error', 'rke2-cilium': 'cilium error' },
+        chartVersions:    { 'rke2-multus': { repo: 'rancher-rke2-charts' }, 'rke2-cilium': { repo: 'rancher-rke2-charts' } },
+      });
+
+      expect((rke2.computed as any).unavailableAddonsMessage.call(vm)).toStrictEqual({
+        count: 2, names: 'Multus, Cilium', errors: 'multus error; cilium error', refresh: 'cluster.addOns.chartUnavailable.refreshLink'
+      });
+    });
+
+    it('links to the repository page in the local cluster for users who can update repositories', () => {
+      const vm: any = messageVm();
+
+      (rke2.computed as any).unavailableAddonsMessage.call(vm);
+
+      expect(vm.$router.resolve).toHaveBeenCalledWith({
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster: 'local', product: 'apps', resource: 'catalog.cattle.io.clusterrepo', id: 'rancher-rke2-charts'
+        }
+      });
+      expect(vm.t).toHaveBeenCalledWith('cluster.addOns.chartUnavailable.refreshLink', { url: '/c/local/apps/catalog.cattle.io.clusterrepo/rancher-rke2-charts' }, true);
+    });
+
+    it.each([
+      ['cannot update repositories', { resourceMethods: ['GET'] }],
+      ['cannot see repositories', undefined],
+    ])('asks an administrator to refresh the repository when the user %s', (_, schema) => {
+      const vm: any = messageVm();
+
+      vm.$store.getters['management/schemaFor'] = () => schema;
+
+      expect((rke2.computed as any).unavailableAddonsMessage.call(vm).refresh).toBe('cluster.addOns.chartUnavailable.refreshAdmin');
+      expect(vm.$router.resolve).not.toHaveBeenCalled();
+    });
+
+    it('escapes HTML in the error message', () => {
+      const vm: any = messageVm({ addonChartErrors: { 'rke2-calico': '<img src=x onerror=alert(1)>' } });
+
+      expect((rke2.computed as any).unavailableAddonsMessage.call(vm).errors).toBe('&lt;img src=x onerror=alert(1)&gt;');
+    });
+
+    it('has no message when every selected add-on chart loaded', () => {
+      const vm: any = {
+        addonNames: ['rke2-calico'], addonChartErrors: { 'rke2-cilium': 'cilium error' }, t: jest.fn(),
+      };
+
+      expect((rke2.computed as any).unavailableAddonsMessage.call(vm)).toBe('');
+      expect(vm.t).not.toHaveBeenCalled();
+    });
+
+    it('shows the message in a warning banner', () => {
+      const message = 'Calico is unavailable: <a href="/repo" target="_blank">refresh it</a>';
+      const wrapper = mount(rke2, {
+        props: {
+          mode:     _CREATE,
+          value:    { spec: { ...defaultSpec, kubernetesVersion: 'v1.33.13+rke2r2' }, agentConfig: {} },
+          provider: 'custom'
+        },
+        computed: {
+          ...rke2.computed,
+          showForm:                 () => true,
+          unavailableAddonsMessage: () => message,
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+            $extension: { getDynamic: jest.fn(() => undefined ) },
+          },
+          stubs: { ...defaultStubs, Banner: false }
+        }
+      });
+
+      const banner = wrapper.find('[data-testid="rke2-addon-chart-unavailable"]');
+
+      expect(banner.classes()).toContain('warning');
+      expect(banner.text()).toContain('Calico is unavailable: refresh it');
+      expect(banner.find('a').attributes('href')).toBe('/repo');
     });
   });
 
