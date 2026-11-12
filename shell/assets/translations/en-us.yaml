@@ -2526,6 +2526,10 @@ cluster:
         diskSizeWithMax: Disk size has to be between {diskSizeMin} and {diskSizeMax} based on this image and disk type.
         projects: Image projects should be a comma separated list of alphanumeric string which may contain '-' and '.'
   addOns:
+    chartUnavailable:
+      message: 'Configuration for the {names} {count, plural, =1 {add-on} other {add-ons}} is unavailable because the add-on {count, plural, =1 {chart} other {charts}} could not be loaded. {refresh} Alternatively, choose a different Kubernetes version. {count, plural, =1 {Error} other {Errors}}: {errors}'
+      refreshLink: 'The RKE2 repository may be out of date: <a href="{url}" target="_blank" rel="noopener noreferrer nofollow">refresh it from its repository page</a>, then reload this page (unsaved changes will be lost).'
+      refreshAdmin: 'The RKE2 repository may be out of date: ask an administrator to refresh it from Apps > Repositories in the local cluster, then reload this page (unsaved changes will be lost).'
     dependencyBanner: Add-On Configuration has changed between Kubernetes versions <b>{previousKubeVersion}</b> and <b>{newKubeVersion}</b> and conflict with your previous values. Please re-apply them.
     additionalManifest:
       title: Additional Manifest
