@@ -22,6 +22,7 @@ const props = withDefaults(defineProps<RcProgressBarProps>(), {
   max:           100,
   size:          'small',
   color:         'info',
+  active:        false,
   ariaLabel:     undefined,
   ariaValuetext: undefined,
 });
@@ -53,8 +54,9 @@ const fillStyle = computed(() => ({
 <template>
   <div
     class="rc-progress-bar"
-    :class="props.size"
+    :class="[props.size, { active: props.active }]"
     role="progressbar"
+    :aria-busy="props.active ? 'true' : undefined"
     :aria-label="props.ariaLabel"
     :aria-valuenow="valueNow"
     :aria-valuemin="valueMin"
@@ -82,7 +84,9 @@ const fillStyle = computed(() => ({
 }
 
 .fill {
+  position: relative;
   height: 100%;
+  overflow: hidden;
   background-color: var(--fill-color);
 
   @media (prefers-reduced-motion: no-preference) {
@@ -91,6 +95,30 @@ const fillStyle = computed(() => ({
 
   @media (forced-colors: active) {
     forced-color-adjust: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .active .fill::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(90deg, transparent, var(--rc-bar-active-sweep), transparent);
+    animation: rc-progress-bar-sweep 1.5s ease-in-out infinite;
+
+    &:dir(rtl) {
+      animation-direction: reverse;
+    }
+  }
+}
+
+@keyframes rc-progress-bar-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
   }
 }
 </style>
