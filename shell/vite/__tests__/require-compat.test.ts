@@ -1,10 +1,23 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { parseSync } from '@babel/core';
 import { rancherRequireCompat } from '@shell/vite/require-compat.mjs';
+import { REQUIRE_FILE } from '@shell/vite/commonjs.mjs';
 
 const ROOT = '/app';
 const warn = jest.fn();
+const parse = (code: string) => {
+  const parsed = parseSync(code, {
+    sourceType: 'module', configFile: false, babelrc: false, parserOpts: { plugins: ['estree'] }
+  });
+
+  if (!parsed) {
+    throw new Error('Could not parse the code');
+  }
+
+  return parsed.program;
+};
 const transform = (code: string, id = `${ ROOT }/pkg/thing/index.ts`, command = 'serve', root = ROOT) => {
   const plugin: any = rancherRequireCompat({ root });
 
@@ -12,7 +25,7 @@ const transform = (code: string, id = `${ ROOT }/pkg/thing/index.ts`, command = 
     root: `${ root }/pkg/thing`, command, resolve: { alias: [{ find: '@shell', replacement: `${ root }/pkg/thing/.shell` }] }
   });
 
-  return plugin.transform.call({ warn }, code, id);
+  return plugin.transform.call({ warn, parse }, code, id);
 };
 
 const run = (code: string, files: Record<string, unknown>) => {
@@ -26,11 +39,19 @@ const run = (code: string, files: Record<string, unknown>) => {
   return new Function('glob', `${ source }\nreturn load;`)(glob); // eslint-disable-line no-new-func
 };
 
+const requireThrough = (code: string, imported: unknown) => new Function('__rancher_require_0__', `${ transform(code).code.replace(/^import .*$/gm, '') }\nreturn load();`)(imported); // eslint-disable-line no-new-func
+
 describe('fx: rancherRequireCompat', () => {
-  it('should import a required module as its namespace', () => {
+  it('should import a required module', () => {
     const code = `const { thing } = require('./thing');\n`;
 
-    expect(transform(code).code).toStrictEqual(`const { thing } = __rancher_require_0__;\n\nimport * as __rancher_require_0__ from "./thing";\n`);
+    expect(transform(code).code).toStrictEqual(`const { thing } = __rancher_require_file__(__rancher_require_0__);\n\nimport * as __rancher_require_0__ from "./thing";\n${ REQUIRE_FILE }\n`);
+  });
+
+  it('should give the namespace of an ES module', () => {
+    const namespace = { [Symbol.toStringTag]: 'Module', default: 'a' };
+
+    expect(requireThrough(`function load() {\n  return require('./thing');\n}`, namespace)).toStrictEqual(namespace);
   });
 
   it.each([
@@ -45,7 +66,7 @@ describe('fx: rancherRequireCompat', () => {
   it('should import each module once', () => {
     const code = `const a = require('./a');\nconst b = require("./b");\nconst c = require(\`./a\`);`;
 
-    expect(transform(code).code).toStrictEqual(`const a = __rancher_require_0__;\nconst b = __rancher_require_1__;\nconst c = __rancher_require_0__;\nimport * as __rancher_require_0__ from "./a";\nimport * as __rancher_require_1__ from "./b";\n`);
+    expect(transform(code).code).toStrictEqual(`const a = __rancher_require_file__(__rancher_require_0__);\nconst b = __rancher_require_file__(__rancher_require_1__);\nconst c = __rancher_require_file__(__rancher_require_0__);\nimport * as __rancher_require_0__ from "./a";\nimport * as __rancher_require_1__ from "./b";\n${ REQUIRE_FILE }\n`);
   });
 
   it.each([
@@ -75,6 +96,17 @@ describe('fx: rancherRequireCompat', () => {
       expect(load(type)).toStrictEqual(model);
     });
 
+    it('should load the module.exports of a CommonJS file', () => {
+      const legacy = () => 'legacy';
+      const load = run(`function load(type) {\n  return require(\`@shell/models/\${ type }\`);\n}`, {
+        '/.shell/models/legacy.js': {
+          [Symbol.toStringTag]: 'Module', default: legacy, __rancher_commonjs__: { exports: legacy, default: legacy }
+        }
+      });
+
+      expect(load('legacy')).toStrictEqual(legacy);
+    });
+
     it('should load the value of an asset', () => {
       const load = run(`const load = (name) => require(\`./icons/\${ name }.svg\`);`, { './icons/aws.svg': { [Symbol.toStringTag]: 'Module', default: 'aws.svg' } });
 
@@ -98,17 +130,81 @@ describe('fx: rancherRequireCompat', () => {
   });
 
   describe('with a package', () => {
-    const load = (code: string, module: unknown) => new Function('__rancher_require_0__', `${ transform(code).code.replace(/^import .*$/gm, '') }\nreturn load();`)(module); // eslint-disable-line no-new-func
     const cloneDeep = () => 'cloned';
+    const dayjs = Object.assign(() => 'day', { isDayjs: () => true });
+    const compiled = {
+      __esModule: true, default: cloneDeep, other: 1
+    };
+    const namespace = {
+      [Symbol.toStringTag]: 'Module', load: cloneDeep, default: { load: cloneDeep }
+    };
 
-    it('should give the module.exports of a CommonJS package', () => {
-      expect(load(`function load() {\n  return require('lodash/cloneDeep');\n}`, { default: cloneDeep })).toStrictEqual(cloneDeep);
+    it.each([
+      ['the module.exports of a CommonJS package', { default: cloneDeep }, cloneDeep],
+      ['the module.exports of a CommonJS package that is a function with properties of its own', { ...dayjs, default: dayjs }, dayjs],
+      ['the module.exports of a CommonJS package compiled from an ES module', compiled, compiled],
+      ['the namespace of a package with named exports', namespace, namespace],
+      ['the default of a package with only a default export', { [Symbol.toStringTag]: 'Module', default: cloneDeep }, cloneDeep],
+    ])('should give %s', (_, imported, expected) => {
+      expect(requireThrough(`function load() {\n  return require('some-package');\n}`, imported)).toStrictEqual(expected);
+    });
+  });
+
+  describe('with a CommonJS file', () => {
+    const FILE = `${ ROOT }/pkg/thing/legacy.js`;
+    const REQUIRING = `const cloneDeep = require('lodash/cloneDeep');\nmodule.exports = (value) => cloneDeep(value);\n`;
+
+    const evaluate = (code: string, imports: Record<string, unknown> = {}): Record<string, any> => {
+      const exported: Record<string, unknown> = {};
+      const body = code
+        .replace(/^import \* as (\w+) from .*$/gm, '')
+        .replace(/^export { (\w+) as (\w+) };$/gm, 'exported.$2 = $1;')
+        .replace(/^export { (\w+) };$/gm, 'exported.$1 = $1;')
+        .replace(/^export default (.*);$/gm, 'exported.default = $1;');
+
+      new Function('exported', ...Object.keys(imports), body)(exported, ...Object.values(imports)); // eslint-disable-line no-new-func
+
+      return exported;
+    };
+
+    it('should give require() the module.exports of a CommonJS file', () => {
+      const legacy = evaluate(transform(`module.exports = { thing: 'b' };\n`, FILE).code);
+
+      expect(requireThrough(`function load() {\n  return require('./legacy');\n}`, legacy)).toStrictEqual({ thing: 'b' });
     });
 
-    it('should give the namespace of a package with named exports', () => {
-      const namespace = { load: cloneDeep, default: { load: cloneDeep } };
+    it('should turn the file into an ES module that gives what it requires', () => {
+      const copy = evaluate(transform(REQUIRING, FILE).code, { __rancher_require_0__: { default: (value: unknown) => ({ copied: value }) } }).default;
 
-      expect(load(`function load() {\n  return require('js-yaml');\n}`, namespace)).toStrictEqual(namespace);
+      expect(copy(1)).toStrictEqual({ copied: 1 });
+    });
+
+    it('should import what the file requires at the top level of the module', () => {
+      expect(transform(REQUIRING, FILE).code).toMatch(/^import \* as __rancher_require_0__ from "lodash\/cloneDeep";$/m);
+    });
+
+    it('should give code that parses as a module', () => {
+      expect(parse(transform(REQUIRING, FILE).code).type).toStrictEqual('Program');
+    });
+
+    it('should run a TypeScript file whose imports were all types, without the export TypeScript left in', () => {
+      const code = transform(`module.exports = { a: 1 };\nexport {};\n`, `${ ROOT }/pkg/thing/legacy.ts`).code;
+
+      expect(evaluate(code).a).toStrictEqual(1);
+    });
+
+    it.each([
+      ['an ES module', `import a from './a';\nmodule.exports = a;\n`, FILE],
+      ['a component', `module.exports = {};\n`, `${ ROOT }/pkg/thing/legacy.vue`],
+      ['a file outside the pkg folder', `module.exports = {};\n`, `${ ROOT }/shell/legacy.js`],
+      ['a file that does not parse', `module.exports = {;\n`, FILE],
+      ['a classic web worker', `if (typeof module !== 'undefined') {\n  module.exports = {};\n}\n`, `${ FILE }?worker_file&type=classic`],
+    ])('should leave %s alone', (_, code, id) => {
+      expect(transform(code, id)).toBeUndefined();
+    });
+
+    it('should leave a build to the bundler', () => {
+      expect(transform(`module.exports = {};\n`, FILE, 'build')).toBeUndefined();
     });
   });
 
