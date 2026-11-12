@@ -46,17 +46,37 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
 
   pushd pkg/${1}
 
-  # Check that the .shell link exists and points to the correct place
-  if [ -e ".shell" ]; then
+  SHELL_LINK="$(pwd)/.shell"
+
+  # Check that the .shell link exists and points to the correct place.
+  # -L is tested as well as -e because -e is false for a dangling symlink,
+  # which is what an interrupted build can leave behind
+  if [ -L ".shell" ]; then
     LINK=$(readlink .shell)
     if [ "${LINK}" != "${SHELL_DIR}" ]; then
-      echo ".shell symlink exists but does not point to expected location - please check and fix"
-      popd
-      exit -1
+      echo "Replacing stale .shell symlink (pointed to ${LINK})"
+      rm -f .shell
+      ln -s ${SHELL_DIR} .shell
     fi
+  elif [ -e ".shell" ]; then
+    echo ".shell exists but is not a symlink - please check and remove it"
+    popd
+    exit 1
   else
     ln -s ${SHELL_DIR} .shell
   fi
+
+  # Remove the .shell link however the script exits, so that an interrupted
+  # build does not leave one behind and break every subsequent build
+  cleanupShellLink() {
+    if [ -L "${SHELL_LINK}" ]; then
+      rm -f "${SHELL_LINK}"
+    fi
+  }
+
+  trap cleanupShellLink EXIT
+  trap 'cleanupShellLink; trap - INT; kill -INT $$' INT
+  trap 'cleanupShellLink; trap - TERM; kill -TERM $$' TERM
 
   FILE=index.js
   if [ -f ./index.ts ]; then
@@ -72,7 +92,7 @@ if [ -d "${BASE_DIR}/pkg/${1}" ]; then
   cp -f ./package.json ${PKG_DIST}/package.json
   node ${SCRIPT_DIR}/pkgfile.js ${PKG_DIST}/package.json
   rm -rf ${PKG_DIST}/*.bak
-  rm .shell
+  rm -f .shell
 
   popd  
 fi
