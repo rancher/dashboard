@@ -1210,7 +1210,7 @@ describe('component: rke2', () => {
           cluster: 'local', product: 'apps', resource: 'catalog.cattle.io.clusterrepo', id: 'rancher-rke2-charts'
         }
       });
-      expect(vm.t).toHaveBeenCalledWith('cluster.addOns.chartUnavailable.refreshLink', { url: '/c/local/apps/catalog.cattle.io.clusterrepo/rancher-rke2-charts' }, true);
+      expect(vm.t).toHaveBeenCalledWith('cluster.addOns.chartUnavailable.refreshLink', { newTab: 'generic.opensInNewTab', url: '/c/local/apps/catalog.cattle.io.clusterrepo/rancher-rke2-charts' }, true);
     });
 
     it.each([
