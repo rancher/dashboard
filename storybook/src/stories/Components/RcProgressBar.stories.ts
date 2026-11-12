@@ -53,6 +53,10 @@ Values outside the range are clamped, and a \`max\` that is not greater than \`m
 - Any CSS custom property name, such as \`--primary\``,
       table: { type: { summary: [...statusColors, ...severityColors].map((name) => `'${ name }'`).concat('`--name`').join(' | ') } },
     },
+    active: {
+      control:     { type: 'boolean' },
+      description: 'Sweeps a highlight across the fill to show that work is still running while the value isn\'t changing. Also sets `aria-busy`. Defaults to `false`.',
+    },
     ariaLabel: {
       control:     { type: 'text' },
       description: 'Accessible name describing what is progressing. Provide this or an `aria-labelledby` attribute.',
@@ -80,7 +84,7 @@ export const Default: Story = {
     template: defaultTemplate,
   }),
   args: {
-    value: 40, min: 0, max: 100, size: 'small', ariaLabel: 'Upgrade progress'
+    value: 40, min: 0, max: 100, size: 'small', active: false, ariaLabel: 'Upgrade progress'
   },
   parameters: {
     docs: {
@@ -190,6 +194,25 @@ export const CustomColor: Story = {
       description: { story: 'Blue is the default, but the fill can use any named palette color or a CSS custom property, depending on context.' },
       canvas:      { sourceState: 'shown' },
       source:      { code: colorTemplate },
+    },
+  },
+};
+
+const activeTemplate = `<div style="display: flex; flex-direction: column; gap: 20px; width: 300px;">
+  <RcProgressBar size="small" :value="35" active aria-label="Image pull progress" />
+  <RcProgressBar size="medium" :value="70" active aria-label="Cluster upgrade progress" />
+</div>`;
+
+export const Active: Story = {
+  render: () => ({
+    components: { RcProgressBar },
+    template:   activeTemplate,
+  }),
+  parameters: {
+    docs: {
+      description: { story: 'Set `active` while an operation is still running but the value hasn\'t changed for a while, such as during a long step with no progress updates. Turn it off when the operation finishes or fails.' },
+      canvas:      { sourceState: 'shown' },
+      source:      { code: activeTemplate },
     },
   },
 };

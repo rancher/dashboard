@@ -153,4 +153,27 @@ describe('component: RcProgressBar', () => {
     expect(wrapper.classes()).toContain(expected);
     expect(wrapper.classes()).not.toContain(absent);
   });
+
+  it('marks the bar active and busy when active is true', () => {
+    const wrapper = mountBar({ active: true });
+
+    expect(wrapper.classes()).toContain('active');
+    expect(wrapper.attributes('aria-busy')).toBe('true');
+  });
+
+  it('is neither active nor busy by default', () => {
+    const wrapper = mountBar();
+
+    expect(wrapper.classes()).not.toContain('active');
+    expect(wrapper.attributes('aria-busy')).toBeUndefined();
+  });
+
+  it('stops being busy when active changes to false', async() => {
+    const wrapper = mountBar({ active: true });
+
+    await wrapper.setProps({ active: false });
+
+    expect(wrapper.classes()).not.toContain('active');
+    expect(wrapper.attributes('aria-busy')).toBeUndefined();
+  });
 });

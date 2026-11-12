@@ -39,6 +39,13 @@ export interface RcProgressBarProps {
   color?: RcProgressBarColor;
 
   /**
+   * Sweeps a highlight across the fill, from the start of the bar to the end, to show that work is
+   * still running while the value isn't changing. The bar is also marked `aria-busy`. The sweep
+   * isn't shown when reduced motion is preferred.
+   */
+  active?: boolean;
+
+  /**
    * Accessible name for the progress bar, describing what is progressing. Every progress bar
    * needs a name: provide either this prop or an `aria-labelledby` attribute that points at a
    * visible label.
