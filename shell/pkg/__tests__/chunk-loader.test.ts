@@ -1,6 +1,8 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { parseSync } from '@babel/core';
+import { MagicString } from 'vue/compiler-sfc';
 import { loadChunksOnDemand } from '@shell/pkg/chunk-loader.mjs';
 
 const NAME = 'pkg-1.0.0';
@@ -32,19 +34,44 @@ exports.default = function(plugin) {
   },
 ];
 
-const magicString = (code: string) => {
-  let out = code;
+const parse = (code: string) => {
+  const parsed = parseSync(code, {
+    sourceType: 'module', configFile: false, babelrc: false, parserOpts: { plugins: ['estree'] }
+  });
 
-  return {
-    prepend(text: string) {
-      out = text + out;
-    },
-    append(text: string) {
-      out += text;
-    },
-    toString: () => out,
-  };
+  if (!parsed) {
+    throw new Error('Could not parse the code');
+  }
+
+  return parsed.program;
 };
+
+const context = {
+  parse,
+  error: (message: string) => {
+    throw new Error(message);
+  },
+};
+
+const runEntry = (dir: string, src?: string) => {
+  Object.defineProperty(document, 'currentScript', { value: src ? { src } : null, configurable: true });
+  new Function(fs.readFileSync(path.join(dir, ENTRY), 'utf8'))(); // eslint-disable-line no-new-func
+};
+
+const runAppendedScripts = (dir: string, appended: string[] = [], sources: string[] = []) => jest.spyOn(document.head, 'appendChild').mockImplementation((element: any) => {
+  const file = element.src.split('/').pop();
+
+  appended.push(file);
+  sources.push(element.src);
+  if (fs.existsSync(path.join(dir, file))) {
+    new Function(fs.readFileSync(path.join(dir, file), 'utf8'))(); // eslint-disable-line no-new-func
+    element.onload();
+  } else {
+    element.onerror();
+  }
+
+  return element;
+});
 
 describe('fx: loadChunksOnDemand', () => {
   let dir: string;
@@ -60,7 +87,7 @@ describe('fx: loadChunksOnDemand', () => {
     const bundle: Record<string, any> = {};
 
     CHUNKS.forEach(({ code, ...chunk }) => {
-      const rendered = plugin.renderChunk(code, chunk, {}, { magicString: magicString(code) }).toString();
+      const rendered = plugin.renderChunk.call(context, code, chunk, {}, { magicString: new MagicString(code) }).toString();
 
       bundle[chunk.fileName] = { type: 'chunk', ...chunk };
       fs.writeFileSync(path.join(dir, chunk.fileName), `${ rendered }//# sourceMappingURL=${ chunk.fileName }.map\n`);
@@ -73,26 +100,8 @@ describe('fx: loadChunksOnDemand', () => {
     plugin.writeBundle({ dir }, bundle);
 
     (window as any).Vue = { version: '3' };
-    jest.spyOn(document.head, 'appendChild').mockImplementation((element: any) => {
-      const file = element.src.split('/').pop();
-
-      appended.push(file);
-      sources.push(element.src);
-      if (fs.existsSync(path.join(dir, file))) {
-        new Function(fs.readFileSync(path.join(dir, file), 'utf8'))(); // eslint-disable-line no-new-func
-        element.onload();
-      } else {
-        element.onerror();
-      }
-
-      return element;
-    });
+    runAppendedScripts(dir, appended, sources);
   });
-
-  const runScript = (src?: string) => {
-    Object.defineProperty(document, 'currentScript', { value: src ? { src } : null, configurable: true });
-    new Function(fs.readFileSync(path.join(dir, ENTRY), 'utf8'))(); // eslint-disable-line no-new-func
-  };
 
   afterEach(() => {
     jest.restoreAllMocks();
@@ -115,7 +124,7 @@ describe('fx: loadChunksOnDemand', () => {
   it('should set the entry module on window when the script runs', () => {
     const plugin: any = {};
 
-    runScript();
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
 
     expect(plugin.shared).toStrictEqual('shared');
@@ -126,7 +135,7 @@ describe('fx: loadChunksOnDemand', () => {
   it('should load a lazy chunk, and the chunks it needs, when it is imported', async() => {
     const plugin: any = {};
 
-    runScript();
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
 
     expect((await plugin.load()).default).toStrictEqual('lazy util');
@@ -136,7 +145,7 @@ describe('fx: loadChunksOnDemand', () => {
   it('should load a chunk once', async() => {
     const plugin: any = {};
 
-    runScript();
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
     await Promise.all([plugin.load(), plugin.load()]);
     await plugin.load();
@@ -147,7 +156,7 @@ describe('fx: loadChunksOnDemand', () => {
   it('should run chunk code in strict mode', async() => {
     const plugin: any = {};
 
-    runScript();
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
 
     expect((await plugin.load()).strict).toStrictEqual(true);
@@ -156,7 +165,7 @@ describe('fx: loadChunksOnDemand', () => {
   it('should reject a module the package does not have', async() => {
     const plugin: any = {};
 
-    runScript();
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
 
     await expect(plugin.loadMissing()).rejects.toThrow("Cannot find module './pkg.missing.js'");
@@ -166,7 +175,7 @@ describe('fx: loadChunksOnDemand', () => {
     const plugin: any = {};
     const util = fs.readFileSync(path.join(dir, 'pkg.util.js'), 'utf8');
 
-    runScript();
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
     fs.rmSync(path.join(dir, 'pkg.util.js'));
 
@@ -180,7 +189,7 @@ describe('fx: loadChunksOnDemand', () => {
   it('should reject when a chunk script runs but does not register itself', async() => {
     const plugin: any = {};
 
-    runScript();
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
     fs.writeFileSync(path.join(dir, 'pkg.util.js'), '/* not a chunk */');
 
@@ -190,7 +199,7 @@ describe('fx: loadChunksOnDemand', () => {
   it('should load chunks from beside the script, whatever its query string', async() => {
     const plugin: any = {};
 
-    runScript('https://rancher.example/plugin/pkg-1.0.0.umd.min.js?ref=a/b');
+    runEntry(dir, 'https://rancher.example/plugin/pkg-1.0.0.umd.min.js?ref=a/b');
     (window as any)[NAME].default(plugin);
     await plugin.load();
 
@@ -199,31 +208,22 @@ describe('fx: loadChunksOnDemand', () => {
 });
 
 describe('fx: loadChunksOnDemand with a top-level await', () => {
-  const { parseSync } = require('@babel/core');
-  const { MagicString } = require('vue/compiler-sfc');
-
-  const context = {
-    parse: (code: string) => parseSync(code, {
-      sourceType: 'module', configFile: false, babelrc: false, parserOpts: { plugins: ['estree'] }
-    }).program,
-    error: (message: string) => {
-      throw new Error(message);
-    },
-  };
-
   const AWAITING_CHUNKS = [
     {
       fileName:  ENTRY,
       isEntry:   true,
       imports:   [],
       moduleIds: ['/pkg/index.js'],
-      code:      'exports.default = function(plugin) {\n  plugin.load = () => Promise.resolve().then(() => require(\'./pkg.page.js\'));\n};',
+      code:      'exports.default = function(plugin) {\n  plugin.load = () => Promise.resolve().then(() => require(\'./pkg.page.js\'));\n  plugin.read = () => Promise.resolve().then(() => require(\'./pkg.page.js\').default);\n  plugin.loadFlaky = () => Promise.resolve().then(() => require(\'./pkg.flaky.js\'));\n};',
     },
     {
       fileName: 'pkg.page.js', isEntry: false, imports: ['pkg.ready.js'], moduleIds: ['/pkg/page.js'], code: 'const ready = require(\'./pkg.ready.js\');\nexports.default = \'page \' + ready.value;'
     },
     {
       fileName: 'pkg.ready.js', isEntry: false, imports: [], moduleIds: ['/pkg/ready.js'], code: 'exports.value = __rancherTopLevelAwait( Promise.resolve(\'ready\'));'
+    },
+    {
+      fileName: 'pkg.flaky.js', isEntry: false, imports: [], moduleIds: ['/pkg/flaky.js'], code: 'exports.value = __rancherTopLevelAwait( self.flakyRan ? Promise.resolve(\'ready\') : (self.flakyRan = true, Promise.reject(new Error(\'not ready\'))));'
     },
   ];
 
@@ -235,6 +235,7 @@ describe('fx: loadChunksOnDemand with a top-level await', () => {
     const meta = Object.fromEntries(chunks.map(({ code, ...chunk }) => [chunk.fileName, chunk]));
 
     plugin.transform.handler.call(context, 'export const value = await Promise.resolve(\'ready\');', '/pkg/ready.js', { moduleType: 'js' });
+    plugin.transform.handler.call(context, 'export const value = await load();', '/pkg/flaky.js', { moduleType: 'js' });
     plugin.renderStart();
     chunks.forEach(({ code, ...chunk }) => {
       bundle[chunk.fileName] = { type: 'chunk', ...chunk };
@@ -246,18 +247,14 @@ describe('fx: loadChunksOnDemand with a top-level await', () => {
 
   beforeEach(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rancher-chunks-'));
-    jest.spyOn(document.head, 'appendChild').mockImplementation((element: any) => {
-      new Function(fs.readFileSync(path.join(dir, element.src.split('/').pop()), 'utf8'))(); // eslint-disable-line no-new-func
-      element.onload();
-
-      return element;
-    });
+    runAppendedScripts(dir);
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
     fs.rmSync(dir, { recursive: true, force: true });
     delete (window as any)[NAME];
+    delete (self as any).flakyRan;
     delete (self as any).__rancherExtensionChunks;
   });
 
@@ -281,11 +278,31 @@ describe('fx: loadChunksOnDemand with a top-level await', () => {
     const plugin: any = {};
 
     build(AWAITING_CHUNKS);
-    Object.defineProperty(document, 'currentScript', { value: null, configurable: true });
-    new Function(fs.readFileSync(path.join(dir, ENTRY), 'utf8'))(); // eslint-disable-line no-new-func
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
 
     expect((await plugin.load()).default).toStrictEqual('page ready');
+  });
+
+  it('should wait for a chunk with a top-level await before an import reads it', async() => {
+    const plugin: any = {};
+
+    build(AWAITING_CHUNKS);
+    runEntry(dir);
+    (window as any)[NAME].default(plugin);
+
+    expect(await plugin.read()).toStrictEqual('page ready');
+  });
+
+  it('should run a chunk with a top-level await again when its await rejected the first time', async() => {
+    const plugin: any = {};
+
+    build(AWAITING_CHUNKS);
+    runEntry(dir);
+    (window as any)[NAME].default(plugin);
+    await expect(plugin.loadFlaky()).rejects.toThrow('not ready');
+
+    expect((await plugin.loadFlaky()).value).toStrictEqual('ready');
   });
 
   it('should refuse a top-level await the package\'s index imports', () => {
@@ -324,7 +341,7 @@ describe('fx: loadChunksOnDemand with a chunk Vite removed for only holding CSS'
 
     plugin.renderStart();
     CSS_CHUNKS.forEach(({ code, ...chunk }) => {
-      fs.writeFileSync(path.join(dir, chunk.fileName), plugin.renderChunk(code, chunk, {}, { chunks: {}, magicString: magicString(code) }).toString());
+      fs.writeFileSync(path.join(dir, chunk.fileName), plugin.renderChunk.call(context, code, chunk, {}, { chunks: {}, magicString: new MagicString(code) }).toString());
       bundle[chunk.fileName] = {
         type: 'chunk', ...chunk, imports: chunk.fileName === 'pkg.styled.js' ? ['pkg.shared.js'] : []
       };
@@ -333,16 +350,7 @@ describe('fx: loadChunksOnDemand with a chunk Vite removed for only holding CSS'
     delete bundle['pkg.shared.js'];
     fs.rmSync(path.join(dir, 'pkg.shared.js'));
     plugin.writeBundle({ dir }, bundle);
-
-    jest.spyOn(document.head, 'appendChild').mockImplementation((element: any) => {
-      const file = element.src.split('/').pop();
-
-      appended.push(file);
-      new Function(fs.readFileSync(path.join(dir, file), 'utf8'))(); // eslint-disable-line no-new-func
-      element.onload();
-
-      return element;
-    });
+    runAppendedScripts(dir, appended);
   });
 
   afterEach(() => {
@@ -355,11 +363,130 @@ describe('fx: loadChunksOnDemand with a chunk Vite removed for only holding CSS'
   it('should load a chunk that still requires it, without loading it', async() => {
     const plugin: any = {};
 
-    Object.defineProperty(document, 'currentScript', { value: null, configurable: true });
-    new Function(fs.readFileSync(path.join(dir, ENTRY), 'utf8'))(); // eslint-disable-line no-new-func
+    runEntry(dir);
     (window as any)[NAME].default(plugin);
 
     expect((await plugin.load()).default).toStrictEqual('styled');
     expect(appended).toStrictEqual(['pkg.styled.js']);
+  });
+});
+
+describe('fx: loadChunksOnDemand with a dynamic import', () => {
+  const IMPORTING_CHUNKS = [
+    {
+      fileName:  ENTRY,
+      isEntry:   true,
+      imports:   [],
+      moduleIds: ['/pkg/index.js'],
+      code:      `const toModule = (value) => ({ default: value });
+exports.default = function(plugin) {
+  plugin.importCommonJS = () => Promise.resolve().then(() => toModule(require('./pkg.cjs.js').default));
+  plugin.importFlaky = () => Promise.resolve().then(() => require('./pkg.flaky.js'));
+  plugin.importInReturnedFunction = () => Promise.resolve().then(() => () => Promise.resolve().then(() => require('./pkg.cjs.js')));
+  plugin.requireExternal = () => Promise.resolve().then(() => toModule(require('vue')));
+  plugin.importExternal = () => import('vue');
+  plugin.importModuleGlobal = () => import('js-yaml');
+  plugin.importMissingGlobal = () => import('jquery');
+  plugin.importUrl = (url) => import(url);
+};`,
+    },
+    {
+      fileName: 'pkg.cjs.js', isEntry: false, imports: [], moduleIds: ['/pkg/cjs.js'], code: 'exports.default = function saveAs() {\n  return \'saved\';\n};'
+    },
+    {
+      fileName: 'pkg.flaky.js', isEntry: false, imports: [], moduleIds: ['/pkg/flaky.js'], code: 'if (!self.flakyRan) {\n  self.flakyRan = true;\n  throw new Error(\'cannot run\');\n}\nexports.default = \'ran\';'
+    },
+  ];
+
+  let dir: string;
+  let appended: string[];
+  let plugin: any;
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'rancher-chunks-'));
+    appended = [];
+    plugin = {};
+
+    const chunkLoader: any = loadChunksOnDemand(NAME, ENTRY, {
+      vue: 'Vue', jquery: '$', 'js-yaml': '__jsyaml'
+    });
+    const bundle: Record<string, any> = {};
+
+    chunkLoader.renderStart();
+    IMPORTING_CHUNKS.forEach(({ code, ...chunk }) => {
+      bundle[chunk.fileName] = { type: 'chunk', ...chunk };
+      fs.writeFileSync(path.join(dir, chunk.fileName), chunkLoader.renderChunk.call(context, code, chunk, {}, { chunks: {}, magicString: new MagicString(code) }).toString());
+    });
+    chunkLoader.generateBundle.call(context, {}, bundle);
+    chunkLoader.writeBundle({ dir }, bundle);
+
+    (window as any).Vue = { version: '3' };
+    (window as any).__jsyaml = { __esModule: true, load: 'load' };
+    runAppendedScripts(dir, appended);
+    runEntry(dir);
+    (window as any)[NAME].default(plugin);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    fs.rmSync(dir, { recursive: true, force: true });
+    delete (window as any)[NAME];
+    delete (window as any).Vue;
+    delete (window as any).__jsyaml;
+    delete (self as any).flakyRan;
+    delete (self as any).__rancherExtensionChunks;
+  });
+
+  const entryCode = () => fs.readFileSync(path.join(dir, ENTRY), 'utf8');
+
+  it('should load the chunk before the import reads the module', async() => {
+    const imported = await plugin.importCommonJS();
+
+    expect(imported.default()).toStrictEqual('saved');
+  });
+
+  it('should load the chunk once for imports made while it loads', async() => {
+    await Promise.all([plugin.importCommonJS(), plugin.importCommonJS()]);
+
+    expect(appended).toStrictEqual(['pkg.cjs.js']);
+  });
+
+  it('should not load a chunk required only inside a function the import returns', async() => {
+    await plugin.importInReturnedFunction();
+
+    expect(appended).toStrictEqual([]);
+  });
+
+  it('should run a chunk again when it threw the first time', async() => {
+    await expect(plugin.importFlaky()).rejects.toThrow('cannot run');
+
+    expect((await plugin.importFlaky()).default).toStrictEqual('ran');
+  });
+
+  it.each([
+    ['default', { version: '3' }],
+    ['version', '3'],
+  ])('should give an import of an external module its global, with its %p', async(property, value) => {
+    const imported = await plugin.importExternal();
+
+    expect(imported[property]).toStrictEqual(value);
+  });
+
+  it('should give an import of an external module whose global is an ES module that global', async() => {
+    expect(await plugin.importModuleGlobal()).toStrictEqual({ __esModule: true, load: 'load' });
+  });
+
+  it('should reject an import of an external module whose global is not set', async() => {
+    await expect(plugin.importMissingGlobal()).rejects.toThrow("Cannot find module 'jquery'");
+  });
+
+  it('should leave the import of anything else to the browser', () => {
+    expect(entryCode()).toContain('plugin.importUrl = (url) => import(url);');
+  });
+
+  it('should not load an external module the import requires as a chunk', async() => {
+    await plugin.requireExternal();
+
+    expect(appended).toStrictEqual([]);
   });
 });
