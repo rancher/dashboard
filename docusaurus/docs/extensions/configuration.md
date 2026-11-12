@@ -43,3 +43,35 @@ ___`./pkg/my-package/package.json`___
 }
 ```
 
+
+## Build Configuration
+
+Extensions are built with [Vite](https://vite.dev/).
+
+The development app is configured by `vite.config.mjs` in its root folder. `excludes` lists the packages in `pkg` that `yarn dev` does not build into the app:
+
+___`./vite.config.mjs`___
+```js
+import config from '@rancher/shell/vite.config.mjs';
+
+export default config(import.meta.dirname, {
+  excludes: [],
+});
+```
+
+A package is built with the shell's package configuration unless the package has a `vite.config.mjs` of its own. To change how a package is built, for example to add an import alias, add a `vite.config.mjs` to the package that changes the shell's configuration:
+
+___`./pkg/my-package/vite.config.mjs`___
+```js
+import config from './.shell/pkg/vite.config.mjs';
+
+export default () => {
+  const viteConfig = config();
+
+  viteConfig.resolve.alias.unshift({ find: '@my-package', replacement: import.meta.dirname });
+
+  return viteConfig;
+};
+```
+
+`vue.config.js` files are no longer used. A package that still has a customized `vue.config.js` and no `vite.config.mjs` fails to build, so move its configuration to `vite.config.mjs`.

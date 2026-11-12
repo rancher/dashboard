@@ -15,7 +15,6 @@ describe('axios plugin', () => {
   };
 
   afterEach(() => {
-    delete (process as any).browser;
     delete (window as any).$globalApp;
   });
 
@@ -37,38 +36,21 @@ describe('axios plugin', () => {
 
   it.each([
     {
-      desc:     'no runtime axios config, non-browser',
-      browser:  false,
-      config:   {},
-      expected: 'https://localhost:8005/',
-    },
-    {
-      desc:     'baseURL from runtime config, non-browser',
-      browser:  false,
-      config:   { axios: { baseURL: 'https://api.example.com' } },
-      expected: 'https://api.example.com',
-    },
-    {
-      desc:     'no runtime axios config, browser',
-      browser:  true,
+      desc:     'no runtime axios config',
       config:   {},
       expected: '/',
     },
     {
-      desc:     'browserBaseURL takes priority in the browser',
-      browser:  true,
+      desc:     'browserBaseURL takes priority',
       config:   { axios: { browserBaseURL: 'https://browser.example.com', baseURL: 'https://server.example.com' } },
       expected: 'https://browser.example.com',
     },
     {
-      desc:     'falls back to baseURL in the browser when browserBaseURL missing',
-      browser:  true,
+      desc:     'falls back to baseURL when browserBaseURL missing',
       config:   { axios: { baseURL: 'https://server.example.com' } },
       expected: 'https://server.example.com',
     },
-  ])('computes baseURL for $desc', ({ browser, config, expected }) => {
-    (process as any).browser = browser;
-
+  ])('computes baseURL for $desc', ({ config, expected }) => {
     const { axios } = setup(config);
 
     expect(axios.defaults.baseURL).toStrictEqual(expected);

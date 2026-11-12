@@ -84,3 +84,7 @@ export function resolveMachineConfigComponent(key) {
 export function resolveCloudCredentialComponent(key) {
   return undefined;
 }
+
+export function resolveCustomPromptRemove(key) {
+  return undefined;
+}

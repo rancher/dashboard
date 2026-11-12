@@ -25,12 +25,12 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('navigation guard')) {
     return false;
   }
-  // Lazy-loaded webpack chunks intermittently fail to fetch while the app is starting up
+  // Lazy-loaded chunks and their CSS intermittently fail to fetch while the app is starting up
   // (ChunkLoadError). It is a transient FRONTEND fetch failure - the chunk loads on the next
   // attempt - that the backend readiness probe in e2e-k3s-start.sh cannot prevent. Left
   // unhandled it aborts the first-login setup mid-flow, after the bootstrap login has already
   // changed the admin password, so every retry then 401s on the bootstrap login. Ignore it.
-  if (err.message.includes('ChunkLoadError') || err.message.includes('Loading chunk')) {
+  if (['ChunkLoadError', 'Loading chunk', 'Failed to fetch dynamically imported module', 'Unable to preload CSS'].some((message) => err.message.includes(message))) {
     return false;
   }
 });

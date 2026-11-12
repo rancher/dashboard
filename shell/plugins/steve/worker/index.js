@@ -1,7 +1,5 @@
-// eslint-disable-next-line no-unused-vars
-import basicWorkerConstructor from '@shell/plugins/steve/worker/web-worker.basic.js';
-// eslint-disable-next-line no-unused-vars
-import advancedWorkerConstructor from '@shell/plugins/steve/worker/web-worker.advanced.js';
+import basicWorkerConstructor from '@shell/plugins/steve/worker/web-worker.basic.js?worker&inline';
+import advancedWorkerConstructor from '@shell/plugins/steve/worker/web-worker.advanced.js?worker&inline';
 
 export const WORKER_MODES = {
   WAITING:      'waiting',

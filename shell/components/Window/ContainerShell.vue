@@ -252,14 +252,14 @@ export default {
 
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
-      const xterm = await import(/* webpackChunkName: "xterm" */ '@xterm/xterm');
+      const xterm = await import('@xterm/xterm');
 
       const addons = await allHash({
-        fit:      import(/* webpackChunkName: "xterm" */ '@xterm/addon-fit'),
-        webgl:    import(/* webpackChunkName: "xterm" */ '@xterm/addon-webgl'),
-        weblinks: import(/* webpackChunkName: "xterm" */ '@xterm/addon-web-links'),
-        search:   import(/* webpackChunkName: "xterm" */ '@xterm/addon-search'),
-        canvas:   import(/* webpackChunkName: "xterm" */ '@xterm/addon-canvas'),
+        fit:      import('@xterm/addon-fit'),
+        webgl:    import('@xterm/addon-webgl'),
+        weblinks: import('@xterm/addon-web-links'),
+        search:   import('@xterm/addon-search'),
+        canvas:   import('@xterm/addon-canvas'),
       });
 
       const terminal = new xterm.Terminal({

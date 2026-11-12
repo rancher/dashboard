@@ -21,6 +21,23 @@ import jsyaml from 'js-yaml';
 import { RECEIVERS_TYPES } from '@shell/models/monitoring.coreos.com.receiver';
 import ButtonDropdown from '@shell/components/ButtonDropdown';
 import { _EDIT, _VIEW } from '@shell/config/query-params';
+import EmailReceiver from './types/email';
+import OpsgenieReceiver from './types/opsgenie';
+import PagerdutyReceiver from './types/pagerduty';
+import SlackReceiver from './types/slack';
+import WebhookReceiver from './types/webhook';
+import WebhookAddButton from './types/webhook.add';
+import WebhookBanner from './types/webhook.banner';
+
+const receiverComponents = {
+  email:            EmailReceiver,
+  opsgenie:         OpsgenieReceiver,
+  pagerduty:        PagerdutyReceiver,
+  slack:            SlackReceiver,
+  webhook:          WebhookReceiver,
+  'webhook.add':    WebhookAddButton,
+  'webhook.banner': WebhookBanner,
+};
 
 export default {
   components: {
@@ -126,7 +143,7 @@ export default {
 
   methods: {
     getComponent(name) {
-      return require(`./types/${ name }`).default;
+      return receiverComponents[name];
     },
 
     navigateTo(receiverType) {
