@@ -542,7 +542,8 @@ export default {
       const repoName = this.chartVersions[names[0]]?.repo;
       const canRefreshRepo = (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)?.resourceMethods || []).includes('PUT');
       const refresh = repoName && canRefreshRepo ? this.t('cluster.addOns.chartUnavailable.refreshLink', {
-        url: this.$router.resolve({
+        newTab: this.t('generic.opensInNewTab'),
+        url:    this.$router.resolve({
           name:   'c-cluster-product-resource-id',
           params: {
             cluster: 'local', product: APP_PRODUCT, resource: CATALOG.CLUSTER_REPO, id: repoName
