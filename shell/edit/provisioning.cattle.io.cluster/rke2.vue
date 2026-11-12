@@ -30,7 +30,6 @@ import {
   clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
 import { labelForAddon, initSchedulingCustomization, addonConfigPreserve } from '@shell/utils/cluster';
-import { stringify } from '@shell/utils/error';
 import { escapeHtml } from '@shell/utils/string';
 import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
@@ -246,7 +245,7 @@ export default {
        * { [chartName:string]: { chart: json, readme: string, values: json } }
        */
       versionInfo:               {},
-      addonChartErrors:          {},
+      failedAddonCharts:         {},
       userChartValues:           {},
       userChartValuesTemp:       {},
       addonsRev:                 0,
@@ -533,7 +532,7 @@ export default {
     },
 
     unavailableAddonsMessage() {
-      const names = this.addonNames.filter((name) => this.addonChartErrors[name]);
+      const names = this.addonNames.filter((name) => this.failedAddonCharts[name]);
 
       if (!names.length) {
         return '';
@@ -552,9 +551,8 @@ export default {
       }, true) : this.t('cluster.addOns.chartUnavailable.refreshAdmin', null, true);
 
       return this.t('cluster.addOns.chartUnavailable.message', {
-        count:  names.length,
-        names:  escapeHtml(names.map((name) => labelForAddon(this.$store, name)).join(', ')),
-        errors: escapeHtml(names.map((name) => this.addonChartErrors[name]).join('; ')),
+        count: names.length,
+        names: escapeHtml(names.map((name) => labelForAddon(this.$store, name)).join(', ')),
         refresh,
       }, true);
     },
@@ -870,7 +868,7 @@ export default {
       }
 
       this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
-      this.addonChartErrors = {};
+      this.failedAddonCharts = {};
       // Allow time for addonNames to update... then fetch any missing addons
       this.$nextTick(() => this.initAddons());
       if (this.mode === _CREATE) {
@@ -1701,15 +1699,15 @@ export default {
           });
 
           this.versionInfo[chartName] = res;
-          delete this.addonChartErrors[chartName];
+          delete this.failedAddonCharts[chartName];
           const key = this.chartVersionKey(chartName);
 
           if (!this.userChartValues[key]) {
             this.userChartValues[key] = {};
           }
         } catch (e) {
-          console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
-          this.addonChartErrors[chartName] = stringify(e);
+          console.error(`Failed to fetch or process chart info for ${ chartName }`, e); // eslint-disable-line no-console
+          this.failedAddonCharts[chartName] = true;
         }
       }
     },
