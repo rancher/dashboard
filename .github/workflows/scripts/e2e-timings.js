@@ -119,7 +119,7 @@ totals.forEach((t) => {
 lines.push('');
 lines.push(chart('Whole job, minutes', 'job'));
 lines.push('');
-lines.push(chart(`"${ TEST_STEP }" step only, minutes`, 'tests'));
+lines.push(chart(`${ TEST_STEP } step only, minutes`, 'tests'));
 lines.push('');
 lines.push('<details><summary>Every job</summary>');
 lines.push('');

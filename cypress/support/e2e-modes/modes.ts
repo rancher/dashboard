@@ -15,24 +15,19 @@ export const E2E_MODES: E2EMode[] = ['full', 'generate', 'integration'];
 export const BEFORE_ALL_SCOPE = 'before all';
 
 /**
- * Cypress tasks the browser side uses to tell the record/replay server which test is running
+ * The record/replay server's control requests, `POST <origin>/<path>/<action>`, which tell it which spec and test is
+ * running. They are not recorded
  */
-export const E2E_MODE_TASKS = {
-  specStart: 'e2eModeSpecStart',
-  testStart: 'e2eModeTestStart',
-  testEnd:   'e2eModeTestEnd',
-  specEnd:   'e2eModeSpecEnd',
-};
+export const E2E_MODE_CONTROL_PATH = '__e2e-mode';
 
-export interface E2EModeTestStart {
-  spec: string;
-  title: string;
-}
+export type E2EModeControlAction = 'spec-start' | 'test-start' | 'test-end' | 'spec-end';
 
-export interface E2EModeTestEnd {
+export interface E2EModeControl {
   spec: string;
-  title: string;
-  passed: boolean;
+  /** The test's titles, outermost first, joined with ' > ' (test-start and test-end) */
+  title?: string;
+  /** Whether the test passed (test-end) */
+  passed?: boolean;
 }
 
 export interface E2EModeTestEndResult {

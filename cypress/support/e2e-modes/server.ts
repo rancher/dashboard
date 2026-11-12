@@ -6,7 +6,7 @@ import * as path from 'path';
 import { Duplex } from 'stream';
 import { RawData, WebSocket, WebSocketServer } from 'ws';
 import {
-  BEFORE_ALL_SCOPE, E2E_MODE_TASKS, E2EModeTestEnd, E2EModeTestEndResult, E2EModeTestStart
+  BEFORE_ALL_SCOPE, E2E_MODE_CONTROL_PATH, E2EModeControl, E2EModeControlAction, E2EModeTestEndResult
 } from './modes';
 import {
   emptyHar, HarEntry, HarNameValue, HarWebSocketMessage, RecordingStore
@@ -41,7 +41,7 @@ interface RecordedSocket {
 
 const SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS'];
 const PREFERENCE_SAVES = [/^\/v1\/userpreferences/, /^\/v3\/preferences/];
-const EPOCH_MS = /(?<![\d.])1[5-9]\d{11,}(?![\d.])/g;
+const EPOCH_MS = /(?<!\d)1[5-9]\d{11,}(?!\d)/g;
 const HOP_BY_HOP = ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade'];
 const NOT_FORWARDED = [...HOP_BY_HOP, 'host', 'accept-encoding', 'if-none-match', 'if-modified-since'];
 const NOT_REPLAYED = [...HOP_BY_HOP, 'content-length', 'content-encoding', 'date'];
@@ -57,8 +57,10 @@ const FRAME_ANCHOR_TIMEOUT = 5000;
 const PING_INTERVAL = 10000;
 const ANSWERED_FRAMES = ['ping', 'resource.start', 'resource.stop', 'resource.error'];
 const WATCH_FIELDS = ['resourceType', 'id', 'namespace', 'selector', 'mode', 'debounceMs'];
+const REPLAY_LOG = process.env.TEST_REPLAY_LOG === 'true';
 const SOCKET = 'WS';
 const UNSCOPED = 'unscoped';
+const AFTER_PREFIX = 'after: ';
 const SOCKET_CONTINUED = 'WS+';
 
 const ASSET_TYPES: { [ext: string]: string } = {
@@ -173,7 +175,9 @@ class Scope {
   mutations = 0;
   closed = false;
 
-  constructor(public readonly name: string, public readonly isTest = false) {}
+  constructor(public readonly name: string, public readonly isTest = false, servedEarly?: Map<string, number>) {
+    servedEarly?.forEach((count, counter) => this.served.set(counter, count));
+  }
 
   start(key: string, method: string) {
     if (SAFE_METHODS.includes(method)) {
@@ -210,6 +214,8 @@ class Spec {
   readonly byPath = new Map<string, HarEntry[]>();
   readonly others = new Map<string, HarEntry[]>();
   readonly aliases = new Map<string, string>();
+  readonly nextTest = new Map<string, string>();
+  readonly servedEarly = new Map<string, Map<string, number>>();
   replayed = 0;
   missed = 0;
 
@@ -372,7 +378,7 @@ class SocketReplay {
  * - generate: everything else is forwarded to Rancher, and the requests and responses of each passing test are recorded
  * - integration: everything else is answered from the recordings, no Rancher is needed
  *
- * Cypress tasks (`tasks()`) tell it which spec and test is running.
+ * Control requests (see `E2E_MODE_CONTROL_PATH`) tell it which spec and test is running.
  */
 export class RecordReplayServer {
   private server?: https.Server;
@@ -428,42 +434,33 @@ export class RecordReplayServer {
     this.wss.close();
   }
 
-  /**
-   * The Cypress tasks the browser side calls, see `hooks.ts`
-   */
-  tasks() {
-    return {
-      [E2E_MODE_TASKS.specStart]: ({ spec }: { spec: string }) => {
+  private control(action: E2EModeControlAction, { spec, title = '', passed }: E2EModeControl): E2EModeTestEndResult | {} {
+    switch (action) {
+    case 'spec-start':
+      this.startSpec(spec);
+      break;
+    case 'test-start':
+      if (this.spec?.name !== spec) {
         this.startSpec(spec);
+      }
+      this.startScope(new Scope(title, true, this.spec?.servedEarly.get(title)));
+      break;
+    case 'test-end': {
+      const scope = this.scope;
 
-        return null;
-      },
-      [E2E_MODE_TASKS.testStart]: ({ spec, title }: E2EModeTestStart) => {
-        if (this.spec?.name !== spec) {
-          this.startSpec(spec);
-        }
-        this.startScope(new Scope(title, true));
+      if (passed && scope.name === title) {
+        this.spec?.committed.set(scope.name, scope);
+      }
+      this.startScope(new Scope(`${ AFTER_PREFIX }${ title }`));
 
-        return null;
-      },
-      [E2E_MODE_TASKS.testEnd]: ({ title, passed }: E2EModeTestEnd): E2EModeTestEndResult => {
-        const scope = this.scope;
+      return { misses: scope.misses };
+    }
+    case 'spec-end':
+      this.afterSpec(spec);
+      break;
+    }
 
-        if (passed && scope.name === title) {
-          this.spec?.committed.set(scope.name, scope);
-        }
-        this.startScope(new Scope(`after: ${ title }`));
-
-        return { misses: scope.misses };
-      },
-      [E2E_MODE_TASKS.specEnd]: ({ spec }: { spec: string }) => {
-        if (this.spec?.name === spec) {
-          this.endSpec();
-        }
-
-        return null;
-      },
-    };
+    return {};
   }
 
   /**
@@ -495,6 +492,16 @@ export class RecordReplayServer {
         push(spec.byPath, pathKey(entry.request.method, pathOf(entry.request.url)), entry);
         push(scoped, key, entry);
         spec.byScope.set(entry.pageref, scoped);
+      });
+
+      const pages = [...(own?.log.pages || [])].sort((a, b) => (a.startedDateTime < b.startedDateTime ? -1 : 1));
+
+      pages.forEach((page, i) => {
+        const next = pages[i + 1];
+
+        if (next && next.id !== BEFORE_ALL_SCOPE && !next.id.startsWith(AFTER_PREFIX)) {
+          spec.nextTest.set(page.id, next.id);
+        }
       });
 
       store.sets().filter((s) => s !== set).forEach((other) => {
@@ -609,6 +616,14 @@ export class RecordReplayServer {
       req.on('error', reject);
     });
 
+    if (url.pathname.startsWith(`/${ E2E_MODE_CONTROL_PATH }/`)) {
+      const result = this.control(url.pathname.split('/').pop() as E2EModeControlAction, JSON.parse(body.toString('utf8') || '{}'));
+
+      res.writeHead(200, { 'content-type': 'application/json' });
+
+      return res.end(JSON.stringify(result));
+    }
+
     if (url.pathname === '/dashboard' || url.pathname.startsWith('/dashboard/')) {
       if (this.options.distDir) {
         return this.serveDashboard(url, res);
@@ -713,7 +728,7 @@ export class RecordReplayServer {
 
           const responseBody = Buffer.concat(chunks);
 
-          if (record && !scope.closed) {
+          if (record) {
             scope.recorded.push({
               entry: this.entry({
                 scope, method, url, req, body, status, statusText: upRes.statusMessage || '', resHeaders: upRes.headers, responseBody, started, mutations
@@ -738,6 +753,10 @@ export class RecordReplayServer {
         if (!res.headersSent && !res.destroyed && SAFE_METHODS.includes(method) && attempt < MAX_ATTEMPTS) {
           setTimeout(() => send(attempt + 1), 250 * attempt);
 
+          return;
+        }
+
+        if (res.destroyed) {
           return;
         }
 
@@ -865,6 +884,9 @@ export class RecordReplayServer {
         this.spec.replayed++;
       }
       this.learnAliases(pathAndQuery, body, entry);
+      if (REPLAY_LOG) {
+        console.log(`[e2e integration] ${ method } ${ pathAndQuery.substring(0, 120) } -> ${ entry.response.status } from '${ entry.pageref }' (${ scope.name })`);
+      }
 
       const headers: { [name: string]: string | string[] } = {};
 
@@ -891,9 +913,16 @@ export class RecordReplayServer {
 
     if (spec) {
       const own = spec.byScope.get(scope.name)?.get(key);
+      const entry = own?.length ? this.pick(own, scope, key) : undefined;
+      const nextTest = scope.isTest ? undefined : spec.nextTest.get(scope.name);
+      const later = nextTest ? spec.byScope.get(nextTest)?.get(key) : undefined;
 
-      if (own?.length) {
-        return this.pick(own, scope, key);
+      if (later?.length && (!entry || entry._mutations < scope.mutations)) {
+        return this.pickEarly(spec, nextTest as string, later, key);
+      }
+
+      if (entry) {
+        return entry;
       }
 
       const fallback = spec.byScope.get(BEFORE_ALL_SCOPE)?.get(key) || spec.all.get(key) || spec.others.get(key);
@@ -929,6 +958,19 @@ export class RecordReplayServer {
     console.log(`[e2e integration] no exact recording, replaying a similar one: GET ${ pathAndQuery } (${ scope.name })`);
 
     return best;
+  }
+
+  private pickEarly(spec: Spec, test: string, entries: HarEntry[], key: string): HarEntry {
+    const target = entries[0]._mutations;
+    const group = entries.filter((e) => e._mutations === target);
+    const counter = `${ key }#${ target }`;
+    const served = spec.servedEarly.get(test) || new Map<string, number>();
+    const count = served.get(counter) || 0;
+
+    served.set(counter, count + 1);
+    spec.servedEarly.set(test, served);
+
+    return group[Math.min(count, group.length - 1)];
   }
 
   private pick(entries: HarEntry[], scope: Scope, key: string): HarEntry {

@@ -248,10 +248,6 @@ const baseConfig = defineConfig({
 
       const e2eModeServer = await startE2EModeServer(e2eMode, modeUrls, process.env, config.projectRoot, username);
 
-      if (e2eModeServer) {
-        on('task', e2eModeServer.tasks());
-      }
-
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
         outputRoot:           `${ config.projectRoot }/browser-logs/`,
         outputTarget:         { 'out.html': 'html' },

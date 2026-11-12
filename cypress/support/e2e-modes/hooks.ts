@@ -1,30 +1,32 @@
-import { E2E_MODE_TASKS, E2EModeTestEndResult } from './modes';
+import { E2E_MODE_CONTROL_PATH, E2EModeControl, E2EModeControlAction, E2EModeTestEndResult } from './modes';
 
 if (['generate', 'integration'].includes(Cypress.env('e2eMode'))) {
   const titleOf = (test?: { titlePath(): string[] }) => (test ? test.titlePath().join(' > ') : '');
+  const control = (action: E2EModeControlAction, body: Omit<E2EModeControl, 'spec'> = {}) => cy.request({
+    method: 'POST',
+    url:    `${ Cypress.env('api') }/${ E2E_MODE_CONTROL_PATH }/${ action }`,
+    body:   { spec: Cypress.spec.relative, ...body },
+    log:    false,
+  });
 
   before(() => {
-    cy.task(E2E_MODE_TASKS.specStart, { spec: Cypress.spec.relative }, { log: false });
+    control('spec-start');
   });
 
   beforeEach(function() {
-    cy.task(E2E_MODE_TASKS.testStart, { spec: Cypress.spec.relative, title: titleOf(this.currentTest) }, { log: false });
+    control('test-start', { title: titleOf(this.currentTest) });
   });
 
   afterEach(function() {
-    const passed = this.currentTest?.state === 'passed';
-
-    cy.task<E2EModeTestEndResult>(E2E_MODE_TASKS.testEnd, {
-      spec: Cypress.spec.relative, title: titleOf(this.currentTest), passed
-    }, { log: false }).then(({ misses }) => {
-      if (misses.length) {
-        cy.log(`**${ misses.length } request(s) had no recording to replay**`);
-        misses.slice(0, 25).forEach((miss) => cy.log(miss));
+    control('test-end', { title: titleOf(this.currentTest), passed: this.currentTest?.state === 'passed' }).then(({ body }: { body: E2EModeTestEndResult }) => {
+      if (body.misses.length) {
+        cy.log(`**${ body.misses.length } request(s) had no recording to replay**`);
+        body.misses.slice(0, 25).forEach((miss) => cy.log(miss));
       }
     });
   });
 
   after(() => {
-    cy.task(E2E_MODE_TASKS.specEnd, { spec: Cypress.spec.relative }, { log: false });
+    control('spec-end');
   });
 }
