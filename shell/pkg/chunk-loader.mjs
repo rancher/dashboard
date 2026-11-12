@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { MagicString } from 'vue/compiler-sfc';
+import { isFunction, isMember, walk } from '../vite/ast.mjs';
 
 const CHUNKS = 'self.__rancherExtensionChunks';
 export const INITIAL_CHUNK = 'initial';
@@ -39,35 +40,30 @@ function req(id) {
   var missing = [f].concat(deps[f]).filter(function(dep) { return !chunks[key(dep)]; });
   if (missing.length) { return Promise.all(missing.map(load)).then(function() { return req(id); }); }
   var module = modules[f] = { exports: {} };
-  var running = chunks[key(f)](module, module.exports, req);
-  if (running) { module.ready = running.then(function() { return module.exports; }); return module.ready; }
+  var forget = function(e) { delete modules[f]; throw e; };
+  var running;
+  try { running = chunks[key(f)](module, module.exports, req); } catch (e) { forget(e); }
+  if (running) { module.ready = running.then(function() { module.ready = null; return module.exports; }, forget); return module.ready; }
   return module.exports;
 }
+req.loadModules = function(ids) {
+  return Promise.resolve().then(function() { return Promise.all(ids.map(function(id) { return req(id); })); }).then(function() {});
+};
+req.importGlobal = function(id) {
+  return Promise.resolve().then(function() {
+    var m = req(id);
+    if (m === undefined) { throw new Error("Cannot find module '" + id + "'"); }
+    return m && m.__esModule ? m : Object.assign({}, m, { default: m });
+  });
+};
 `;
 
 const SOURCE_MAP_COMMENT = /\n?\/\/# sourceMappingURL=.*\n?$/;
 
 const TOP_LEVEL_AWAIT = '__rancherTopLevelAwait';
-const FUNCTIONS = ['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'];
+const DYNAMIC_IMPORTS = ['Promise.resolve().then(', 'import('];
+const CHUNK_PATH = /^\.\//;
 const SCRIPT_TYPES = ['js', 'jsx', 'ts', 'tsx'];
-
-function walk(node, visit, inFunction = false) {
-  if (!node || typeof node.type !== 'string') {
-    return;
-  }
-
-  visit(node, inFunction);
-
-  const nested = inFunction || FUNCTIONS.includes(node.type);
-
-  Object.values(node).forEach((value) => {
-    (Array.isArray(value) ? value : [value]).forEach((child) => {
-      if (child && typeof child === 'object') {
-        walk(child, visit, nested);
-      }
-    });
-  });
-}
 
 function chunksThatAwait(chunks, awaitingModules) {
   const found = new Set();
@@ -87,12 +83,31 @@ function chunksThatAwait(chunks, awaitingModules) {
   return found;
 }
 
+const isPromiseResolve = (node) => node.type === 'CallExpression' && !node.arguments.length && isMember(node.callee, 'resolve', 'Promise');
+const isPromiseResolveThen = (node) => node.type === 'CallExpression' && isMember(node.callee, 'then') && isPromiseResolve(node.callee.object) && isFunction(node.arguments[0]);
+const requiredPath = (node) => (node.type === 'CallExpression' && node.callee.type === 'Identifier' && node.callee.name === 'require' ? node.arguments[0]?.value : undefined);
+
+function chunksRequiredBy(callback) {
+  const chunks = new Set();
+
+  walk(callback.body, (node, inFunction) => {
+    const required = inFunction ? undefined : requiredPath(node);
+
+    if (typeof required === 'string' && CHUNK_PATH.test(required)) {
+      chunks.add(required);
+    }
+  });
+
+  return [...chunks];
+}
+
 /**
  * A plugin that loads a package's lazily imported code when it is first used, as webpack did, rather than as part of
  * the script Rancher loads. Chunks are built as CommonJS, which turns a dynamic import into a `require()` inside a promise, and
  * each chunk registers itself as a function of `(module, exports, require)`. The script Rancher loads holds the entry
  * and everything it imports, and a `require` that runs a registered chunk, or loads the chunk's script (and those of
- * the chunks it needs) from beside it first.
+ * the chunks it needs) from beside it first. A dynamic import loads and runs the chunks it needs before the importing
+ * code reads the module, and a dynamic import of an external module gives the external's global as a module.
  *
  * A module with a top-level `await` can be imported lazily, and the code that imports it waits for it. The entry, and
  * the chunks it imports, cannot wait, since the script Rancher loads sets the package on `window` straight away.
@@ -107,6 +122,8 @@ export function loadChunksOnDemand(name, fileName, globals = {}) {
   let entry;
   let initial;
   let deps;
+
+  const isGlobalImport = (node) => node.type === 'ImportExpression' && typeof node.source.value === 'string' && Object.hasOwn(globals, node.source.value);
 
   return {
     name:  'rancher:pkg-chunks-on-demand',
@@ -171,11 +188,27 @@ export function loadChunksOnDemand(name, fileName, globals = {}) {
       awaitingChunks = awaitingChunks || chunksThatAwait(meta.chunks || {}, awaitingModules);
 
       const awaiting = awaitingChunks.has(chunk.fileName);
+      const importsDynamically = DYNAMIC_IMPORTS.some((text) => code.includes(text));
+      const ast = awaiting || importsDynamically ? this.parse(code) : undefined;
+
+      if (importsDynamically) {
+        walk(ast, (node) => {
+          if (isPromiseResolveThen(node)) {
+            const required = chunksRequiredBy(node.arguments[0]);
+
+            if (required.length) {
+              s.overwrite(node.callee.object.start, node.callee.object.end, `require.loadModules(${ JSON.stringify(required) })`);
+            }
+          } else if (isGlobalImport(node)) {
+            s.overwrite(node.start, node.end, `require.importGlobal(${ JSON.stringify(node.source.value) })`);
+          }
+        });
+      }
 
       if (awaiting) {
         const dir = path.posix.dirname(chunk.fileName);
 
-        walk(this.parse(code), (node, inFunction) => {
+        walk(ast, (node, inFunction) => {
           if (node.type !== 'CallExpression' || node.callee.type !== 'Identifier') {
             return;
           }
