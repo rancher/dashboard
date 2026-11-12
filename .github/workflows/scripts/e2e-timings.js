@@ -15,6 +15,8 @@ const MODES = [
   },
 ];
 const TEST_STEP = 'Run user tests';
+const CHARTED = ['full', 'integration'];
+const NO_BAR = -1;
 
 const [repo, runId, attempt = '1'] = process.argv.slice(2);
 
@@ -71,9 +73,15 @@ if (!modes.length) {
   process.exit(0);
 }
 
+const charted = MODES.filter((m) => CHARTED.includes(m.name) && timings[m.name]);
+
 const chart = (title, field) => {
-  const values = modes.map((m) => series(m, field));
-  const top = Math.ceil(max(values.flat()) / 5) * 5 || 5;
+  const rows = groups.flatMap((g) => charted.map((m) => ({
+    label: `${ g } (${ m.name })`,
+    mode:  m,
+    value: timings[m.name][g]?.[field] || 0,
+  })));
+  const top = Math.ceil(max(rows.map((r) => r.value)) / 5) * 5 || 5;
 
   return [
     '```mermaid',
@@ -81,16 +89,16 @@ const chart = (title, field) => {
     'config:',
     '  xyChart:',
     '    width: 900',
-    '    height: 600',
+    `    height: ${ 80 + rows.length * 24 }`,
     '  themeVariables:',
     '    xyChart:',
-    `      plotColorPalette: "${ modes.map((m) => m.color).join(', ') }"`,
+    `      plotColorPalette: "${ charted.map((m) => m.color).join(', ') }"`,
     '---',
     'xychart-beta horizontal',
     `  title "${ title }"`,
-    `  x-axis [${ groups.map((g) => `"${ g }"`).join(', ') }]`,
+    `  x-axis [${ rows.map((r) => `"${ r.label }"`).join(', ') }]`,
     `  y-axis "Minutes" 0 --> ${ top }`,
-    ...values.map((v) => `  bar [${ v.map((n) => fmt(n || 0)).join(', ') }]`),
+    ...charted.map((m) => `  bar [${ rows.map((r) => r.mode === m ? fmt(r.value) : NO_BAR).join(', ') }]`),
     '```',
   ].join('\n');
 };
@@ -105,11 +113,11 @@ const totals = modes.map((m) => ({
 }));
 
 const lines = [];
-const legend = modes.map((m) => `${ m.name } is ${ m.colorName }`).join(', ');
+const legend = charted.map((m) => `${ m.name } is ${ m.colorName }`).join(', ');
 
 lines.push('## E2E timings by mode');
 lines.push('');
-lines.push(`Run [${ runId }](https://github.com/${ repo }/actions/runs/${ runId }) (attempt ${ attempt }). Each bar is one job of the e2e matrix. The modes' bars overlap, the slower mode behind: ${ legend }.`);
+lines.push(`Run [${ runId }](https://github.com/${ repo }/actions/runs/${ runId }) (attempt ${ attempt }). One bar per job of the e2e matrix: ${ legend }.`);
 lines.push('');
 lines.push('| Mode | Jobs passed | Slowest job (wall clock) | All jobs (CI minutes) | Running the tests only |');
 lines.push('| --- | --- | --- | --- | --- |');
@@ -119,9 +127,9 @@ totals.forEach((t) => {
 lines.push('');
 lines.push(chart('Whole job, minutes', 'job'));
 lines.push('');
-lines.push(chart(`${ TEST_STEP } step only, minutes`, 'tests'));
-lines.push('');
 lines.push('<details><summary>Every job</summary>');
+lines.push('');
+lines.push(chart(`${ TEST_STEP } step only, minutes`, 'tests'));
 lines.push('');
 lines.push(`| Job | ${ modes.map((m) => `${ m.name } job | ${ m.name } tests`).join(' | ') } |`);
 lines.push(`| --- | ${ modes.map(() => '--- | ---').join(' | ') } |`);

@@ -101,8 +101,12 @@ const pathOf = (url: string) => {
 
   return `${ u.pathname }${ u.search }`;
 };
+const writeBody = (text: string) => text.replace(EPOCH_MS, '{ts}');
+const resourceType = (pathname: string) => /^(.*?\/v[13]\/[^/]+)/.exec(pathname)?.[1];
+const startOf = (entry: HarEntry) => Date.parse(entry.startedDateTime);
 const timestamps = (text: string) => Array.from(text.matchAll(EPOCH_MS)).map((m) => m[0]);
 const toBuffer = (data: RawData): Buffer => (Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data as Buffer));
+const CLOSE_OPCODE = 8;
 const closeCode = (code: number) => ((!code || code === 1005 || code === 1006) ? 1000 : code);
 
 const frameJson = (frame: HarWebSocketMessage): any => {
@@ -168,6 +172,8 @@ class Scope {
   readonly recorded: Recorded[] = [];
   readonly misses: string[] = [];
   readonly served = new Map<string, number>();
+  readonly writesReplayed = new Set<HarEntry>();
+  readonly lastWrites = new Map<string, HarEntry>();
   readonly listeners = new Set<() => void>();
   readonly writes = new Map<string, number>();
   readonly writtenAt = new Map<string, number>();
@@ -216,6 +222,8 @@ class Spec {
   readonly aliases = new Map<string, string>();
   readonly nextTest = new Map<string, string>();
   readonly servedEarly = new Map<string, Map<string, number>>();
+  readonly priorWrite = new Map<HarEntry, HarEntry | undefined>();
+  readonly writtenTypes = new Map<string, Set<string>>();
   replayed = 0;
   missed = 0;
 
@@ -351,6 +359,12 @@ class SocketReplay {
 
       this.next++;
       this.nextSince = now;
+
+      if (frame.opcode === CLOSE_OPCODE) {
+        this.client.close(Number(frame.data) || 1000);
+
+        return;
+      }
 
       const type = this.steve ? frameJson(frame)?.resourceType : undefined;
 
@@ -492,6 +506,28 @@ export class RecordReplayServer {
         push(spec.byPath, pathKey(entry.request.method, pathOf(entry.request.url)), entry);
         push(scoped, key, entry);
         spec.byScope.set(entry.pageref, scoped);
+      });
+
+      spec.byScope.forEach((scoped, scope) => {
+        const entries = Array.from(scoped.values()).flat();
+        const writes = entries.filter((e) => !SAFE_METHODS.includes(e.request.method) && resourceType(new URL(e.request.url).pathname));
+        const types = new Set(writes.map((w) => resourceType(new URL(w.request.url).pathname) as string));
+
+        spec.writtenTypes.set(scope, types);
+        entries.forEach((read) => {
+          const type = resourceType(new URL(read.request.url).pathname);
+
+          if (read.request.method !== 'GET' || !type || !types.has(type)) {
+            return;
+          }
+
+          const prior = writes
+            .filter((w) => resourceType(new URL(w.request.url).pathname) === type && startOf(w) + w.time <= startOf(read))
+            .sort((a, b) => startOf(a) - startOf(b))
+            .pop();
+
+          spec.priorWrite.set(read, prior);
+        });
       });
 
       const pages = [...(own?.log.pages || [])].sort((a, b) => (a.startedDateTime < b.startedDateTime ? -1 : 1));
@@ -863,9 +899,16 @@ export class RecordReplayServer {
     const scope = this.scope;
     const pathAndQuery = `${ url.pathname }${ url.search }`;
     const key = keyFor(method, pathAndQuery);
-    const entry = this.lookup(key, scope) || (method === 'GET' ? this.similar(pathAndQuery, scope) : undefined);
+    const written = SAFE_METHODS.includes(method) ? undefined : writeBody(body.toString('utf8'));
+    const entry = this.lookup(key, scope, written) || (method === 'GET' ? this.similar(pathAndQuery, scope) : undefined);
 
     scope.start(key, method);
+
+    const type = resourceType(url.pathname);
+
+    if (entry && type && written !== undefined) {
+      scope.lastWrites.set(type, entry);
+    }
 
     if (!entry) {
       const miss = `${ method } ${ pathAndQuery }`;
@@ -908,12 +951,12 @@ export class RecordReplayServer {
     scope.complete(method, url.pathname);
   }
 
-  private lookup(key: string, scope: Scope): HarEntry | undefined {
+  private lookup(key: string, scope: Scope, written?: string): HarEntry | undefined {
     const spec = this.spec;
 
     if (spec) {
       const own = spec.byScope.get(scope.name)?.get(key);
-      const entry = own?.length ? this.pick(own, scope, key) : undefined;
+      const entry = own?.length ? this.pick(own, scope, key, written) : undefined;
       const nextTest = scope.isTest ? undefined : spec.nextTest.get(scope.name);
       const later = nextTest ? spec.byScope.get(nextTest)?.get(key) : undefined;
 
@@ -973,21 +1016,34 @@ export class RecordReplayServer {
     return group[Math.min(count, group.length - 1)];
   }
 
-  private pick(entries: HarEntry[], scope: Scope, key: string): HarEntry {
+  private pick(entries: HarEntry[], scope: Scope, key: string, written?: string): HarEntry {
+    const sameWrite = written === undefined ? undefined : entries.find((e) => !scope.writesReplayed.has(e) && writeBody(e.request.postData?.text || '') === written);
+
+    if (sameWrite) {
+      scope.writesReplayed.add(sameWrite);
+
+      return sameWrite;
+    }
+
+    const type = key.startsWith('GET ') ? resourceType(new URL(entries[0].request.url).pathname) : undefined;
+    const after = type ? scope.lastWrites.get(type) : undefined;
+    const inState = type && this.spec?.writtenTypes.get(scope.name)?.has(type) ? entries.filter((e) => this.spec?.priorWrite.get(e) === after) : [];
+    const candidates = inState.length ? inState : entries;
+    const state = inState.length ? `@${ after?.startedDateTime || '' }` : '';
     let target = -1;
 
-    entries.forEach((e) => {
+    candidates.forEach((e) => {
       if (e._mutations <= scope.mutations && e._mutations > target) {
         target = e._mutations;
       }
     });
 
     if (target === -1) {
-      target = entries[0]._mutations;
+      target = candidates[0]._mutations;
     }
 
-    const group = entries.filter((e) => e._mutations === target);
-    const counter = `${ key }#${ target }`;
+    const group = candidates.filter((e) => e._mutations === target);
+    const counter = `${ key }#${ target }${ state }`;
     const served = scope.served.get(counter) || 0;
 
     scope.served.set(counter, served + 1);
@@ -1120,7 +1176,7 @@ export class RecordReplayServer {
         const recorded: RecordedSocket = {
           url, scope: this.scope, entry: this.socketEntry(url, this.scope, false), openedAt: Date.now()
         };
-        const frame = (type: 'send' | 'receive', data: RawData, isBinary: boolean) => {
+        const frame = (type: 'send' | 'receive', data: RawData, isBinary: boolean, opcode = isBinary ? 2 : 1) => {
           const { scope, openedAt } = recorded;
 
           if (scope.closed) {
@@ -1134,7 +1190,7 @@ export class RecordReplayServer {
           recorded.entry._webSocketMessages?.push({
             type,
             time:   now / 1000,
-            opcode: isBinary ? 2 : 1,
+            opcode,
             data:   buffer.toString(isBinary ? 'base64' : 'utf8'),
             _after: last?.anchor,
             _since: now - Math.max(last?.at || 0, openedAt),
@@ -1158,6 +1214,9 @@ export class RecordReplayServer {
           }
         });
         upstream.on('close', (code, reason) => {
+          if (client.readyState === WebSocket.OPEN) {
+            frame('receive', Buffer.from(`${ closeCode(code) }`), false, CLOSE_OPCODE);
+          }
           closed();
           client.close(closeCode(code), reason);
         });

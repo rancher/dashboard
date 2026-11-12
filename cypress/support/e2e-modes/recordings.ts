@@ -24,6 +24,7 @@ export interface HarWebSocketMessage {
   type: 'send' | 'receive';
   /** Seconds since the epoch, as Chrome's HAR export */
   time: number;
+  /** 1 text, 2 binary (`data` is base64), 8 Rancher closed the socket (`data` is the close code) */
   opcode: number;
   data: string;
   /**
