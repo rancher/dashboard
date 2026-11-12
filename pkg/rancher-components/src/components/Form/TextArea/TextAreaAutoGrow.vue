@@ -93,8 +93,9 @@ export default defineComponent({
     },
 
     /**
-     * Recalculate the height when the window is resized. The height always
-     * follows the value, however it changes.
+     * Recalculate the height when the window is resized. Despite its name, this
+     * no longer affects value changes: the height always follows the value,
+     * however it changes.
      */
     resizeOnValueChangeAndResizeWindow: {
       type:    Boolean,
