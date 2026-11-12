@@ -101,7 +101,26 @@ const pathOf = (url: string) => {
 
   return `${ u.pathname }${ u.search }`;
 };
-const writeBody = (text: string) => text.replace(EPOCH_MS, '{ts}');
+const DISPLAY_KEYS = ['_id', 'links'];
+const DISPLAY_METADATA_KEYS = ['fields', 'relationships', 'state'];
+const withoutDisplayKeys = (text: string): string => {
+  try {
+    const json = JSON.parse(text);
+
+    if (json?.constructor !== Object) {
+      return text;
+    }
+    DISPLAY_KEYS.forEach((k) => delete json[k]);
+    if (json.metadata?.constructor === Object) {
+      DISPLAY_METADATA_KEYS.forEach((k) => delete json.metadata[k]);
+    }
+
+    return JSON.stringify(json);
+  } catch {
+    return text;
+  }
+};
+const writeBody = (text: string) => withoutDisplayKeys(text).replace(EPOCH_MS, '{ts}');
 const resourceType = (pathname: string) => /^(.*?\/v[13]\/[^/]+)/.exec(pathname)?.[1];
 const startOf = (entry: HarEntry) => Date.parse(entry.startedDateTime);
 const timestamps = (text: string) => Array.from(text.matchAll(EPOCH_MS)).map((m) => m[0]);
