@@ -18,9 +18,25 @@ export const RcDropdownSeparator: DefineComponent;
 export const RcDropdownTrigger: DefineComponent;
 export const RcItemCard: DefineComponent;
 export const RcModal: DefineComponent;
+export const RcProgressBar: DefineComponent;
+export const RcSegmentationBar: DefineComponent;
 export const RcSeparator: DefineComponent;
 
 export type RcModalSize = 'small' | 'medium' | 'large';
+
+export type RcSegmentationBarSize = 'small' | 'medium';
+
+export type RcProgressBarSize = 'small' | 'medium';
+
+export type RcSegmentColor = 'error' | 'warning' | 'unknown' | 'info' | 'success' | 'critical' | 'high' | 'medium' | 'low' | 'none';
+
+export type RcSegment = {
+    value: number;
+    color: RcSegmentColor;
+    label: string;
+}
+
+export type RcProgressBarColor = RcSegmentColor | `--${ string }`;
 
 export type UseModalOptions<T> = {
     open?: boolean;
