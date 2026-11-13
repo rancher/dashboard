@@ -376,36 +376,52 @@ describe('noAuth', () => {
 describe('notLoggedIn', () => {
   it.each([
     {
-      desc:                  'index route redirects to /auth/login but skips authRedirect',
-      routeName:             'index',
-      expectedRedirect:      '/auth/login',
-      authRedirectCallCount: 0,
+      desc:  'index route redirects to /auth/login and clears authRedirect',
+      route: {
+        name: 'index', path: '/', query: {}, hash: ''
+      },
+      expectedRedirect:     '/auth/login',
+      expectedAuthRedirect: null,
     },
     {
-      desc:                  'non-auth non-index route redirects with timed-out and sets authRedirect',
-      routeName:             'dashboard',
-      expectedRedirect:      '/auth/login?timed-out',
-      authRedirectCallCount: 1,
+      desc:  'page route redirects with timed-out and sets authRedirect to its path, query and hash',
+      route: {
+        name:     'c-cluster-product-resource',
+        path:     '/c/local/explorer/node',
+        fullPath: '/c/local/explorer/node?q=abc#x',
+        params:   {
+          cluster: 'local', product: 'explorer', resource: 'node'
+        },
+        query:   { q: 'abc' },
+        hash:    '#x',
+        meta:    {},
+        matched: [{ path: '/c/:cluster/:product/:resource', instances: { default: {} } }],
+      },
+      expectedRedirect:     '/auth/login?timed-out',
+      expectedAuthRedirect: {
+        path: '/c/local/explorer/node', query: { q: 'abc' }, hash: '#x'
+      },
     },
     {
-      desc:                  'auth route redirects with timed-out but skips authRedirect',
-      routeName:             'auth-login',
-      expectedRedirect:      '/auth/login?timed-out',
-      authRedirectCallCount: 0,
+      desc:  'auth page redirects with timed-out and is remembered like any other page',
+      route: {
+        name: 'c-cluster-auth-config', path: '/c/local/auth/config', query: {}, hash: ''
+      },
+      expectedRedirect:     '/auth/login?timed-out',
+      expectedAuthRedirect: {
+        path: '/c/local/auth/config', query: {}, hash: ''
+      },
     },
-  ])('$desc', ({ routeName, expectedRedirect, authRedirectCallCount }) => {
+  ])('$desc', ({ route, expectedRedirect, expectedAuthRedirect }) => {
     const store = { commit: jest.fn() };
     const redirect = jest.fn();
-    const route = { name: routeName };
 
     notLoggedIn(store, redirect, route);
 
+    expect(store.commit).toHaveBeenCalledTimes(2);
     expect(store.commit).toHaveBeenCalledWith('auth/hasAuth', true);
+    expect(store.commit).toHaveBeenCalledWith('prefs/setAuthRedirect', expectedAuthRedirect);
     expect(redirect).toHaveBeenCalledWith(expectedRedirect);
-
-    const setAuthRedirectCalls = store.commit.mock.calls.filter((call) => call[0] === 'prefs/setAuthRedirect');
-
-    expect(setAuthRedirectCalls.length).toStrictEqual(authRedirectCallCount);
   });
 });
 
