@@ -102,7 +102,7 @@ describe('component: ImportDialog', () => {
     const wrapper = createWrapper();
     const labelId = wrapper.findComponent(LabeledSelectStub).attributes('aria-labelledby');
 
-    expect(wrapper.find(`#${ labelId }`).text()).toBe('%import.defaultNamespace.label%');
+    expect(wrapper.find(`#${ labelId }`).text()).toBe('%import.namespace%');
   });
 
   it('should offer the namespaces sorted by name, starting on default', async() => {
