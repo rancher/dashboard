@@ -1,3 +1,5 @@
+import jsyaml from 'js-yaml';
+import pickBy from 'lodash/pickBy';
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
@@ -167,6 +169,29 @@ export default class RoleTemplate extends SteveDescriptionModel {
     })();
   }
 
+  get canSaveYaml() {
+    return true;
+  }
+
+  async saveYaml(yaml) {
+    const data = jsyaml.load(yaml) || {};
+    const name = data.displayName || (!this.id && data.metadata?.name) || undefined;
+    const {
+      apiVersion, kind, id, type, links, actions, metadata, displayName, roleTemplateNames, ...fields
+    } = data;
+    const renamed = {
+      name,
+      roleTemplateIds: roleTemplateNames,
+      labels:          metadata?.labels,
+      annotations:     metadata?.annotations,
+    };
+    const norman = await this.$dispatch('rancher/clone', { resource: await this.norman }, { root: true });
+
+    Object.assign(norman, fields, pickBy(renamed, (value) => value !== undefined));
+
+    return this.saveNorman(norman);
+  }
+
   get canCreate() {
     const schema = this.$getters['schemaFor'](this.type);
 
@@ -194,9 +219,11 @@ export default class RoleTemplate extends SteveDescriptionModel {
   }
 
   async save() {
-    const norman = await this.norman;
+    return this.saveNorman(await this.norman);
+  }
 
-    for (const rule of norman.rules) {
+  saveNorman(norman) {
+    for (const rule of norman.rules || []) {
       if (rule.nonResourceURLs && rule.nonResourceURLs.length) {
         delete rule.resources;
         delete rule.apiGroups;
