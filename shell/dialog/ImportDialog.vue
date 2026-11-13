@@ -1,10 +1,11 @@
 <script>
 import { mapGetters } from 'vuex';
-import { Card } from '@components/Card';
+import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
+import { RcButton } from '@components/RcButton';
+import { RcModal } from '@components/RcModal';
 import YamlEditor from '@shell/components/YamlEditor';
 import FileSelector from '@shell/components/form/FileSelector';
-import AsyncButton from '@shell/components/AsyncButton';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SortableTable from '@shell/components/SortableTable';
 import { sortBy } from '@shell/utils/sort';
@@ -13,19 +14,32 @@ import { NAMESPACE } from '@shell/config/types';
 import { NAME as NAME_COL, TYPE, NAMESPACE as NAMESPACE_COL, AGE } from '@shell/config/table-headers';
 
 export default {
-  emits: ['close', 'onReadyYamlEditor'],
+  emits: ['onReadyYamlEditor'],
+
+  // PromptModal also passes `resources`, and the header passes `cluster`, which this dialog doesn't use,
+  // so keep stray attributes off RcModal's dialog element.
+  inheritAttrs: false,
 
   components: {
     AsyncButton,
     Banner,
-    Card,
-    YamlEditor,
     FileSelector,
     LabeledSelect,
-    SortableTable
+    RcButton,
+    RcModal,
+    SortableTable,
+    YamlEditor
   },
 
   props: {
+    /**
+     * `show` and the `close` handler, from whoever owns this dialog's visibility
+     */
+    modal: {
+      type:     Object,
+      required: true
+    },
+
     defaultNamespace: {
       type:    String,
       default: undefined
@@ -50,6 +64,7 @@ export default {
       errors:            null,
       rows:              null,
       done:              false,
+      importing:         false,
       selectedNamespace: this.defaultNamespace,
     };
   },
@@ -80,7 +95,12 @@ export default {
 
   methods: {
     close() {
-      this.$emit('close');
+      // Stay open while the import is in flight, so its outcome is never lost
+      if (this.importing) {
+        return;
+      }
+
+      this.modal.onClose();
     },
 
     onFileSelected(value) {
@@ -93,22 +113,27 @@ export default {
     },
 
     async importYaml(btnCb) {
-      try {
-        this.errors = [];
+      this.errors = [];
+      this.importing = true;
 
+      try {
         const res = await this.currentCluster.doAction('apply', {
           yaml:             this.currentYaml,
           defaultNamespace: this.selectedNamespace,
         });
 
         btnCb(true);
-
+        // Let AsyncButton announce the success before the results replace it
+        await this.$nextTick();
         this.rows = res;
         this.done = true;
+        // Import is gone from the results, so keep focus inside the dialog
+        this.$nextTick(() => this.$refs.closeButton?.focus());
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
-        this.done = false;
         btnCb(false);
+      } finally {
+        this.importing = false;
       }
     },
 
@@ -126,60 +151,51 @@ export default {
 </script>
 
 <template>
-  <Card
-    :show-highlight-border="false"
+  <!-- Not v-bind="modal": closing goes through close(), which refuses while an import is in flight -->
+  <RcModal
+    :show="modal.show"
+    size="large"
+    :click-to-close="!importing"
     data-testid="import-yaml"
+    @close="close"
   >
     <template #title>
-      <div style="display: block; width: 100%;">
-        <template v-if="done">
-          <h4 data-testid="import-yaml-success">
-            {{ t('import.success', {count: rows.length}) }}
-          </h4>
-        </template>
-        <template v-else>
-          <h4 v-t="'import.title'" />
-          <div class="row">
-            <div class="col span-6">
-              <FileSelector
-                :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
-                variant="secondary"
-                class="pull-left"
-                :label="t('generic.readFromFile')"
-                @selected="onFileSelected"
-              />
-            </div>
-            <div class="col span-6">
-              <LabeledSelect
-                v-model:value="selectedNamespace"
-                :options="namespaceOptions"
-                label-key="import.defaultNamespace.label"
-                mode="edit"
-              />
-            </div>
-          </div>
-        </template>
-      </div>
+      <span
+        v-if="done"
+        data-testid="import-yaml-success"
+      >
+        {{ t('import.success', {count: rows.length}) }}
+      </span>
+      <template v-else>
+        {{ t('import.title') }}
+      </template>
     </template>
-    <template #body>
-      <template v-if="done">
-        <div class="results">
-          <SortableTable
-            :rows="rows"
-            :headers="headers"
-            mode="view"
-            key-field="_key"
-            :search="false"
-            :paging="true"
-            :row-actions="false"
-            :table-actions="false"
-            :sub-rows-description="false"
-            @rowClick="rowClick"
+
+    <template v-if="!done">
+      <Banner
+        class="m-0"
+        color="info"
+        :label="t('import.instructions')"
+      />
+      <div class="import-controls">
+        <FileSelector
+          :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
+          variant="secondary"
+          :label="t('generic.readFromFile')"
+          @selected="onFileSelected"
+        />
+        <div class="namespace">
+          <label id="import-yaml-namespace-label">{{ t('import.namespace') }}</label>
+          <LabeledSelect
+            v-model:value="selectedNamespace"
+            class="namespace-select"
+            :options="namespaceOptions"
+            size="medium"
+            aria-labelledby="import-yaml-namespace-label"
           />
         </div>
-      </template>
+      </div>
       <YamlEditor
-        v-else
         ref="yamleditor"
         v-model:value="currentYaml"
         class="yaml-editor"
@@ -188,59 +204,83 @@ export default {
       <Banner
         v-for="(err, i) in errors"
         :key="i"
+        class="m-0"
         color="error"
         role="alert"
         :label="err"
       />
     </template>
-    <template #actions>
-      <div
-        v-if="done"
-        class="text-center"
-        style="width: 100%"
+    <SortableTable
+      v-else
+      :rows="rows"
+      :headers="headers"
+      mode="view"
+      key-field="_key"
+      :search="false"
+      :paging="true"
+      :row-actions="false"
+      :table-actions="false"
+      :sub-rows-description="false"
+      @rowClick="rowClick"
+    />
+
+    <template
+      v-if="done"
+      #actions
+    >
+      <RcButton
+        ref="closeButton"
+        variant="primary"
+        size="large"
+        data-testid="import-yaml-close"
+        @click="close"
       >
-        <button
-          :aria-label="t('generic.close')"
-          role="button"
-          type="button"
-          class="btn role-primary"
-          data-testid="import-yaml-close"
-          @click="close"
-        >
-          {{ t('generic.close') }}
-        </button>
-      </div>
-      <div
-        v-else
-        class="text-center"
-        style="width: 100%"
-      >
-        <button
-          :aria-label="t('generic.cancel')"
-          role="button"
-          type="button"
-          class="btn role-secondary mr-10"
-          data-testid="import-yaml-cancel"
-          @click="close"
-        >
-          {{ t('generic.cancel') }}
-        </button>
-        <AsyncButton
-          v-if="!done"
-          mode="import"
-          :disabled="!currentYaml.length"
-          data-testid="import-yaml-import-action"
-          :aria-label="t('import.title')"
-          @click="importYaml"
-        />
-      </div>
+        {{ t('generic.close') }}
+      </RcButton>
     </template>
-  </Card>
+    <!-- AsyncButton stays focusable while importing and announces how the import went -->
+    <template
+      v-else
+      #primary-action
+    >
+      <AsyncButton
+        mode="import"
+        :icon="importing ? '' : 'icon-upload'"
+        :disabled="!currentYaml.length"
+        :aria-label="t('import.title')"
+        data-testid="import-yaml-import-action"
+        @click="importYaml"
+      />
+    </template>
+  </RcModal>
 </template>
 
 <style lang='scss' scoped>
   $min: 50vh;
   $max: 50vh;
+
+  .import-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .namespace {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    label {
+      margin: 0;
+      white-space: nowrap;
+      color: var(--label-secondary);
+    }
+  }
+
+  .namespace-select {
+    width: 300px;
+  }
 
   .yaml-editor {
     flex: 1;
