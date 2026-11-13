@@ -2,7 +2,9 @@ import actions from '@shell/plugins/steve/actions';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
-const { fetchResourceSummary, cleanForDownload, promptRestore } = actions as any;
+const {
+  fetchResourceSummary, cleanForDownload, cleanForNew, promptRestore
+} = actions as any;
 
 const YAML = `apiVersion: v1
 kind: ConfigMap
@@ -230,6 +232,31 @@ describe('steve: actions:', () => {
       expect(result).toContain('name: my-configmap');
       // legacy callers never asked to edit, so server-managed fields remain
       expect(result).toContain('uid:');
+    });
+  });
+
+  describe('cleanForNew', () => {
+    it('should drop the labels and annotations owned by Rancher controllers', () => {
+      const obj = {
+        metadata: {
+          name:   'cluster-member',
+          labels: {
+            'authz.management.cattle.io/bootstrapping': 'default-roletemplate',
+            team:                                       'platform',
+          },
+          annotations: {
+            'lifecycle.cattle.io/create.mgmt-auth-roletemplate-lifecycle': 'true',
+            'authz.management.cattle.io/cr-name':                          'cattle-globalrole-admin',
+            note:                                                          'kept',
+          },
+        },
+      };
+
+      cleanForNew({}, obj);
+
+      expect(obj.metadata).toStrictEqual({
+        name: '', labels: { team: 'platform' }, annotations: { note: 'kept' }
+      });
     });
   });
 

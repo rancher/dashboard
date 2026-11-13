@@ -52,6 +52,8 @@ const RBAC_ROLE = SUBTYPE_MAPPING.RBAC_ROLE.key;
  *   - Should show only namespace scoped resources
  */
 export default {
+  inheritAttrs: false,
+
   emits: ['set-subtype', 'input'],
 
   components: {
@@ -550,7 +552,7 @@ export default {
   <CruResource
     v-else
     class="receiver"
-    :can-yaml="!isCreate"
+    :done-route="doneRoute"
     :mode="mode"
     :resource="value"
     :errors="fvUnreportedValidationErrors"
