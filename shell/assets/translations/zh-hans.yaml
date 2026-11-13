@@ -2438,7 +2438,6 @@ hpa:
 
 import:
   title: 导入 YAML
-  action: 导入
   instructions: 你可以通过使用 `---` 作为分隔符同时导入多个资源的 YAML。
   namespace: 命名空间
   success: |-
