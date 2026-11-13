@@ -88,7 +88,7 @@ const chart = (title, field) => {
   const rows = groups.flatMap((g) => charted.map((m) => ({
     label: `${ g } (${ m.name })`,
     mode:  m,
-    value: timings[m.name][g]?.[field] || 0,
+    value: timings[m.name][g]?.[field],
   })));
   const top = Math.ceil(max(rows.map((r) => r.value)) / 5) * 5 || 5;
 
@@ -107,7 +107,7 @@ const chart = (title, field) => {
     `  title "${ title }"`,
     `  x-axis [${ rows.map((r) => `"${ r.label }"`).join(', ') }]`,
     `  y-axis "Minutes" 0 --> ${ top }`,
-    ...charted.map((m) => `  bar [${ rows.map((r) => r.mode === m ? fmt(r.value) : NO_BAR).join(', ') }]`),
+    ...charted.map((m) => `  bar [${ rows.map((r) => r.mode === m && r.value !== undefined ? fmt(r.value) : NO_BAR).join(', ') }]`),
     '```',
   ].join('\n');
 };
