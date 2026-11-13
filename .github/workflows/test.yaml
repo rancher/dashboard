@@ -102,7 +102,7 @@ jobs:
 
   e2e-plan:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       actions: read
       contents: read
@@ -113,8 +113,24 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
+      - name: Restore node_modules
+        id: node-modules
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: e2e-node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.nvmrc', 'yarn.lock', 'package.json', 'pkg/rancher-components/package.json') }}
       - name: Setup env
         uses: ./.github/actions/setup
+      - name: Save node_modules
+        if: ${{ steps.node-modules.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: ${{ steps.node-modules.outputs.cache-primary-key }}
       - name: Plan integration jobs
         id: plan
         run: node .github/workflows/scripts/e2e-plan.js integration >> "$GITHUB_OUTPUT"
@@ -253,6 +269,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
+      - name: Restore node_modules
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            node_modules
+            ~/.cache/Cypress
+          key: e2e-node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.nvmrc', 'yarn.lock', 'package.json', 'pkg/rancher-components/package.json') }}
       - name: Setup env
         uses: ./.github/actions/setup
 
@@ -279,6 +302,7 @@ jobs:
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env:
           TEST_MODE: integration
+          TEST_NO_VIDEOS: true
           TEST_RECORDINGS_DIR: ${{ steps.recordings.outcome == 'success' && 'e2e-recordings' || 'cypress/recordings' }}
           TEST_DIST_DIR: ${{ env.E2E_BUILD_DIST_DIR }}
           TEST_SKIP: setup
