@@ -6,8 +6,9 @@
  * `e2e-plan.js count <grep tags>` prints how many specs have tests matching the tags.
  *
  * `e2e-plan.js integration` prints the GitHub outputs of the integration jobs:
- * - `recordings-run`: the newest completed run of this workflow that uploaded recordings, on the base branch or else
- *   on this pull request's branch (set `E2E_RECORDINGS_RUN` to choose one)
+ * - `recordings-runs`: the runs whose recordings are replayed. Each feature group replays the newest recordings of a
+ *   completed run of this workflow, on the base branch or else on this pull request's branch (set `E2E_RECORDINGS_RUN`
+ *   to choose the run)
  * - `matrix`: one entry per shard of each feature group with tests, its specs balanced by how long they took to record
  *
  * It reads `GITHUB_REPOSITORY`, `GITHUB_RUN_ID`, `GITHUB_EVENT_NAME`, `BASE_BRANCH`, `HEAD_REPO`, `HEAD_BRANCH` and
@@ -107,11 +108,11 @@ const recordingArtifacts = (repo, runId) => {
   return [...newest.values()];
 };
 
-const findRecordingsRun = (env) => {
+const recordingCandidates = (env) => {
   const repo = env.GITHUB_REPOSITORY;
 
   if (env.E2E_RECORDINGS_RUN) {
-    return { runId: env.E2E_RECORDINGS_RUN, artifacts: recordingArtifacts(repo, env.E2E_RECORDINGS_RUN) };
+    return [env.E2E_RECORDINGS_RUN];
   }
 
   const { workflow_id: workflowId } = ghJson(`repos/${ repo }/actions/runs/${ env.GITHUB_RUN_ID }`);
@@ -122,15 +123,22 @@ const findRecordingsRun = (env) => {
     candidates.push(...runs(`branch=${ encodeURIComponent(env.HEAD_BRANCH) }&event=pull_request`).filter((r) => r.head_repository?.full_name === env.HEAD_REPO));
   }
 
-  for (const run of candidates) {
-    const artifacts = String(run.id) === String(env.GITHUB_RUN_ID) ? [] : recordingArtifacts(repo, run.id);
+  return candidates.map((run) => String(run.id)).filter((id) => id !== String(env.GITHUB_RUN_ID));
+};
 
-    if (artifacts.length) {
-      return { runId: String(run.id), artifacts };
+const findRecordings = (env, names) => {
+  const found = new Map();
+
+  for (const runId of recordingCandidates(env)) {
+    if (names.every((name) => found.has(name))) {
+      break;
     }
+    recordingArtifacts(env.GITHUB_REPOSITORY, runId)
+      .filter((a) => names.includes(a.name) && !found.has(a.name))
+      .forEach((a) => found.set(a.name, { ...a, runId }));
   }
 
-  return { runId: '', artifacts: [] };
+  return found;
 };
 
 const downloadHars = (repo, artifacts, dir) => {
@@ -145,39 +153,47 @@ const downloadHars = (repo, artifacts, dir) => {
 
 const planIntegration = (env) => {
   const { roles, features } = JSON.parse(env.E2E_GROUPS);
-  const { runId, artifacts } = findRecordingsRun(env);
+  const groups = roles.flatMap(({ username, tag }) => features.map((groupFeatures) => ({
+    username,
+    tag,
+    features: groupFeatures,
+    name:     `${ RECORDINGS_PREFIX }${ username }${ groupFeatures.join('') }`,
+    specs:    matchingSpecs(groupTags(tag, groupFeatures)),
+  })));
+  const recordings = findRecordings(env, groups.filter((g) => g.specs.length).map((g) => g.name));
   const dir = fs.mkdtempSync(path.join(env.RUNNER_TEMP || os.tmpdir(), 'e2e-plan-'));
   const include = [];
 
-  downloadHars(env.GITHUB_REPOSITORY, artifacts, dir);
-  console.error(`Recordings: ${ runId ? `run ${ runId }, ${ artifacts.length } artifacts` : 'none found' }`);
+  downloadHars(env.GITHUB_REPOSITORY, [...recordings.values()], dir);
 
-  roles.forEach(({ username, tag }) => features.forEach((groupFeatures) => {
-    const name = `${ RECORDINGS_PREFIX }${ username }${ groupFeatures.join('') }`;
-    const artifact = artifacts.find((a) => a.name === name);
-    const specs = matchingSpecs(groupTags(tag, groupFeatures)).map((spec) => ({ spec, seconds: recordedSeconds(path.join(dir, name), username, spec) }));
-    const seconds = specs.reduce((sum, s) => sum + s.seconds, 0);
-    const count = Math.min(MAX_SHARDS, specs.length, Math.max(1, Math.ceil(seconds / SHARD_SECONDS)));
+  groups.forEach(({
+    username, tag, features: groupFeatures, name, specs
+  }) => {
+    const recording = recordings.get(name);
+    const timed = specs.map((spec) => ({ spec, seconds: recordedSeconds(path.join(dir, name), username, spec) }));
+    const seconds = timed.reduce((sum, s) => sum + s.seconds, 0);
+    const count = Math.min(MAX_SHARDS, timed.length, Math.max(1, Math.ceil(seconds / SHARD_SECONDS)));
 
-    console.error(`${ username } ${ groupFeatures.join(' ') }: ${ specs.length } specs, ${ (seconds / 60).toFixed(1) } min recorded, ${ specs.length ? count : 0 } shards`);
-    if (!specs.length) {
+    console.error(`${ username } ${ groupFeatures.join(' ') }: ${ timed.length } specs, ${ (seconds / 60).toFixed(1) } min recorded${ recording ? ` in run ${ recording.runId }` : '' }, ${ timed.length ? count : 0 } shards`);
+    if (!timed.length) {
       return;
     }
 
-    shard(specs, count).forEach((shardSpecs, i) => include.push({
+    shard(timed, count).forEach((shardSpecs, i) => include.push({
       username,
       tag,
-      features:   groupFeatures,
-      shard:      i + 1,
-      shards:     count,
-      specs:      shardSpecs.join(','),
-      recordings: artifact ? String(artifact.id) : '',
+      features:      groupFeatures,
+      shard:         i + 1,
+      shards:        count,
+      specs:         shardSpecs.join(','),
+      recordings:    recording ? String(recording.id) : '',
+      recordingsRun: recording ? recording.runId : '',
     }));
-  }));
+  });
 
   fs.rmSync(dir, { recursive: true, force: true });
 
-  return { runId, matrix: { include } };
+  return { runs: [...new Set([...recordings.values()].map((r) => r.runId))], matrix: { include } };
 };
 
 const [command, ...args] = process.argv.slice(2);
@@ -185,9 +201,9 @@ const [command, ...args] = process.argv.slice(2);
 if (command === 'count') {
   console.log(matchingSpecs(args[0]).length);
 } else if (command === 'integration') {
-  const { runId, matrix } = planIntegration(process.env);
+  const { runs, matrix } = planIntegration(process.env);
 
-  console.log(`recordings-run=${ runId }`);
+  console.log(`recordings-runs=${ runs.join(' ') }`);
   console.log(`matrix=${ JSON.stringify(matrix) }`);
 } else {
   console.error('Usage: e2e-plan.js count <grep tags> | e2e-plan.js integration');
