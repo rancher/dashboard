@@ -20,10 +20,15 @@ import {
   RECENT_CLUSTERS,
   SHOW_PRE_RELEASE,
   enqueuePreferenceWrite,
+  R_AUTH_REDIRECT,
 } from '@shell/store/prefs';
 import { commitAndReconcile, movePinned, prependRecent } from '@shell/utils/cluster-pref-writer';
 
 describe('prefs store', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
   describe('create', () => {
     it('returns the preference name', () => {
       const name = 'test-pref-create-return';
@@ -175,6 +180,12 @@ describe('prefs store', () => {
     });
 
     it('returns null for authRedirect initially', () => {
+      expect(state().authRedirect).toBeNull();
+    });
+
+    it('returns null for authRedirect when the stored value cannot be parsed', () => {
+      sessionStorage.setItem(R_AUTH_REDIRECT, '{not json');
+
       expect(state().authRedirect).toBeNull();
     });
   });
@@ -548,6 +559,23 @@ describe('prefs store', () => {
         mutations.setAuthRedirect(s as any, null);
 
         expect(s.authRedirect).toBeNull();
+      });
+
+      it('removes the route from sessionStorage when passed null', () => {
+        sessionStorage.setItem(R_AUTH_REDIRECT, JSON.stringify({ path: '/previous' }));
+        mutations.setAuthRedirect(s as any, null);
+
+        expect(sessionStorage.getItem(R_AUTH_REDIRECT)).toBeNull();
+      });
+
+      it('keeps the route for a fresh state after a page load', () => {
+        const location = {
+          path: '/c/local/explorer/node', query: { q: 'abc' }, hash: '#x'
+        };
+
+        mutations.setAuthRedirect(s as any, location);
+
+        expect(state().authRedirect).toStrictEqual(location);
       });
     });
   });

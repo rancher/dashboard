@@ -208,4 +208,18 @@ describe('actions', () => {
       expect(ctx.state.workspace).toBe('fleet-default');
     });
   });
+
+  describe('onLogout', () => {
+    it('clears the page saved before login', async() => {
+      const store = {
+        dispatch: jest.fn().mockResolvedValue(undefined),
+        commit:   jest.fn(),
+        state:    { $router: { currentRoute: { value: { name: 'index', query: {} } }, replace: jest.fn() } },
+      };
+
+      await actions.onLogout.call({ $extension: { getPlugins: () => ({}) } }, store);
+
+      expect(store.commit).toHaveBeenCalledWith('prefs/setAuthRedirect', null);
+    });
+  });
 });

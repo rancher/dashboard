@@ -546,6 +546,7 @@ describe('User can update their preferences', () => {
 
       cy.visit(redirectUrl);
       cy.url().should('contain', 'auth/login?timed-out');
+      cy.reload();
 
       cy.login(undefined, undefined, false, true);
       cy.url().should('not.contain', 'auth/login');
@@ -554,8 +555,7 @@ describe('User can update their preferences', () => {
     attemptAuthRedirect();
     // Wait for the redirect chain to settle on either the expected page or the landing page.
     // A transient failure fetching preferences after login lands the user on the landing page
-    // instead - retry the flow once to recover (authRedirect only lives in the store, so
-    // the whole timed-out flow needs to run again)
+    // instead - retry the flow once to recover
     cy.location('pathname', MEDIUM_TIMEOUT_OPT).should('match', new RegExp(`(/home|${ key.page }|${ redirectUrl })`));
     cy.location('pathname').then((pathname) => {
       if (!pathname.endsWith(redirectUrl)) {

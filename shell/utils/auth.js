@@ -365,15 +365,17 @@ export function notLoggedIn(store, redirect, route) {
   store.commit('auth/hasAuth', true);
 
   // The index route is not a specific page, so leave the landing page preference in charge
-  if (!route.name.includes('auth') && route.name !== 'index') {
-    store.commit('prefs/setAuthRedirect', route);
+  if ( route.name === 'index' ) {
+    store.commit('prefs/setAuthRedirect', null);
+
+    return redirect('/auth/login');
   }
 
-  if ( route.name === 'index' ) {
-    return redirect('/auth/login');
-  } else {
-    return redirect(`/auth/login?${ TIMED_OUT }`);
-  }
+  store.commit('prefs/setAuthRedirect', {
+    path: route.path, query: route.query, hash: route.hash
+  });
+
+  return redirect(`/auth/login?${ TIMED_OUT }`);
 }
 
 /**

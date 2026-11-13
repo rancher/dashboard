@@ -1187,6 +1187,7 @@ export const actions = {
     commit('managementChanged', { ready: false });
     commit('management/reset');
     commit('prefs/reset');
+    commit('prefs/setAuthRedirect', null);
 
     await dispatch('cluster/unsubscribe');
     commit('clusterReady', false);
