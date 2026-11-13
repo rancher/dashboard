@@ -4247,10 +4247,9 @@ import:
   title: Import YAML
   action: Import
   instructions: You can import multiple resources at the same time by separating their YAML using `---` as divider.
+  namespace: Namespace
   editor:
     label: YAML Editor
-  defaultNamespace:
-    label: Default Namespace
   success: |-
     Applied {count, plural,
     =1 {1 Resource}

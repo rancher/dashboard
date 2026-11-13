@@ -186,7 +186,7 @@ export default {
           @selected="onFileSelected"
         />
         <div class="namespace">
-          <label id="import-yaml-namespace-label">{{ t('import.defaultNamespace.label') }}</label>
+          <label id="import-yaml-namespace-label">{{ t('import.namespace') }}</label>
           <LabeledSelect
             v-model:value="selectedNamespace"
             class="namespace-select"
@@ -277,6 +277,7 @@ export default {
     label {
       margin: 0;
       white-space: nowrap;
+      color: var(--label-secondary);
     }
   }
 
