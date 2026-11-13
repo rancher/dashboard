@@ -180,7 +180,10 @@ export default class ClusterRepo extends SteveModel {
   }
 
   get canLoad() {
-    return this.metadata?.state?.name === 'active';
+    // Steve derives `metadata.state` from `status.conditions` and defaults to `active` when there
+    // are none, so a just-created repo looks loadable before its index exists. Also require the
+    // configmap that the index endpoint reads from, otherwise the request fails with a 500.
+    return this.metadata?.state?.name === 'active' && !!this.status?.indexConfigMapName;
   }
 
   get isSuseAppCollectionFromUI() {
