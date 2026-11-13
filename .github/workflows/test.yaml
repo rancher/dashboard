@@ -119,6 +119,7 @@ jobs:
         with:
           path: |
             node_modules
+            pkg/*/node_modules
             ~/.cache/Cypress
           key: e2e-node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.nvmrc', 'yarn.lock', 'package.json', 'pkg/rancher-components/package.json') }}
       - name: Setup env
@@ -129,6 +130,7 @@ jobs:
         with:
           path: |
             node_modules
+            pkg/*/node_modules
             ~/.cache/Cypress
           key: ${{ steps.node-modules.outputs.cache-primary-key }}
       - name: Plan integration jobs
@@ -274,6 +276,7 @@ jobs:
         with:
           path: |
             node_modules
+            pkg/*/node_modules
             ~/.cache/Cypress
           key: e2e-node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.nvmrc', 'yarn.lock', 'package.json', 'pkg/rancher-components/package.json') }}
       - name: Setup env
