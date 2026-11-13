@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import AsyncButton from '@shell/components/AsyncButton';
 import { Banner } from '@components/Banner';
 import { RcButton } from '@components/RcButton';
 import { RcModal } from '@components/RcModal';
@@ -20,6 +21,7 @@ export default {
   inheritAttrs: false,
 
   components: {
+    AsyncButton,
     Banner,
     FileSelector,
     LabeledSelect,
@@ -81,10 +83,6 @@ export default {
       return sortBy(out, 'label');
     },
 
-    importDisabled() {
-      return this.importing || !this.currentYaml.length;
-    },
-
     headers() {
       return [
         TYPE,
@@ -114,11 +112,7 @@ export default {
       }
     },
 
-    async importYaml() {
-      if (this.importDisabled) {
-        return;
-      }
-
+    async importYaml(btnCb) {
       this.errors = [];
       this.importing = true;
 
@@ -128,10 +122,16 @@ export default {
           defaultNamespace: this.selectedNamespace,
         });
 
+        btnCb(true);
+        // Let AsyncButton announce the success before the results replace it
+        await this.$nextTick();
         this.rows = res;
         this.done = true;
+        // Import is gone from the results, so keep focus inside the dialog
+        this.$nextTick(() => this.$refs.closeButton?.focus());
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
+        btnCb(false);
       } finally {
         this.importing = false;
       }
@@ -158,7 +158,6 @@ export default {
     :click-to-close="!importing"
     data-testid="import-yaml"
     @close="close"
-    @primary-action="importYaml"
   >
     <template #title>
       <span
@@ -230,6 +229,7 @@ export default {
       #actions
     >
       <RcButton
+        ref="closeButton"
         variant="primary"
         size="large"
         data-testid="import-yaml-close"
@@ -238,22 +238,19 @@ export default {
         {{ t('generic.close') }}
       </RcButton>
     </template>
+    <!-- AsyncButton stays focusable while importing and announces how the import went -->
     <template
       v-else
-      #primary-action="{ primaryAction }"
+      #primary-action
     >
-      <RcButton
-        variant="primary"
-        size="large"
-        left-icon="upload"
-        :disabled="importDisabled"
-        :aria-busy="importing"
+      <AsyncButton
+        mode="import"
+        :icon="importing ? '' : 'icon-upload'"
+        :disabled="!currentYaml.length"
         :aria-label="t('import.title')"
         data-testid="import-yaml-import-action"
-        @click="primaryAction"
-      >
-        {{ t('import.action') }}
-      </RcButton>
+        @click="importYaml"
+      />
     </template>
   </RcModal>
 </template>

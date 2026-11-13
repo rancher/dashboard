@@ -1,5 +1,7 @@
 import { flushPromises, mount, VueWrapper } from '@vue/test-utils';
+import AsyncButton from '@shell/components/AsyncButton.vue';
 import ImportDialog from '@shell/dialog/ImportDialog.vue';
+import { announce } from '@shell/utils/aria-announce';
 import { exceptionToErrorsArray } from '@shell/utils/error';
 
 jest.mock('focus-trap', () => ({
@@ -9,7 +11,11 @@ jest.mock('focus-trap', () => ({
   })),
 }));
 
+jest.mock('@shell/utils/aria-announce', () => ({ announce: jest.fn() }));
 jest.mock('@shell/utils/error', () => ({ exceptionToErrorsArray: jest.fn(() => ['Import failed']) }));
+
+// The AsyncButton strings that exist for `mode="import"`
+const STRINGS = ['asyncButton.import.action', 'asyncButton.import.waiting', 'asyncButton.import.success', 'asyncButton.default.error'];
 
 const updateValue = jest.fn();
 
@@ -48,17 +54,27 @@ const createWrapper = ({
   modal = { show: true, onClose: jest.fn() } as Modal,
   doAction = jest.fn(),
   namespaces = [] as { name: string }[],
+  attrs = {},
+  attachTo = undefined as HTMLElement | undefined,
+  // The teleport stub remounts the slots on every render, which resets AsyncButton's phase
+  stubTeleport = true,
 } = {}) => mount(ImportDialog, {
   props:  { modal },
+  attrs,
+  attachTo,
   global: {
     mocks: {
       $store: {
-        getters:  { currentCluster: { doAction } },
+        getters: {
+          currentCluster: { doAction },
+          'i18n/exists':  (key: string) => STRINGS.includes(key),
+          'i18n/t':       (key: string) => `%${ key }%`,
+        },
         dispatch: jest.fn().mockResolvedValue(namespaces),
       },
     },
     stubs: {
-      teleport:      true,
+      teleport:      stubTeleport,
       YamlEditor:    YamlEditorStub,
       FileSelector:  FileSelectorStub,
       LabeledSelect: LabeledSelectStub,
@@ -85,6 +101,10 @@ const enterYaml = async(wrapper: VueWrapper, yaml = 'kind: Pod') => {
 };
 
 describe('component: ImportDialog', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render nothing until it is told to show', () => {
     const wrapper = createWrapper({ modal: { show: false, onClose: jest.fn() } });
 
@@ -192,8 +212,61 @@ describe('component: ImportDialog', () => {
     await importButton(wrapper).trigger('click');
     await cancelButton(wrapper).trigger('click');
 
-    expect(importButton(wrapper).attributes('aria-busy')).toBe('true');
     expect(onClose(wrapper)).not.toHaveBeenCalled();
+  });
+
+  // A disabled button loses focus, and with it Esc
+  it('should keep Import focusable and announce the import and its failure', async() => {
+    let fail = (_err: Error) => {};
+    const doAction = jest.fn(() => new Promise((_resolve, reject) => {
+      fail = reject;
+    }));
+    const wrapper = createWrapper({
+      doAction, stubTeleport: false, attachTo: document.body
+    });
+    const button = () => wrapper.findComponent(AsyncButton);
+
+    await enterYaml(wrapper);
+    await button().trigger('click');
+
+    expect(button().attributes('aria-disabled')).toBe('true');
+    expect(button().attributes('disabled')).toBeUndefined();
+    expect(announce).toHaveBeenLastCalledWith('%asyncButton.import.waiting%');
+
+    fail(new Error('Import failed'));
+    await flushPromises();
+
+    expect(button().attributes('aria-disabled')).toBe('false');
+    expect(announce).toHaveBeenLastCalledWith('%asyncButton.default.error%');
+
+    wrapper.unmount();
+  });
+
+  it('should announce a successful import before the results replace Import', async() => {
+    const wrapper = createWrapper({
+      doAction: jest.fn().mockResolvedValue([]), stubTeleport: false, attachTo: document.body
+    });
+
+    await enterYaml(wrapper);
+    await wrapper.findComponent(AsyncButton).trigger('click');
+    await flushPromises();
+
+    expect(announce).toHaveBeenLastCalledWith('%asyncButton.import.success%');
+    expect(wrapper.findComponent(SortableTableStub).exists()).toBe(true);
+
+    wrapper.unmount();
+  });
+
+  it('should move focus to Close once the results replace Import', async() => {
+    const wrapper = createWrapper({ doAction: jest.fn().mockResolvedValue([]), attachTo: document.body });
+
+    await enterYaml(wrapper);
+    await importButton(wrapper).trigger('click');
+    await flushPromises();
+
+    expect(document.activeElement).toBe(closeButton(wrapper).element);
+
+    wrapper.unmount();
   });
 
   it('should close from the results', async() => {
@@ -233,15 +306,7 @@ describe('component: ImportDialog', () => {
   });
 
   it('should keep the props it was not given off the dialog element', () => {
-    const wrapper = mount(ImportDialog, {
-      props:  { modal: { show: true, onClose: jest.fn() } },
-      attrs:  { resources: [], cluster: {} },
-      global: {
-        stubs: {
-          teleport: true, YamlEditor: YamlEditorStub, FileSelector: FileSelectorStub, LabeledSelect: LabeledSelectStub
-        },
-      },
-    });
+    const wrapper = createWrapper({ attrs: { resources: [], cluster: {} } });
     const dialog = wrapper.find('[data-testid="import-yaml"]');
 
     expect(dialog.attributes('resources')).toBeUndefined();
