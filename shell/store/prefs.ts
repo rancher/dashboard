@@ -193,6 +193,16 @@ const cookieOptions = {
   secure:   true,
 };
 
+export const R_AUTH_REDIRECT = 'rancher-auth-redirect';
+
+function storedAuthRedirect(): Record<string, any> | null {
+  try {
+    return JSON.parse(sessionStorage.getItem(R_AUTH_REDIRECT) || 'null');
+  } catch {
+    return null;
+  }
+}
+
 /**
  * `definitions` is the module level object itself, not a copy, so every store instance
  * shares what `create` adds at module load and `setDefinition` adds at runtime.
@@ -202,7 +212,7 @@ export const state = function(): PrefsState {
     cookiesLoaded: false,
     data:          {},
     definitions,
-    authRedirect:  null
+    authRedirect:  storedAuthRedirect()
   };
 };
 
@@ -346,6 +356,12 @@ export const mutations = {
 
   setAuthRedirect(state: PrefsState, route: Record<string, any> | null) {
     state.authRedirect = route;
+
+    if (route) {
+      sessionStorage.setItem(R_AUTH_REDIRECT, JSON.stringify(route));
+    } else {
+      sessionStorage.removeItem(R_AUTH_REDIRECT);
+    }
   }
 };
 
