@@ -49,3 +49,10 @@ When either created, editing, viewing or listing a kubernetes resource the follo
       - or a generic component for header, handling YAML or a custom component to show a form
     - custom components are either supplied via components in `shell/edit` (create/edit), `shell/detail` (detail) or externally via a UI Extension
 
+## Translations
+
+- Translations live in `shell/assets/translations/`. `en-us.yaml` is the source of truth.
+- A link in another locale must use the same URL, anchor and attributes (e.g. `target="_blank" rel="noopener nofollow"`) as `en-us.yaml`.
+- When adding or changing a docs link, check that the page and its `#anchor` exist on the current docs site. The Rancher docs are built with Antora, so section anchors look like `#_section_title`, not `#section-title`.
+- If a docs link changes, update any e2e test that asserts the URL (search `cypress/` for the old anchor).
+
