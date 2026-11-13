@@ -6216,6 +6216,9 @@ plugins:
     bannerBtn: Add repositories
     title: Add Extensions repositories
     prompt: Enable additional repositories to access more extensions
+  pendingRepos:
+    downloading: 'Extensions from these repositories are not available yet. They are still being downloaded and will appear automatically once they are ready:'
+    failed: 'Extensions from these repositories are not available. Rancher could not download them:'
   setup:
     installed: Already installed
     uninstalled: Already uninstalled

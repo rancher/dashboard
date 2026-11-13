@@ -1,9 +1,11 @@
+import { reactive } from 'vue';
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import UiPluginsPage from '@shell/pages/c/_cluster/uiplugins/index.vue';
 import {
   UI_PLUGIN_NAMESPACE,
   UI_PLUGIN_CHART_ANNOTATIONS,
-  EXTENSIONS_INCOMPATIBILITY_TYPES
+  EXTENSIONS_INCOMPATIBILITY_TYPES,
+  UI_PLUGINS_REPOS
 } from '@shell/config/uiplugins';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 
@@ -54,6 +56,7 @@ describe('page: UI plugins/Extensions', () => {
         'catalog/rawCharts': [],
         'uiplugins/plugins': [],
         'uiplugins/errors':  {},
+        'management/all':    () => [],
       },
       dispatch: () => Promise.resolve(),
     };
@@ -574,6 +577,7 @@ describe('page: UI plugins/Extensions', () => {
           'catalog/rawCharts': {},
           'uiplugins/plugins': [],
           'uiplugins/errors':  {},
+          'management/all':    () => [],
           'features/get':      () => true,
         },
         dispatch: () => Promise.resolve(true),
@@ -808,6 +812,7 @@ describe('page: UI plugins/Extensions', () => {
           'catalog/rawCharts': [],
           'uiplugins/plugins': [],
           'uiplugins/errors':  {},
+          'management/all':    () => [],
         },
         dispatch: () => Promise.resolve(),
       };
@@ -1647,6 +1652,7 @@ describe('page: UI plugins/Extensions', () => {
           'catalog/rawCharts': [],
           'uiplugins/plugins': [],
           'uiplugins/errors':  { 'my-plugin': 'plugins.error.load' },
+          'management/all':    () => [],
         },
         dispatch: () => Promise.resolve(),
       };
@@ -1674,6 +1680,7 @@ describe('page: UI plugins/Extensions', () => {
           'catalog/rawCharts': [],
           'uiplugins/plugins': [],
           'uiplugins/errors':  { 'my-plugin': 'plugins.error.developerPkg' },
+          'management/all':    () => [],
         },
         dispatch: () => Promise.resolve(),
       };
@@ -1702,6 +1709,7 @@ describe('page: UI plugins/Extensions', () => {
           'catalog/rawCharts': [],
           'uiplugins/plugins': [],
           'uiplugins/errors':  { 'my-plugin': true },
+          'management/all':    () => [],
         },
         dispatch: () => Promise.resolve(),
       };
@@ -1738,6 +1746,7 @@ describe('page: UI plugins/Extensions', () => {
           'catalog/rawCharts': [],
           'uiplugins/plugins': [],
           'uiplugins/errors':  { 'other-plugin': 'some error' },
+          'management/all':    () => [],
         },
         dispatch: () => Promise.resolve(),
       };
@@ -1766,6 +1775,7 @@ describe('page: UI plugins/Extensions', () => {
           'catalog/rawCharts': [],
           'uiplugins/plugins': [],
           'uiplugins/errors':  { 'plugin-a': 'plugins.error.load' },
+          'management/all':    () => [],
         },
         dispatch: () => Promise.resolve(),
       };
@@ -1836,6 +1846,352 @@ describe('page: UI plugins/Extensions', () => {
       });
 
       expect(w.find('.plugin-cards').attributes('aria-labelledby')).toBeUndefined();
+    });
+  });
+
+  describe('cluster repositories', () => {
+    /**
+     * Mirrors what Rancher actually puts on a ClusterRepo. Note that `indexConfigMapName` and
+     * `downloadTime` are both absent until the backend has published an index for the repository,
+     * and that it writes the two together. `indexConfigMapResourceVersion` is deliberately not
+     * modelled: the field exists in the Go type but is never persisted, because the controller
+     * reads it off a ConfigMap it built in memory rather than the applied one.
+     */
+    const repoOf = (uid: string, indexed = false, url = `https://example.com/${ uid }`) => ({
+      _key:        uid,
+      id:          uid,
+      nameDisplay: uid,
+      urlDisplay:  url,
+      metadata:    { name: uid } as Record<string, any>,
+      isAirgap:    false,
+      // Populated by Steve from the status conditions; absent until the backend reports something
+      stateObj:    undefined as undefined | { error: boolean, message: string },
+      status:      indexed ? {
+        indexConfigMapName: `${ uid }-0-${ uid }`,
+        downloadTime:       '2026-11-12T20:37:28Z',
+      } : {},
+    });
+
+    /**
+     * The repositories come from the store rather than from a `data()` member, so the list has to
+     * be reactive for the component to notice a repository being added or re-indexed.
+     */
+    const mountWithRepos = async(repos: any[], loading = false) => {
+      const dispatch = jest.fn(() => Promise.resolve());
+      const store = {
+        getters: {
+          'prefs/get':         jest.fn(),
+          'catalog/rawCharts': [],
+          'uiplugins/plugins': [],
+          'uiplugins/errors':  {},
+          'management/all':    () => repos,
+        },
+        dispatch,
+      };
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: { $store: store, t },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      await w.setData({ loading });
+      dispatch.mockClear();
+
+      return { wrapper: w, dispatch };
+    };
+
+    /** Let the watcher run, then flush the debounce that collapses a burst of changes. */
+    const settle = async(w: VueWrapper<any>) => {
+      await w.vm.$nextTick();
+    };
+
+    it('should load the charts of a repository once its index has been built', async() => {
+      const repos = reactive([repoOf('repo-1')]);
+      const { wrapper: w, dispatch } = await mountWithRepos(repos);
+
+      Object.assign(repos[0].status, { indexConfigMapName: 'repo-1-0-abc', downloadTime: '2026-11-12T20:37:28Z' });
+      await settle(w);
+
+      expect(dispatch).toHaveBeenCalledWith('catalog/load', { force: true, repoKeys: ['repo-1'] });
+    });
+
+    it('should load the charts of a repository added while the page is open', async() => {
+      const repos = reactive([repoOf('repo-1', true)]);
+      const { wrapper: w, dispatch } = await mountWithRepos(repos);
+
+      repos.push(repoOf('repo-2', true));
+      await settle(w);
+
+      expect(dispatch).toHaveBeenCalledWith('catalog/load', { force: true, repoKeys: ['repo-2'] });
+    });
+
+    it('should load the charts of a repository that has been re-indexed', async() => {
+      const repos = reactive([repoOf('repo-1', true)]);
+      const { wrapper: w, dispatch } = await mountWithRepos(repos);
+
+      // A refresh keeps the same configmap and only moves the download time on
+      repos[0].status.downloadTime = '2026-11-12T21:05:11Z';
+      await settle(w);
+
+      expect(dispatch).toHaveBeenCalledWith('catalog/load', { force: true, repoKeys: ['repo-1'] });
+    });
+
+    it('should only load the charts of the repositories whose index changed', async() => {
+      const repos = reactive([repoOf('repo-1', true), repoOf('repo-2', true)]);
+      const { wrapper: w, dispatch } = await mountWithRepos(repos);
+
+      repos[1].status.downloadTime = '2026-11-12T21:05:11Z';
+      await settle(w);
+
+      expect(dispatch).toHaveBeenCalledWith('catalog/load', { force: true, repoKeys: ['repo-2'] });
+      expect(dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not load anything when a repository changes in a way that leaves its index alone', async() => {
+      const repos = reactive([repoOf('repo-1', true)]);
+      const { wrapper: w, dispatch } = await mountWithRepos(repos);
+
+      repos[0].urlDisplay = 'https://example.com/moved';
+      await settle(w);
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should not load anything when a repository is removed', async() => {
+      const repos = reactive([repoOf('repo-1', true), repoOf('repo-2', true)]);
+      const { wrapper: w, dispatch } = await mountWithRepos(repos);
+
+      repos.splice(1, 1);
+      await settle(w);
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should not load anything while the page is still fetching', async() => {
+      const repos = reactive([repoOf('repo-1')]);
+      const { wrapper: w, dispatch } = await mountWithRepos(repos, true);
+
+      Object.assign(repos[0].status, { indexConfigMapName: 'repo-1-0-abc', downloadTime: '2026-11-12T20:37:28Z' });
+      await settle(w);
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('should hide the add repositories banner once the partners repository is in the store', async() => {
+      const repos = reactive<any[]>([]);
+      const { wrapper: w } = await mountWithRepos(repos);
+
+      expect(w.find('[data-testid="extensions-new-repos-banner"]').exists()).toBe(true);
+
+      repos.push(repoOf('repo-1', true, UI_PLUGINS_REPOS.PARTNERS.URL));
+      await settle(w);
+
+      expect(w.find('[data-testid="extensions-new-repos-banner"]').exists()).toBe(false);
+    });
+
+    describe('pending repositories banner', () => {
+      const bannerOf = (w: VueWrapper<any>) => w.find('[data-testid="extensions-pending-repos-banner"]');
+
+      it('should say a repository is still downloading while it has no index', async() => {
+        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        expect(bannerOf(w).exists()).toBe(true);
+        expect(bannerOf(w).attributes('color')).toBe('info');
+        expect(w.vm.hasFailedRepos).toBe(false);
+        expect(w.vm.pendingRepos).toStrictEqual([{
+          id: 'repo-1', name: 'repo-1', failed: false, message: ''
+        }]);
+      });
+
+      it('should not surface the placeholder state message of a repository that is merely downloading', async() => {
+        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        // Steve reports a resource with no conditions as active, so a repository that was created
+        // moments ago carries this message. Repeating it at the user explains nothing.
+        repos[0].stateObj = { error: false, message: 'Resource is current' };
+        await settle(w);
+
+        expect(w.vm.pendingRepos[0].message).toBe('');
+        expect(w.vm.pendingRepoNames).toBe('repo-1');
+      });
+
+      it('should report a failure, not a download, once the backend has scheduled a retry', async() => {
+        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        // What a repository Rancher could not clone looks like: no index, and backing off
+        Object.assign(repos[0].status, { nextRetryAt: '2026-11-12T20:56:00Z', numberOfRetries: 1 });
+        repos[0].stateObj = { error: true, message: 'head failure: context deadline exceeded' };
+        await settle(w);
+
+        expect(w.vm.hasFailedRepos).toBe(true);
+        expect(bannerOf(w).attributes('color')).toBe('error');
+        expect(w.vm.pendingRepos).toStrictEqual([{
+          id: 'repo-1', name: 'repo-1', failed: true, message: 'head failure: context deadline exceeded'
+        }]);
+      });
+
+      it('should drop a repository from the banner once its index arrives', async() => {
+        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        expect(bannerOf(w).exists()).toBe(true);
+
+        Object.assign(repos[0].status, { indexConfigMapName: 'repo-1-0-abc', downloadTime: '2026-11-12T20:37:28Z' });
+        await settle(w);
+
+        expect(bannerOf(w).exists()).toBe(false);
+      });
+
+      it('should not show the banner when every repository has an index', async() => {
+        const repos = reactive([repoOf('repo-1', true, UI_PLUGINS_REPOS.OFFICIAL.URL), repoOf('repo-2', true, UI_PLUGINS_REPOS.PARTNERS.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        expect(bannerOf(w).exists()).toBe(false);
+      });
+
+      const failRepo = (repo: any, message = 'head failure: context deadline exceeded') => {
+        Object.assign(repo.status, { nextRetryAt: '2026-11-12T20:56:00Z', numberOfRetries: 1 });
+        repo.stateObj = { error: true, message };
+      };
+
+      it('should only offer to dismiss the banner when something has actually failed', async() => {
+        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        expect(bannerOf(w).attributes('closable')).toBe('false');
+
+        failRepo(repos[0]);
+        await settle(w);
+
+        expect(bannerOf(w).attributes('closable')).toBe('true');
+      });
+
+      it('should hide the banner once the failure has been dismissed', async() => {
+        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        failRepo(repos[0]);
+        await settle(w);
+        bannerOf(w).trigger('close');
+        await settle(w);
+
+        expect(bannerOf(w).exists()).toBe(false);
+      });
+
+      it('should keep telling the user about repositories that are still downloading', async() => {
+        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL), repoOf('repo-2', false, UI_PLUGINS_REPOS.PARTNERS.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        failRepo(repos[0]);
+        await settle(w);
+        bannerOf(w).trigger('close');
+        await settle(w);
+
+        // repo-2 is merely slow, so dismissing repo-1's failure must not silence it
+        expect(bannerOf(w).exists()).toBe(true);
+        expect(w.vm.hasFailedRepos).toBe(false);
+        expect(w.vm.pendingRepoNames).toBe('repo-2');
+      });
+
+      it('should report a repository that fails again after recovering', async() => {
+        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        failRepo(repos[0]);
+        await settle(w);
+        bannerOf(w).trigger('close');
+        await settle(w);
+        expect(bannerOf(w).exists()).toBe(false);
+
+        // The retry succeeds, so the repository drops out of the pending list entirely
+        repos[0].status = { indexConfigMapName: 'repo-1-0-abc', downloadTime: '2026-11-12T21:00:00Z' };
+        await settle(w);
+        expect(w.vm.dismissedRepos).toStrictEqual([]);
+
+        // ...and then it breaks again
+        repos[0].status = {};
+        failRepo(repos[0], 'fetch: unexpected client error');
+        await settle(w);
+
+        expect(bannerOf(w).exists()).toBe(true);
+        expect(w.vm.visiblePendingRepos[0].message).toBe('fetch: unexpected client error');
+      });
+
+      it.each([
+        ['an unrelated chart repository', 'https://example.com/my-charts'],
+        ['the community extensions repository', UI_PLUGINS_REPOS.COMMUNITY.URL],
+      ])('should stay silent about %s that has no index', async(_label, url) => {
+        // Adding a repository for reasons unrelated to extensions must not put a message on this
+        // page - until its index exists there is no way to know whether it holds any extensions
+        const repos = reactive([repoOf('repo-1', false, url)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        expect(w.vm.pendingRepos).toStrictEqual([]);
+        expect(bannerOf(w).exists()).toBe(false);
+      });
+
+      describe('airgap', () => {
+        // Mirrored internally, so the URL no longer points at github.com/rancher
+        const MIRROR_URL = 'https://git.internal.example.com/mirror/ui-plugin-charts';
+
+        const mirrorOf = (name: string, isAirgap: boolean) => ({
+          ...repoOf('repo-1', false, MIRROR_URL), isAirgap, metadata: { name }
+        });
+
+        it.each([
+          ['official', UI_PLUGINS_REPOS.OFFICIAL.NAME],
+          ['partners', UI_PLUGINS_REPOS.PARTNERS.NAME],
+        ])('should report the mirrored %s repository by name', async(_label, name) => {
+          const repos = reactive([mirrorOf(name, true)]);
+          const { wrapper: w } = await mountWithRepos(repos);
+
+          expect(w.vm.pendingRepos).toHaveLength(1);
+          expect(bannerOf(w).exists()).toBe(true);
+        });
+
+        it('should not let a repository claim the official name outside an airgapped install', async() => {
+          const repos = reactive([mirrorOf(UI_PLUGINS_REPOS.OFFICIAL.NAME, false)]);
+          const { wrapper: w } = await mountWithRepos(repos);
+
+          expect(w.vm.pendingRepos).toStrictEqual([]);
+          expect(bannerOf(w).exists()).toBe(false);
+        });
+
+        it('should ignore an unrelated mirrored repository', async() => {
+          const repos = reactive([mirrorOf('my-internal-charts', true)]);
+          const { wrapper: w } = await mountWithRepos(repos);
+
+          expect(w.vm.pendingRepos).toStrictEqual([]);
+          expect(bannerOf(w).exists()).toBe(false);
+        });
+      });
+
+      it('should report the official and partners repositories', async() => {
+        const repos = reactive([
+          repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL),
+          repoOf('repo-2', false, UI_PLUGINS_REPOS.PARTNERS.URL),
+          repoOf('repo-3', false, 'https://example.com/my-charts'),
+        ]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        expect(w.vm.pendingRepoNames).toBe('repo-1, repo-2');
+      });
+
+      it.each([
+        ['disabled', { _isClusterRepoDisabled: true }],
+        ['hidden', { metadata: { annotations: { 'clusterrepo.cattle.io/hidden': 'true' } } }],
+      ])('should ignore a %s repository that has no index', async(_label, overrides) => {
+        const repos = reactive([{ ...repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL), ...overrides }]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        expect(w.vm.pendingRepos).toStrictEqual([]);
+        expect(bannerOf(w).exists()).toBe(false);
+      });
     });
   });
 });
