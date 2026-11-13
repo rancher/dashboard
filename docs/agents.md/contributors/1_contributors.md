@@ -49,6 +49,13 @@ When either created, editing, viewing or listing a kubernetes resource the follo
       - or a generic component for header, handling YAML or a custom component to show a form
     - custom components are either supplied via components in `shell/edit` (create/edit), `shell/detail` (detail) or externally via a UI Extension
 
+## Fetching Resources
+
+- Use the store's actions (`find`, `findAll`, `findPage`, etc) rather than dispatching `<store>/request` with a hand-built `/v1/...` url. If the request needs pagination args (page size, filters, sort) use `findPage`.
+- Avoid fetching all of a resource type that can scale to large numbers, especially clusters (`MANAGEMENT.CLUSTER`). Instead
+  - for a dropdown, use `ResourceLabeledSelect` (`shell/components/form/ResourceLabeledSelect.vue`). With pagination enabled it requests one page at a time and doesn't persist results to the store. See the cluster scope select in `shell/edit/token.vue`, which also filters clusters server-side via `paginationFilterClusters`
+  - if only the spread of possible options for a property in a resource is needed use the steve store's `fetchResourceSummary` action (e.g. `summaryField: 'metadata.name'`)
+
 ## Translations
 
 - Translations live in `shell/assets/translations/`. `en-us.yaml` is the source of truth.
