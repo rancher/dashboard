@@ -131,7 +131,7 @@ const baseConfig = defineConfig({
   // "Timed out waiting for the browser to connect" late in a 20+ spec job.
   experimentalMemoryManagement: true,
   retries:                      {
-    runMode:  e2eMode === 'integration' ? 0 : 2,
+    runMode:  2,
     openMode: 0
   },
   // `expose` (Cypress 15.10+) is read via `Cypress.expose()`. Both @cypress/grep v6 and
