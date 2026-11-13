@@ -204,4 +204,28 @@ describe('clusterRepo', () => {
       }, { root: true });
     });
   });
+
+  describe('canLoad', () => {
+    const build = (state: any, status: any) => new ClusterRepo({
+      metadata: { name: 'test-repo', state },
+      spec:     { url: 'https://test-url.com' },
+      status,
+    }, {
+      getters: {}, dispatch: jest.fn(), rootGetters: {}
+    } as any);
+
+    it.each([
+      ['active repo with an index', { name: 'active' }, { indexConfigMapName: 'test-repo-abc123' }, true],
+      // Steve defaults `metadata.state` to `active` for a resource with no status conditions, so a
+      // repo created moments ago reports as active while its index is still being built
+      ['just created repo, reported as active with no index', { name: 'active' }, {}, false],
+      ['just created repo with no status at all', { name: 'active' }, undefined, false],
+      ['repo still downloading', { name: 'downloading', error: true }, {}, false],
+      ['repo downloading a replacement for an existing index', { name: 'downloading', error: true }, { indexConfigMapName: 'test-repo-abc123' }, false],
+      ['repo with no state', undefined, { indexConfigMapName: 'test-repo-abc123' }, false],
+      ['repo with an empty index name', { name: 'active' }, { indexConfigMapName: '' }, false],
+    ])('should determine whether the index can be fetched for an %s', (_label, state, status, expected) => {
+      expect(build(state, status).canLoad).toBe(expected);
+    });
+  });
 });
