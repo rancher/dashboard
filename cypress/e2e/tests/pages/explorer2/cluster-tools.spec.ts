@@ -8,6 +8,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { qase } from '@/cypress/support/qase';
+import { coerce, satisfies } from 'semver';
 
 const clusterTools = new ClusterToolsPagePo('local');
 const kubectl = new Kubectl();
@@ -131,6 +132,124 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
         kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
       });
     }));
+  });
+
+  describe('Remove a chart whose CRD app is already gone', () => {
+    const CRD_CHART = {
+      name: 'Supportability Review',
+      id:   'rancher-supportability-review',
+      crd:  'rancher-supportability-review-crd',
+      repo: 'rancher-charts'
+    };
+    let chartNamespace: string;
+
+    const appId = (name: string) => `${ chartNamespace }/${ name }`;
+
+    const appState = (name: string): Cypress.Chainable<string> => cy.request({
+      url:              `${ Cypress.env('api') }/v1/catalog.cattle.io.apps/${ appId(name) }`,
+      headers:          { Accept: 'application/json' },
+      failOnStatusCode: false
+    }).then((resp) => (resp.status === 200 ? resp.body?.metadata?.state?.name || 'unknown' : 'absent'));
+
+    const uninstallApp = (name: string) => {
+      cy.createRancherResource('v1', `catalog.cattle.io.apps/${ appId(name) }?action=uninstall`, '{}', false);
+      cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', appId(name), (resp: any) => resp?.status === 404, 80, { failOnStatusCode: false })
+        .should('eq', true);
+    };
+
+    const installApp = (chartId: string, chartName: string, version: string) => {
+      cy.installChart(CRD_CHART.repo, chartId, chartName, version, chartNamespace);
+      cy.waitForResourceState('v1', 'catalog.cattle.io.apps', appId(chartId), 'deployed', 200)
+        .should('eq', true);
+    };
+
+    const newestCompatibleVersion = (): Cypress.Chainable<any> => cy.getRancherVersion().then(({ Version }) => {
+      const rancherVersion = coerce(Cypress.env('rancherVersion') || Version);
+
+      return cy.request({
+        url:     `${ Cypress.env('api') }${ CLUSTER_REPOS_BASE_URL }/${ CRD_CHART.repo }?link=index`,
+        headers: { Accept: 'application/json' }
+      }).then((resp) => {
+        const versions = resp.body.entries[CRD_CHART.id];
+        const compatible = versions.find((chart: any) => {
+          const range = chart.annotations?.['catalog.cattle.io/rancher-version'];
+
+          return !rancherVersion || !range || satisfies(rancherVersion, range);
+        });
+
+        return compatible || versions[0];
+      });
+    });
+
+    const installChartWithoutCrdApp = () => {
+      newestCompatibleVersion().then((chart) => {
+        chartNamespace = chart.annotations['catalog.cattle.io/namespace'];
+
+        appState(CRD_CHART.id).then((app) => {
+          appState(CRD_CHART.crd).then((crd) => {
+            if (app === 'deployed' && crd === 'absent') {
+              return;
+            }
+
+            uninstallApp(CRD_CHART.id);
+            uninstallApp(CRD_CHART.crd);
+            installApp(CRD_CHART.crd, CRD_CHART.crd, chart.version);
+            installApp(CRD_CHART.id, CRD_CHART.name, chart.version);
+            uninstallApp(CRD_CHART.crd);
+          });
+        });
+      });
+    };
+
+    beforeEach(function() {
+      runTestWhenChartAvailable(CRD_CHART.repo, CRD_CHART.id, this, installChartWithoutCrdApp);
+    });
+
+    it('can remove the chart with "Delete the CRD" ticked', function() {
+      runTestWhenChartAvailable(CRD_CHART.repo, CRD_CHART.id, this, () => {
+        cy.intercept('GET', new RegExp(`${ CLUSTER_APPS_BASE_URL }/${ appId(CRD_CHART.crd) }(\\?|$)`)).as('findCrdApp');
+        cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/${ appId(CRD_CHART.id) }?action=uninstall`).as('chartUninstall');
+        cy.intercept('POST', `${ CLUSTER_APPS_BASE_URL }/${ appId(CRD_CHART.crd) }?action=uninstall`).as('crdUninstall');
+
+        waitForToolsPage();
+        clusterTools.deleteChart(CRD_CHART.name);
+
+        const promptRemove = new PromptRemove();
+        const crdAppsListed = (count: number) => promptRemove.self().find('b').should(($names) => {
+          expect($names.toArray().filter((name) => name.textContent === CRD_CHART.crd)).to.have.length(count);
+        });
+
+        promptRemove.checkbox().set();
+        cy.wait('@findCrdApp').its('response.statusCode').should('eq', 404);
+        crdAppsListed(1);
+        promptRemove.checkbox().isChecked();
+        promptRemove.self().find('.text-error').should('not.exist');
+
+        promptRemove.checkbox().set();
+        crdAppsListed(0);
+        promptRemove.checkbox().isUnchecked();
+
+        promptRemove.checkbox().set();
+        crdAppsListed(1);
+        promptRemove.checkbox().isChecked();
+        promptRemove.self().find('.text-error').should('not.exist');
+
+        promptRemove.remove();
+        cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
+        promptRemove.checkNotExists(MEDIUM_TIMEOUT_OPT);
+        kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
+        cy.get('@crdUninstall.all').should('have.length', 0);
+        cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', appId(CRD_CHART.id), (resp: any) => resp?.status === 404, 80, { failOnStatusCode: false })
+          .should('eq', true);
+      });
+    });
+
+    after(() => {
+      if (chartNamespace) {
+        uninstallApp(CRD_CHART.id);
+        uninstallApp(CRD_CHART.crd);
+      }
+    });
   });
 
   after(() => {

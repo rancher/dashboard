@@ -196,8 +196,8 @@ describe('class CatalogApp', () => {
   describe('relatedResourcesToRemove', () => {
     const notFound = { status: 404, code: 'NotFound' };
 
-    const createApp = (dispatch: jest.Mock) => new CatalogApp({
-      metadata: { name: 'rancher-compliance', namespace: 'compliance-operator-system' },
+    const createApp = (dispatch: jest.Mock, namespace = 'compliance-operator-system') => new CatalogApp({
+      metadata: { name: 'rancher-compliance', namespace },
       spec:     { chart: { metadata: { annotations: { [CATALOG_ANNOTATIONS.AUTO_INSTALL]: 'rancher-compliance-crd=match' } } } }
     }, { dispatch });
 
@@ -237,6 +237,15 @@ describe('class CatalogApp', () => {
       expect(second).toBe(first);
     });
 
+    it('should resolve to a stand-in of its own for an app in another namespace', async() => {
+      const dispatch = jest.fn().mockRejectedValue(notFound);
+
+      await createApp(dispatch).relatedResourcesToRemove();
+      const other = await createApp(dispatch, 'other-namespace').relatedResourcesToRemove();
+
+      expect(other.id).toBe('other-namespace/rancher-compliance-crd');
+    });
+
     it('should resolve when the stand-in is removed', async() => {
       const dispatch = jest.fn().mockRejectedValue(notFound);
       const standIn = await createApp(dispatch).relatedResourcesToRemove();
@@ -247,6 +256,7 @@ describe('class CatalogApp', () => {
     it.each([
       ['forbidden', { status: 403, code: 'Forbidden' }],
       ['a network failure', new Error('Network Error')],
+      ['no error at all', undefined],
     ])('should reject when finding the CRD app fails with %s', async(_, error) => {
       const dispatch = jest.fn().mockRejectedValue(error);
 
