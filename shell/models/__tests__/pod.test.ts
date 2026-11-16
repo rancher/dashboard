@@ -263,6 +263,46 @@ describe('class Pod', () => {
 
       expect(pod.workloadTypeLabel).toStrictEqual('component.resource.detail.glance.workload');
     });
+
+    it('should fall back to a generic label when nothing owns the pod', () => {
+      const pod = createPod();
+
+      expect(pod.workloadTypeLabel).toStrictEqual('component.resource.detail.glance.workload');
+    });
+  });
+
+  describe('workloadRef', () => {
+    const owner = (type: string, id: string) => ({
+      fromType: type, fromId: id, rel: 'owner', state: 'active'
+    });
+    const createPodOwnedBy = (...owners: any[]) => createPod({
+      metadata: {
+        name: 'frontend-57b8b59b77-abcde', namespace: 'default', relationships: owners
+      }
+    });
+
+    it('should be the workload that owns the pod', () => {
+      const pod = createPodOwnedBy(owner(WORKLOAD_TYPES.REPLICA_SET, 'default/frontend-57b8b59b77'));
+
+      expect(pod.workloadRef).toStrictEqual({
+        type: WORKLOAD_TYPES.REPLICA_SET, namespace: 'default', name: 'frontend-57b8b59b77', id: 'default/frontend-57b8b59b77'
+      });
+    });
+
+    it('should prefer the higher level workload when more than one owns the pod', () => {
+      const pod = createPodOwnedBy(
+        owner(WORKLOAD_TYPES.REPLICA_SET, 'default/frontend-57b8b59b77'),
+        owner(WORKLOAD_TYPES.DEPLOYMENT, 'default/frontend'),
+      );
+
+      expect(pod.workloadRef.type).toStrictEqual(WORKLOAD_TYPES.DEPLOYMENT);
+    });
+
+    it('should ignore owners that are not workloads, e.g. the node of a static pod', () => {
+      const pod = createPodOwnedBy(owner(NODE, 'node-1'));
+
+      expect([pod.workloadRef, pod.ownedByWorkload]).toStrictEqual([undefined, false]);
+    });
   });
 
   describe('details', () => {
@@ -397,6 +437,14 @@ describe('class Pod', () => {
       stubBaseGlance(pod);
 
       expect(pod.glance.map((item: any) => item.name)).toStrictEqual(['state', 'type', 'namespace', 'ready', 'restarts', 'podIp', 'workload', 'node', 'age']);
+    });
+
+    it('should add the pod rows at the end when there is no age row', () => {
+      const pod = createPod(podData);
+
+      Object.defineProperty(pod, '_glance', { get: () => [{ name: 'state' }, { name: 'type' }] });
+
+      expect(pod.glance.map((item: any) => item.name)).toStrictEqual(['state', 'type', 'ready', 'restarts', 'podIp', 'node']);
     });
 
     it('should show the ready count with a status coloured by readiness', () => {

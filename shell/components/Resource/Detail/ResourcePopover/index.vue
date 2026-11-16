@@ -36,7 +36,6 @@ const props = withDefaults(defineProps<Props>(), {
   currentStore: undefined, detailLocation: undefined, name: undefined, showStatus: true, lazy: false
 });
 const card = ref<any>(null);
-const showPopover = ref<boolean>(false);
 
 const glanceResourcesLoading = ref<boolean>(false);
 let glanceResourcesAbort: AbortController | undefined;
@@ -125,10 +124,6 @@ const resourceTypeLabel = computed(() => {
 const nameDisplay = computed(() => {
   return fetch.value.data?.nameDisplay || props.name || props.id;
 });
-
-const actionInvoked = () => {
-  showPopover.value = false;
-};
 </script>
 
 <template>
@@ -142,10 +137,7 @@ const actionInvoked = () => {
     @mouseenter="loadResource"
     @focusin="loadResource"
   >
-    <span
-      class="display"
-      @mouseenter="showPopover=true"
-    >
+    <span class="display">
       <RcStatusIndicator
         v-if="props.showStatus && fetch.data"
         shape="disc"
@@ -177,7 +169,6 @@ const actionInvoked = () => {
         ref="card"
         :resource="fetch.data"
         :usage-loading="glanceResourcesLoading"
-        @action-invoked="actionInvoked"
       />
       <!-- Focusable so a card opened with the keyboard has somewhere to put focus -->
       <div

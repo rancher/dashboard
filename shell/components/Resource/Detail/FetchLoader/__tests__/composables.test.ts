@@ -95,4 +95,40 @@ describe('composables: useFetch', () => {
       expect(result.value.data).toStrictEqual(mockData);
     });
   });
+
+  describe('refresh', () => {
+    it('should not fetch again while the first fetch is still loading', () => {
+      const mockFetch = jest.fn(() => new Promise(() => {}));
+
+      const result = useFetch(mockFetch);
+
+      result.value.refresh();
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fetch again, and say it is refreshing until the new data is in', async() => {
+      let resolveRefresh: (value: string) => void = () => {};
+      const mockFetch = jest.fn()
+        .mockResolvedValueOnce('first')
+        .mockReturnValueOnce(new Promise((resolve) => {
+          resolveRefresh = resolve;
+        }));
+
+      const result = useFetch(mockFetch);
+
+      await nextTick();
+      const refreshing = result.value.refresh();
+
+      expect(result.value.refreshing).toBe(true);
+      expect(result.value.data).toStrictEqual('first');
+
+      resolveRefresh('second');
+      await refreshing;
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(result.value.refreshing).toBe(false);
+      expect(result.value.data).toStrictEqual('second');
+    });
+  });
 });
