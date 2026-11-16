@@ -2,9 +2,6 @@
 # Special stuff
 ##############################
 generic:
-  one: one
-  two: two
-  three: three
   unified: Unified
   split: Split
   userMenu: user menu
