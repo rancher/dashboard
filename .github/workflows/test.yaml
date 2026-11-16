@@ -255,6 +255,16 @@ jobs:
         if: ${{ failure() }}
         run: yarn k3s:local:logs
 
+      - name: Upload Rancher Logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-accessibility-rancher-logs
+          path: ${{ env.E2E_RANCHER_LOG }}
+          if-no-files-found: ignore
+          retention-days: 5
+          compression-level: 9
+
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
