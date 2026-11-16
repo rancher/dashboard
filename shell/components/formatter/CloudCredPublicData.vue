@@ -22,7 +22,7 @@ export default {
 
 <template>
   <div v-if="value && !$fetchState.pending">
-    <span v-clean-html="value" />
+    <span>{{ value }}</span>
   </div>
   <div v-else>
     <span class="text-muted">&mdash;</span>
