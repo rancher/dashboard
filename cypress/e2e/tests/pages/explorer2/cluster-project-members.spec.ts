@@ -153,3 +153,61 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
     });
   });
 });
+
+describe('Cluster Membership Add button', { tags: ['@explorer2', '@adminUser'] }, () => {
+  const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
+  const usernamePrefix = 'add-button-';
+
+  const loginAsNewUserWithClusterRole = (clusterRole: 'cluster-member' | 'cluster-owner') => {
+    cy.login();
+    cy.createUser({
+      username:    `${ usernamePrefix }${ clusterRole }-${ Date.now() }`,
+      globalRole:  { role: 'user' },
+      clusterRole: { clusterId: 'local', role: clusterRole },
+      password:    Cypress.env('password'),
+    }).then((resp: Cypress.Response<any>) => {
+      cy.login(resp.body.username, Cypress.env('password'), false);
+    });
+    cy.waitForRancherResource('v1', 'management.cattle.io.clusters', 'local', (resp: Cypress.Response<any>) => resp.status === 200, 20, { failOnStatusCode: false })
+      .should('eq', true);
+  };
+
+  const deleteUsersCreatedByThisRun = () => {
+    cy.getRootE2EResourceName().then((root) => {
+      cy.getRancherResource('v3', 'users?limit=-1').then((resp: Cypress.Response<any>) => {
+        (resp.body?.data || [])
+          .filter((user: any) => user.username?.startsWith(`${ root }-${ usernamePrefix }`))
+          .forEach((user: any) => cy.deleteRancherResource('v1', 'management.cattle.io.users', user.id, false));
+      });
+    });
+  };
+
+  const navToClusterMembership = () => {
+    HomePagePo.goTo();
+    clusterMembership.navToClusterMenuEntry('local');
+    clusterMembership.waitForPageWithSpecificUrl('/c/local/explorer');
+    clusterMembership.navToSideMenuEntryByLabel('Cluster and Project Members');
+    clusterMembership.waitForPageWithExactUrl();
+    clusterMembership.clusterMembershipTab().should('be.visible');
+    clusterMembership.sortableTable().checkLoadingIndicatorNotVisible();
+  };
+
+  afterEach(() => {
+    cy.login();
+    deleteUsersCreatedByThisRun();
+  });
+
+  it('is not shown to a cluster member, who cannot add cluster members', () => {
+    loginAsNewUserWithClusterRole('cluster-member');
+    navToClusterMembership();
+
+    clusterMembership.clusterMemberAddButton().should('not.exist');
+  });
+
+  it('is shown to a cluster owner, who can add cluster members', () => {
+    loginAsNewUserWithClusterRole('cluster-owner');
+    navToClusterMembership();
+
+    clusterMembership.clusterMemberAddButton().should('be.visible');
+  });
+});
