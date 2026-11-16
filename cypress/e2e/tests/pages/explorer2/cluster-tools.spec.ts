@@ -8,6 +8,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import { qase } from '@/cypress/support/qase';
+import CardPo from '@/cypress/e2e/po/components/card.po';
 import { coerce, satisfies } from 'semver';
 
 const clusterTools = new ClusterToolsPagePo('local');
@@ -215,7 +216,8 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
         clusterTools.deleteChart(CRD_CHART.name);
 
         const promptRemove = new PromptRemove();
-        const crdAppsListed = (count: number) => promptRemove.self().find('b').should(($names) => {
+        const promptCard = new CardPo('[data-testid="card"].prompt-remove');
+        const crdAppsListed = (count: number) => promptCard.self().find('b').should(($names) => {
           expect($names.toArray().filter((name) => name.textContent === CRD_CHART.crd)).to.have.length(count);
         });
 
@@ -223,7 +225,7 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
         cy.wait('@findCrdApp').its('response.statusCode').should('eq', 404);
         crdAppsListed(1);
         promptRemove.checkbox().isChecked();
-        promptRemove.self().find('.text-error').should('not.exist');
+        promptCard.self().find('.text-error').should('not.exist');
 
         promptRemove.checkbox().set();
         crdAppsListed(0);
@@ -232,11 +234,11 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
         promptRemove.checkbox().set();
         crdAppsListed(1);
         promptRemove.checkbox().isChecked();
-        promptRemove.self().find('.text-error').should('not.exist');
+        promptCard.self().find('.text-error').should('not.exist');
 
         promptRemove.remove();
         cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
-        promptRemove.checkNotExists(MEDIUM_TIMEOUT_OPT);
+        promptCard.checkNotExists(MEDIUM_TIMEOUT_OPT);
         kubectl.waitForTerminalStatus('Disconnected', MEDIUM_TIMEOUT_OPT);
         cy.get('@crdUninstall.all').should('have.length', 0);
         cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', appId(CRD_CHART.id), (resp: any) => resp?.status === 404, 80, { failOnStatusCode: false })
