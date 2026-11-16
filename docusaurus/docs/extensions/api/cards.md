@@ -86,7 +86,7 @@ Resource detail pages show a row of cards under the masthead, which Rancher fill
 |`label`| String | Card title |
 |`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
 |`component`| Function | Component to be rendered as the content of the card |
-|`weight`| Number | Optional. Order of the card amongst the other extension cards, highest first. Cards with the same weight keep the order they were added in. Extension cards always come after the cards Rancher adds itself |
+|`weight`| Number | Optional. Order of the card amongst the other extension cards, highest first. Defaults to `0`. Cards of equal weight registered by the same extension keep the order they were added in; across extensions the tie falls back to extension load order, so give a card a distinct weight to place it relative to another extension's card. Extension cards always come after the cards Rancher adds itself |
 
 Rancher renders the card itself - the border and the title come from the same component the built-in cards use, and your component is rendered as the body of the card. The component is given the resource being viewed as a `resource` prop.
 

@@ -127,4 +127,47 @@ describe('fx: useExtensionCards', () => {
 
     expect(run({ [CardLocation.RESOURCE_DETAIL_CARD]: [first, second, third] }).value).toStrictEqual([first, second, third]);
   });
+
+  /**
+   * Extensions written in javascript, or built against an older shell, aren't type checked
+   * against `Card`, so `weight` can arrive as anything at all
+   */
+  describe('weights that are not numbers', () => {
+    const withWeight = (label: string, weight?: unknown) => ({
+      label, component, locationConfig: {}, weight
+    } as Card);
+
+    it('should order a numeric string by its numeric value', () => {
+      const stringTen = withWeight('string-ten', '10');
+      const five = withWeight('five', 5);
+
+      expect(run({ [CardLocation.RESOURCE_DETAIL_CARD]: [stringTen, five] }).value).toStrictEqual([stringTen, five]);
+    });
+
+    it.each([
+      ['a non-numeric string', 'high'],
+      ['null', null],
+      ['an object', {}],
+      ['an empty string', ''],
+    ])('should count %s as weight zero', (_label, weight) => {
+      const junk = withWeight('junk', weight);
+      const heavy = withWeight('heavy', 10);
+      const negative = withWeight('negative', -1);
+
+      expect(run({ [CardLocation.RESOURCE_DETAIL_CARD]: [negative, junk, heavy] }).value).toStrictEqual([heavy, junk, negative]);
+    });
+
+    it('should not let one bad weight reorder other extensions cards', () => {
+      // A NaN comparison result is read as "equal", which makes the sort give up part way and
+      // move cards that have perfectly good weights
+      const five = withWeight('five', 5);
+      const junk = withWeight('junk', 'high');
+      const one = withWeight('one', 1);
+      const ten = withWeight('ten', 10);
+      const three = withWeight('three', 3);
+
+      expect(run({ [CardLocation.RESOURCE_DETAIL_CARD]: [five, junk, one, ten, three] }).value)
+        .toStrictEqual([ten, five, three, one, junk]);
+    });
+  });
 });

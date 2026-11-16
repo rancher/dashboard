@@ -10,8 +10,10 @@ import { Card, CardLocation, ExtensionPoint } from '@shell/core/types';
  * The Options API equivalent is a `getApplicableExtensionEnhancements(this, ...)` call - this is
  * the same thing for components using the composition API.
  *
- * Cards are sorted by `weight`, highest first. Cards of equal weight keep the order they were
- * registered in. Resolving `labelKey` into a title is left to the caller.
+ * Cards are sorted by `weight`, highest first. Cards of equal weight registered by the same
+ * extension keep the order they were registered in; across extensions the tie falls back to the
+ * order the extensions happened to load in. Resolving `labelKey` into a title is left to the
+ * caller.
  */
 export const useExtensionCards = (location: CardLocation): ComputedRef<Card[]> => {
   const route = useRoute();
@@ -31,6 +33,10 @@ export const useExtensionCards = (location: CardLocation): ComputedRef<Card[]> =
       route as any
     );
 
-    return [...cards].sort((a, b) => (b.weight || 0) - (a.weight || 0));
+    // `weight` comes from a third party and isn't type checked, so coerce it - anything that
+    // isn't a number counts as 0 rather than making the comparison NaN, which would reorder
+    // other extensions' cards. `getApplicableExtensionEnhancements` returns a fresh array, so
+    // sorting in place doesn't touch the shared uiConfig
+    return cards.sort((a, b) => (Number(b.weight) || 0) - (Number(a.weight) || 0));
   });
 };
