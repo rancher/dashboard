@@ -466,5 +466,12 @@ describe('grouping a date by month', () => {
       expect(typeof label).toBe('function');
       expect(label({ metadata: { name: 'web' } })).not.toBe('pool');
     });
+
+    it('should show a value as typed, as the heading renders its label as markup', () => {
+      const label = labelFor(methods.groupFieldFor.call(ctx, 'name')) as (row: object) => string;
+
+      expect(label({ name: '<b>bold</b> <img src=x> & "end"' })).toBe('&lt;b&gt;bold&lt;/b&gt; &lt;img src=x&gt; &amp; &quot;end&quot;');
+      expect(label({})).toBe('(none)');
+    });
   });
 });

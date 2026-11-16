@@ -7,6 +7,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { COUNT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
+import { escapeHtml } from '@shell/utils/string';
 import { ExtensionPoint, TableColumnLocation, TableLocation } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import { ToggleSwitch } from '@components/Form/ToggleSwitch';
@@ -621,7 +622,10 @@ export default {
       return null;
     },
 
-    /** A toolbar grouping's labels, eg a month by name; the page's own `group-ref` is for its own groupings */
+    /**
+     * A toolbar grouping's labels, eg a month by name; the page's own `group-ref` is for its own groupings.
+     * The heading renders a label as markup, so the value, which can be any text a user typed, is escaped
+     */
     computedGroupRef() {
       const field = this.viewGroupField;
       const groupBy = this.computedGroupBy;
@@ -630,7 +634,7 @@ export default {
         return this.groupRef;
       }
 
-      return field.byMonth ? (row) => monthLabel(groupBy(row)) : groupBy;
+      return field.byMonth ? (row) => escapeHtml(monthLabel(groupBy(row))) : (row) => escapeHtml(groupBy(row));
     },
 
     /**
