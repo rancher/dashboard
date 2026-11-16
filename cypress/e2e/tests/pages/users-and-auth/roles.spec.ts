@@ -291,20 +291,22 @@ describe('Roles Templates', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     qase(5611, it('can delete a role template from the detail page', () => {
       // Delete role and verify role is removed from list
       roles.waitForRequests();
-      const oneRoleTemplateId = roleTemplatesToDelete.splice(0, 1)[0];
-      const detailPage = roles.detailRole(oneRoleTemplateId);
+      cy.createE2EResourceName('role-to-delete')
+        .then((name) => cy.createRancherResource('v3', 'roleTemplates', { name, context: 'cluster' }))
+        .then((resp) => {
+          const roleTemplateId = resp.body.id;
 
-      detailPage.goTo();
-      detailPage.waitForPage();
+          roleTemplatesToDelete.push(roleTemplateId);
 
-      const actionMenu = detailPage.detail().openMastheadActionMenu();
+          const detailPage = roles.detailRole(roleTemplateId);
 
-      actionMenu.clickMenuItem(4);
+          detailPage.goTo();
+          detailPage.waitForPage();
+          detailPage.detail().openMastheadActionMenu().getMenuItem('Delete').click();
 
-      const promptRemove = new PromptRemove();
-
-      promptRemove.remove();
-      roles.list('CLUSTER').elementWithName(oneRoleTemplateId).should('not.exist');
+          new PromptRemove().remove();
+          roles.list('CLUSTER').elementWithName(roleTemplateId).should('not.exist');
+        });
     }));
 
     qase(5518, it('can delete a role template', () => {
