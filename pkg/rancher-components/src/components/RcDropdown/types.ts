@@ -1,6 +1,6 @@
 import { Ref, ref, VNode } from 'vue';
 import type { RcButtonType } from '@components/RcButton';
-import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
+import { ButtonVariant, DeprecatedButtonVariant, ButtonSize } from '@components/RcButton/types';
 
 /** A nested menu, as RcDropdownSubmenu hands it to the menu it sits in */
 export type DropdownSubmenu = {
@@ -71,7 +71,7 @@ export type DropdownOption = {
 
 export type RcDropdownMenuComponentProps = {
   options: DropdownOption[];
-  buttonVariant?: ButtonVariant;
+  buttonVariant?: ButtonVariant | DeprecatedButtonVariant;
   buttonSize?: ButtonSize;
   buttonAriaLabel?: string;
   dropdownAriaLabel?: string;

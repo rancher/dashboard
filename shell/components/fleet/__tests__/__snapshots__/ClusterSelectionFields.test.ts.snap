@@ -56,6 +56,7 @@ exports[`component: ClusterSelectionFields should match snapshot with appco vari
     
     <rc-button-stub
       class="mmt-3"
+      color="primary"
       ghost="false"
       link="false"
       multiaction="false"
@@ -167,6 +168,7 @@ exports[`component: ClusterSelectionFields should match snapshot with default va
     
     <rc-button-stub
       class="mmt-4"
+      color="primary"
       ghost="false"
       link="false"
       multiaction="false"
