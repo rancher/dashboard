@@ -130,8 +130,6 @@ export default {
   },
 
   data() {
-    const cards = getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route);
-
     return {
       nodeHeaders,
       constraints:             [],
@@ -152,9 +150,6 @@ export default {
       ETCD_METRICS_SUMMARY_URL,
       STATES_ENUM,
       selectedTab:             'cluster-events',
-      // Cards are ordered by `weight`, highest first. The sort is stable, so cards sharing a
-      // weight keep the order they were added in
-      extensionCards:          [...cards].sort((a, b) => (b.weight || 0) - (a.weight || 0)),
       canViewEvents:           !!this.$store.getters['cluster/schemaFor'](EVENT),
       clusterServiceIcons,
     };
@@ -186,6 +181,16 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
     ...monitoringStatus(),
+
+    extensionCards() {
+      const cards = getApplicableExtensionEnhancements(this, ExtensionPoint.CARD, CardLocation.CLUSTER_DASHBOARD_CARD, this.$route);
+
+      // Cards are ordered by `weight`, highest first. `weight` comes from a third party and
+      // isn't type checked, so coerce it - anything that isn't a number counts as 0 rather than
+      // making the comparison NaN, which would reorder other extensions' cards. The sort is
+      // stable, so cards of equal weight keep the order the extension registered them in
+      return cards.sort((a, b) => (Number(b.weight) || 0) - (Number(a.weight) || 0));
+    },
 
     clusterCounts() {
       return this.$store.getters[`cluster/all`](COUNT);

@@ -50,7 +50,7 @@ _Arguments_
 |`label`| String | Card title |
 |`labelKey`| String | Same as "label" but allows for translation. Will superseed "label" |
 |`component`| Function | Component to be rendered aas content of a "Cluster Dashboard Card" |
-|`weight` *(From Rancher version v2.17.0)*| Number | Optional. Order of the card amongst the other extension cards in the same location, highest first. Cards with the same weight keep the order they were added in |
+|`weight` *(From Rancher version v2.17.0)*| Number | Optional. Order of the card amongst the other extension cards in the same location, highest first. Defaults to `0`. Cards of equal weight registered by the same extension keep the order they were added in; across extensions the tie falls back to extension load order, so give a card a distinct weight to place it relative to another extension's card |
 
 Usage example for `'CardLocation.CLUSTER_DASHBOARD_CARD'`:
 

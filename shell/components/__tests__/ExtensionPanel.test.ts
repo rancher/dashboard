@@ -5,8 +5,11 @@ import { ExtensionPoint, PanelLocation } from '@shell/core/types';
 /**
  * A panel as the extension manager hands it back: the registration options plus the
  * locationConfig `_addUIConfig` attaches. An empty locationConfig matches every route.
+ *
+ * `weight` is deliberately `unknown` - extensions written in javascript, or built against an
+ * older shell, are not type checked against `Panel`, so any value can arrive here.
  */
-const panel = (name: string, weight?: number) => ({
+const panel = (name: string, weight?: unknown) => ({
   name,
   weight,
   locationConfig: {},
@@ -76,6 +79,58 @@ describe('component: ExtensionPanel', () => {
     PanelLocation.RESOURCE_LIST,
   ])('should order panels by weight in the %p location', (location) => {
     expect(renderedOrder([panel('light', 1), panel('heavy', 10)], location)).toStrictEqual(['heavy', 'light']);
+  });
+
+  describe('weights that are not numbers', () => {
+    it('should order a numeric string by its numeric value', () => {
+      expect(renderedOrder([
+        panel('string-ten', '10'),
+        panel('five', 5),
+      ])).toStrictEqual(['string-ten', 'five']);
+    });
+
+    it.each([
+      ['a non-numeric string', 'high'],
+      ['null', null],
+      ['an object', {}],
+      ['an empty string', ''],
+    ])('should count %s as weight zero', (_label, weight) => {
+      expect(renderedOrder([
+        panel('negative', -1),
+        panel('junk', weight),
+        panel('heavy', 10),
+      ])).toStrictEqual(['heavy', 'junk', 'negative']);
+    });
+
+    it('should not let one bad weight reorder other extensions panels', () => {
+      // A NaN comparison result is read as "equal", which makes the sort give up part way and
+      // move panels that have perfectly good weights
+      expect(renderedOrder([
+        panel('five', 5),
+        panel('junk', 'high'),
+        panel('one', 1),
+        panel('ten', 10),
+        panel('three', 3),
+      ])).toStrictEqual(['ten', 'five', 'three', 'one', 'junk']);
+    });
+  });
+
+  it('should re-evaluate when the location changes rather than freezing at creation', async() => {
+    const byLocation: Record<string, ReturnType<typeof panel>[]> = {
+      [PanelLocation.DETAIL_TOP]:    [panel('detail-top')],
+      [PanelLocation.RESOURCE_LIST]: [panel('resource-list')],
+    };
+
+    const wrapper = mount(ExtensionPanel, {
+      props:  { type: ExtensionPoint.PANEL, location: PanelLocation.DETAIL_TOP },
+      global: { mocks: { $route: route, $extension: { getUIConfig: (_type: string, location: string) => byLocation[location] } } },
+    });
+
+    expect(wrapper.findAll('.test-panel').map((w) => w.text())).toStrictEqual(['detail-top']);
+
+    await wrapper.setProps({ location: PanelLocation.RESOURCE_LIST });
+
+    expect(wrapper.findAll('.test-panel').map((w) => w.text())).toStrictEqual(['resource-list']);
   });
 
   it('should render nothing when no panels are registered', () => {

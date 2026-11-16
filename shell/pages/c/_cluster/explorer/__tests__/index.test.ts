@@ -489,8 +489,13 @@ describe('page: cluster dashboard', () => {
   });
 
   describe('extension cards', () => {
-    /** A card as the extension manager hands it back - an empty locationConfig matches any route */
-    const card = (label: string, weight?: number) => ({
+    /**
+     * A card as the extension manager hands it back - an empty locationConfig matches any route.
+     *
+     * `weight` is deliberately `unknown` - extensions written in javascript, or built against an
+     * older shell, are not type checked against `Card`, so any value can arrive here.
+     */
+    const card = (label: string, weight?: unknown) => ({
       label,
       weight,
       locationConfig: {},
@@ -544,6 +549,23 @@ describe('page: cluster dashboard', () => {
         card('second'),
         card('third'),
       ])).toStrictEqual(['first', 'second', 'third']);
+    });
+
+    it('should order a numeric string weight by its numeric value', () => {
+      expect(renderedCardLabels([
+        card('string-ten', '10'),
+        card('five', 5),
+      ])).toStrictEqual(['string-ten', 'five']);
+    });
+
+    it('should not let one bad weight reorder other extensions cards', () => {
+      expect(renderedCardLabels([
+        card('five', 5),
+        card('junk', 'high'),
+        card('one', 1),
+        card('ten', 10),
+        card('three', 3),
+      ])).toStrictEqual(['ten', 'five', 'three', 'one', 'junk']);
     });
 
     it('should render no card container when no extension registered a card', () => {
