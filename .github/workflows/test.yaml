@@ -203,7 +203,7 @@ jobs:
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
@@ -229,7 +229,7 @@ jobs:
           path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
       - name: Run Rancher
-        run: yarn e2e:docker
+        run: yarn e2e:k3s
       
       - name: Setup Rancher and user
         run: |
@@ -250,6 +250,10 @@ jobs:
           TEST_USERNAME: admin
           TEST_A11Y: true
           TEST_NO_VIDEOS: true          
+
+      - name: Fetch Rancher Logs
+        if: ${{ failure() }}
+        run: yarn k3s:local:logs
 
       - name: Upload report
         if: always()
