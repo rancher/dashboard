@@ -191,6 +191,39 @@ describe('component: RoleDetailEdit', () => {
     expect(wrapper.findComponent(CruResource).props('errors')).toStrictEqual([error]);
   });
 
+  it('should send CruResource back to the list it was opened from', () => {
+    const wrapper = shallowMount(RoleDetailEdit, {
+      props: {
+        mode:  _CREATE,
+        value: {
+          type:     MANAGEMENT.GLOBAL_ROLE,
+          rules:    [],
+          subtype:  SUBTYPE_MAPPING.GLOBAL.id,
+          metadata: { name: '' },
+        },
+      },
+      attrs: { 'done-route': 'somewhere-else' },
+
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $route:      { name: 'c-cluster-auth-roles-resource-create', query: {} },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
+              'store/customisation/': jest.fn()
+            }
+          }
+        },
+      },
+    });
+
+    expect(wrapper.findComponent(CruResource).props('doneRoute')).toBe('c-cluster-auth-roles-resource');
+  });
+
   describe('resourceOptions', () => {
     const createWrapper = () => mount(RoleDetailEdit, {
       props: {

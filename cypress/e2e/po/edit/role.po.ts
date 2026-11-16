@@ -6,6 +6,7 @@ import AsyncButtonPo from '@/cypress/e2e/po/components/async-button.po';
 import CheckboxInputPo from '@/cypress/e2e/po/components/checkbox-input.po';
 import { CypressChainable } from '@/cypress/e2e/po/po.types';
 import RadioGroupInputPo from '@/cypress/e2e/po/components/radio-group-input.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
 
 export default abstract class RoleEditPo extends PagePo {
   private static createPath(clusterId: string, resource: string, roleId?: string) {
@@ -40,6 +41,22 @@ export default abstract class RoleEditPo extends PagePo {
 
   saveEditYamlForm(): AsyncButtonPo {
     return new AsyncButtonPo('[data-testid="action-button-async-button"]', this.self());
+  }
+
+  editAsYaml(): CypressChainable {
+    return this.self().find('[data-testid="form-yaml"]');
+  }
+
+  yamlEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="yaml-editor-code-mirror"]');
+  }
+
+  saveYamlForm(): AsyncButtonPo {
+    return new AsyncButtonPo('[data-testid="form-yaml-save"]', this.self());
+  }
+
+  errors(): CypressChainable {
+    return this.self().find('#cru-errors');
   }
 
   saveAndWaitForRequests(method: string, url: any): CypressChainable {

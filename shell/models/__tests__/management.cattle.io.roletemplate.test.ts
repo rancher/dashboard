@@ -220,5 +220,70 @@ roleTemplateNames:
 
       expect(saved.save).toHaveBeenCalledWith();
     });
+
+    it('should save an empty YAML document with the values of the form', async() => {
+      const { saved, roleTemplate } = createRoleTemplate({ displayName: 'From The Form', context: 'project' });
+
+      await roleTemplate.saveYaml('');
+
+      expect(saved).toStrictEqual(expect.objectContaining({ context: 'project', projectCreatorDefault: false }));
+      expect(saved.save).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('method: save', () => {
+    it('should create the role template from the form through Norman', async() => {
+      const rules = [{
+        apiGroups: [''], resources: ['pods'], verbs: ['get']
+      }];
+      const { ctx, cached, roleTemplate } = createRoleTemplate({
+        displayName: 'Form Role', context: 'cluster', locked: true, clusterCreatorDefault: true, description: 'from the form', roleTemplateNames: ['cluster-member'], rules
+      });
+
+      cached.save = jest.fn();
+
+      await roleTemplate.save();
+
+      expect(ctx.dispatch).toHaveBeenCalledWith('rancher/create', { type: NORMAN.ROLE_TEMPLATE, name: 'Form Role' }, { root: true });
+      expect(cached).toStrictEqual(expect.objectContaining({
+        context:               'cluster',
+        locked:                true,
+        clusterCreatorDefault: true,
+        projectCreatorDefault: false,
+        description:           'from the form',
+        roleTemplateIds:       ['cluster-member'],
+        rules,
+      }));
+      expect(cached.save).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('method: saveNorman', () => {
+    it.each([
+      [
+        'keeps only the non-resource URLs of a rule that has them',
+        {
+          nonResourceURLs: ['/healthz'], resources: ['pods'], apiGroups: [''], verbs: ['get']
+        },
+        { nonResourceURLs: ['/healthz'], verbs: ['get'] },
+      ],
+      [
+        'drops the empty non-resource URLs of a rule for resources',
+        {
+          nonResourceURLs: [], resources: ['pods'], apiGroups: [''], verbs: ['get']
+        },
+        {
+          resources: ['pods'], apiGroups: [''], verbs: ['get']
+        },
+      ],
+    ])('%s', (_, rule, expected) => {
+      const { roleTemplate } = createRoleTemplate({});
+      const norman = { rules: [rule], save: jest.fn() };
+
+      roleTemplate.saveNorman(norman);
+
+      expect(norman.rules).toStrictEqual([expected]);
+      expect(norman.save).toHaveBeenCalledWith();
+    });
   });
 });
