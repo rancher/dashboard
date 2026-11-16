@@ -67,7 +67,7 @@ export default class ClusterProjectMembersPo extends PagePo {
   }
 
   submitProjectCreateButton() {
-    return cy.get('[data-testid="card-actions-slot"] button.variant-primary').click();
+    return cy.get('[data-testid="card-actions-slot"] button.role-primary').click();
   }
 
   saveCreateForm(): AsyncButtonPo {
