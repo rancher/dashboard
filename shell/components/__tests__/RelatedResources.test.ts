@@ -142,6 +142,7 @@ describe('component: RelatedResources', () => {
       },
     });
     const idsOf = (wrapper: any) => wrapper.vm.rows.map((row: any) => row.id);
+    const firstRow = (wrapper: any) => wrapper.vm.rows[0];
 
     it('should have no rows when the resource has no relationships', () => {
       const wrapper = mountWith({ value: { metadata: {} } });
@@ -198,7 +199,7 @@ describe('component: RelatedResources', () => {
     it('should link a namespaced resource to its detail page', () => {
       const wrapper = mountWith();
 
-      expect(wrapper.vm.rows[0].detailLocation).toStrictEqual({
+      expect(firstRow(wrapper).detailLocation).toStrictEqual({
         name:   'c-cluster-product-resource-namespace-id',
         params: {
           product: 'explorer', cluster: 'local', resource: POD, namespace: 'default', id: 'frontend-abcde'
@@ -217,7 +218,7 @@ describe('component: RelatedResources', () => {
         }
       });
 
-      expect(wrapper.vm.rows[0].detailLocation).toStrictEqual({
+      expect(firstRow(wrapper).detailLocation).toStrictEqual({
         name:   'c-cluster-product-resource-id',
         params: {
           product: 'explorer', cluster: 'local', resource: NODE, id: 'node-1'
@@ -238,7 +239,7 @@ describe('component: RelatedResources', () => {
         }
       });
 
-      expect(wrapper.vm.rows[0].detailLocation.params.cluster).toStrictEqual('local');
+      expect(firstRow(wrapper).detailLocation.params.cluster).toStrictEqual('local');
     });
 
     describe('getRealResources', () => {
@@ -262,14 +263,14 @@ describe('component: RelatedResources', () => {
           dispatch: jest.fn(() => Promise.resolve({})),
         });
 
-        expect(wrapper.vm.rows[0].state).toStrictEqual('running');
+        expect(firstRow(wrapper).state).toStrictEqual('running');
 
         store.pod = {
           state: 'crashLoopBackOff', stateDisplay: 'CrashLoopBackOff', stateColor: 'text-error', stateBackground: 'bg-error'
         };
         await wrapper.vm.getRealResources(wrapper.vm.rows);
 
-        expect(wrapper.vm.rows[0].state).toStrictEqual('crashLoopBackOff');
+        expect(firstRow(wrapper).state).toStrictEqual('crashLoopBackOff');
       });
     });
   });
