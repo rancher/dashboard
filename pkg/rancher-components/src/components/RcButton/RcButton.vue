@@ -124,10 +124,9 @@ const activeVariantClassName = computed(() => {
   const deprecated = deprecatedVariants[props.variant as DeprecatedButtonVariant];
 
   if (deprecated) {
-    console.warn( // eslint-disable-line no-console
-      `[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version.` +
-      (deprecated.replacement ? ` Please use variant="${ deprecated.replacement }" with color="primary" instead.` : '')
-    );
+    const advice = deprecated.replacement ? ` Please use variant="${ deprecated.replacement }" with color="primary" instead.` : '';
+
+    console.warn(`[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version.${ advice }`); // eslint-disable-line no-console
 
     return deprecated.className;
   }
