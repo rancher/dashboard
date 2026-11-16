@@ -1,6 +1,8 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
-import { WORKLOAD_TYPES, SCHEMA, NODE, POD } from '@shell/config/types';
+import {
+  WORKLOAD_TYPES, WORKLOAD_TYPES_WITH_ASSOCIATED_DATA, SCHEMA, NODE, POD
+} from '@shell/config/types';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 
@@ -68,13 +70,7 @@ export default {
     const schema = type !== workloadSchema.id ? this.$store.getters['cluster/schemaFor'](type) : workloadSchema;
     const paginationEnabled = this.$store.getters[`cluster/paginationEnabled`]?.({ id: type });
 
-    const workloadIncludeAssociatedData = paginationEnabled && [
-      WORKLOAD_TYPES.DEPLOYMENT,
-      WORKLOAD_TYPES.REPLICA_SET,
-      WORKLOAD_TYPES.DAEMON_SET,
-      WORKLOAD_TYPES.STATEFUL_SET,
-      WORKLOAD_TYPES.JOB,
-    ].includes(type);
+    const workloadIncludeAssociatedData = paginationEnabled && WORKLOAD_TYPES_WITH_ASSOCIATED_DATA.includes(type);
 
     return {
       schema,

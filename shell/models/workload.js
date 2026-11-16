@@ -1,7 +1,7 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import {
-  WORKLOAD_TYPES, SERVICE, INGRESS, POD, GATEWAY_API
+  WORKLOAD_TYPES, WORKLOAD_TYPES_WITH_ASSOCIATED_DATA, SERVICE, INGRESS, POD, GATEWAY_API
 } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import day from 'dayjs';
@@ -691,30 +691,16 @@ export default class Workload extends WorkloadService {
   }
 
   /**
-   * True when server-side pagination is enabled for this workload type and list health
-   * uses includeAssociatedData instead of the global pod store.
+   * True when server-side pagination is enabled for this workload type and the list query
+   * embeds pods under `metadata.associatedData`, so health must be computed from that
+   * rather than the global pod store.
    */
   get hasPaginatedWorkloadHealth() {
-    const typesWithEmbeddedHealth = [
-      WORKLOAD_TYPES.DEPLOYMENT,
-      WORKLOAD_TYPES.DAEMON_SET,
-      WORKLOAD_TYPES.STATEFUL_SET,
-      WORKLOAD_TYPES.JOB,
-    ];
-
-    if (!typesWithEmbeddedHealth.includes(this.type)) {
+    if (!WORKLOAD_TYPES_WITH_ASSOCIATED_DATA.includes(this.type)) {
       return false;
     }
 
     return !!this.$getters['paginationEnabled']?.({ id: this.type });
-  }
-
-  get healthAssociatedData() {
-    if (!this.hasPaginatedWorkloadHealth) {
-      return undefined;
-    }
-
-    return this.metadata?.associatedData || [];
   }
 
   calcPodGauges(pods) {
@@ -757,52 +743,11 @@ export default class Workload extends WorkloadService {
     return out;
   }
 
-  calcPodGaugesFromAssociatedData(associatedData) {
-    const out = { };
-
-    if (!Array.isArray(associatedData)) {
-      return out;
-    }
-
-    const refPods = [];
-
-    associatedData.forEach((w) => {
-      if (w.gvk.kind.toLowerCase() !== POD) {
-        return;
-      }
-
-      w.data.forEach((p) => {
-        refPods.push({
-          stateColor:   colorForStateFn(p.state.name, p.state.error === 'true', p.state.transitioning === 'true'),
-          stateDisplay: stateDisplayFn(p.state.name),
-        });
-      });
-    });
-
-    refPods.map((pod) => {
-      const { stateColor, stateDisplay } = pod;
-
-      if (out[stateDisplay]) {
-        out[stateDisplay].count++;
-      } else {
-        out[stateDisplay] = {
-          color: stateColor.replace('text-', ''),
-          count: 1
-        };
-      }
-    });
-
-    return out;
-  }
-
   get podGauges() {
-    const associatedData = this.healthAssociatedData;
-
-    if (associatedData !== undefined) {
-      return this.calcPodGaugesFromAssociatedData(associatedData);
-    }
-
-    return this.calcPodGauges(this.pods);
+    // Under SSP, pods are embedded in `metadata.associatedData` and `calcPodGauges` reads
+    // them from there. Pass an empty list so the global pod store isn't touched when the
+    // embedded data is missing (e.g. 0-pod workloads or rows that haven't loaded yet).
+    return this.calcPodGauges(this.hasPaginatedWorkloadHealth ? [] : this.pods);
   }
 
   // Job Specific
