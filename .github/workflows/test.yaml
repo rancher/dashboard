@@ -288,16 +288,14 @@ jobs:
          name: ${{ env.E2E_BUILD_DIST_NAME }}
          path: ${{ env.E2E_BUILD_DIST_DIR }}
 
-      - name: Download recordings
+      - name: Restore recordings
         id: recordings
         if: ${{ matrix.recordings != '' }}
-        continue-on-error: true
-        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-         artifact-ids: ${{ matrix.recordings }}
-         run-id: ${{ matrix.recordingsRun }}
-         github-token: ${{ github.token }}
-         path: e2e-recordings
+          path: e2e-recordings
+          key: ${{ matrix.recordings }}newest
+          restore-keys: ${{ matrix.recordings }}
 
       - name: Run user tests
         run: |
@@ -306,7 +304,7 @@ jobs:
         env:
           TEST_MODE: integration
           TEST_NO_VIDEOS: true
-          TEST_RECORDINGS_DIR: ${{ steps.recordings.outcome == 'success' && 'e2e-recordings' || 'cypress/recordings' }}
+          TEST_RECORDINGS_DIR: ${{ steps.recordings.outputs.cache-matched-key != '' && 'e2e-recordings' || 'cypress/recordings' }}
           TEST_DIST_DIR: ${{ env.E2E_BUILD_DIST_DIR }}
           TEST_SKIP: setup
           SPEC_FILE: ${{ matrix.specs }}
@@ -404,15 +402,25 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
 
-      - name: Upload recordings
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: ${{ !cancelled() && steps.specs.outputs.count != '0' }}
+      - name: Save recordings
+        if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          name: e2e-recordings-${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}
-          path: e2e-recordings/
-          if-no-files-found: warn
-          retention-days: 10
-          compression-level: 9
+          path: e2e-recordings
+          key: e2e-recordings/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}/${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Measure recordings
+        if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
+        run: node .github/workflows/scripts/e2e-plan.js durations e2e-recordings ${{ matrix.role.username }} > e2e-durations.json
+
+      - name: Upload recording durations
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
+        with:
+          name: e2e-durations-${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: e2e-durations.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}
