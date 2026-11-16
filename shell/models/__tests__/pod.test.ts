@@ -181,7 +181,17 @@ describe('class Pod', () => {
   describe('node row in details', () => {
     const nodeName = 'ip-172-31-13-111';
 
-    const createPodOnNode = (): any => createPod({ spec: { nodeName }, status: { podIP: '10.42.0.1' } });
+    const createPodOnNode = (typesWithSchema: string[] = [NODE]): any => new Pod({
+      metadata: { name: 'frontend-57b8b59b77-abcde', namespace: 'default' },
+      spec:     { nodeName },
+      status:   { podIP: '10.42.0.1' },
+    }, {
+      getters:     { schemaFor: jest.fn((type: string) => (typesWithSchema.includes(type) ? { id: type } : null)) },
+      dispatch:    jest.fn(),
+      rootGetters: {
+        'i18n/t': (key: string) => key, productId: 'explorer', clusterId: 'local'
+      },
+    });
 
     const nodeRow = (pod: any) => pod.details.find((detail: any) => detail.label === 'Node');
 
@@ -191,10 +201,34 @@ describe('class Pod', () => {
       expect([row.formatter, row.formatterOpts, row.content]).toStrictEqual(['LinkName', { type: NODE, value: nodeName }, nodeName]);
     });
 
-    it('should show a popover of the node in the masthead', () => {
+    it('should show a popover of the node in the masthead, with its state like the namespace row', () => {
       const { valueOverride } = nodeRow(createPodOnNode());
 
-      expect(valueOverride.props).toStrictEqual({ type: NODE, value: nodeName });
+      expect(valueOverride.props).toStrictEqual({
+        type:           NODE,
+        id:             nodeName,
+        detailLocation: {
+          name:   'c-cluster-product-resource-id',
+          params: {
+            product: 'explorer', cluster: 'local', resource: NODE, id: nodeName
+          }
+        }
+      });
+    });
+
+    it('should show the node with the ResourcePopover component', async() => {
+      const { default: ResourcePopover } = await import('@shell/components/Resource/Detail/ResourcePopover/index.vue');
+      const { valueOverride } = nodeRow(createPodOnNode());
+
+      expect(await valueOverride.component.__asyncLoader()).toBe(ResourcePopover);
+    });
+
+    it('should fall back to the LinkName formatter when the user can not see nodes', () => {
+      const pod = createPodOnNode([]);
+      const row = nodeRow(pod);
+
+      expect(pod.$getters.schemaFor).toHaveBeenCalledWith(NODE);
+      expect([row.valueOverride, row.formatter]).toStrictEqual([undefined, 'LinkName']);
     });
 
     it('should use the same popover component every time the details are worked out', () => {
@@ -269,14 +303,13 @@ describe('class Pod', () => {
 
     const ownerRow = (pod: any) => pod.details.find((detail: any) => detail.content === pod.workloadRef.name);
 
-    it('should show a popover for a ReplicaSet owner, without its state', () => {
+    it('should show a popover for a ReplicaSet owner, with its state like the namespace row', () => {
       const { valueOverride } = ownerRow(createPodOwnedBy(replicaSetRef));
 
       expect(valueOverride.props).toStrictEqual({
         type:           WORKLOAD_TYPES.REPLICA_SET,
         id:             'default/frontend-57b8b59b77',
         name:           'frontend-57b8b59b77',
-        showStatus:     false,
         detailLocation: {
           name:   'c-cluster-product-resource-namespace-id',
           params: {

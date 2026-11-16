@@ -10,7 +10,7 @@ import { useResourceCardRow } from '@shell/components/Resource/Detail/Card/State
 import { POD_SHELL } from '@shell/store/features';
 
 // Defined once so the component identity is stable; creating it in `details` remounts the popover, and closes its card, on every pod update
-const WorkloadResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
+const ResourcePopover = markRaw(defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')));
 
 export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.DEPLOYMENT]:             1,
@@ -21,9 +21,6 @@ export const WORKLOAD_PRIORITY = {
   [WORKLOAD_TYPES.REPLICA_SET]:            6,
   [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 7,
 };
-
-// Defined once so the component identity is stable; creating it in `details` remounts the link's popover, and closes its card, on every pod update
-const LinkNamePopover = markRaw(defineAsyncComponent(() => import('@shell/components/formatter/LinkNamePopover.vue')));
 
 export default class Pod extends WorkloadService {
   _os = undefined;
@@ -260,13 +257,11 @@ export default class Pod extends WorkloadService {
         content:       this.workloadRef.name,
         // The masthead shows a card with the key facts of a ReplicaSet. Other owners keep the plain link
         valueOverride: isReplicaSet ? {
-          component: WorkloadResourcePopover,
+          component: ResourcePopover,
           props:     {
             type:           this.workloadRef.type,
             id:             this.workloadRef.id,
             name:           this.workloadRef.name,
-            // Like the design, only the namespace row of the masthead has a state dot
-            showStatus:     false,
             detailLocation: {
               name:   'c-cluster-product-resource-namespace-id',
               params: {
@@ -289,7 +284,22 @@ export default class Pod extends WorkloadService {
         formatterOpts: { type: NODE, value: this.spec.nodeName },
         content:       this.spec.nodeName,
         // The masthead shows a popover with the details of the node. Other views of the details use the LinkName formatter
-        valueOverride: { component: LinkNamePopover, props: { type: NODE, value: this.spec.nodeName } },
+        valueOverride: this.$getters['schemaFor'](NODE) ? {
+          component: ResourcePopover,
+          props:     {
+            type:           NODE,
+            id:             this.spec.nodeName,
+            detailLocation: {
+              name:   'c-cluster-product-resource-id',
+              params: {
+                product:  this.$rootGetters['productId'],
+                cluster:  this.$rootGetters['clusterId'],
+                resource: NODE,
+                id:       this.spec.nodeName,
+              }
+            }
+          }
+        } : undefined,
       });
     }
 
