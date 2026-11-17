@@ -381,6 +381,8 @@ export const UI = {
   TABLE_CONFIGURATION: 'ui.cattle.io.tableconfiguration',
 };
 
+export const CUSTOMIZATION = { PERSONA: 'customization.ui.rancher.persona' };
+
 export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
   PROJECT_NAMESPACES: 'projects-namespaces',

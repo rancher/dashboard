@@ -7854,6 +7854,7 @@ tableHeaders:
   project: Project
   protocol: Protocol
   provider: Provider
+  priority: Priority
   priorityLevel: Priority Level
   publicPorts: Public Ports
   queues: Queues
@@ -8974,6 +8975,11 @@ typeLabel:
     {count, plural,
       one { OIDC App }
       other { OIDC Apps }
+    }
+  customization.ui.rancher.persona: |-
+    {count, plural,
+      one { Persona }
+      other { Personas }
     }
   management.cattle.io.token: |-
     {count, plural,
