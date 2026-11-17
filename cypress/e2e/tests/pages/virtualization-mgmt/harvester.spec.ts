@@ -46,33 +46,162 @@ const waitForExtensionTabs = () => extensionsPo.extensionTabs.checkVisible(LONG_
 // Repo download poll (~27s) + the post-refresh wait for the repo to be active (up to 200s), with headroom.
 const HARVESTER_INSTALL_TIMEOUT_OPT = { timeout: 4 * 60 * 1000 };
 
-/**
- * Install again if the app gave up on the install. When the repository's download takes longer than the
- * app waits for it, the app reports the install as failed and shows the manual install steps in place of
- * the Install button. Reload the page then - the repository now exists, so the page offers Install for it
- * - and click Install. Waits for either the install request or that failed state; does not assert, so a
- * genuine failure is reported by the install wait that follows.
- */
-function installAgainIfAbandoned(checks = 60): void {
+// How long the app may take to give up on an install: repo download poll (~27s) + the wait for the repo to
+// be active (up to 200s) + the chart lookup and install retries, with headroom.
+const INSTALL_GIVE_UP_WINDOW_MS = 6 * 60 * 1000;
+const MAX_REINSTALLS = 3;
+
+function pollForInstall(deadline: number, reinstalls: number): void {
   cy.get('@installHarvesterExtension.all').then((installs: any) => {
-    if (installs.length > 0) {
+    if (installs.length > 0 || Date.now() > deadline) {
       return;
     }
 
     harvesterPo.isInstallAbandoned().then((abandoned) => {
-      if (abandoned) {
-        cy.log('The app gave up on the install (repository download timed out) - reloading the page and installing again');
+      if (abandoned && reinstalls > 0) {
+        cy.log('The app gave up on the install - reloading the page and installing again');
         harvesterPo.goTo();
         harvesterPo.waitForPage();
         harvesterPo.updateOrInstallButton().clickWhenEnabled(LONG_TIMEOUT_OPT);
+        cy.then(() => pollForInstall(Date.now() + INSTALL_GIVE_UP_WINDOW_MS, reinstalls - 1));
 
         return;
       }
 
-      if (checks > 0) {
-        cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
-        installAgainIfAbandoned(checks - 1);
+      if (abandoned) {
+        cy.log('The app gave up on the install and no reinstalls are left');
+
+        return;
       }
+
+      cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+      pollForInstall(deadline, reinstalls);
+    });
+  });
+}
+
+/**
+ * Install again if the app gave up on the install. When the repository's download takes longer than the
+ * app waits for it, the app reports the install as failed and shows the manual install steps in place of
+ * the Install button - or, if the repository index did not list the chart yet, "Could not find a compatible
+ * version" with no button at all. Reload the page then - the repository now exists, so the page offers
+ * Install for it - click Install, and keep watching in case the new attempt gives up too. Watches by time,
+ * not by number of checks, starting when the commands run rather than when they are queued. Does not
+ * assert, so a genuine failure is reported by the install wait that follows.
+ */
+function installAgainIfAbandoned(): void {
+  cy.then(() => pollForInstall(Date.now() + INSTALL_GIVE_UP_WINDOW_MS, MAX_REINSTALLS));
+}
+
+// A Rancher replica that has not indexed a just-added repository yet answers an install with this 500
+// (rancher/dashboard#17543). It clears once the replica catches up.
+const TRANSIENT_INDEX_ERROR = /failed to find chart.*version.*not\s*found/i;
+
+function isTransientIndexError(response: any): boolean {
+  return response?.statusCode === 500 && TRANSIENT_INDEX_ERROR.test(response?.body?.message || '');
+}
+
+/**
+ * Force Rancher to refresh a repository, as the Harvester page does before it installs (refreshHelmRepository
+ * in shell/utils/uiplugins.ts), and wait for it to be active again. This makes every replica re-index it.
+ */
+function forceRepositoryRefresh(repo: string): void {
+  cy.getRancherResource('v1', 'catalog.cattle.io.clusterrepos', repo).then((resp: Cypress.Response<any>) => {
+    const body = resp.body;
+
+    body.spec.forceUpdate = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    cy.setRancherResource('v1', 'catalog.cattle.io.clusterrepos', repo, body);
+  });
+  cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', repo).should('eq', true);
+}
+
+/**
+ * Install the Harvester extension from the Available tab of the extensions page, through the install modal.
+ * `selectVersion` picks the version in the open modal. If the install fails with the transient catalog index
+ * 500, give a dashboard that retries it itself the time to do so; otherwise force a refresh of the repository
+ * - waiting alone is not enough, a replica can stay behind for well over a minute - and install again. Any
+ * other failure fails the test, with Rancher's error message.
+ */
+function installFromExtensionsPage(harvesterTitle: string, repo: string, selectVersion: () => void, attemptsLeft = 3): void {
+  cy.get('@installHarvesterExtension.all').then((previousInstalls: any) => {
+    const previousCount = previousInstalls.length;
+
+    extensionsPo.goTo();
+    waitForExtensionTabs();
+    // goTo() lands on whichever tab the app defaults to, so switch to the Available tab explicitly.
+    extensionsPo.extensionTabAvailableClick();
+    extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
+    extensionsPo.loading().should('not.exist');
+
+    extensionsPo.extensionCardInstallClick(harvesterTitle);
+    // The modal is fixed-position, so checkVisible()'s scrollIntoView is pointless and detaches the
+    // subject while the dialog animates in - assert visibility without scrolling.
+    extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
+    selectVersion();
+    extensionsPo.installModal().installButton().click();
+
+    cy.wait('@installHarvesterExtension').then(({ response }) => {
+      if (isTransientIndexError(response) && attemptsLeft > 1) {
+        // A dashboard that retries this error itself does so within 15s (1s, 2s, 4s, 8s backoff).
+        cy.wait(20000); // eslint-disable-line cypress/no-unnecessary-waiting
+        cy.get('@installHarvesterExtension.all').then((installs: any) => {
+          const lastResponse = installs[installs.length - 1]?.response;
+
+          if (installs.length > previousCount + 1 && lastResponse?.statusCode === 201) {
+            return;
+          }
+
+          cy.log('Rancher has not indexed the chart version yet - refreshing the repository and installing again');
+          forceRepositoryRefresh(repo);
+          installFromExtensionsPage(harvesterTitle, repo, selectVersion, attemptsLeft - 1);
+        });
+
+        return;
+      }
+
+      // Include the body so a failure reports Rancher's error message, not just the status code.
+      expect(response?.statusCode, JSON.stringify(response?.body)).to.eq(201);
+    });
+  });
+}
+
+/**
+ * Wait until Rancher no longer serves the Harvester UIPlugin. It outlives the uninstalled app for a moment,
+ * and while it exists the UI still loads the extension (e.g. reporting "repository is missing").
+ */
+function waitForNoHarvesterUiPlugin(retries = 20): void {
+  cy.getRancherResource('v1', 'catalog.cattle.io.uiplugins').then((resp: Cypress.Response<any>) => {
+    const present = (resp.body?.data || []).some((plugin: any) => plugin?.spec?.plugin?.name === 'harvester');
+
+    if (present && retries > 0) {
+      cy.wait(1500); // eslint-disable-line cypress/no-unnecessary-waiting
+      waitForNoHarvesterUiPlugin(retries - 1);
+    }
+  });
+}
+
+/**
+ * Start every test, and every retry of it, from a clean state: testIsolation is off and the in-test cleanup
+ * only runs when a test passes, so a failed attempt can leave the extension installed, its repository, and
+ * the cluster it imported.
+ */
+function resetHarvesterState(repo: string): void {
+  cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
+  cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (resp) => resp.status === 404, 20, { failOnStatusCode: false })
+    .should('eq', true);
+  waitForNoHarvesterUiPlugin();
+
+  cy.deleteRancherResource('v1', 'catalog.cattle.io.clusterrepos', repo, false);
+  cy.waitForRancherResource('v1', 'catalog.cattle.io.clusterrepos', repo, (resp) => resp.status === 404, 20, { failOnStatusCode: false })
+    .should('eq', true);
+
+  cy.getRancherResource('v1', 'management.cattle.io.clusters').then((resp: Cypress.Response<any>) => {
+    const leftoverIds = (resp.body?.data || [])
+      .filter((cluster: any) => cluster?.spec?.displayName?.includes('harvesterclustername'))
+      .map((cluster: any) => cluster.id);
+
+    cy.wrap(leftoverIds, { log: false }).each((id: string) => {
+      cy.deleteRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ id }`, false);
     });
   });
 }
@@ -105,6 +234,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
     cy.login();
     cy.getRancherVersion().then((version) => {
       cy.wrap(version, { log: false }).as('rancherVersion');
+      resetHarvesterState(harvesterExtensionCatalog(version).repo);
     });
     cy.createE2EResourceName('harvesterclustername').then((name) => {
       // createE2EResourceName is deterministic within a run, so a Cypress retry would reuse
@@ -129,7 +259,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       harvesterPo.goTo();
       harvesterPo.waitForPage();
       harvesterPo.updateOrInstallButton().checkVisible(undefined, { scrollIntoView: false });
-      harvesterPo.extensionWarning().should('have.text', `The ${ harvesterTitle } UI Extension is not installed`);
+      harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).should('have.text', `The ${ harvesterTitle } UI Extension is not installed`);
 
       // install harvester extension
       harvesterPo.updateOrInstallButton().click();
@@ -156,8 +286,12 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // verify harvester extension added to extensions page
       extensionsPo.goTo();
       waitForExtensionTabs();
+      // Don't rely on the default tab: switch to Installed explicitly, as the other tests do.
+      extensionsPo.extensionTabInstalledClick();
       extensionsPo.waitForPage(undefined, 'installed');
-      extensionsPo.extensionCard(harvesterTitle).checkVisible(undefined, { scrollIntoView: false });
+      // The tabs render before the catalog/repos fetch finishes, so wait for the cards to load.
+      extensionsPo.loading().should('not.exist');
+      extensionsPo.extensionCard(harvesterTitle, LONG_TIMEOUT_OPT).self().should('be.visible');
 
       // verify harvester repo is added to repos list page
       appRepoList.goTo(undefined, 'manager');
@@ -183,7 +317,18 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         const harvesterDetails = new HarvesterClusterDetailsPo(undefined, undefined, harvesterClusterId);
 
         harvesterDetails.waitForPage(undefined, 'registration');
-        harvesterDetails.title().should('contain', harvesterClusterName);
+        // The detail page's masthead does not always render (seen with the 1.9.0 extension), so check the
+        // registration instructions are shown and that the cluster was created with the given name.
+        cy.contains('cluster-registration-url', LONG_TIMEOUT_OPT).should('be.visible');
+        cy.getRancherResource('v1', 'management.cattle.io.clusters', harvesterClusterId)
+          .its('body.spec.displayName').should('eq', harvesterClusterName);
+
+        // The list only shows the cluster once Rancher has linked the provisioning cluster to its management
+        // cluster and marked that as a Harvester cluster. Wait for both before navigating to it.
+        cy.waitForRancherResource('v1', 'provisioning.cattle.io.clusters', `fleet-default/${ harvesterClusterId }`, (resp) => !!resp.body?.status?.clusterName, 40, { failOnStatusCode: false })
+          .should('eq', true);
+        cy.waitForRancherResource('v1', 'management.cattle.io.clusters', harvesterClusterId, (resp) => (resp.body?.metadata?.labels?.['provider.cattle.io'] || resp.body?.status?.provider) === 'harvester', 40, { failOnStatusCode: false })
+          .should('eq', true);
 
         // navigate to harvester list page and verify the logo and tagline do not display after cluster created
         HarvesterClusterPagePo.navTo(productLabel);
@@ -229,7 +374,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         }
       });
 
-      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', chartRepo);
+      // The git clone can take well over the default ~30s on CI. If it hasn't finished, the extensions
+      // page gets a 500 for the repo index and renders no cards, so fail here rather than later.
+      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', chartRepo, 80).should('eq', true);
 
       appRepoList.goTo(undefined, 'manager');
       appRepoList.waitForPage();
@@ -243,25 +390,10 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
 
-      extensionsPo.goTo();
-      waitForExtensionTabs();
-      // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
-      // that is #installed, not #available - so explicitly switch to the Available tab before waiting
-      // for it, instead of assuming the URL hash is already #available.
-      extensionsPo.extensionTabAvailableClick();
-      extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
-      extensionsPo.loading().should('not.exist');
-
-      // click on install button on card
-      extensionsPo.extensionCardInstallClick(harvesterTitle);
-      // The modal is fixed-position, so checkVisible()'s scrollIntoView is pointless and detaches the
-      // subject while the dialog animates in - assert visibility without scrolling.
-      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
-
-      // select latest version and click install
-      extensionsPo.installModal().selectVersionClick(1);
-      extensionsPo.installModal().installButton().click();
-      cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
+      // install the latest version
+      installFromExtensionsPage(harvesterTitle, chartRepo, () => {
+        extensionsPo.installModal().selectVersionClick(1);
+      });
       // The app should switch to the Installed tab after install, but that navigation is
       // intermittent (the URL stays on #available); click it explicitly before waiting for it.
       extensionsPo.extensionTabInstalledClick();
@@ -282,7 +414,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       harvesterPo.goTo();
       harvesterPo.waitForPage();
       // verify missing repo message displays
-      harvesterPo.extensionWarning().should('have.text', `The ${ harvesterTitle } UI Extension repository is missing`);
+      harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).should('have.text', `The ${ harvesterTitle } UI Extension repository is missing`);
 
       // uninstall harvester
       cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {});
@@ -303,7 +435,7 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       // The masthead button is always in view and this page re-renders as the extension warning
       // resolves, so assert visibility without scrolling (checkVisible() scrolls first).
       harvesterPo.updateOrInstallButton().checkVisible(undefined, { scrollIntoView: false });
-      harvesterPo.extensionWarning().should('have.text', `The ${ harvesterTitle } UI Extension is not installed`);
+      harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).should('have.text', `The ${ harvesterTitle } UI Extension is not installed`);
     });
   }));
 
@@ -324,7 +456,9 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         }
       });
 
-      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', chartRepo);
+      // The git clone can take well over the default ~30s on CI. If it hasn't finished, the extensions
+      // page gets a 500 for the repo index and renders no cards, so fail here rather than later.
+      cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', chartRepo, 80).should('eq', true);
 
       appRepoList.goTo(undefined, 'manager');
       appRepoList.waitForPage();
@@ -338,29 +472,22 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
       cy.createRancherResource('v1', 'catalog.cattle.io.apps/cattle-ui-plugin-system/harvester?action=uninstall', {}, false);
       cy.waitForRancherResource('v1', 'catalog.cattle.io.apps', 'cattle-ui-plugin-system/harvester', (r: any) => r?.status === 404, 15, { failOnStatusCode: false });
 
-      extensionsPo.goTo();
-      waitForExtensionTabs();
-      // goTo() lands on whichever tab the app defaults to - once the Harvester extension is installed
-      // that is #installed, not #available - so explicitly switch to the Available tab before waiting
-      // for it, instead of assuming the URL hash is already #available.
-      extensionsPo.extensionTabAvailableClick();
-      extensionsPo.waitForPage(undefined, 'available', MEDIUM_TIMEOUT_OPT);
-      extensionsPo.loading().should('not.exist');
+      let versions: string[] = [];
 
-      // click on install button on card
-      extensionsPo.extensionCardInstallClick(harvesterTitle);
-      // Fixed-position modal: assert visibility without scrolling (see the note in the 7021 test).
-      extensionsPo.installModal().checkVisible(undefined, { scrollIntoView: false });
-
-      // Note - We can't fetch version from `catalog.cattle.io.clusterrepos/harvester?link=index` given it won't filter out invalid extensions
-      // for example in rancher 2.12 the harvester 1.7.0 extension is invalid... however still returned... resulting in expected versions that don't exist as valid options
-
-      extensionsPo.installModal().versionLabelSelect().toggle();
-      extensionsPo.installModal().versionLabelSelect().getOptionsAsStrings().then((versions) => {
-        // select older version and click install
+      // install an older version
+      installFromExtensionsPage(harvesterTitle, chartRepo, () => {
+        // Note - We can't fetch version from `catalog.cattle.io.clusterrepos/harvester?link=index` given it won't filter out invalid extensions
+        // for example in rancher 2.12 the harvester 1.7.0 extension is invalid... however still returned... resulting in expected versions that don't exist as valid options
+        extensionsPo.installModal().versionLabelSelect().toggle();
+        extensionsPo.installModal().versionLabelSelect().getOptionsAsStrings().then((options) => {
+          versions = options;
+        });
         extensionsPo.installModal().selectVersionClick(2, false);
-        extensionsPo.installModal().installButton().click();
-        cy.wait('@installHarvesterExtension').its('response.statusCode').should('eq', 201);
+      });
+
+      cy.then(() => {
+        // As in the 7021 test: the switch to the Installed tab is intermittent, so click it explicitly.
+        extensionsPo.extensionTabInstalledClick();
         extensionsPo.waitForPage(undefined, 'installed');
 
         extensionsPo.extensionReloadBanner().should('be.visible');
@@ -379,13 +506,17 @@ describe('Harvester', { tags: ['@virtualizationMgmt', '@adminUser'] }, () => {
         cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
 
         // check for update harvester message
-        harvesterPo.extensionWarning().invoke('text').should('match', new RegExp(`^Your current ${ harvesterTitle } UI Extension \\((v[\\d.]+)\\) is not the latest\\.$`));
+        harvesterPo.extensionWarning(LONG_TIMEOUT_OPT).invoke('text').should('match', new RegExp(`^Your current ${ harvesterTitle } UI Extension \\((v[\\d.]+)\\) is not the latest\\.$`));
         harvesterPo.updateOrInstallButton().click();
 
         // wait for update version update
-        cy.wait('@upgradeHarvesterExtension', LONG_TIMEOUT_OPT).then(({ request, response }) => {
-          expect(response?.statusCode).to.eq(201);
-          expect(request?.body?.charts[0].version).to.eq(versions[0]);
+        cy.wait('@upgradeHarvesterExtension', LONG_TIMEOUT_OPT).its('request.body.charts.0.version').should('eq', versions[0]);
+        // The app retries an upgrade that fails with a transient 500 (a Rancher replica's catalog index not
+        // caught up yet, see installHelmChartWithRetry in shell/utils/uiplugins.ts), so check the last attempt.
+        cy.get('@upgradeHarvesterExtension.all', LONG_TIMEOUT_OPT).should((upgrades: any) => {
+          const response = upgrades[upgrades.length - 1]?.response;
+
+          expect(response?.statusCode, JSON.stringify(response?.body)).to.eq(201);
         });
         cy.wait('@updateHarvesterChart', LONG_TIMEOUT_OPT);
 
