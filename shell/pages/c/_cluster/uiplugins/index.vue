@@ -39,6 +39,7 @@ import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCard
 import versions from '@shell/utils/versions';
 import { compareChartVersions } from '@shell/utils/chart';
 import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
+import { isReportableExtensionRepo, repoDownloadState, repoIndexId } from '@shell/utils/uiplugins-repos';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -51,26 +52,6 @@ const TABS_VALUES = {
 // id of the container holding the extension cards - the tabs render in `tabs-only` mode, so this is
 // the tab panel they control
 const EXTENSIONS_PANEL_ID = 'extensions-tab-panel';
-
-const EXTENSION_REPO_URLS = [UI_PLUGINS_REPOS.OFFICIAL.URL, UI_PLUGINS_REPOS.PARTNERS.URL];
-const EXTENSION_REPO_NAMES = [UI_PLUGINS_REPOS.OFFICIAL.NAME, UI_PLUGINS_REPOS.PARTNERS.NAME];
-
-/**
- * Any cluster repo can be added for reasons that have nothing to do with extensions, and until its
- * index exists there is no way to tell whether it holds any. Only report on the repos we know are
- * extension ones, so adding an unrelated chart repo stays silent on this page.
- *
- * In an airgapped install those repos are mirrored internally, so their URLs no longer point at
- * github.com/rancher. Fall back to the well-known names in that case only, so a third-party repo
- * cannot take their name in a connected install. Same approach as `isAirgapMirror` on the model.
- */
-function isExtensionRepo(repo) {
-  if (EXTENSION_REPO_URLS.includes(repo.urlDisplay)) {
-    return true;
-  }
-
-  return !!repo.isAirgap && EXTENSION_REPO_NAMES.includes(repo.metadata?.name);
-}
 
 
 export default {
@@ -114,7 +95,8 @@ export default {
       defaultIcon:                    genericPluginSvg,
       reloadRequired:                 false,
       rancherVersion:                 null,
-      dismissedRepos:                 []
+      dismissedRepos:                 [],
+      deferredRepoKeys:               []
     };
   },
 
@@ -184,51 +166,43 @@ export default {
     },
 
     /**
-     * Repositories that cannot contribute extensions yet, because the backend has not published an
-     * index for them. Either it is still being built, or downloading it failed and the backend is
-     * backing off before trying again - `nextRetryAt` is what tells the two apart.
+     * Extension repositories with no index yet, which is the only state in which they can
+     * contribute nothing, split by whether Rancher is still working on them or has given up.
+     * Repositories that already have an index are left alone even if their latest refresh failed,
+     * since their extensions are still installable.
      */
     pendingRepos() {
       return this.repos
-        .filter((r) => isExtensionRepo(r))
-        .filter((r) => !r._isClusterRepoDisabled)
-        .filter((r) => r.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] !== 'true')
-        .filter((r) => !r.status?.indexConfigMapName)
-        .map((r) => {
-          const failed = !!r.status?.nextRetryAt;
-
-          return {
-            id:      r.id,
-            name:    r.nameDisplay,
-            failed,
-            // Steve reports `Resource is current` for a repository that has no conditions yet,
-            // which tells the user nothing. Only a failure message is worth surfacing.
-            message: failed ? r.stateObj?.message || '' : ''
-          };
-        });
+        .filter((r) => isReportableExtensionRepo(r))
+        .map((r) => ({
+          id:   r.id,
+          name: r.nameDisplay,
+          ...repoDownloadState(r)
+        }))
+        .filter((r) => r.state !== 'ready');
     },
 
     /**
-     * A failed repository stays failed until an admin does something about it, so the banner has a
-     * dismiss button. What is still downloading is not dismissable - it resolves on its own.
+     * A failed repository stays failed until an admin does something about it, so its banner can
+     * be dismissed. What is still downloading resolves on its own, so it cannot.
      */
-    visiblePendingRepos() {
-      return this.pendingRepos.filter((r) => !this.dismissedRepos.includes(r.id));
+    failedRepos() {
+      return this.pendingRepos.filter((r) => r.state === 'failed' && !this.dismissedRepos.includes(r.id));
     },
 
-    hasFailedRepos() {
-      return this.visiblePendingRepos.some((r) => r.failed);
+    downloadingRepos() {
+      return this.pendingRepos.filter((r) => r.state === 'downloading');
     },
 
-    pendingRepoNames() {
-      return this.visiblePendingRepos.map((r) => r.name).join(', ');
+    downloadingRepoNames() {
+      return this.downloadingRepos.map((r) => r.name).join(', ');
     },
 
     // Identity of each repository's index. The backend writes `indexConfigMapName` and
     // `downloadTime` in the same status update when it publishes an index, so this changes exactly
     // when a repository's charts first become fetchable, and again whenever they are replaced.
     repoIndexes() {
-      return this.repos.map((r) => `${ r._key }|${ r.status?.indexConfigMapName || '' }|${ r.status?.downloadTime || '' }`);
+      return this.repos.map((r) => repoIndexId(r));
     },
 
     charts() {
@@ -485,15 +459,33 @@ export default {
      * socket instead of making the user reload the page.
      */
     repoIndexes(neu, old) {
-      if (this.loading) {
+      const repoKeys = neu.filter((entry) => !old.includes(entry)).map((entry) => entry.split('|')[0]);
+
+      if (!repoKeys.length) {
         return;
       }
 
-      const repoKeys = neu.filter((entry) => !old.includes(entry)).map((entry) => entry.split('|')[0]);
+      // Vue moves `old` on whether or not this handler acts, so an index landing mid-fetch would
+      // be lost for good if it were simply dropped. Hold it until the page has finished loading.
+      if (this.loading) {
+        this.deferredRepoKeys = [...new Set([...this.deferredRepoKeys, ...repoKeys])];
 
-      if (repoKeys.length) {
-        this.$store.dispatch('catalog/load', { force: true, repoKeys });
+        return;
       }
+
+      this.$store.dispatch('catalog/load', { force: true, repoKeys });
+    },
+
+    loading(neu) {
+      if (neu || !this.deferredRepoKeys.length) {
+        return;
+      }
+
+      const repoKeys = this.deferredRepoKeys;
+
+      this.deferredRepoKeys = [];
+
+      this.$store.dispatch('catalog/load', { force: true, repoKeys });
     },
 
     helmOps: {
@@ -647,10 +639,14 @@ export default {
      * Only the failed repositories are dismissed, so anything still downloading keeps its own,
      * non-dismissable banner.
      */
-    dismissFailedRepos() {
-      const failed = this.visiblePendingRepos.filter((r) => r.failed).map((r) => r.id);
+    async dismissFailedRepos() {
+      this.dismissedRepos = [...this.dismissedRepos, ...this.failedRepos.map((r) => r.id)];
 
-      this.dismissedRepos = [...this.dismissedRepos, ...failed];
+      // The close button is being removed from the page, so move focus somewhere sensible rather
+      // than letting it fall back to <body> and make keyboard users start again (WCAG 2.4.3)
+      await this.$nextTick();
+
+      this.$refs.tabs?.$el?.querySelector('[role="tab"]')?.focus();
     },
 
     tabChanged(f) {
@@ -1566,32 +1562,39 @@ export default {
       </Banner>
 
       <Banner
-        v-if="!loading && visiblePendingRepos.length"
-        :color="hasFailedRepos ? 'error' : 'info'"
-        :role="hasFailedRepos ? 'alert' : 'status'"
-        :closable="hasFailedRepos"
+        v-if="!loading && failedRepos.length"
+        ref="failedReposBanner"
+        color="error"
+        role="alert"
+        :closable="true"
         class="mb-20"
-        data-testid="extensions-pending-repos-banner"
+        data-testid="extensions-failed-repos-banner"
         @close="dismissFailedRepos"
       >
         <div class="pending-repos">
-          <span>{{ hasFailedRepos ? t('plugins.pendingRepos.failed') : t('plugins.pendingRepos.downloading') }}</span>
-          <ul
-            v-if="hasFailedRepos"
-            class="pending-repos__list"
-          >
+          <span>{{ t('plugins.pendingRepos.failed') }}</span>
+          <ul class="pending-repos__list">
             <li
-              v-for="repo in visiblePendingRepos"
+              v-for="repo in failedRepos"
               :key="repo.id"
             >
               <span class="pending-repos__name">{{ repo.name }}</span>
               <span v-if="repo.message"> &mdash; {{ repo.message }}</span>
             </li>
           </ul>
-          <span
-            v-else
-            class="pending-repos__name"
-          >{{ pendingRepoNames }}</span>
+        </div>
+      </Banner>
+
+      <Banner
+        v-if="!loading && downloadingRepos.length"
+        color="info"
+        role="status"
+        class="mb-20"
+        data-testid="extensions-downloading-repos-banner"
+      >
+        <div class="pending-repos">
+          <span>{{ t('plugins.pendingRepos.downloading') }}</span>
+          <span class="pending-repos__name">{{ downloadingRepoNames }}</span>
         </div>
       </Banner>
 

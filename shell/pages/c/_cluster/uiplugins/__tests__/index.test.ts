@@ -2455,10 +2455,10 @@ describe('page: UI plugins/Extensions', () => {
       isAirgap:    false,
       // Populated by Steve from the status conditions; absent until the backend reports something
       stateObj:    undefined as undefined | { error: boolean, message: string },
-      status:      indexed ? {
+      status:      (indexed ? {
         indexConfigMapName: `${ uid }-0-${ uid }`,
         downloadTime:       '2026-11-12T20:37:28Z',
-      } : {},
+      } : {}) as Record<string, any>,
     });
 
     /**
@@ -2581,121 +2581,167 @@ describe('page: UI plugins/Extensions', () => {
     });
 
     describe('pending repositories banner', () => {
-      const bannerOf = (w: VueWrapper<any>) => w.find('[data-testid="extensions-pending-repos-banner"]');
+      const failedBanner = (w: VueWrapper<any>) => w.find('[data-testid="extensions-failed-repos-banner"]');
+      const downloadingBanner = (w: VueWrapper<any>) => w.find('[data-testid="extensions-downloading-repos-banner"]');
 
-      it('should say a repository is still downloading while it has no index', async() => {
+      /** How Rancher reports a repository it could not download: the real error on the condition. */
+      const failRepo = (repo: any, message = 'head failure: context deadline exceeded') => {
+        repo.status.conditions = [{
+          type: 'Downloaded', status: 'False', message
+        }];
+      };
+
+      it('should report a repository with no index as downloading', async() => {
         const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
         const { wrapper: w } = await mountWithRepos(repos);
 
-        expect(bannerOf(w).exists()).toBe(true);
-        expect(bannerOf(w).attributes('color')).toBe('info');
-        expect(w.vm.hasFailedRepos).toBe(false);
-        expect(w.vm.pendingRepos).toStrictEqual([{
-          id: 'repo-1', name: 'repo-1', failed: false, message: ''
-        }]);
+        expect(downloadingBanner(w).exists()).toBe(true);
+        expect(failedBanner(w).exists()).toBe(false);
+        expect(w.vm.downloadingRepoNames).toBe('repo-1');
       });
 
-      it('should not surface the placeholder state message of a repository that is merely downloading', async() => {
-        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
-        const { wrapper: w } = await mountWithRepos(repos);
+      it.each([
+        // 2.16+ parks this placeholder on the condition with SetError, so it reads as a failure
+        // even though the clone is simply still running
+        ['the 2.16 downloading placeholder', [{
+          type: 'Downloaded', status: 'False', message: 'downloading'
+        }]],
+        // Older Rancher sets no condition at all until the download finishes
+        ['no conditions at all', []],
+        ['a successful previous condition', [{ type: 'Downloaded', status: 'True' }]],
+      ])('should treat %s as still downloading, not failed', async(_label, conditions) => {
+        const repo = repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL);
 
-        // Steve reports a resource with no conditions as active, so a repository that was created
-        // moments ago carries this message. Repeating it at the user explains nothing.
-        repos[0].stateObj = { error: false, message: 'Resource is current' };
-        await settle(w);
+        repo.status.conditions = conditions;
+        const { wrapper: w } = await mountWithRepos(reactive([repo]));
 
-        expect(w.vm.pendingRepos[0].message).toBe('');
-        expect(w.vm.pendingRepoNames).toBe('repo-1');
+        expect(w.vm.failedRepos).toStrictEqual([]);
+        expect(downloadingBanner(w).exists()).toBe(true);
       });
 
-      it('should report a failure, not a download, once the backend has scheduled a retry', async() => {
-        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
-        const { wrapper: w } = await mountWithRepos(repos);
+      it.each([
+        ['Downloaded', 'Downloaded'],
+        ['OCIDownloaded', 'OCIDownloaded'],
+      ])('should report a %s failure even though Rancher cleared nextRetryAt', async(_label, type) => {
+        // Rancher clears nextRetryAt once the retry budget is spent and for non-retriable errors,
+        // so a permanently broken repository has no retry scheduled
+        const repo = repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL);
 
-        // What a repository Rancher could not clone looks like: no index, and backing off
-        Object.assign(repos[0].status, { nextRetryAt: '2026-11-12T20:56:00Z', numberOfRetries: 1 });
-        repos[0].stateObj = { error: true, message: 'head failure: context deadline exceeded' };
-        await settle(w);
+        repo.status.conditions = [{
+          type, status: 'False', message: 'repository not found'
+        }];
+        const { wrapper: w } = await mountWithRepos(reactive([repo]));
 
-        expect(w.vm.hasFailedRepos).toBe(true);
-        expect(bannerOf(w).attributes('color')).toBe('error');
-        expect(w.vm.pendingRepos).toStrictEqual([{
-          id: 'repo-1', name: 'repo-1', failed: true, message: 'head failure: context deadline exceeded'
+        expect(w.vm.failedRepos).toStrictEqual([{
+          id: 'repo-1', name: 'repo-1', state: 'failed', message: 'repository not found'
         }]);
+        expect(failedBanner(w).exists()).toBe(true);
+        expect(downloadingBanner(w).exists()).toBe(false);
+      });
+
+      it('should not call a repository broken just because another one is', async() => {
+        const broken = repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL);
+        const slow = repoOf('repo-2', false, UI_PLUGINS_REPOS.PARTNERS.URL);
+
+        failRepo(broken);
+        const { wrapper: w } = await mountWithRepos(reactive([broken, slow]));
+
+        expect(w.vm.failedRepos.map((r: any) => r.id)).toStrictEqual(['repo-1']);
+        expect(w.vm.downloadingRepos.map((r: any) => r.id)).toStrictEqual(['repo-2']);
+        expect(failedBanner(w).exists()).toBe(true);
+        expect(downloadingBanner(w).exists()).toBe(true);
       });
 
       it('should drop a repository from the banner once its index arrives', async() => {
         const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
         const { wrapper: w } = await mountWithRepos(repos);
 
-        expect(bannerOf(w).exists()).toBe(true);
+        expect(downloadingBanner(w).exists()).toBe(true);
 
         Object.assign(repos[0].status, { indexConfigMapName: 'repo-1-0-abc', downloadTime: '2026-11-12T20:37:28Z' });
         await settle(w);
 
-        expect(bannerOf(w).exists()).toBe(false);
+        expect(downloadingBanner(w).exists()).toBe(false);
+        expect(failedBanner(w).exists()).toBe(false);
       });
 
-      it('should not show the banner when every repository has an index', async() => {
-        const repos = reactive([repoOf('repo-1', true, UI_PLUGINS_REPOS.OFFICIAL.URL), repoOf('repo-2', true, UI_PLUGINS_REPOS.PARTNERS.URL)]);
+      it('should not show either banner when every repository has an index', async() => {
+        const repos = reactive([
+          repoOf('repo-1', true, UI_PLUGINS_REPOS.OFFICIAL.URL),
+          repoOf('repo-2', true, UI_PLUGINS_REPOS.PARTNERS.URL)
+        ]);
         const { wrapper: w } = await mountWithRepos(repos);
 
-        expect(bannerOf(w).exists()).toBe(false);
+        expect(downloadingBanner(w).exists()).toBe(false);
+        expect(failedBanner(w).exists()).toBe(false);
       });
 
-      const failRepo = (repo: any, message = 'head failure: context deadline exceeded') => {
-        Object.assign(repo.status, { nextRetryAt: '2026-11-12T20:56:00Z', numberOfRetries: 1 });
-        repo.stateObj = { error: true, message };
-      };
+      it('should let a failure be dismissed, but not a download', async() => {
+        const broken = repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL);
+        const slow = repoOf('repo-2', false, UI_PLUGINS_REPOS.PARTNERS.URL);
 
-      it('should only offer to dismiss the banner when something has actually failed', async() => {
-        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
-        const { wrapper: w } = await mountWithRepos(repos);
+        failRepo(broken);
+        const { wrapper: w } = await mountWithRepos(reactive([broken, slow]));
 
-        expect(bannerOf(w).attributes('closable')).toBe('false');
+        expect(failedBanner(w).attributes('closable')).toBe('true');
+        expect(downloadingBanner(w).attributes('closable')).toBe('false');
 
-        failRepo(repos[0]);
+        failedBanner(w).trigger('close');
         await settle(w);
 
-        expect(bannerOf(w).attributes('closable')).toBe('true');
+        expect(failedBanner(w).exists()).toBe(false);
+        // Dismissing the failure must not silence the repository that is merely slow
+        expect(downloadingBanner(w).exists()).toBe(true);
       });
 
-      it('should hide the banner once the failure has been dismissed', async() => {
-        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
-        const { wrapper: w } = await mountWithRepos(repos);
+      it('should move focus out of the dismissed banner rather than losing it', async() => {
+        // Needs a real document: dismissing removes the focused Close button, and the point of
+        // the test is where the browser ends up afterwards (WCAG 2.4.3)
+        const broken = repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL);
 
-        failRepo(repos[0]);
-        await settle(w);
-        bannerOf(w).trigger('close');
-        await settle(w);
+        failRepo(broken);
 
-        expect(bannerOf(w).exists()).toBe(false);
-      });
+        const repos = reactive([broken]);
+        const w = shallowMount(UiPluginsPage, {
+          attachTo: document.body,
+          global:   {
+            mocks: {
+              $store: {
+                getters: {
+                  'prefs/get':         jest.fn(),
+                  'catalog/rawCharts': [],
+                  'uiplugins/plugins': [],
+                  'uiplugins/errors':  {},
+                  'management/all':    () => repos,
+                },
+                dispatch: jest.fn(() => Promise.resolve()),
+              },
+              t,
+            },
+            stubs: {
+              ActionMenu: { template: '<div />' },
+              Tabbed:     { template: '<div><button role="tab">Available</button></div>' },
+            }
+          }
+        });
 
-      it('should keep telling the user about repositories that are still downloading', async() => {
-        const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL), repoOf('repo-2', false, UI_PLUGINS_REPOS.PARTNERS.URL)]);
-        const { wrapper: w } = await mountWithRepos(repos);
+        await w.setData({ loading: false });
+        await w.vm.dismissFailedRepos();
 
-        failRepo(repos[0]);
-        await settle(w);
-        bannerOf(w).trigger('close');
-        await settle(w);
+        expect(document.activeElement).toBe(w.find('[role="tab"]').element);
 
-        // repo-2 is merely slow, so dismissing repo-1's failure must not silence it
-        expect(bannerOf(w).exists()).toBe(true);
-        expect(w.vm.hasFailedRepos).toBe(false);
-        expect(w.vm.pendingRepoNames).toBe('repo-2');
+        w.unmount();
       });
 
       it('should report a repository that fails again after recovering', async() => {
         const repos = reactive([repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL)]);
-        const { wrapper: w } = await mountWithRepos(repos);
 
         failRepo(repos[0]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        failedBanner(w).trigger('close');
         await settle(w);
-        bannerOf(w).trigger('close');
-        await settle(w);
-        expect(bannerOf(w).exists()).toBe(false);
+        expect(failedBanner(w).exists()).toBe(false);
 
         // The retry succeeds, so the repository drops out of the pending list entirely
         repos[0].status = { indexConfigMapName: 'repo-1-0-abc', downloadTime: '2026-11-12T21:00:00Z' };
@@ -2707,21 +2753,8 @@ describe('page: UI plugins/Extensions', () => {
         failRepo(repos[0], 'fetch: unexpected client error');
         await settle(w);
 
-        expect(bannerOf(w).exists()).toBe(true);
-        expect(w.vm.visiblePendingRepos[0].message).toBe('fetch: unexpected client error');
-      });
-
-      it.each([
-        ['an unrelated chart repository', 'https://example.com/my-charts'],
-        ['the community extensions repository', UI_PLUGINS_REPOS.COMMUNITY.URL],
-      ])('should stay silent about %s that has no index', async(_label, url) => {
-        // Adding a repository for reasons unrelated to extensions must not put a message on this
-        // page - until its index exists there is no way to know whether it holds any extensions
-        const repos = reactive([repoOf('repo-1', false, url)]);
-        const { wrapper: w } = await mountWithRepos(repos);
-
-        expect(w.vm.pendingRepos).toStrictEqual([]);
-        expect(bannerOf(w).exists()).toBe(false);
+        expect(failedBanner(w).exists()).toBe(true);
+        expect(w.vm.failedRepos[0].message).toBe('fetch: unexpected client error');
       });
 
       describe('airgap', () => {
@@ -2740,7 +2773,7 @@ describe('page: UI plugins/Extensions', () => {
           const { wrapper: w } = await mountWithRepos(repos);
 
           expect(w.vm.pendingRepos).toHaveLength(1);
-          expect(bannerOf(w).exists()).toBe(true);
+          expect(downloadingBanner(w).exists()).toBe(true);
         });
 
         it('should not let a repository claim the official name outside an airgapped install', async() => {
@@ -2748,7 +2781,7 @@ describe('page: UI plugins/Extensions', () => {
           const { wrapper: w } = await mountWithRepos(repos);
 
           expect(w.vm.pendingRepos).toStrictEqual([]);
-          expect(bannerOf(w).exists()).toBe(false);
+          expect(downloadingBanner(w).exists()).toBe(false);
         });
 
         it('should ignore an unrelated mirrored repository', async() => {
@@ -2756,8 +2789,19 @@ describe('page: UI plugins/Extensions', () => {
           const { wrapper: w } = await mountWithRepos(repos);
 
           expect(w.vm.pendingRepos).toStrictEqual([]);
-          expect(bannerOf(w).exists()).toBe(false);
+          expect(downloadingBanner(w).exists()).toBe(false);
         });
+      });
+
+      it.each([
+        ['an unrelated chart repository', 'https://example.com/my-charts'],
+        ['the community extensions repository', UI_PLUGINS_REPOS.COMMUNITY.URL],
+      ])('should stay silent about %s that has no index', async(_label, url) => {
+        const repos = reactive([repoOf('repo-1', false, url)]);
+        const { wrapper: w } = await mountWithRepos(repos);
+
+        expect(w.vm.pendingRepos).toStrictEqual([]);
+        expect(downloadingBanner(w).exists()).toBe(false);
       });
 
       it('should report the official and partners repositories', async() => {
@@ -2768,7 +2812,7 @@ describe('page: UI plugins/Extensions', () => {
         ]);
         const { wrapper: w } = await mountWithRepos(repos);
 
-        expect(w.vm.pendingRepoNames).toBe('repo-1, repo-2');
+        expect(w.vm.downloadingRepoNames).toBe('repo-1, repo-2');
       });
 
       it.each([
@@ -2779,7 +2823,7 @@ describe('page: UI plugins/Extensions', () => {
         const { wrapper: w } = await mountWithRepos(repos);
 
         expect(w.vm.pendingRepos).toStrictEqual([]);
-        expect(bannerOf(w).exists()).toBe(false);
+        expect(downloadingBanner(w).exists()).toBe(false);
       });
     });
   });
