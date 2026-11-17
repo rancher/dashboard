@@ -364,8 +364,8 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'spec.template.spec.containers.image' },
     ],
     [CRD]: [
-      // { field: 'spec.group' }, // blocked on https://github.com/rancher/rancher/issues/55811
-      // { field: 'spec.names.singular' }, // blocked on https://github.com/rancher/rancher/issues/55811
+      { field: 'spec.group' },
+      { field: 'spec.names.singular' },
     ]
   };
 

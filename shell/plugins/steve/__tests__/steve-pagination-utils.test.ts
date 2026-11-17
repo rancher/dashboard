@@ -3,6 +3,7 @@ import { PaginationFilterEquality, PaginationFilterField, PaginationParamFilter,
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '../steve-pagination-utils';
 import { Schema } from '@shell/plugins/steve/schema';
+import { CRD } from '@shell/config/types';
 
 type Namespaces = Parameters<(typeof stevePaginationUtils)['handlePrefAndSettingFilter']>[0]['allNamespaces'];
 
@@ -366,6 +367,47 @@ describe('class StevePaginationUtils', () => {
 
       expect(result.projectsOrNamespaces).toHaveLength(1);
       expect(result.projectsOrNamespaces[0].fields[0].value).toBe('ns-1');
+    });
+  });
+
+  describe('method: createParamsForPagination with the CRD Resource column fields', () => {
+    const crdSchema = { id: CRD, attributes: { columns: [] } } as unknown as Schema;
+    const resourceFields = ['spec.group', 'spec.names.singular'];
+    let warn: jest.SpyInstance;
+
+    beforeEach(() => {
+      warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warn.mockRestore();
+    });
+
+    it('should sort by them without warning that the api does not support them', () => {
+      stevePaginationUtils.createParamsForPagination({
+        schema: crdSchema,
+        opt:    { pagination: { pageSize: 10, sort: resourceFields.map((field) => ({ field, asc: true })) } }
+      } as any);
+
+      expect(warn.mock.calls).toStrictEqual([]);
+    });
+
+    it('should filter by them without warning that the api does not support them', () => {
+      stevePaginationUtils.createParamsForPagination({
+        schema: crdSchema,
+        opt:    {
+          pagination: {
+            pageSize: 10,
+            filters:  [new PaginationParamFilter({
+              fields: resourceFields.map((field) => new PaginationFilterField({
+                field, value: 'auditpolicy', exact: false
+              }))
+            })]
+          }
+        }
+      } as any);
+
+      expect(warn.mock.calls).toStrictEqual([]);
     });
   });
 
