@@ -103,4 +103,70 @@ describe('component: AddExtensionReposDialog', () => {
 
     wrapper.unmount();
   });
+
+  describe('reporting the download', () => {
+    const mountWith = (dispatch: jest.Mock) => {
+      const store = mockedStore() as any;
+
+      // The tracking that `reportDownloads` kicks off reads the repo back out of the store. Hand
+      // it an already indexed one so it settles immediately instead of polling past the test.
+      store.getters['management/byId'] = () => ({ status: { indexConfigMapName: 'cm' } });
+      store.dispatch = dispatch;
+
+      return mount(AddExtensionReposDialog, {
+        global: {
+          mocks: { $store: store, $fetchState: {} },
+          stubs: { Dialog: { template: '<span><slot/></span>' } },
+        }
+      });
+    };
+
+    it('should tell the user the download is happening in the background', async() => {
+      const dispatch = jest.fn(() => Promise.resolve());
+      const wrapper = mountWith(dispatch);
+
+      wrapper.vm.reportDownloads(['partner-extensions']);
+      await nextTick();
+
+      const growl: any = dispatch.mock.calls.find((c: any) => c[0] === 'growl/info');
+
+      expect(growl).toBeDefined();
+      expect(growl[1].title).toContain('plugins.repoDownload.added.title');
+      expect(growl[1].message).toContain('plugins.repoDownload.added.message');
+
+      wrapper.unmount();
+    });
+
+    it('should follow each added repository in the notification centre', async() => {
+      const dispatch = jest.fn(() => Promise.resolve());
+      const wrapper = mountWith(dispatch);
+
+      wrapper.vm.reportDownloads(['rancher-ui-plugins', 'partner-extensions']);
+      await nextTick();
+
+      const tasks = dispatch.mock.calls
+        .filter((c: any) => c[0] === 'notifications/add')
+        .map((c: any) => c[1].id);
+
+      expect(tasks).toStrictEqual([
+        'extension-repo-download-rancher-ui-plugins',
+        'extension-repo-download-partner-extensions'
+      ]);
+
+      wrapper.unmount();
+    });
+
+    it('should say nothing when no repository was actually added', async() => {
+      const dispatch = jest.fn(() => Promise.resolve());
+      const wrapper = mountWith(dispatch);
+
+      wrapper.vm.reportDownloads([]);
+      await nextTick();
+
+      expect(dispatch).not.toHaveBeenCalledWith('growl/info', expect.anything(), expect.anything());
+      expect(dispatch).not.toHaveBeenCalledWith('notifications/add', expect.anything());
+
+      wrapper.unmount();
+    });
+  });
 });
