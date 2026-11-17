@@ -68,15 +68,19 @@ export async function fetchMonitoringVersion(store, storeName) {
 }
 
 export async function hasEndpointSubsets(store, id, storeName = 'cluster') {
-  if (store.getters[`${ storeName }/schemaFor`](ENDPOINTS)) {
-    const endpoints = await store.dispatch(`${ storeName }/findAll`, { type: ENDPOINTS }) || [];
+  if (!store.getters[`${ storeName }/schemaFor`](ENDPOINTS)) {
+    return false;
+  }
+
+  try {
+    const endpoints = await store.dispatch(`${ storeName }/findAll`, { type: ENDPOINTS, opt: { namespaced: id.split('/')[0] } }) || [];
 
     const endpoint = endpoints.find((ep) => ep.id === id);
 
-    return endpoint && !isEmpty(endpoint) && !isEmpty(endpoint.subsets);
+    return !!endpoint && !isEmpty(endpoint) && !isEmpty(endpoint.subsets);
+  } catch (ex) {
+    return false;
   }
-
-  return false;
 }
 
 export async function canViewGrafanaLink(store) {

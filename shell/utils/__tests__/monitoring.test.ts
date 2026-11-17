@@ -151,21 +151,30 @@ function makeStore(endpointId: string, subsets: object[] | undefined, hasSchema 
 }
 
 describe('hasEndpointSubsets', () => {
-  it('should read the endpoints from the given store', async() => {
+  it('should only list the endpoints in the namespace of the id, from the given store', async() => {
     const id = 'cattle-project-p-abc123-monitoring/cattle-project-p-abc123-monitoring-grafana';
     const store = makeStore(id, [{ addresses: [{ ip: '10.0.0.4' }] }], true, 'harvester');
 
-    expect(await hasEndpointSubsets(store, id, 'harvester')).toBe(true);
-    expect(store.dispatch).toHaveBeenCalledWith('harvester/findAll', { type: ENDPOINTS });
+    expect(await hasEndpointSubsets(store, id, 'harvester')).toStrictEqual(true);
+    expect(store.dispatch).toHaveBeenCalledWith('harvester/findAll', { type: ENDPOINTS, opt: { namespaced: 'cattle-project-p-abc123-monitoring' } });
   });
 
-  it('should return false when the endpoints cannot be listed', async() => {
+  it.each([
+    ['resolves empty', (store: ReturnType<typeof makeStore>) => store.dispatch.mockResolvedValue(undefined)],
+    ['fails', (store: ReturnType<typeof makeStore>) => store.dispatch.mockRejectedValue(new Error('403 Forbidden'))],
+  ])('should return false when listing the endpoints %s', async(_, mockList) => {
     const id = `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-grafana`;
     const store = makeStore(id, undefined);
 
-    store.dispatch.mockResolvedValue(undefined);
+    mockList(store);
 
-    expect(await hasEndpointSubsets(store, id)).toBeFalsy();
+    expect(await hasEndpointSubsets(store, id)).toStrictEqual(false);
+  });
+
+  it('should return false when the endpoint is missing', async() => {
+    const store = makeStore('other/endpoint', [{ addresses: [{ ip: '10.0.0.4' }] }]);
+
+    expect(await hasEndpointSubsets(store, `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-grafana`)).toStrictEqual(false);
   });
 });
 

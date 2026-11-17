@@ -1,4 +1,5 @@
 import { WorkloadsDeploymentsDetailsPagePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads-deployments.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import {
   CLUSTER_GRAFANA, PODMONITOR_SCHEMA_ID, grafanaEndpoint, isGrafanaEndpoint, podMonitorSchema, projectGrafana
 } from '@/cypress/e2e/blueprints/explorer/workloads/grafana-monitoring';
@@ -7,17 +8,22 @@ import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const NAMESPACE = 'default';
 const SCHEMAS_URL = /\/v1\/schemas(\?.*)?$/;
-const ENDPOINTS_URL = /\/v1\/endpoints(\?.*)?$/;
+const ENDPOINTS_URL = /\/v1\/endpoints(\/([^/?]+))?(\?.*)?$/;
 const GRAFANA_PROXY_URL = /\/services\/http:[^/]+-grafana:80\/proxy\//;
 
 const dashboardsUrl = ({ name }: { name: string }) => new RegExp(`/services/http:${ name }:80/proxy/api/dashboards/uid/`);
 
-const replaceGrafanaEndpoints = (endpoints: object[]) => {
+const replaceGrafanaEndpoints = (endpoints: ReturnType<typeof grafanaEndpoint>[]) => {
   cy.intercept('GET', ENDPOINTS_URL, (req) => {
+    const namespace = req.url.match(ENDPOINTS_URL)?.[2];
+
     delete req.headers['if-none-match'];
     req.continue((res) => {
       if (Array.isArray(res.body?.data)) {
-        res.body.data = [...res.body.data.filter((endpoint: { id: string }) => !isGrafanaEndpoint(endpoint)), ...endpoints];
+        res.body.data = [
+          ...res.body.data.filter((endpoint: { id: string }) => !isGrafanaEndpoint(endpoint)),
+          ...endpoints.filter((endpoint) => !namespace || endpoint.metadata.namespace === namespace)
+        ];
       }
     });
   });
@@ -36,10 +42,9 @@ const addPodMonitorSchema = () => {
 
 describe('Workload metrics', { tags: ['@explorer2', '@adminUser'] }, () => {
   let deploymentName: string;
-  let projectId: string;
 
   const openDetailPage = () => {
-    const detailPage = new WorkloadsDeploymentsDetailsPagePo(deploymentName, 'local', undefined, NAMESPACE);
+    const detailPage = new WorkloadsDeploymentsDetailsPagePo(deploymentName);
 
     detailPage.goTo();
     detailPage.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
@@ -66,11 +71,6 @@ describe('Workload metrics', { tags: ['@explorer2', '@adminUser'] }, () => {
         }
       }));
     });
-
-    cy.getRancherResource('v1', 'namespaces', NAMESPACE).then((resp) => {
-      projectId = resp.body.metadata.labels['field.cattle.io/projectId'];
-      expect(projectId, `the ${ NAMESPACE } namespace belongs to a project`).to.be.a('string');
-    });
   });
 
   beforeEach(() => {
@@ -85,6 +85,7 @@ describe('Workload metrics', { tags: ['@explorer2', '@adminUser'] }, () => {
 
     openDetailPage();
 
+    new ProductNavPo().groupByLabel('Monitoring').should('exist');
     cy.get('@grafanaProxy.all').should('have.length', 0);
     cy.get('[data-testid="btn-workload-metrics"]').should('not.exist');
   });
@@ -100,8 +101,13 @@ describe('Workload metrics', { tags: ['@explorer2', '@adminUser'] }, () => {
   });
 
   it('should show project metrics when only the project Grafana endpoint exists', () => {
-    replaceGrafanaEndpoints([grafanaEndpoint(projectGrafana(projectId))]);
-    cy.intercept('GET', dashboardsUrl(projectGrafana(projectId)), { statusCode: 200, body: {} }).as('projectDashboards');
+    cy.getRancherResource('v1', 'namespaces', NAMESPACE).then((resp) => {
+      const projectId = resp.body.metadata.labels['field.cattle.io/projectId'];
+
+      expect(projectId, `the ${ NAMESPACE } namespace belongs to a project`).to.be.a('string');
+      replaceGrafanaEndpoints([grafanaEndpoint(projectGrafana(projectId))]);
+      cy.intercept('GET', dashboardsUrl(projectGrafana(projectId)), { statusCode: 200, body: {} }).as('projectDashboards');
+    });
     cy.intercept('GET', dashboardsUrl(CLUSTER_GRAFANA)).as('clusterDashboards');
 
     openDetailPage();

@@ -13,6 +13,14 @@ export function getClusterPrefix(monitoringVersion, clusterId) {
   return clusterId === 'local' ? '' : `/k8s/clusters/${ clusterId }`;
 }
 
+function grafanaService(projectId) {
+  if (projectId) {
+    return { namespace: `cattle-project-${ projectId }-monitoring`, name: `cattle-project-${ projectId }-monitoring-grafana` };
+  }
+
+  return { namespace: CATTLE_MONITORING_NAMESPACE, name: 'rancher-monitoring-grafana' };
+}
+
 export function computeDashboardUrl(monitoringVersion, embedUrl, clusterId, params, modifyPrefix = true) {
   const url = parseUrl(embedUrl);
 
@@ -41,13 +49,9 @@ export async function dashboardExists(monitoringVersion, store, clusterId, embed
   }
 
   const url = parseUrl(embedUrl);
-  let prefix = `${ getClusterPrefix(monitoringVersion, clusterId) }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/`;
-  let delimiter = 'http:rancher-monitoring-grafana:80/proxy/';
-
-  if (projectId) {
-    prefix = `${ getClusterPrefix(monitoringVersion, clusterId) }/api/v1/namespaces/cattle-project-${ projectId }-monitoring/services/http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/`;
-    delimiter = `http:cattle-project-${ projectId }-monitoring-grafana:80/proxy/`;
-  }
+  const { namespace, name } = grafanaService(projectId);
+  const delimiter = `http:${ name }:80/proxy/`;
+  const prefix = `${ getClusterPrefix(monitoringVersion, clusterId) }/api/v1/namespaces/${ namespace }/services/${ delimiter }`;
   const path = url.path.split(delimiter)[1];
   const uid = path.split('/')[1];
   const newUrl = `${ prefix }api/dashboards/uid/${ uid }`;
@@ -65,9 +69,9 @@ export async function dashboardExists(monitoringVersion, store, clusterId, embed
  * @param {string | null} [projectId]
  */
 export async function allDashboardsExist(store, clusterId, embeddedUrls, storeName = 'cluster', projectId = null) {
-  const grafanaEndpoint = projectId ? `cattle-project-${ projectId }-monitoring/cattle-project-${ projectId }-monitoring-grafana` : `${ CATTLE_MONITORING_NAMESPACE }/rancher-monitoring-grafana`;
+  const { namespace, name } = grafanaService(projectId);
 
-  if ( !haveV2Monitoring(store.getters) || !await hasEndpointSubsets(store, grafanaEndpoint, storeName) ) {
+  if ( !haveV2Monitoring(store.getters) || !await hasEndpointSubsets(store, `${ namespace }/${ name }`, storeName) ) {
     return false;
   }
 
