@@ -1,6 +1,6 @@
 import { init } from '@shell/config/product/explorer';
 import { NODE as NODE_COL } from '@shell/config/table-headers';
-import { POD } from '@shell/config/types';
+import { FLEET, POD } from '@shell/config/types';
 
 describe('product: explorer', () => {
   const initExplorer = () => {
@@ -65,5 +65,19 @@ describe('product: explorer', () => {
     initExplorer();
 
     expect([(NODE_COL as any).formatter, (NODE_COL as any).skipSelect]).toStrictEqual(['LinkName', undefined]);
+  });
+
+  it.each([
+    FLEET.GIT_REPO,
+    FLEET.HELM_OP,
+  ])('should hide the default masthead of the %s list, which renders its own', (type) => {
+    const commit = initExplorer();
+    const options = commit.mock.calls
+      .filter(([name, value]) => name === 'type-map/configureType' && value.match === type)
+      .map(([, value]) => value);
+
+    expect(options).toStrictEqual([{
+      showListMasthead: false, match: type, product: 'explorer'
+    }]);
   });
 });
