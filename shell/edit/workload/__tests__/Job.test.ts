@@ -25,6 +25,41 @@ describe('component: Job', () => {
     });
 
     it.each([
+      ['successful', 'successfulJobsHistoryLimit'],
+      ['failed', 'failedJobsHistoryLimit'],
+    ])('should emit the spec with the value typed in %p', async(field, key) => {
+      const wrapper = mount(Job, {
+        props: {
+          mode: _EDIT,
+          type: WORKLOAD_TYPES.CRON_JOB
+        }
+      });
+      const input = wrapper.find(`[data-testid="input-job-${ field }"]`).find('input');
+
+      await input.setValue('4');
+
+      expect((wrapper.emitted('update:value') as [Record<string, unknown>][])[0][0][key]).toStrictEqual(4);
+    });
+
+    it.each([
+      ['successful', 'successfulJobsHistoryLimit'],
+      ['failed', 'failedJobsHistoryLimit'],
+    ])('should emit the spec without a %p history limit once it is cleared', async(field, key) => {
+      const wrapper = mount(Job, {
+        props: {
+          mode:  _EDIT,
+          type:  WORKLOAD_TYPES.CRON_JOB,
+          value: { [key]: 4 }
+        }
+      });
+      const input = wrapper.find(`[data-testid="input-job-${ field }"]`).find('input');
+
+      await input.setValue('');
+
+      expect((wrapper.emitted('update:value') as [Record<string, unknown>][])[0][0][key]).toBeNull();
+    });
+
+    it.each([
       'concurrencyPolicy',
       'suspend',
     ])('should emit an update on %p radio option change', async(field) => {

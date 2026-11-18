@@ -1,6 +1,6 @@
 <script>
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { convert, simplify } from '@shell/utils/selector'; /*  matching, */
+import { convertSelectorObj, simplify } from '@shell/utils/selector'; /*  matching, */
 import MatchExpressions from '@shell/components/form/MatchExpressions';
 
 export default {
@@ -25,11 +25,8 @@ export default {
         const selector = this.value?.selector;
         let matchExpressions;
 
-        if (selector && selector?.matchExpressions) {
-          matchExpressions = convert(
-            selector?.matchLabels || {},
-            selector.matchExpressions
-          );
+        if (selector) {
+          matchExpressions = convertSelectorObj(selector);
 
           return matchExpressions;
         } else {
@@ -42,8 +39,7 @@ export default {
     matchChanged(expressions) {
       const { matchLabels, matchExpressions } = simplify(expressions);
 
-      this.value.selector['matchLabels'] = matchLabels;
-      this.value.selector['matchExpressions'] = matchExpressions;
+      this.value['selector'] = { matchLabels, matchExpressions };
     },
   },
 };
@@ -70,7 +66,7 @@ export default {
           :value="matchExpressions"
           :label="t('hpa.metricIdentifier.selector.label')"
           :show-remove="false"
-          @input="matchChanged($event)"
+          @update:value="matchChanged($event)"
         >
           <template #header>
             <h3>{{ t('hpa.metricIdentifier.selector.header') }}</h3>

@@ -73,6 +73,13 @@ export default {
       this.update();
     },
 
+    removeMounts({ row }) {
+      const container = this.value.template.spec.containers[0];
+      const name = row.value.metadata.name || '';
+
+      container.volumeMounts = container.volumeMounts.filter((mount) => mount.name !== name);
+    },
+
     addPVC() {
       if (!this.value.volumeClaimTemplates) {
         this.value['volumeClaimTemplates'] = [];
@@ -101,7 +108,8 @@ export default {
       <ArrayListGrouped
         v-model:value="templates"
         class="mb-20"
-        @input="update()"
+        @update:value="update()"
+        @remove="removeMounts"
       >
         <template #default="props">
           <div class="bordered-section">
