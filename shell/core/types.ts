@@ -147,6 +147,10 @@ export type Action = {
    * nothing else. Defaults to false: the action is a button.
    */
   hidden?: boolean;
+  /**
+   * Header actions: it shows a notification indicator (a small dot) on the button when the function returns true
+   */
+  showNotificationIndicator?: () => boolean;
   invoke: (opts: ActionOpts, resources: any[], globals?: any) => void | boolean | Promise<boolean>;
 };
 

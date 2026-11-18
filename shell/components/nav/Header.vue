@@ -497,6 +497,14 @@ export default {
       return null;
     },
 
+    getExtensionNotificationIndicator(action) {
+      if (action && typeof action.showNotificationIndicator === 'function') {
+        return action.showNotificationIndicator() || false;
+      }
+
+      return false;
+    },
+
     async updateExtensionActionsEnabled() {
       for (const [i, action] of this.extensionHeaderActions.entries()) {
         this.extensionActionsEnabled[i] = await this.isActionEnabled(action);
@@ -778,13 +786,19 @@ export default {
             @shortkey="handleExtensionAction(action, $event)"
             @click="handleExtensionAction(action, $event)"
           >
-            <IconOrSvg
-              class="icon icon-lg"
-              :icon="action.icon"
-              :src="action.svg"
-              :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
-              color="header"
-            />
+            <div class="extension-action-icon-container">
+              <IconOrSvg
+                class="icon icon-lg"
+                :icon="action.icon"
+                :src="action.svg"
+                :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
+                color="header"
+              />
+              <div
+                v-if="getExtensionNotificationIndicator(action)"
+                class="extension-action-icon-container-notification-indicator"
+              />
+            </div>
           </button>
         </template>
       </div>
@@ -1289,4 +1303,20 @@ export default {
     }
   }
 
+  .extension-action-icon-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &-notification-indicator {
+      position: absolute;
+      right: -8px;
+      top: -4px;
+      border-radius: 50%;
+      height: 8px;
+      width: 8px;
+      background-color: var(--error);
+    }
+  }
 </style>
