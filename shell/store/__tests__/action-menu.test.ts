@@ -4,6 +4,9 @@ import {
   mutations,
   actions,
 } from '@shell/store/action-menu';
+import { preloadResourceDetailDrawer } from '@shell/components/Drawer/ResourceDetailDrawer/async';
+
+jest.mock('@shell/components/Drawer/ResourceDetailDrawer/async', () => ({ preloadResourceDetailDrawer: jest.fn() }));
 
 describe('action-menu store', () => {
   describe('state', () => {
@@ -563,6 +566,14 @@ describe('action-menu store', () => {
         actions.setResource({ commit } as any, resource as any);
 
         expect(commit).toHaveBeenCalledWith('SET_RESOURCE', resource);
+      });
+
+      it('starts loading the resource detail drawer, so opening it does not wait on a download', () => {
+        const commit = jest.fn();
+
+        actions.setResource({ commit } as any, { id: 'r1' } as any);
+
+        expect(preloadResourceDetailDrawer).toHaveBeenCalledWith();
       });
     });
 

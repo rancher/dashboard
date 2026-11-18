@@ -1124,4 +1124,66 @@ describe('class: Resource', () => {
       expect(resource.isProdRegistrationV2TopLevelProductResoure).toBe(true);
     });
   });
+
+  describe('method: showConfiguration', () => {
+    function createResource() {
+      const commit = jest.fn();
+      const resource = new Resource({ type: 'test-type' }, {
+        commit,
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      return { resource, commit };
+    }
+
+    it('should open the slide in panel for the resource, on the requested tab', () => {
+      const { resource, commit } = createResource();
+
+      resource.showConfiguration('#return-here', 'yaml');
+
+      expect(commit).toHaveBeenCalledWith('slideInPanel/open', expect.any(Object), { root: true });
+
+      const { componentProps } = commit.mock.calls[0][1];
+
+      expect(componentProps.resource).toBe(resource);
+      expect(componentProps.defaultTab).toBe('yaml');
+      expect(componentProps.returnFocusSelector).toBe('#return-here');
+      expect(componentProps.width).toBe('wide');
+      expect(componentProps.height).toBe('full');
+    });
+
+    it('should load the drawer on demand rather than bundling it up front', () => {
+      const { resource, commit } = createResource();
+
+      resource.showConfiguration('#return-here', 'yaml');
+
+      const { component } = commit.mock.calls[0][1];
+
+      // An async wrapper that has not resolved: the drawer - and the editor, diff viewer and
+      // highlighter behind it - is only fetched once the panel renders it
+      expect(typeof component.__asyncLoader).toBe('function');
+      expect(component.__asyncResolved).toBeUndefined();
+    });
+
+    it('should reuse one component definition across opens, so re-opening does not remount', () => {
+      const first = createResource();
+      const second = createResource();
+
+      first.resource.showConfiguration('#first', 'yaml');
+      second.resource.showConfiguration('#second', 'config');
+
+      expect(first.commit.mock.calls[0][1].component).toBe(second.commit.mock.calls[0][1].component);
+    });
+
+    it('should close the panel through the onClose prop', () => {
+      const { resource, commit } = createResource();
+
+      resource.showConfiguration('#return-here', 'yaml');
+      commit.mock.calls[0][1].componentProps.onClose();
+
+      expect(commit).toHaveBeenCalledWith('slideInPanel/close', undefined, { root: true });
+    });
+  });
 });
