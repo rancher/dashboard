@@ -3,6 +3,7 @@ import { useStore } from 'vuex';
 import PercentageBar from '@shell/components/PercentageBar.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { formatPercent } from '@shell/utils/string';
+import { USAGE_COLOR_STOPS } from '@shell/utils/color';
 
 export interface Props {
   resource: any;
@@ -95,6 +96,7 @@ const getGlanceItemValueId = (glanceItem: any): string => `value-${ glanceItem.l
         <span class="text-deemphasized">{{ item.label }}</span>
         <PercentageBar
           :model-value="barPercentage(item)"
+          :color-stops="USAGE_COLOR_STOPS"
           size="small"
           aria-hidden="true"
         />

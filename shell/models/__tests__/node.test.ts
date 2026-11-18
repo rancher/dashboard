@@ -1,26 +1,106 @@
 import Node from '@shell/models/cluster/node';
-import { METRIC, POD } from '@shell/config/types';
-import { PaginationArgs, PaginationParamFilter } from '@shell/types/store/pagination.types';
+import { METRIC } from '@shell/config/types';
 
 describe('class Node', () => {
-  const resetMocks = () => {
-    // Clear all mock function calls:
-    jest.clearAllMocks();
-  };
+  describe('usage and resources', () => {
+    const CONTROL_PLANE = 'node-role.kubernetes.io/control-plane';
+    const CONTROL_PLANE_OLD = 'node-role.kubernetes.io/controlplane';
+    const ETCD = 'node-role.kubernetes.io/etcd';
+    const WORKER = 'node-role.kubernetes.io/worker';
 
-  it.each([
-    ['1200', 1200],
-    ['1k', 1000]
-  ])('given %p status pod capacity value from the backend, should parse the value correctly as %p', (value, result) => {
-    const node = new Node({ status: { capacity: { pods: value } } });
+    const createNode = ({
+      status = {}, spec = {}, labels = {}, metrics, annotations = {}
+    }: any = {}) => new Node({
+      id:       'node-1',
+      metadata: {
+        name: 'node-1', labels, annotations
+      },
+      spec,
+      status: {
+        allocatable: {
+          cpu: '3', memory: '6Gi', pods: '100'
+        },
+        capacity: {
+          cpu: '4', memory: '8Gi', pods: '110'
+        },
+        ...status
+      },
+    }, { rootGetters: { 'cluster/byId': () => metrics } });
 
-    expect(node.podCapacity).toStrictEqual(result);
-    resetMocks();
+    it('should work out the CPU and memory usage percentages out of the capacity, rather than the allocatable', () => {
+      const node = createNode({ metrics: { usage: { cpu: '1', memory: '2Gi' } } });
+
+      expect([node.cpuUsagePercentage, node.ramUsagePercentage]).toStrictEqual(['25', '25']);
+    });
+
+    it('should have no usage without metrics', () => {
+      const node = createNode();
+
+      expect([node.usage, node.cpuUsage, node.ramUsage]).toStrictEqual([undefined, 0, 0]);
+    });
+
+    it('should only get the usage from the metrics, what the pods request is the reserved', () => {
+      const annotations = { 'management.cattle.io/pod-requests': JSON.stringify({ cpu: '3', memory: '6Gi' }) };
+      const node = createNode({ annotations });
+
+      expect([node.usage, node.cpuUsage, node.ramUsage]).toStrictEqual([undefined, 0, 0]);
+      expect([node.cpuReserved, node.ramReserved]).toStrictEqual([3, 6 * 1024 ** 3]);
+    });
+
+    it('should sort by the CPU and memory usage out of the capacity', () => {
+      const node = createNode({ metrics: { usage: { cpu: '1', memory: '2Gi' } } });
+
+      expect([node.cpuUsageRatio, node.ramUsageRatio]).toStrictEqual([0.25, 0.25]);
+    });
+
+    it('should sort a node without a capacity as no usage', () => {
+      const node = createNode({ status: { capacity: {} }, metrics: { usage: { cpu: '1', memory: '2Gi' } } });
+
+      expect([node.cpuUsageRatio, node.ramUsageRatio]).toStrictEqual([0, 0]);
+    });
+
+    it.each([
+      [{ allocatable: { pods: '100' } }, 100],
+      [{ allocatable: { pods: '1k' } }, 1000],
+      [{ allocatable: {} }, 0],
+    ])('given the status %p, should have %p allocatable pods', (status, result) => {
+      const node = createNode({ status });
+
+      expect(node.podAllocatable).toStrictEqual(result);
+    });
+
+    it('should work out the pods usage from the pods Rancher counts on the node, out of the allocatable rather than the capacity', () => {
+      const node = createNode({ annotations: { 'management.cattle.io/pod-requests': JSON.stringify({ pods: '25' }) } });
+
+      expect([node.podReserved, node.podUsagePercentage]).toStrictEqual([25, '25']);
+    });
+
+    it('should have no CPU or memory when the status has none, so the cluster dashboard can still sum the nodes', () => {
+      const node = createNode({ status: { capacity: {}, allocatable: {} } });
+
+      expect([node.cpuCapacity, node.cpuAllocatable, node.ramCapacity, node.ramAllocatable]).toStrictEqual([0, 0, 0, 0]);
+    });
+
+    it.each([
+      ['a worker', { [WORKER]: 'true' }, [], false, true],
+      ['a node without a role, e.g. in an imported cluster', {}, [], false, true],
+      ['a cordoned worker', { [WORKER]: 'true' }, [], true, false],
+      ['a control plane node without a taint, e.g. a k3s server', { [CONTROL_PLANE]: 'true', [ETCD]: 'true' }, [], false, true],
+      ['a control plane node tainted NoSchedule', { [CONTROL_PLANE]: 'true' }, [{ key: CONTROL_PLANE, effect: 'NoSchedule' }], false, false],
+      ['an etcd node tainted NoExecute', { [ETCD]: 'true' }, [{ key: ETCD, effect: 'NoExecute' }], false, false],
+      ['an RKE1 control plane node tainted NoSchedule', { [CONTROL_PLANE_OLD]: 'true' }, [{ key: CONTROL_PLANE_OLD, effect: 'NoSchedule' }], false, false],
+      ['a tainted control plane node that is also a worker', { [CONTROL_PLANE]: 'true', [WORKER]: 'true' }, [{ key: CONTROL_PLANE, effect: 'NoSchedule' }], false, true],
+      ['a control plane node tainted PreferNoSchedule', { [CONTROL_PLANE]: 'true' }, [{ key: CONTROL_PLANE, effect: 'PreferNoSchedule' }], false, true],
+      ['a control plane node with a taint of another key', { [CONTROL_PLANE]: 'true' }, [{ key: 'nvidia.com/gpu', effect: 'NoSchedule' }], false, true],
+      ['a worker with a NoSchedule taint of another key', { [WORKER]: 'true' }, [{ key: 'nvidia.com/gpu', effect: 'NoSchedule' }], false, true],
+    ])('should count %p in the cluster resources: %p %p, cordoned %p -> %p', (_, labels, taints, unschedulable, result) => {
+      const node = createNode({ labels, spec: { taints, unschedulable } });
+
+      expect(node.isCountedInClusterResources).toStrictEqual(result);
+    });
   });
 
   describe('popover', () => {
-    const RUNNING_PODS_COUNT = 'nodeRunningPods/local/node-1';
-
     const BASE_GLANCE = [
       { name: 'state' },
       { name: 'type' },
@@ -31,52 +111,36 @@ describe('class Node', () => {
     interface NodeOptions {
       metrics?: any;
       hasMetricsSchema?: boolean;
-      canViewPods?: boolean;
-      paginated?: boolean;
-      haveAllPods?: boolean;
-      pods?: any[];
-      savedCounts?: Record<string, number>;
     }
 
-    const createNode = (data: any = {}, {
-      metrics, hasMetricsSchema = true, canViewPods = true, paginated = false, haveAllPods = false, pods = [], savedCounts = {}
-    }: NodeOptions = {}) => {
+    const createNode = (data: any = {}, { metrics, hasMetricsSchema = true }: NodeOptions = {}) => {
       const dispatch = jest.fn();
-      const commit = jest.fn();
-      const schemas: Record<string, any> = {
-        [METRIC.NODE]: hasMetricsSchema ? { id: METRIC.NODE } : undefined,
-        [POD]:         canViewPods ? { id: POD } : undefined,
-      };
+      const schemas: Record<string, any> = { [METRIC.NODE]: hasMetricsSchema ? { id: METRIC.NODE } : undefined };
       const rootGetters = {
-        'i18n/t':                    (key: string) => key,
-        'cluster/byId':              jest.fn(() => metrics),
-        'cluster/schemaFor':         jest.fn((type: string) => schemas[type]),
-        'cluster/paginationEnabled': jest.fn(() => paginated),
-        'cluster/haveAll':           jest.fn(() => haveAllPods),
-        'cluster/urlFor':            jest.fn(() => 'https://rancher/k8s/clusters/local/v1/pods'),
-        'cluster/getSavedCount':     jest.fn((name: string) => savedCounts[name]),
-        'cluster/all':               jest.fn(() => pods),
-        clusterId:                   'local',
-        currentCluster:              { metadata: { labels: {} }, provisioner: 'k3s' },
+        'i18n/t':            (key: string) => key,
+        'cluster/byId':      jest.fn(() => metrics),
+        'cluster/schemaFor': jest.fn((type: string) => schemas[type]),
+        clusterId:           'local',
+        currentCluster:      { metadata: { labels: {} }, provisioner: 'k3s' },
       };
       const node = new Node({
         id:       'node-1',
         metadata: { name: 'node-1', annotations: {} },
         status:   {
           addresses:   [],
-          allocatable: { cpu: '4', memory: '8Gi' },
-          capacity:    {
+          allocatable: {
+            cpu: '4', memory: '8Gi', pods: '110'
+          },
+          capacity: {
             cpu: '4', memory: '8Gi', pods: '110'
           },
           nodeInfo: {},
         },
         ...data
-      }, {
-        dispatch, commit, rootGetters
-      });
+      }, { dispatch, rootGetters });
 
       return {
-        node, dispatch, commit, rootGetters
+        node, dispatch, rootGetters
       };
     };
 
@@ -156,10 +220,6 @@ describe('class Node', () => {
     describe('glanceUsage', () => {
       const percentageOf = (node: any, name: string) => node.glanceUsage.find((item: any) => item.name === name).percentage;
 
-      const pod = (nodeName: string, state: string) => ({ spec: { nodeName }, state });
-
-      const runningPods = (count: number, nodeName = 'node-1') => Array.from({ length: count }, () => pod(nodeName, 'running'));
-
       it('should return the CPU, memory and pods usage in that order', () => {
         const { node } = createNode();
 
@@ -203,110 +263,24 @@ describe('class Node', () => {
         expect(percentageOf(node, name)).toBeUndefined();
       });
 
-      describe('pods, without server-side pagination, when every pod is in the store', () => {
-        it('should count the running pods on the node in the store, like the Nodes list', () => {
-          const pods = [
-            ...runningPods(11),
-            pod('node-1', 'crashLoopBackOff'),
-            pod('node-1', 'completed'),
-            ...runningPods(5, 'node-2'),
-          ];
-          const { node, rootGetters } = createNode({}, { pods, haveAllPods: true });
+      it('should work out the pods usage from the pods Rancher counts on the node, like the Nodes list and the cluster dashboard', () => {
+        const { node } = createNode({ metadata: { name: 'node-1', annotations: { 'management.cattle.io/pod-requests': JSON.stringify({ pods: '11' }) } } });
 
-          expect(percentageOf(node, 'pods')).toStrictEqual(10);
-          expect(percentageOf(node, 'pods')).toStrictEqual(Number.parseFloat(node.podConsumedUsage));
-          expect(rootGetters['cluster/haveAll']).toHaveBeenCalledWith(POD);
-        });
-
-        it.each([
-          ['has no pods', []],
-          ['has no running pods', [pod('node-1', 'crashLoopBackOff')]],
-        ])('should not have a pods usage when the node %s, like the Nodes list shows n/a', (_, pods) => {
-          const { node } = createNode({}, { pods, haveAllPods: true });
-
-          expect(percentageOf(node, 'pods')).toBeUndefined();
-        });
-
-        it('should not use a saved count of the running pods', () => {
-          const { node, rootGetters } = createNode({}, {
-            pods: runningPods(11), haveAllPods: true, savedCounts: { [RUNNING_PODS_COUNT]: 55 }
-          });
-
-          expect(percentageOf(node, 'pods')).toStrictEqual(10);
-          expect(rootGetters['cluster/getSavedCount'].mock.calls).toStrictEqual([]);
-        });
-      });
-
-      describe('pods, without server-side pagination, when only some pods are in the store', () => {
-        it('should work out the pods usage from the running pods counted by a request', () => {
-          const { node } = createNode({}, { savedCounts: { [RUNNING_PODS_COUNT]: 11 } });
-
-          expect(percentageOf(node, 'pods')).toStrictEqual(10);
-        });
-
-        it('should not count the pods in the store, which may only be the pods of some namespaces', () => {
-          const { node, rootGetters } = createNode({}, { pods: runningPods(11) });
-
-          expect(percentageOf(node, 'pods')).toBeUndefined();
-          expect(rootGetters['cluster/all'].mock.calls).toStrictEqual([]);
-        });
-
-        it.each([
-          ['has not been counted yet', {}],
-          ['is zero, like the Nodes list shows n/a', { [RUNNING_PODS_COUNT]: 0 }],
-          ['was counted in another cluster', { 'nodeRunningPods/c-m-abcdef/node-1': 11 }],
-        ])('should not have a pods usage when the count of running pods %s', (_, savedCounts) => {
-          const { node } = createNode({}, { savedCounts });
-
-          expect(percentageOf(node, 'pods')).toBeUndefined();
-        });
-      });
-
-      describe('pods, with server-side pagination', () => {
-        it.each([
-          [11, 10],
-          [55, 50],
-          [220, 200],
-        ])('should work out the pods usage from %p running pods counted by the API', (count, expected) => {
-          const { node, rootGetters } = createNode({}, { paginated: true, savedCounts: { [RUNNING_PODS_COUNT]: count } });
-
-          expect(percentageOf(node, 'pods')).toStrictEqual(expected);
-          expect(rootGetters['cluster/paginationEnabled']).toHaveBeenCalledWith(POD);
-        });
-
-        it('should not count the pods in the store, which are only a page of pods', () => {
-          const { node, rootGetters } = createNode({}, {
-            paginated: true, haveAllPods: true, pods: runningPods(11)
-          });
-
-          expect(percentageOf(node, 'pods')).toBeUndefined();
-          expect(rootGetters['cluster/all'].mock.calls).toStrictEqual([]);
-        });
-
-        it.each([
-          ['has not been counted yet', {}],
-          ['is zero, like the Nodes list shows n/a', { [RUNNING_PODS_COUNT]: 0 }],
-          ['was counted in another cluster', { 'nodeRunningPods/c-m-abcdef/node-1': 11 }],
-        ])('should not have a pods usage when the count of running pods %s', (_, savedCounts) => {
-          const { node } = createNode({}, { paginated: true, savedCounts });
-
-          expect(percentageOf(node, 'pods')).toBeUndefined();
-        });
+        expect(percentageOf(node, 'pods')).toStrictEqual(10);
+        expect(percentageOf(node, 'pods')).toStrictEqual(Number.parseFloat(node.podUsagePercentage));
       });
 
       it.each([
-        ['zero', false, { pods: '0' }],
-        ['missing', false, {}],
-        ['zero', true, { pods: '0' }],
-        ['missing', true, {}],
-      ])('should not have a pods usage when the pod capacity is %s (server-side pagination: %p)', (_, paginated, capacity) => {
-        const { node } = createNode({
-          status: {
-            addresses: [], nodeInfo: {}, capacity
+        ['no count of the pods on it', { metadata: { name: 'node-1', annotations: {} } }],
+        ['no pods on it, like the Nodes list shows n/a', { metadata: { name: 'node-1', annotations: { 'management.cattle.io/pod-requests': JSON.stringify({ pods: '0' }) } } }],
+        ['no allocatable pods', {
+          metadata: { name: 'node-1', annotations: { 'management.cattle.io/pod-requests': JSON.stringify({ pods: '11' }) } },
+          status:   {
+            addresses: [], nodeInfo: {}, allocatable: {}
           }
-        }, {
-          paginated, pods: runningPods(11), savedCounts: { [RUNNING_PODS_COUNT]: 11 }
-        });
+        }],
+      ])('should not have a pods usage when the node has %s', (_, data) => {
+        const { node } = createNode(data);
 
         expect(percentageOf(node, 'pods')).toBeUndefined();
       });
@@ -323,202 +297,29 @@ describe('class Node', () => {
         }
       }, { root: true }];
 
-      const RUNNING_PODS_REQUEST = ['cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?filter=spec.nodeName=node-1', signal }, { root: true }];
-
-      const RUNNING_PODS_COUNT_FETCH = ['cluster/findPage', {
-        type: POD,
-        opt:  {
-          transient:   true,
-          saveCountAs: RUNNING_PODS_COUNT,
-          signal,
-          pagination:  new PaginationArgs({
-            page:     1,
-            pageSize: 1,
-            filters:  [
-              PaginationParamFilter.createSingleField({ field: 'spec.nodeName', value: 'node-1' }),
-              PaginationParamFilter.createSingleField({ field: 'metadata.state.name', value: 'running' }),
-            ]
-          })
-        }
-      }, { root: true }];
-
-      it('should fetch the metrics of the node without watching them, and request the pods on the node without storing them', async() => {
-        const { node, dispatch, rootGetters } = createNode();
-
-        await node.fetchGlanceResources(signal);
-
-        expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH, RUNNING_PODS_REQUEST]);
-        expect(rootGetters['cluster/urlFor']).toHaveBeenCalledWith(POD);
-      });
-
-      it('should not fetch pods when every pod is already in the store, as they are counted there', async() => {
-        const { node, dispatch, commit } = createNode({}, { haveAllPods: true });
+      it('should fetch the metrics of the node without watching them', async() => {
+        const { node, dispatch } = createNode();
 
         await node.fetchGlanceResources(signal);
 
         expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH]);
-        expect(commit).toHaveBeenCalledTimes(0);
       });
 
-      it('should only count the running pods on the node with server-side pagination, without storing them', async() => {
-        const { node, dispatch } = createNode({}, { paginated: true });
-
-        await node.fetchGlanceResources(signal);
-
-        expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH, RUNNING_PODS_COUNT_FETCH]);
-      });
-
-      it('should not fetch metrics when the cluster has no metrics API', async() => {
+      it('should fetch nothing when the cluster has no metrics API', async() => {
         const { node, dispatch, rootGetters } = createNode({}, { hasMetricsSchema: false });
 
-        await node.fetchGlanceResources(signal);
+        await expect(node.fetchGlanceResources(signal)).resolves.toBeUndefined();
 
         expect(rootGetters['cluster/schemaFor']).toHaveBeenCalledWith(METRIC.NODE);
-        expect(dispatch.mock.calls).toStrictEqual([RUNNING_PODS_REQUEST]);
-      });
-
-      it.each([false, true])('should not fetch pods when the user can not see them (server-side pagination: %p)', async(paginated) => {
-        const { node, dispatch, rootGetters } = createNode({}, { canViewPods: false, paginated });
-
-        await node.fetchGlanceResources(signal);
-
-        expect(rootGetters['cluster/schemaFor']).toHaveBeenCalledWith(POD);
-        expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH]);
-      });
-
-      it('should fetch nothing when the user can see neither metrics nor pods', async() => {
-        const { node, dispatch } = createNode({}, { hasMetricsSchema: false, canViewPods: false });
-
-        await expect(node.fetchGlanceResources(signal)).resolves.toBeUndefined();
         expect(dispatch.mock.calls).toStrictEqual([]);
       });
 
-      it('should still count the pods, and then reject, when the metrics can not be fetched', async() => {
-        const { node, dispatch } = createNode({}, { paginated: true });
+      it('should reject when the metrics can not be fetched', async() => {
+        const { node, dispatch } = createNode();
 
-        dispatch.mockImplementation((action: string) => (action === 'cluster/find' ? Promise.reject(new Error('forbidden')) : Promise.resolve()));
-
-        await expect(node.fetchGlanceResources(signal)).rejects.toThrow('forbidden');
-        expect(dispatch.mock.calls).toStrictEqual([METRICS_FETCH, RUNNING_PODS_COUNT_FETCH]);
-      });
-
-      it('should wait for the pods to be counted before rejecting when the metrics can not be fetched', async() => {
-        const { node, dispatch } = createNode({}, { paginated: true });
-        let countFinished = false;
-
-        dispatch.mockImplementation((action: string) => {
-          if (action === 'cluster/find') {
-            return Promise.reject(new Error('forbidden'));
-          }
-
-          return new Promise((resolve) => setTimeout(resolve, 0)).then(() => {
-            countFinished = true;
-          });
-        });
+        dispatch.mockRejectedValue(new Error('forbidden'));
 
         await expect(node.fetchGlanceResources(signal)).rejects.toThrow('forbidden');
-        expect(countFinished).toBe(true);
-      });
-
-      describe('counting the running pods without server-side pagination', () => {
-        const apiPod = (nodeName: string, state: string) => ({ spec: { nodeName }, metadata: { state: { name: state } } });
-
-        const SAVE_COUNT = (count: number | undefined) => ['cluster/setSavedCount', { name: RUNNING_PODS_COUNT, count }, { root: true }];
-
-        const requestReturning = (dispatch: jest.Mock, response: any) => dispatch.mockImplementation((action: string) => Promise.resolve(action === 'cluster/request' ? response : undefined));
-
-        it('should save the count of the running pods on the node, like the Nodes list counts them', async() => {
-          const { node, dispatch, commit } = createNode({}, { hasMetricsSchema: false });
-
-          requestReturning(dispatch, {
-            data: [
-              ...Array.from({ length: 11 }, () => apiPod('node-1', 'running')),
-              apiPod('node-1', 'crashLoopBackOff'),
-              apiPod('node-1', 'completed'),
-              apiPod('node-1', 'terminating'),
-            ]
-          });
-
-          await node.fetchRunningPods(signal);
-
-          expect(commit.mock.calls).toStrictEqual([SAVE_COUNT(11)]);
-        });
-
-        it('should not count the pods on another node that the filter matches part of the name of', async() => {
-          const { node, dispatch, commit } = createNode({}, { hasMetricsSchema: false });
-
-          requestReturning(dispatch, { data: [apiPod('node-1', 'running'), apiPod('node-10', 'running'), apiPod('my-node-1', 'running')] });
-
-          await node.fetchRunningPods(signal);
-
-          expect(commit.mock.calls).toStrictEqual([SAVE_COUNT(1)]);
-        });
-
-        it.each([
-          ['no pods', { data: [] }],
-          ['no data', {}],
-          ['nothing', undefined],
-        ])('should save a count of zero when the request returns %s', async(_, response) => {
-          const { node, dispatch, commit } = createNode({}, { hasMetricsSchema: false });
-
-          requestReturning(dispatch, response);
-
-          await node.fetchRunningPods(signal);
-
-          expect(commit.mock.calls).toStrictEqual([SAVE_COUNT(0)]);
-        });
-
-        it('should add the filter to the query of a collection url that already has one', async() => {
-          const { node, dispatch, rootGetters } = createNode({}, { hasMetricsSchema: false });
-
-          rootGetters['cluster/urlFor'].mockReturnValue('https://rancher/k8s/clusters/local/v1/pods?exclude=metadata.managedFields');
-          requestReturning(dispatch, { data: [] });
-
-          await node.fetchRunningPods(signal);
-
-          expect(dispatch).toHaveBeenCalledWith('cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?exclude=metadata.managedFields&filter=spec.nodeName=node-1', signal }, { root: true });
-        });
-
-        it('should encode the node name in the request', async() => {
-          const { node, dispatch } = createNode({ id: 'node 1&x', metadata: { name: 'node 1&x', annotations: {} } }, { hasMetricsSchema: false });
-
-          requestReturning(dispatch, { data: [] });
-
-          await node.fetchRunningPods(signal);
-
-          expect(dispatch).toHaveBeenCalledWith('cluster/request', { url: 'https://rancher/k8s/clusters/local/v1/pods?filter=spec.nodeName=node%201%26x', signal }, { root: true });
-        });
-      });
-
-      it.each([false, true])('should forget the count of running pods, so the card shows n/a, and reject when the pods can not be counted (server-side pagination: %p)', async(paginated) => {
-        const { node, dispatch, commit } = createNode({}, { hasMetricsSchema: false, paginated });
-
-        dispatch.mockRejectedValue(new Error('server error'));
-
-        await expect(node.fetchGlanceResources(signal)).rejects.toThrow('server error');
-        expect(commit.mock.calls).toStrictEqual([['cluster/setSavedCount', { name: RUNNING_PODS_COUNT, count: undefined }, { root: true }]]);
-      });
-
-      it.each([false, true])('should keep the last count of running pods, and reject, when the request is cancelled (server-side pagination: %p)', async(paginated) => {
-        const { node, dispatch, commit } = createNode({}, { hasMetricsSchema: false, paginated });
-        const abort = new AbortController();
-
-        dispatch.mockImplementation(() => {
-          abort.abort();
-
-          return Promise.reject(new Error('canceled'));
-        });
-
-        await expect(node.fetchGlanceResources(abort.signal)).rejects.toThrow('canceled');
-        expect(commit).toHaveBeenCalledTimes(0);
-      });
-
-      it('should not save a count itself with server-side pagination, as the API saves it', async() => {
-        const { node, commit } = createNode({}, { hasMetricsSchema: false, paginated: true });
-
-        await node.fetchGlanceResources(signal);
-
-        expect(commit).toHaveBeenCalledTimes(0);
       });
     });
   });
