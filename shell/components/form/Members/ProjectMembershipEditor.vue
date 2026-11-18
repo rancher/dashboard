@@ -27,6 +27,14 @@ export default {
     mode: {
       type:     String,
       required: true
+    },
+
+    /**
+     * This project's member permissions when the parent already checked them; left unset, the editor checks them itself
+     */
+    membershipPermission: {
+      type:    Object,
+      default: null
     }
   },
 
@@ -67,5 +75,6 @@ export default {
     :mode="mode"
     parent-key="projectId"
     :parent-id="parentId"
+    :membership-permission="membershipPermission"
   />
 </template>

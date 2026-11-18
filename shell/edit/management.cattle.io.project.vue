@@ -13,21 +13,38 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { MANAGEMENT } from '@shell/config/types';
 import { NAME } from '@shell/config/product/explorer';
 import { PROJECT_ID, _VIEW, _CREATE, _EDIT } from '@shell/config/query-params';
-import ProjectMembershipEditor, { canViewProjectMembershipList } from '@shell/components/form/Members/ProjectMembershipEditor';
+import ProjectMembershipEditor, { canViewProjectMembershipEditor, canViewProjectMembershipList } from '@shell/components/form/Members/ProjectMembershipEditor';
 import { CREATOR_PRINCIPAL_ID } from '@shell/config/labels-annotations';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { Banner } from '@components/Banner';
+import Loading from '@shell/components/Loading';
+import { fetchProjectMembershipPermissions } from '@shell/utils/project-permissions';
 
 export default {
   emits: ['input'],
 
   components: {
-    ContainerResourceLimit, CruResource, Labels, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
+    ContainerResourceLimit, CruResource, Labels, Loading, NameNsDescription, ProjectMembershipEditor, ResourceQuota, Tabbed, Tab, Banner
   },
 
   inheritAttrs: false,
 
   mixins: [CreateEditView, FormValidation],
+
+  async fetch() {
+    if (!this.isCreate && this.value.id) {
+      const permissions = await fetchProjectMembershipPermissions(this.$store, this.value.id);
+      const permission = permissions[this.value.id];
+
+      // a successful check always returns an entry for the project, so a missing one means it failed
+      if (permission) {
+        this.membershipPermission = permission;
+      } else {
+        this.membershipPermissionFailed = true;
+      }
+    }
+  },
+
   data() {
     this.value['spec'] = this.value.spec || {};
     this.value.spec['podSecurityPolicyTemplateId'] = this.value.status?.podSecurityPolicyTemplateId || '';
@@ -50,22 +67,43 @@ export default {
       RANCHER_TYPES,
       fvFormRuleSets:     [{ path: 'spec.displayName', rules: ['required'] }],
       isQuotasValid:      true,
+
+      // this project's member permissions; the binding schema only says what the user can do in *some* project
+      membershipPermission:       {},
+      membershipPermissionFailed: false,
     };
   },
   computed: {
     ...mapGetters(['currentCluster', 'isStandaloneHarvester']),
 
-    // Show the Members tab to anyone who can view the list; add/remove are separately gated on
-    // full manage rights, so a view-only user gets a read-only members view instead of no tab.
+    // Show the Members tab to anyone who can view this project's member list; add/remove are separately
+    // gated on full manage rights, so a view-only user gets a read-only members view instead of no tab.
     canViewMembers() {
-      return canViewProjectMembershipList(this.$store);
+      return canViewProjectMembershipList(this.$store) &&
+        (this.isCreate || this.membershipPermissionFailed || !!this.membershipPermission.view);
+    },
+
+    // Same rule as the members editor: add or remove on this project, plus the lookups its add flow needs
+    canManageMembers() {
+      const { create, remove } = this.membershipPermission;
+
+      return (!!create || !!remove) && canViewProjectMembershipEditor(this.$store);
+    },
+
+    // Nothing on the page is editable for a user who can neither update the project nor manage its members
+    formMode() {
+      if (this.mode === _EDIT && !this.canEditProject && !this.canManageMembers) {
+        return _VIEW;
+      }
+
+      return this.mode;
     },
 
     canEditProject() {
       return this.value?.links?.update;
     },
 
-    isDescriptionDisabled() {
+    isProjectReadOnly() {
       return (this.mode === _EDIT && !this.canEditProject) || false;
     },
 
@@ -78,7 +116,7 @@ export default {
     },
 
     showBannerForOnlyManagingMembers() {
-      return this.mode === _EDIT && !this.canEditProject;
+      return this.formMode === _EDIT && !this.canEditProject;
     },
 
     isK3s() {
@@ -170,11 +208,13 @@ export default {
 };
 </script>
 <template>
+  <Loading v-if="!isCreate && $fetchState.pending" />
   <CruResource
+    v-else
     class="project"
     :done-route="value.listLocation"
     :errors="fvUnreportedValidationErrors"
-    :mode="mode"
+    :mode="formMode"
     :resource="value"
     :subtypes="[]"
     :can-yaml="false"
@@ -186,10 +226,11 @@ export default {
     <NameNsDescription
       :value="value"
       :name-editable="true"
-      :mode="mode"
+      :mode="formMode"
       :namespaced="false"
       description-key="spec.description"
-      :description-disabled="isDescriptionDisabled"
+      :name-disabled="isProjectReadOnly"
+      :description-disabled="isProjectReadOnly"
       name-key="spec.displayName"
       :normalize-name="false"
       :rules="{ name: fvGetAndReportPathRules('spec.displayName'), namespace: [], description: [] }"
@@ -207,13 +248,19 @@ export default {
         :weight="10"
       >
         <Banner
+          v-if="membershipPermissionFailed"
+          color="warning"
+          label-key="project.membersPermissionCheckFailed"
+        />
+        <Banner
           v-if="showBannerForOnlyManagingMembers"
           color="info"
           :label="t('project.membersEditOnly')"
         />
         <ProjectMembershipEditor
-          :mode="mode"
+          :mode="formMode"
           :parent-id="value.id"
+          :membership-permission="isCreate ? null : membershipPermission"
           @has-owner-changed="onHasOwnerChanged"
           @membership-update="onMembershipUpdate"
         />

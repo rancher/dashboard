@@ -7,6 +7,8 @@ export interface ProjectMembershipPermission {
   create: boolean;
   /** current user may delete project role template bindings in this project */
   remove: boolean;
+  /** current user may list project role template bindings in this project */
+  view: boolean;
 }
 
 /**
@@ -20,7 +22,7 @@ export interface ProjectMembershipPermission {
  * @param store     Vuex store
  * @param projectId optional single mgmt project id (e.g. `local/p-abc`); when
  *                  omitted, all projects are fetched
- * @returns map of mgmt project id -> { create, remove }
+ * @returns map of mgmt project id -> { create, remove, view }
  */
 export async function fetchProjectMembershipPermissions(
   store: any,
@@ -55,7 +57,9 @@ export async function fetchProjectMembershipPermissions(
   return projects.reduce((acc: Record<string, ProjectMembershipPermission>, project: any) => {
     const perms = project.resourcePermissions?.[PROJECT_RTB] || {};
 
-    acc[project.id] = { create: !!perms.create, remove: !!perms.delete };
+    acc[project.id] = {
+      create: !!perms.create, remove: !!perms.delete, view: !!perms.list
+    };
 
     return acc;
   }, {});

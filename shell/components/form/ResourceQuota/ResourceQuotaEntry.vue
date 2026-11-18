@@ -8,6 +8,7 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import { RcButton } from '@components/RcButton';
 
 import { TYPES } from './shared';
+import { _VIEW } from '@shell/config/query-params';
 import { useI18n } from '@shell/composables/useI18n';
 
 const props = defineProps<{
@@ -30,6 +31,8 @@ const namespaceDefaultLimit = defineModel<string>('namespaceDefaultLimit');
 const typeOption = computed(() => {
   return props.types.find((type) => type.value === resourceType.value) || {};
 });
+
+const isView = computed(() => props.mode === _VIEW);
 
 const isCustom = computed(() => {
   return resourceType.value === TYPES.EXTENDED;
@@ -127,6 +130,7 @@ const updateResourceIdentifier = (resourceType: string) => {
       data-testid="projectrow-namespace-quota-input"
     />
     <RcButton
+      v-if="!isView"
       variant="tertiary"
       :aria-label="removeAriaLabel"
       @click="remove(id)"

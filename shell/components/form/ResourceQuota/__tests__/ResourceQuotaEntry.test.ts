@@ -69,6 +69,18 @@ describe('component: ResourceQuotaEntry', () => {
       expect(wrapper.find('[data-testid="projectrow-project-quota-input"]').exists()).toBe(true);
       expect(wrapper.find('[data-testid="projectrow-namespace-quota-input"]').exists()).toBe(true);
     });
+
+    it('should render the Remove button outside view mode', () => {
+      const wrapper = createWrapper({ mode: 'edit' });
+
+      expect(wrapper.findComponent(RcButton as any).exists()).toBe(true);
+    });
+
+    it('should not render the Remove button in view mode', () => {
+      const wrapper = createWrapper({ mode: 'view' });
+
+      expect(wrapper.findComponent(RcButton as any).exists()).toBe(false);
+    });
   });
 
   describe('computed: typeOption', () => {
