@@ -2,7 +2,7 @@ import { EDIT_CONFIG, _EDIT } from '@shell/config/query-params';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN, MANAGEMENT } from '@shell/config/types';
 import { isRancherPrime } from '@shell/config/version';
-import { providerKey } from '@shell/models/management.cattle.io.authconfig';
+import { isSloSupported, providerKey } from '@shell/models/management.cattle.io.authconfig';
 import { canEnableAuthProvider, isValidAuthConfigName } from '@shell/utils/auth-providers';
 import { MULTIPLE_AUTH_PROVIDERS } from '@shell/store/features';
 import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
@@ -300,6 +300,10 @@ export default {
           this.model['rancherApiHost'] = this.serverUrl;
         }
 
+        if (isSloSupported(this.NAME) && !this.model.logoutAllSupported) {
+          this.model.logoutAllSupported = true;
+        }
+
         // setting data for SLO
         if (this.model && Object.keys(this.model).includes('logoutAllSupported')) {
           this.setSloType(this.model);
@@ -533,6 +537,7 @@ export default {
             metadata,
             type:       normanType,
             enabled:    false,
+            ...(isSloSupported(normanType) ? { logoutAllSupported: true } : {}),
           },
         });
 
