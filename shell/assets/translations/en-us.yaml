@@ -7881,6 +7881,7 @@ tableHeaders:
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
+  resourcePermissions: Resource Permissions
   resources: Resources
   resourcesReady: Resources Ready
   restarts: Restarts

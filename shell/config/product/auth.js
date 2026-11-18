@@ -265,6 +265,14 @@ export function init(store) {
       sort:     ['spec.priority'],
       width:    100,
     },
+    {
+      name:      'resourcePermissions',
+      labelKey:  'tableHeaders.resourcePermissions',
+      value:     'spec.rules',
+      formatter: 'RbacRules',
+      sort:      false,
+      search:    false,
+    },
     AGE
   ]);
 }
