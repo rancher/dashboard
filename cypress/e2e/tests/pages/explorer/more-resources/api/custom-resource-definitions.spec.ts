@@ -4,6 +4,7 @@ import * as jsyaml from 'js-yaml';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 const cluster = 'local';
 const crdsPage = new CustomResourceDefinitionsPagePo(cluster);
@@ -241,7 +242,7 @@ describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer'
       group: groupB, plural: 'apples', singular: 'apple', kind: 'Apple'
     };
     const yak = {
-      group: groupA, plural: 'bisons', singular: singularOnlyMatch, kind: 'Yak'
+      group: groupA, plural: 'bisons', singular: singularOnlyMatch, kind: `Yak${ runId }`
     };
     const crds = [zebra, apple, yak];
 
@@ -310,6 +311,8 @@ describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer'
         .find('a')
         .click();
       cy.location('pathname').should('match', new RegExp(`/c/${ cluster }/explorer/${ Cypress._.escapeRegExp(resourceOf(yak)) }$`));
+      new BaseResourceList('[data-testid="sortable-table-list-container"]').resourceTable().sortableTable()
+        .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
     });
 
     after('clean up', () => {
