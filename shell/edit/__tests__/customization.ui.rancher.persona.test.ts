@@ -1,8 +1,11 @@
 import { nextTick } from 'vue';
-import { mount } from '@vue/test-utils';
+import { mount, VueWrapper } from '@vue/test-utils';
 import EditPersona from '@shell/edit/customization.ui.rancher.persona.vue';
+import Persona from '@shell/models/customization.ui.rancher.persona';
+import Select from '@shell/components/form/Select.vue';
 import { _CREATE } from '@shell/config/query-params';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
+import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
 describe('view: customization.ui.rancher.persona', () => {
   const createPersona = () => {
@@ -22,7 +25,8 @@ describe('view: customization.ui.rancher.persona', () => {
   const createWrapper = (value = createPersona(), router = { applyQuery: jest.fn(), replace: jest.fn() }) => mount(EditPersona, {
     props:  { value, mode: _CREATE },
     global: {
-      mocks: {
+      provide: { store: { getters: { 'i18n/t': (val: string) => val } } },
+      mocks:   {
         $store: {
           dispatch: jest.fn(),
           getters:  {
@@ -124,5 +128,113 @@ describe('view: customization.ui.rancher.persona', () => {
     jest.useRealTimers();
 
     expect(persona.spec.tags).toStrictEqual(['development']);
+  });
+
+  describe('resource permissions', () => {
+    const SECTION = '[data-testid="persona-resource-permissions"]';
+    const ctx = { rootGetters: { 'i18n/t': (key: string) => key, 'i18n/exists': () => false } };
+
+    // A real model, so the rules are validated by its customValidationRules
+    const createModel = (spec: Record<string, any> = { displayName: 'App Developer', priority: 5 }) => new Persona({
+      type:     'customization.ui.rancher.persona',
+      metadata: { name: 'app-developer', annotations: {} },
+      spec,
+    }, ctx);
+
+    const selectWithTestid = (wrapper: VueWrapper<any>, testid: string) => {
+      const select = wrapper.findAllComponents(Select).find((s) => s.vm.$attrs['data-testid'] === testid);
+
+      if (!select) {
+        throw new Error(`no select rendered with data-testid "${ testid }"`);
+      }
+
+      return select;
+    };
+
+    const addRule = async(wrapper: VueWrapper<any>) => {
+      await wrapper.find(`${ SECTION } [data-testid="array-list-button"]`).trigger('click');
+      jest.advanceTimersByTime(100);
+      await nextTick();
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should start with no rules', () => {
+      const wrapper = createWrapper(createModel() as any);
+
+      expect(wrapper.findAll('[data-testid^="grant-resources-verbs"]')).toHaveLength(0);
+    });
+
+    it('should add a rule with no verbs, resources or API group', async() => {
+      const persona = createModel();
+      const wrapper = createWrapper(persona as any);
+
+      await addRule(wrapper);
+
+      expect(persona.spec.rules).toStrictEqual([{
+        apiGroups: [''], resources: [], verbs: []
+      }]);
+    });
+
+    it('should not offer non-resource URLs', async() => {
+      const wrapper = createWrapper(createModel() as any);
+
+      await addRule(wrapper);
+
+      expect(wrapper.find('[data-testid="grant-resources-non-resource-urls0"]').exists()).toBe(false);
+    });
+
+    it('should not add rules to a persona that has none', async() => {
+      const persona = createModel();
+
+      createWrapper(persona as any);
+      jest.advanceTimersByTime(100);
+      await nextTick();
+
+      expect(persona.spec.rules).toBeUndefined();
+    });
+
+    it.each([
+      [true, 'a rule with no verbs or resources', [], null],
+      [true, 'a rule with verbs and no resources', ['get'], null],
+      [false, 'a complete rule', ['get'], { resourceName: 'deployments', apiGroupValue: 'apps' }],
+    ])('should set save disabled to %p with %s', async(disabled, _, verbs, resource) => {
+      const wrapper = createWrapper(createModel() as any);
+
+      await addRule(wrapper);
+      await selectWithTestid(wrapper, 'grant-resources-verbs0').vm.$emit('update:value', verbs);
+      await selectWithTestid(wrapper, 'grant-resources-resources0').vm.$emit('update:value', resource);
+      jest.advanceTimersByTime(100);
+      await nextTick();
+
+      expect(saveDisabled(wrapper)).toBe(disabled);
+    });
+
+    it('should allow saving with no rules', () => {
+      const wrapper = createWrapper(createModel() as any);
+
+      expect(saveDisabled(wrapper)).toBe(false);
+    });
+
+    it('should store a core API group typed as "" as an empty string when saving', async() => {
+      const persona = createModel({
+        displayName: 'App Developer',
+        priority:    5,
+        rules:       [{
+          apiGroups: ['""'], resources: ['pods'], verbs: ['get']
+        }]
+      });
+      const wrapper = createWrapper(persona as any);
+
+      await (wrapper.vm as any).applyHooks(BEFORE_SAVE_HOOKS, persona);
+
+      expect(persona.spec.rules?.[0].apiGroups).toStrictEqual(['']);
+    });
   });
 });

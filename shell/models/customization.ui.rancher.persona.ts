@@ -15,6 +15,7 @@ export interface PersonaSpec {
 }
 
 export default class Persona extends SteveModel {
+  declare type: string;
   declare spec: PersonaSpec;
 
   applyDefaults() {
@@ -27,5 +28,16 @@ export default class Persona extends SteveModel {
       priority:    0,
       tags:        [],
     };
+  }
+
+  get customValidationRules() {
+    return [
+      {
+        path:       'spec.rules',
+        validators: [`roleTemplateRules:${ this.type }`],
+        nullable:   true,
+        type:       'array',
+      },
+    ];
   }
 }

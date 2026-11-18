@@ -60,4 +60,32 @@ describe('class Persona', () => {
       expect(persona.spec).toStrictEqual(expected);
     });
   });
+
+  describe('customValidationErrors', () => {
+    const ctx = { rootGetters: { 'i18n/t': (key: string) => key, 'i18n/exists': () => false } };
+
+    it.each([
+      ['no rules', undefined, []],
+      ['an empty rules list', [], []],
+      ['a complete rule', [{
+        apiGroups: ['apps'], resources: ['deployments'], verbs: ['create']
+      }], []],
+      ['a rule with no verbs', [{
+        apiGroups: ['apps'], resources: ['deployments'], verbs: []
+      }], ['validation.roleTemplate.roleTemplateRules.missingVerb']],
+      ['a rule with no resources', [{
+        apiGroups: [''], resources: [], verbs: ['get']
+      }], ['validation.roleTemplate.roleTemplateRules.missingOneResource']],
+    ])('should validate the resource permissions with %s', (_, rules, expected) => {
+      const persona = new Persona({
+        type:     'customization.ui.rancher.persona',
+        metadata: { name: 'test' },
+        spec:     {
+          displayName: 'Test', priority: 0, rules
+        }
+      }, ctx);
+
+      expect(persona.customValidationErrors(persona)).toStrictEqual(expected);
+    });
+  });
 });

@@ -184,4 +184,15 @@ function updateSelectValue(rule: GrantResourceRule, key: 'verbs', event: any) {
   .required {
     color: var(--error);
   }
+
+  .column-headers {
+    margin-bottom: 5px;
+  }
+
+  .columns {
+    .col > .unlabeled-select:not(.taggable) {
+      // override the odd padding-top from shell/assets/styles/global/_select.scss
+      padding: $unlabaled-select-padding
+    }
+  }
 </style>

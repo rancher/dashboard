@@ -9641,6 +9641,9 @@ persona:
   tags:
     label: Tags
     addLabel: Add Tag
+  resourcePermissions:
+    label: Resource Permissions
+    description: Users with the rights in any one of these rules are associated with this persona
 
 action:
   ariaLabel:
