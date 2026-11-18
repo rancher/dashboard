@@ -173,9 +173,7 @@ export default {
 
       this.$store.dispatch('management/promptModal', {
         component:      'AddAuthProviderDialog',
-        modalWidth:     '960px', // AppModal ignores a width with no unit and falls back to 600px
-        height:         'auto',
-        styles:         'max-height: 100vh;',
+        ownsModal:      true,
         componentProps: {
           rows:            this.providerTypes,
           selectCb:        (provider) => this.$router.push(this.addLocation(provider)),
@@ -229,8 +227,7 @@ export default {
 
       this.$store.dispatch('management/promptModal', {
         component:      'DisableLocalLoginDialog',
-        height:         'auto',
-        styles:         'max-height: 100vh;',
+        ownsModal:      true,
         componentProps: { disableCb: () => this.writeDisableLocalAuth(true) },
       });
     },

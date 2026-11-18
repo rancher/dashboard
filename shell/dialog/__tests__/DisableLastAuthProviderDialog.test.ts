@@ -1,18 +1,30 @@
 import { mount } from '@vue/test-utils';
 import DisableLastAuthProviderDialog from '@shell/dialog/DisableLastAuthProviderDialog.vue';
 
-const createWrapper = (props = {}) => mount(DisableLastAuthProviderDialog, { props: { name: 'Okta - Corporate SSO', ...props } });
+const createWrapper = (props = {}) => mount(DisableLastAuthProviderDialog, {
+  props: {
+    name: 'Okta - Corporate SSO', modal: { show: true, onClose: jest.fn() }, ...props
+  },
+  attachTo: document.body,
+  global:   { stubs: { teleport: true } },
+});
 
 const confirmButton = (wrapper: any) => wrapper.find('[data-testid="disable-last-auth-provider-confirm-button"]');
 const cancelButton = (wrapper: any) => wrapper.find('[data-testid="disable-last-auth-provider-cancel-button"]');
+const title = (wrapper: any) => wrapper.find('[data-testid="rc-modal-title"]');
+const onClose = (wrapper: any) => wrapper.props('modal').onClose;
 
 describe('component: DisableLastAuthProviderDialog', () => {
   it('should name the provider it is refusing to disable', () => {
-    expect(createWrapper().find('h3').text()).toBe('%authConfig.disableLast.title%');
+    expect(title(createWrapper()).text()).toBe('%authConfig.disableLast.title%');
   });
 
   it('should fall back to a generic title when the provider has no name', () => {
-    expect(createWrapper({ name: '' }).find('h3').text()).toBe('%authConfig.disableLast.titleGeneric%');
+    expect(title(createWrapper({ name: '' })).text()).toBe('%authConfig.disableLast.titleGeneric%');
+  });
+
+  it('should render nothing until it is told to show', () => {
+    expect(title(createWrapper({ modal: { show: false, onClose: jest.fn() } })).exists()).toBe(false);
   });
 
   // An admin needs three things: why it is blocked, what to do about it, and that
@@ -53,7 +65,7 @@ describe('component: DisableLastAuthProviderDialog', () => {
     await confirmButton(wrapper).trigger('click');
     await wrapper.vm.$nextTick();
 
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(onClose(wrapper)).toHaveBeenCalledWith();
   });
 
   it('should close without touching local login when cancelled', async() => {
@@ -63,7 +75,7 @@ describe('component: DisableLastAuthProviderDialog', () => {
     await cancelButton(wrapper).trigger('click');
 
     expect(restoreCb).not.toHaveBeenCalled();
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(onClose(wrapper)).toHaveBeenCalledWith();
   });
 
   describe('when the flag cannot be written', () => {
@@ -77,7 +89,7 @@ describe('component: DisableLastAuthProviderDialog', () => {
       await wrapper.vm.$nextTick();
 
       expect(wrapper.find('[data-testid="disable-last-auth-provider-error"]').text()).toContain('Forbidden');
-      expect(wrapper.emitted('close')).toBeUndefined();
+      expect(onClose(wrapper)).not.toHaveBeenCalled();
     });
 
     it('should announce the failure rather than leaving it to be noticed', async() => {
