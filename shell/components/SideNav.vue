@@ -316,19 +316,14 @@ export default {
       });
     },
 
-    // Stamp each group's saved expand/collapse state onto the tree so groups
-    // render in their persisted state (the tree is the source of truth, see
-    // Group's `isExpanded`). The whole tree is marked up front, so nested groups
-    // restore in the same render pass as their parents.
-    //
     // Starred holds the types the user picked, so it starts expanded until the
     // user collapses it.
     stampNavState(nodes) {
-      const savedState = this.navStateStorage.load() || {};
+      const state = this.currentNavState();
 
       this.eachCollapsibleGroup(nodes, (node, path) => {
-        if (savedState[path] !== undefined) {
-          node.expanded = savedState[path];
+        if (state[path] !== undefined) {
+          node.expanded = state[path];
         } else if (path === FAVORITE_GROUP) {
           node.expanded = true;
         }
@@ -472,14 +467,18 @@ export default {
     // Merge rather than replace, so groups that aren't in the tree right now keep
     // their state. `More Resources` subgroups are count driven, so they come and
     // go with the namespace filter.
-    saveNavState() {
+    currentNavState() {
       const state = { ...(this.navStateStorage.load() || {}) };
 
       this.eachCollapsibleGroup(this.groups, (node, path) => {
         state[path] = !!node.expanded;
       });
 
-      this.navStateStorage.save(state);
+      return state;
+    },
+
+    saveNavState() {
+      this.navStateStorage.save(this.currentNavState());
     },
 
     syncNav() {
