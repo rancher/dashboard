@@ -23,7 +23,7 @@ import { EventsCreateEditPo, EventsPageListPo } from '@/cypress/e2e/po/pages/exp
 import { HeaderPo } from '@/cypress/e2e/po/components/header.po';
 import { ProjectsNamespacesListPagePo, NamespaceCreateEditPagePo, ProjectCreateEditPagePo } from '@/cypress/e2e/po/pages/explorer/projects-namespaces.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
-import { dialogModal, promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
+import { promptModal } from '@/cypress/e2e/po/prompts/shared/modalInstances.po';
 import ClusterToolsPagePo from '@/cypress/e2e/po/pages/explorer/cluster-tools.po';
 import { WorkLoadsDaemonsetsCreatePagePo, WorkloadsDaemonsetsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-daemonsets.po';
 import { ChartPage } from '@/cypress/e2e/po/pages/explorer/charts/chart.po';
@@ -40,6 +40,7 @@ import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.
 import { BannersPagePo } from '@/cypress/e2e/po/pages/global-settings/banners.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
+import GenericDialog from '@/cypress/e2e/po/prompts/genericDialog.po';
 
 // Scan at a desktop resolution. Cypress defaults to 1000x660, and one of axe's documented reasons
 // for abandoning a colour-contrast check is `outsideViewport` - "Element's background color could
@@ -270,7 +271,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
             projectsNamespacesPage.mastheadTitle().then((title) => {
               expect(title.replace(/\s+/g, ' ')).to.contain('Project: Create');
             });
-            createProjectPage.waitForPage(null, 'members');
+            createProjectPage.waitForPage(undefined, 'members');
             createProjectPage.resourceDetail().createEditView()
               .nameNsDescription()
               .name()
@@ -459,7 +460,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
           storageClasses.goTo();
           storageClasses.waitForPage();
           storageClasses.clickCreate();
-          storageClasses.createStorageClassesForm().waitForPage(null, 'parameters');
+          storageClasses.createStorageClassesForm().waitForPage(undefined, 'parameters');
           storageClasses.mastheadTitle().then((title) => {
             expect(title.replace(/\s+/g, ' ')).to.contain('StorageClass: Create');
           });
@@ -558,7 +559,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
         cy.checkPageAccessibility();
 
         // delete digital ocean cloud credential
-        cy.getRancherResource('v3', 'cloudcredentials', null, null).then((resp: Cypress.Response<any>) => {
+        cy.getRancherResource('v3', 'cloudcredentials').then((resp: Cypress.Response<any>) => {
           const body = resp.body;
 
           if (body.pagination['total'] > 0) {
@@ -724,16 +725,22 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
 
     describe('Extensions', () => {
       const extensionsPo = new ExtensionsPagePo();
+      const dialogModal = new GenericDialog();
 
-      it('Extensions page', () => {
+      before(() => {
         // Set the preference
         cy.setUserPreference({ 'plugin-developer': true });
+      });
 
+      beforeEach(() => {
         extensionsPo.goTo();
-        extensionsPo.waitForPage(null, 'available');
+        extensionsPo.waitForPage(undefined, 'available');
         extensionsPo.loading().should('not.exist');
+      });
+
+      it('Extensions page', () => {
         extensionsPo.extensionTabBuiltinClick();
-        extensionsPo.waitForPage(null, 'builtin');
+        extensionsPo.waitForPage(undefined, 'builtin');
         extensionsPo.extensionCard('AKS Provisioning').checkVisible();
         cy.injectAxe();
 
@@ -743,30 +750,34 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
       it('Add Rancher Repositories Modal', () => {
         extensionsPo.extensionMenuToggle();
         extensionsPo.addRepositoriesClick();
-        dialogModal().checkVisible();
+        dialogModal.checkVisible();
 
         cy.injectAxe();
 
-        dialogModal().self().then((el) => {
+        dialogModal.self().then((el) => {
           cy.checkElementAccessibility(el);
         });
 
-        dialogModal().clickActionButton('Cancel');
+        dialogModal.clickActionButton('Cancel');
       });
 
       it('Import Extension Catalog Modal', () => {
         extensionsPo.extensionMenuToggle();
         extensionsPo.manageExtensionCatalogsClick();
         extensionsPo.importExtensionCatalogClick();
-        dialogModal().checkVisible();
+        dialogModal.checkVisible();
 
         cy.injectAxe();
 
-        dialogModal().self().then((el) => {
+        dialogModal.self().then((el) => {
           cy.checkElementAccessibility(el);
         });
 
-        dialogModal().clickActionButton('Cancel');
+        dialogModal.clickActionButton('Cancel');
+      });
+
+      after(() => {
+        cy.setUserPreference({ 'plugin-developer': false });
       });
     });
 
@@ -911,6 +922,5 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewpor
     cy.setRancherResource('v3', 'settings', 'ui-brand', { value: originalBrand });
     cy.setUserPreference({ theme: '' });
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
-    cy.setUserPreference({ 'plugin-developer': false });
   });
 });

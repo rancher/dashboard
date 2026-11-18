@@ -271,14 +271,14 @@ function reportResults(results: AxeResults, description?: string) {
 /**
  * Checks accessibility of the entire page
  */
-Cypress.Commands.add('checkPageAccessibility', (description?: string) => {
+Cypress.Commands.add('checkPageAccessibility', (description?: string): void => {
   runAxe().then((results) => reportResults(results, description));
 });
 
 /**
  * Checks accessibility of a specific element
  */
-Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string) => {
+Cypress.Commands.add('checkElementAccessibility', (subject: any, description?: string): void => {
   cy.get(subject).then(($el) => {
     cy.log(`✅ Found ${ $el.length } elements matching`);
   });
