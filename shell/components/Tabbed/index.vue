@@ -174,7 +174,7 @@ export default {
   computed: {
     // keep the tabs list ordered for dynamic tabs
     sortedTabs() {
-      return sortBy(this.tabs, ['weight:desc', 'labelDisplay', 'name']);
+      return sortBy(this.tabs, ['weight:desc', 'labelSort', 'name']);
     },
 
     // hide tabs based on tab count IF flag is active
