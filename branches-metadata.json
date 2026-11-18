@@ -2,8 +2,8 @@
   "branches": {
     "master": {
       "milestone": {
-        "version": "v2.16.0",
-        "codeFreeze": true
+        "version": "v2.17.0",
+        "codeFreeze": false
       },
       "e2e": {
         "rancher-image": {
@@ -18,7 +18,7 @@
         },
         "runtime-rancher-version": "2.16.0",
         "helm": {
-          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.16"
+          "repo-url": "https://charts.optimus.rancher.io/server-charts/release-2.17"
         },
         "kube": {
           "version": "v1.35.2+k3s1"
@@ -39,12 +39,12 @@
         "rancher-image": {
           "namespace": "rancher",
           "name": "rancher",
-          "tag": "head"
+          "tag": "v2.16-head"
         },
         "rancher-agent": {
           "namespace": "rancher",
           "name": "rancher-agent",
-          "tag": "head"
+          "tag": "v2.16-head"
         },
         "runtime-rancher-version": "2.16.0",
         "helm": {
@@ -55,9 +55,9 @@
         }
       },
       "rancher-rancher-repo": {
-        "branch": "main",
-        "ui-dashboard-index": "https://releases.rancher.com/dashboard/latest/index.html",
-        "ui-index": "https://releases.rancher.com/ui/latest2/index.html"
+        "branch": "release/v2.16",
+        "ui-dashboard-index": "https://releases.rancher.com/dashboard/release-2.16/index.html",
+        "ui-index": "https://releases.rancher.com/ui/release-2.16/index.html"
       }
     },
     "release-2.15": {
