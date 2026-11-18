@@ -14,7 +14,8 @@ import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
-import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
+import GrantResources from '@shell/components/auth/GrantResources.vue';
+import { grantResourceOptions, normaliseRuleApiGroups } from '@shell/utils/grant-resources';
 
 import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
@@ -65,8 +66,8 @@ export default {
     SortableTable,
     Loading,
     Error,
-    LabeledInput,
     Banner,
+    GrantResources,
   },
 
   mixins: [CreateEditView, FormValidation],
@@ -111,11 +112,9 @@ export default {
         resources:       [],
         verbs:           []
       },
-      verbOptions:          VERBS,
       templateOptions:      [],
       keyedTemplateOptions: {},
       resources:            this.value.resources,
-      scopedResources:      SCOPED_RESOURCES,
       defaultValue:         false,
       selectFocused:        null,
       fvFormRuleSets:       [
@@ -181,125 +180,22 @@ export default {
       ];
     },
     resourceOptions() {
-      const options = [];
-
-      const scopes = Object.keys(this.scopedResources);
-
-      scopes.forEach((scope) => {
+      const scopes = Object.keys(SCOPED_RESOURCES).filter((scope) => {
         if (scope === SCOPED_RESOURCE_GROUPS.GLOBAL && this.value.type !== MANAGEMENT.GLOBAL_ROLE) {
           // If we are not in the global role creation form,
           // skip adding the global-scoped resources.
-          return;
+          return false;
         }
         if (scope === SCOPED_RESOURCE_GROUPS.CLUSTER && (this.value.type === RBAC.ROLE || this.value.subtype === NAMESPACE)) {
           // If we are in a project/namespace role creation form,
           // additionally skip adding the cluster-scoped resources.
-          return;
+          return false;
         }
 
-        const apiGroupsInScope = this.scopedResources[scope];
-
-        const apiGroupNames = Object.keys(apiGroupsInScope);
-
-        // Put each API group as a header and put its resources under it.
-        apiGroupNames.forEach((apiGroup) => {
-          // Add API group as the header for a group of related resources.
-          let apiGroupLabel = apiGroup;
-          let apiGroupValue = apiGroup;
-
-          if (apiGroup === 'coreKubernetesApi') {
-            // If a resource belongs to the core Kubernetes API,
-            // the API group is technically an empty string but
-            // we will label it "Core K8s API, Cluster Scoped."
-
-            // Some core Kubernetes resources are namespaced,
-            // in which case they go under a different heading
-            // "Core K8s API, Namespaced." This lets us
-            // separate them by scope.
-            const labelForNoApiGroup = this.t('rbac.roletemplate.tabs.grantResources.noApiGroupClusterScope');
-            const labelForNamespacedResourcesWithNoApiGroup = this.t('rbac.roletemplate.tabs.grantResources.noApiGroupNamespaceScope');
-
-            apiGroupLabel = scope.includes('cluster') ? labelForNoApiGroup : labelForNamespacedResourcesWithNoApiGroup;
-            apiGroupValue = '';
-          }
-
-          if (apiGroup === 'neuvectorApi') {
-            // Some NeuVector resources are namespaced, in which case they go under a different heading
-            const labelForClusterScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelClusterScoped');
-            const labelForNamespaceScoped = this.t('rbac.roletemplate.tabs.grantResources.neuvector.labelNamespaceScoped');
-
-            apiGroupLabel = scope.includes('cluster') ? labelForClusterScoped : labelForNamespaceScoped;
-            apiGroupValue = 'permission.neuvector.com';
-          }
-
-          options.push({
-            kind:      'group',
-            optionKey: apiGroupLabel,
-            label:     apiGroupLabel,
-            value:     apiGroupValue,
-            disabled:  true,
-          });
-
-          const resourcesInApiGroup = this.scopedResources[scope][apiGroup].resources;
-
-          // Add non-deprecated resources to the resource options list
-          resourcesInApiGroup.forEach((resourceName) => {
-            options.push({
-              label:     resourceName,
-              // Use unique key for resource list in the Select dropdown
-              optionKey: apiGroupValue.concat(resourceName),
-              value:     {
-                resourceName: resourceName.toLowerCase(),
-                apiGroupValue
-              }
-            });
-          });
-
-          // If the API group has any deprecated options,
-          // list them as "Resource Name (deprecated)"
-          if (this.scopedResources[scope][apiGroup].deprecatedResources) {
-            const deprecatedResourcesInApiGroup = this.scopedResources[scope][apiGroup].deprecatedResources;
-            const deprecatedLabel = this.t('rbac.roletemplate.tabs.grantResources.deprecatedLabel');
-
-            deprecatedResourcesInApiGroup.forEach((resourceName) => {
-              options.push({
-                label:     `${ resourceName } ${ deprecatedLabel }`,
-                optionKey: apiGroupValue.concat(resourceName),
-                value:     {
-                  resourceName: resourceName.toLowerCase(),
-                  apiGroupValue
-                }
-              });
-            });
-          }
-        });
+        return true;
       });
 
-      options.push({
-        // This hidden option is to work around a bug in the Select
-        // component where an option marked as disabled
-        // is still selected by default if is value is an empty string.
-
-        // In the Role or Project Role form, an API group will be the
-        // default choice for the namespace value because there's only
-        // one option with the value as an empty string and that's the default
-        // value for the namespace. It's not good to have an API
-        // group as the default value for a resource.
-        // Adding this option means there are least two values with an
-        // empty string in the options, preventing the Select from
-        // selecting a disabled header group as the resource by default.
-
-        // This bug is such an edge case that I can't imagine anyone
-        // else hitting it, so I figured the workaround is better
-        // than fixing the select.
-        kind:      'group',
-        optionKey: 'hiddenOption',
-        label:     '_',
-        value:     '',
-        disabled:  true,
-      });
-
-      return options;
+      return grantResourceOptions((key) => this.t(key), scopes);
     },
 
     newUserDefaultOptions() {
@@ -331,9 +227,6 @@ export default {
     },
     doneLocationOverride() {
       return this.value.listLocation;
-    },
-    ruleClass() {
-      return `col ${ this.isNamespaced ? 'span-4' : 'span-3' }`;
     },
     // Detail View
     rules() {
@@ -384,103 +277,11 @@ export default {
   },
 
   methods: {
-
-    setRule(key, rule, event) {
-      // The key is the aspect of a permissions rule
-      // that is being set, for example, "verbs," "resources",
-      // "apiGroups" or "nonResourceUrls."
-
-      // The event/value contains name of a resource,
-      // for example, "Apps."
-
-      // The 'rule' contains the the contents of each row of the
-      // role creation form under Grant Resources. Each
-      // rule contains these fields:
-      // - apiGroups
-      // - nonResourceURLs
-      // - resourceNames
-      // - resources
-      // - verbs
-
-      switch (key) {
-      case 'apiGroups':
-
-        if (event || (event === '')) {
-          rule['apiGroups'] = [event];
-        }
-
-        break;
-
-      case 'verbs':
-
-        if (event) {
-          rule['verbs'] = [event];
-        } else {
-          rule['verbs'] = [];
-        }
-        break;
-
-      case 'resources':
-        if (event?.resourceName) {
-          // If we are updating the resources defined in a rule,
-          // the event will be an object with the
-          // properties apiGroupValue and resourceName.
-          rule['resources'] = [event.resourceName];
-          // Automatically fill in the API group of the
-          // selected resource.
-          rule['apiGroups'] = [event.apiGroupValue];
-        } else if (event?.label) {
-          // When the user creates a new resource name in the resource
-          // field instead of selecting an existing one,
-          // we have to treat that differently because the incoming event
-          // is shaped like {"label":"something"} instead of
-          // the same format as the other options:
-          // { resourceName: "something", apiGroupValue: "" }
-          rule['resources'] = [event.label];
-        } else {
-          rule['resources'] = [];
-          rule['apiGroups'] = [];
-        }
-        break;
-
-      case 'nonResourceURLs':
-        if (event) {
-          rule['nonResourceURLs'] = [event];
-        } else {
-          rule['nonResourceURLs'] = [];
-        }
-        break;
-
-      default:
-        break;
-      }
-    },
-    getRule(key, rule) {
-      return rule[key]?.[0] || null;
-    },
-    updateSelectValue(row, key, event) {
-      const value = event.label ? event.value : event;
-
-      row[key] = value;
-    },
     cancel() {
       this.done();
     },
     async actuallySave(url) {
-      // Go through all of the grules and replace double quote apiGroups
-      // k8S documentation shows using empty rules as "" - we change this to empty string when used
-      this.value.rules?.forEach((rule) => {
-        if (rule.apiGroups) {
-          rule.apiGroups = rule.apiGroups.map((group) => {
-            // If the group is two double quotes ("") replace if with empty string
-            if (group.trim() === '\"\"') {
-              group = '';
-            }
-
-            return group;
-          });
-        }
-      });
+      normaliseRuleApiGroups(this.value.rules);
 
       if ( this.isCreate ) {
         url = url || this.schema.linkFor('collection');
@@ -664,105 +465,15 @@ export default {
             :rules="fvGetAndReportPathRules('rules')"
             as-banner
           />
-          <ArrayList
+          <GrantResources
             v-model:value="value.rules"
-            label="Resources"
-            :disabled="isBuiltin"
-            :remove-allowed="!isBuiltin"
-            :add-allowed="!isBuiltin"
-            :default-add-value="defaultRule"
-            :initial-empty-row="true"
-            :show-header="true"
-            add-label="Add Resource"
             :mode="mode"
+            :disabled="isBuiltin"
+            :resource-options="resourceOptions"
+            :default-rule="defaultRule"
+            :show-non-resource-urls="!isNamespaced"
+            :resource-required="isNamespaced"
           >
-            <template #column-headers>
-              <div class="column-headers row">
-                <div :class="ruleClass">
-                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
-                    <span class="required">*</span>
-                  </span>
-                </div>
-                <div :class="ruleClass">
-                  <span class="text-label">
-                    {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}
-                    <i
-                      v-clean-tooltip="t('rbac.roletemplate.tabs.grantResources.resourceOptionInfo')"
-                      class="icon icon-info"
-                    />
-                    <span
-                      v-if="isNamespaced"
-                      class="required"
-                    >*</span>
-                  </span>
-                </div>
-                <div :class="ruleClass">
-                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}</span>
-                </div>
-                <div
-                  v-if="!isNamespaced"
-                  :class="ruleClass"
-                >
-                  <span class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</span>
-                </div>
-              </div>
-            </template>
-            <template #columns="props">
-              <div class="columns row">
-                <div :class="ruleClass">
-                  <!-- Select verbs -->
-                  <Select
-                    :value="props.row.value.verbs"
-                    class="lg"
-                    :disabled="isBuiltin"
-                    :taggable="true"
-                    :searchable="true"
-                    :options="verbOptions"
-                    :multiple="true"
-                    :mode="mode"
-                    :compact="true"
-                    :data-testid="`grant-resources-verbs${props.i}`"
-                    @update:value="updateSelectValue(props.row.value, 'verbs', $event)"
-                  />
-                </div>
-                <div :class="ruleClass">
-                  <Select
-                    :value="getRule('resources', props.row.value)"
-                    :disabled="isBuiltin"
-                    :options="resourceOptions"
-                    option-key="optionKey"
-                    :searchable="true"
-                    :taggable="true"
-                    :mode="mode"
-                    :compact="true"
-                    :data-testid="`grant-resources-resources${props.i}`"
-                    @update:value="setRule('resources', props.row.value, $event)"
-                    @createdListItem="setRule('resources', props.row.value, $event)"
-                  />
-                </div>
-                <div :class="ruleClass">
-                  <LabeledInput
-                    :value="getRule('apiGroups', props.row.value)"
-                    :disabled="isBuiltin"
-                    :mode="mode"
-                    :data-testid="`grant-resources-api-groups${props.i}`"
-                    @input="setRule('apiGroups', props.row.value, $event.target.value)"
-                  />
-                </div>
-                <div
-                  v-if="!isNamespaced"
-                  :class="ruleClass"
-                >
-                  <LabeledInput
-                    :value="getRule('nonResourceURLs', props.row.value)"
-                    :disabled="isBuiltin"
-                    :mode="mode"
-                    :data-testid="`grant-resources-non-resource-urls${props.i}`"
-                    @input="setRule('nonResourceURLs', props.row.value, $event.target.value)"
-                  />
-                </div>
-              </div>
-            </template>
             <template #value-sub-row="{row}">
               <div
                 v-if="showPsaWarning(row.value)"
@@ -774,7 +485,7 @@ export default {
                 />
               </div>
             </template>
-          </ArrayList>
+          </GrantResources>
         </Tab>
         <Tab
           v-if="isRancherRoleTemplate"
@@ -819,10 +530,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .required {
-    color: var(--error);
-  }
-
   :deep() {
     .column-headers {
       margin-bottom: 5px;
