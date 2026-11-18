@@ -1,4 +1,6 @@
 import MgmtNode from '@shell/models/management.cattle.io.node';
+import { MANAGEMENT_NODE } from '@shell/config/labels-annotations';
+import { sortBy } from '@shell/utils/sort';
 
 describe('class MgmtNode', () => {
   const foo = 'foo';
@@ -199,6 +201,23 @@ describe('class MgmtNode', () => {
       });
 
       expect(mgmtNode.canScaleDown).toStrictEqual(expected);
+    });
+  });
+
+  describe('kubeNodeNameSort', () => {
+    const mgmtNodeOn = (nodeName: string) => new MgmtNode({ metadata: { labels: { [MANAGEMENT_NODE.NODE_NAME]: nodeName } } });
+
+    it('should order node names naturally', () => {
+      const mgmtNodes = ['worker-10', 'worker-2', 'worker-1'].map(mgmtNodeOn);
+      const nodeNames = sortBy(mgmtNodes, 'kubeNodeNameSort').map((mgmtNode: MgmtNode) => mgmtNode.kubeNodeName);
+
+      expect(nodeNames).toStrictEqual(['worker-1', 'worker-2', 'worker-10']);
+    });
+
+    it('should be empty for a node that has no node name yet', () => {
+      const mgmtNode = new MgmtNode({ metadata: { labels: {} } });
+
+      expect(mgmtNode.kubeNodeNameSort).toStrictEqual('');
     });
   });
 });

@@ -2,6 +2,8 @@ import CapiMachine from '@shell/models/cluster.x-k8s.io.machine';
 import CapiMachineDeployment from '@shell/models/cluster.x-k8s.io.machinedeployment';
 import { CAPI } from '@shell/config/types';
 import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@shell/config/labels-annotations';
+import { sortBy } from '@shell/utils/sort';
+import { get } from '@shell/utils/object';
 
 const PAUSED_MIN = CAPI_LABELS.AUTOSCALER_MACHINE_POOL_PAUSED_MIN_SIZE;
 const PAUSED_MAX = CAPI_LABELS.AUTOSCALER_MACHINE_POOL_PAUSED_MAX_SIZE;
@@ -141,6 +143,25 @@ describe('class CapiMachine', () => {
       });
 
       expect(machine.canScaleDown).toStrictEqual(expected);
+    });
+  });
+
+  describe('kubeNodeNameSort', () => {
+    const machineOnNode = (name: string) => new CapiMachine({ status: { nodeRef: { name } } });
+
+    it('should order node names naturally', () => {
+      const machines = ['worker-10', 'worker-2', 'worker-1'].map(machineOnNode);
+      const nodeNames = sortBy(machines, 'kubeNodeNameSort').map((machine: object) => get(machine, 'status.nodeRef.name'));
+
+      expect(nodeNames).toStrictEqual(['worker-1', 'worker-2', 'worker-10']);
+    });
+
+    it.each([
+      ['no status', {}],
+      ['no node reference', { status: {} }],
+      ['a node reference without a name', { status: { nodeRef: {} } }],
+    ])('should be empty for a machine with %s', (_, data) => {
+      expect(new CapiMachine(data).kubeNodeNameSort).toStrictEqual('');
     });
   });
 });

@@ -3,6 +3,7 @@ import { ADDRESSES, MANAGEMENT, NODE, NORMAN } from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { listNodeRoles } from '@shell/models/cluster/node';
 import { downloadUrl } from '@shell/utils/download';
+import { sortableNumericSuffix } from '@shell/utils/sort';
 import findLast from 'lodash/findLast';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
@@ -23,6 +24,10 @@ export default class MgmtNode extends HybridModel {
 
   get kubeNodeName() {
     return this.metadata.labels[MANAGEMENT_NODE.NODE_NAME];
+  }
+
+  get kubeNodeNameSort() {
+    return sortableNumericSuffix(this.kubeNodeName || '').toLowerCase();
   }
 
   get mgmtCluster() {
