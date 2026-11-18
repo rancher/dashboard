@@ -278,23 +278,23 @@ describe('component: PluginInfoPanel', () => {
      * gate - the install then fails on Helm's ownership error instead of explaining.
      */
     it('should not show install action when the extension is blocked by a conflict', () => {
-      wrapper.vm.info = {
+      wrapper = mountComponent({
         installed:              false,
         installableVersions:    [{ version: '1.0.0' }],
         installConflictMessage: 'already provided by the bundle',
-      };
+      });
       wrapper.vm.infoVersion = '1.0.0';
 
       expect(wrapper.vm.panelActions).toStrictEqual([]);
     });
 
     it('should not show upgrade action when the upgrade is blocked by a conflict', () => {
-      wrapper.vm.info = {
+      wrapper = mountComponent({
         installed:              true,
         builtin:                false,
         installedVersion:       '1.0.0',
         installConflictMessage: 'contains an extension already installed',
-      };
+      });
       wrapper.vm.infoVersion = '1.1.0';
       const actions = wrapper.vm.panelActions;
 
@@ -303,12 +303,12 @@ describe('component: PluginInfoPanel', () => {
     });
 
     it('should still allow downgrade when a conflict blocks the upgrade', () => {
-      wrapper.vm.info = {
+      wrapper = mountComponent({
         installed:              true,
         builtin:                false,
         installedVersion:       '1.1.0',
         installConflictMessage: 'contains an extension already installed',
-      };
+      });
       wrapper.vm.infoVersion = '1.0.0';
 
       expect(wrapper.vm.panelActions.some((action: any) => action.action === 'downgrade')).toBe(true);
@@ -608,7 +608,7 @@ describe('component: PluginInfoPanel', () => {
      * reader users cannot reach, so the panel is the accessible route to it.
      */
     it('should include the install conflict reason if present', () => {
-      wrapper.vm.info = { installConflictMessage: 'already provided by the bundle' };
+      wrapper = mountComponent({ installConflictMessage: 'already provided by the bundle' });
 
       expect(wrapper.vm.warningMessages).toContain('already provided by the bundle');
     });
