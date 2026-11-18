@@ -1,0 +1,9 @@
+// A --color-* custom property for each primitive in _color-variables.scss. Only Storybook loads it: the app doesn't use the primitives yet.
+@use "sass:meta";
+@use "color-variables";
+
+:root {
+  @each $name, $value in meta.module-variables("color-variables") {
+    --#{$name}: #{$value};
+  }
+}

@@ -1,0 +1,16 @@
+name: Run Color Lint
+description: Fail on net-new hard-coded colors compared to the committed baseline
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup env
+      uses: ./.github/actions/setup
+
+    - name: Test the color lint gate
+      shell: bash
+      run: yarn lint:colors:test
+
+    - name: Run color lint
+      shell: bash
+      run: yarn lint:colors
