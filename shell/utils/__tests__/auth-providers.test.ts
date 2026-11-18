@@ -10,6 +10,7 @@ import {
   providerOfConfig,
   resolveInitialProvider,
   setRememberedProviderId,
+  sloAuthProviderOfPrincipal,
   toProviderOptions,
   toProviderTypes,
 } from '@shell/utils/auth-providers';
@@ -358,6 +359,41 @@ describe('fx: providerOfConfig', () => {
 
   it('should return the config name of a config that is not listed', () => {
     expect(providerOfConfig(getters, 'okta-3')).toStrictEqual('okta-3');
+  });
+});
+
+describe('fx: sloAuthProviderOfPrincipal', () => {
+  const keycloak = {
+    id: 'keycloak', type: 'keyCloakProvider', logoutAllSupported: true
+  };
+  const keycloakOidc = {
+    id: 'keycloakoidc-2', type: 'keyCloakOIDCProvider', logoutAllSupported: true
+  };
+  const openldap = { id: 'openldap', type: 'openLdapProvider' };
+  const local = { id: 'local', type: 'localProvider' };
+  const authProviders = [local, keycloak, openldap, keycloakOidc];
+
+  it.each([
+    ['keycloak_user://alice@example.com', keycloak],
+    ['keycloakoidc-2_user://alice', keycloakOidc],
+  ])('should return the provider %s logged in through', (principalId, expected) => {
+    expect(sloAuthProviderOfPrincipal(authProviders, principalId)).toStrictEqual(expected);
+  });
+
+  it.each([
+    ['openldap_user://uid=alice,ou=people,dc=example', 'a provider without Single Logout'],
+    ['local://u-abc', 'the local provider'],
+    ['okta_user://alice', 'a provider that is not enabled'],
+  ])('should not return another provider for %s, a principal of %s', (principalId) => {
+    expect(sloAuthProviderOfPrincipal(authProviders, principalId)).toBeUndefined();
+  });
+
+  it.each([
+    [undefined],
+    [null],
+    [''],
+  ])('should return nothing when the principal is %p', (principalId) => {
+    expect(sloAuthProviderOfPrincipal(authProviders, principalId)).toBeUndefined();
   });
 });
 
