@@ -46,6 +46,6 @@ const dotStatus = computed<Status>(() => {
 .ready-indicator {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
 }
 </style>

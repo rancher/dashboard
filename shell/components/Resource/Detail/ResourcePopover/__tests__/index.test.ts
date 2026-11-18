@@ -709,19 +709,4 @@ describe('component: ResourcePopover/index.vue', () => {
       });
     });
   });
-
-  describe('wrapName', () => {
-    it.each([
-      [undefined, false],
-      [false, false],
-      [true, true],
-    ])('should wrap a long name when wrapName is %p: %p', async(wrapName, expected) => {
-      mockClusterFind.mockResolvedValue(mockResource);
-      const wrapper = createWrapper({ wrapName }, undefined, PopoverCardStub);
-
-      await flushPromises();
-
-      expect(wrapper.findComponent(PopoverCard).classes('wrap-name')).toBe(expected);
-    });
-  });
 });

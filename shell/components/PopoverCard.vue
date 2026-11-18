@@ -133,6 +133,7 @@ watch(
   .popover-card-target {
     height: 17px;
     display: inline-block;
+    max-width: 100%;
   }
 
   // The button only gets a width when it's focused. Growing in the flow would widen the link's table cell and shift the

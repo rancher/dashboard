@@ -26,10 +26,6 @@ export interface Props {
    * Use this where many popovers can be shown at once, e.g. in a table
    */
   lazy?: boolean;
-  /**
-   * Wrap a long name over lines rather than truncating it, e.g. so it doesn't widen a table column
-   */
-  wrapName?: boolean;
 }
 </script>
 
@@ -37,10 +33,9 @@ export interface Props {
 const store = useStore();
 const i18n = useI18n(store);
 const props = withDefaults(defineProps<Props>(), {
-  currentStore: undefined, detailLocation: undefined, name: undefined, showStatus: true, lazy: false, wrapName: false
+  currentStore: undefined, detailLocation: undefined, name: undefined, showStatus: true, lazy: false
 });
 const card = ref<any>(null);
-const showPopover = ref<boolean>(false);
 
 const glanceResourcesLoading = ref<boolean>(false);
 let glanceResourcesAbort: AbortController | undefined;
@@ -129,10 +124,6 @@ const resourceTypeLabel = computed(() => {
 const nameDisplay = computed(() => {
   return fetch.value.data?.nameDisplay || props.name || props.id;
 });
-
-const actionInvoked = () => {
-  showPopover.value = false;
-};
 </script>
 
 <template>
@@ -140,17 +131,13 @@ const actionInvoked = () => {
   <PopoverCard
     v-if="!fetch.error || props.lazy"
     class="resource-popover"
-    :class="{ 'wrap-name': props.wrapName }"
     :card-title="nameDisplay"
     fallback-focus="[data-testid='resource-popover-action-menu'], [data-testid='resource-popover-loading'], [data-testid='resource-popover-error']"
     :show-popover-aria-label="i18n.t('component.resource.detail.glance.ariaLabel.showDetails', { name: nameDisplay, resource: resourceTypeLabel })"
     @mouseenter="loadResource"
     @focusin="loadResource"
   >
-    <span
-      class="display"
-      @mouseenter="showPopover=true"
-    >
+    <span class="display">
       <RcStatusIndicator
         v-if="props.showStatus && fetch.data"
         shape="disc"
@@ -182,7 +169,6 @@ const actionInvoked = () => {
         ref="card"
         :resource="fetch.data"
         :usage-loading="glanceResourcesLoading"
-        @action-invoked="actionInvoked"
       />
       <!-- Focusable so a card opened with the keyboard has somewhere to put focus -->
       <div
@@ -234,18 +220,6 @@ const actionInvoked = () => {
       text-overflow: ellipsis;
       white-space: nowrap;
       min-width: 0;
-    }
-  }
-
-  &.wrap-name {
-    :deep(.popover-card-target) {
-      width: 100%;
-      height: auto;
-    }
-
-    .display a {
-      white-space: normal;
-      overflow-wrap: break-word;
     }
   }
 

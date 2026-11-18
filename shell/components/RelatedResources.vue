@@ -1,26 +1,13 @@
 <script>
-import { defineAsyncComponent } from 'vue';
 import ResourceTable from '@shell/components/ResourceTable';
-import LinkDetail from '@shell/components/formatter/LinkDetail';
 import { STATES_ENUM, colorForState, stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { NAME, NAMESPACE, STATE, TYPE } from '@shell/config/table-headers';
-import { POD, WORKLOAD_TYPES } from '@shell/config/types';
 import { sortableNumericSuffix } from '@shell/utils/sort';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
 import { BadgeState } from '@components/BadgeState';
 
-/**
- * Types whose names are shown with a popover summarising the resource
- */
-export const POPOVER_TYPES = [POD, WORKLOAD_TYPES.REPLICA_SET];
-
 export default {
-  components: {
-    ResourceTable,
-    BadgeState,
-    LinkDetail,
-    ResourcePopover: defineAsyncComponent(() => import('@shell/components/Resource/Detail/ResourcePopover/index.vue')),
-  },
+  components: { ResourceTable, BadgeState },
 
   props: {
     value: {
@@ -158,10 +145,6 @@ export default {
   },
 
   methods: {
-    hasPopover(row) {
-      return POPOVER_TYPES.includes(row.type);
-    },
-
     async getRealResources(rows) {
       const inStore = this.$store.getters['currentStore']();
 
@@ -199,24 +182,6 @@ export default {
   >
     <template #cell:state="{row}">
       <BadgeState :value="row" />
-    </template>
-    <template #cell:name="cell">
-      <!-- The table already shows the state, so the popover doesn't repeat it next to the name -->
-      <ResourcePopover
-        v-if="hasPopover(cell.row)"
-        :id="cell.row.id"
-        :type="cell.row.type"
-        :name="cell.row.nameDisplay"
-        :detail-location="cell.row.detailLocation"
-        :show-status="false"
-        lazy
-      />
-      <LinkDetail
-        v-else
-        :row="cell.row"
-        :value="cell.value"
-        :col="cell.col"
-      />
     </template>
   </ResourceTable>
 </template>

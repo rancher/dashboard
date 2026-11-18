@@ -1,6 +1,8 @@
 import { shallowMount } from '@vue/test-utils';
 import RelatedResources from '@shell/components/RelatedResources.vue';
-import { CONFIG_MAP, POD, WORKLOAD_TYPES } from '@shell/config/types';
+import {
+  CONFIG_MAP, MANAGEMENT, NODE, POD, WORKLOAD_TYPES
+} from '@shell/config/types';
 
 const relationships = [
   {
@@ -31,87 +33,35 @@ const createWrapper = (byId: (type: string, id: string) => any = () => undefined
     template: `
       <div>
         <div v-for="row in rows" :key="row.id" :data-testid="row.id">
-          <slot name="cell:name" :row="row" :value="row.nameDisplay" :col="{}" />
+          <slot name="cell:name" :row="row" :value="row.nameDisplay" :col="{}">
+            <span class="name-column-formatter">{{ row.nameDisplay }}</span>
+          </slot>
         </div>
       </div>
     `,
-  };
-
-  // ResourcePopover is loaded asynchronously, so give the stub its props and defaults explicitly
-  const ResourcePopover = {
-    name:  'ResourcePopover',
-    props: {
-      type:           String,
-      id:             String,
-      name:           String,
-      detailLocation: Object,
-      showStatus:     { type: Boolean, default: true },
-      lazy:           { type: Boolean, default: false },
-    },
-    template: '<span />',
   };
 
   return shallowMount(RelatedResources, {
     props:  { value: { metadata: { relationships } } },
     global: {
       mocks: { $store },
-      stubs: {
-        ResourceTable, ResourcePopover, LinkDetail: true
-      },
+      stubs: { ResourceTable, ResourcePopover: { name: 'ResourcePopover', template: '<span />' } },
     },
   });
 };
 
 describe('component: RelatedResources', () => {
-  it('should show the name of a pod with a lazy popover that has no status dot', () => {
+  it.each([
+    ['pod', 'default/frontend-abcde', 'frontend-abcde'],
+    ['ReplicaSet', 'default/frontend-567d5b464c', 'frontend-567d5b464c'],
+    ['ConfigMap', 'default/kube-root-ca.crt', 'kube-root-ca.crt'],
+  ])('should show the name of a %s as a link, without a popover', (_, id, name) => {
     const wrapper = createWrapper();
 
-    const popover = wrapper.find('[data-testid="default/frontend-abcde"]').findComponent({ name: 'ResourcePopover' });
-
-    expect(popover.exists()).toBe(true);
-    expect(popover.props()).toStrictEqual(expect.objectContaining({
-      type:           POD,
-      id:             'default/frontend-abcde',
-      name:           'frontend-abcde',
-      showStatus:     false,
-      lazy:           true,
-      detailLocation: {
-        name:   'c-cluster-product-resource-namespace-id',
-        params: {
-          product: 'explorer', cluster: 'local', resource: POD, namespace: 'default', id: 'frontend-abcde'
-        }
-      },
-    }));
-  });
-
-  it('should show the name of a ReplicaSet with a lazy popover that has no status dot', () => {
-    const wrapper = createWrapper();
-
-    const popover = wrapper.find('[data-testid="default/frontend-567d5b464c"]').findComponent({ name: 'ResourcePopover' });
-
-    expect(popover.exists()).toBe(true);
-    expect(popover.props()).toStrictEqual(expect.objectContaining({
-      type:           WORKLOAD_TYPES.REPLICA_SET,
-      id:             'default/frontend-567d5b464c',
-      name:           'frontend-567d5b464c',
-      showStatus:     false,
-      lazy:           true,
-      detailLocation: {
-        name:   'c-cluster-product-resource-namespace-id',
-        params: {
-          product: 'explorer', cluster: 'local', resource: WORKLOAD_TYPES.REPLICA_SET, namespace: 'default', id: 'frontend-567d5b464c'
-        }
-      },
-    }));
-  });
-
-  it('should show the name of other types as a link', () => {
-    const wrapper = createWrapper();
-
-    const cell = wrapper.find('[data-testid="default/kube-root-ca.crt"]');
+    const cell = wrapper.find(`[data-testid="${ id }"]`);
 
     expect(cell.findComponent({ name: 'ResourcePopover' }).exists()).toBe(false);
-    expect(cell.findComponent({ name: 'LinkDetail' }).props('value')).toStrictEqual('kube-root-ca.crt');
+    expect(cell.find('.name-column-formatter').text()).toStrictEqual(name);
   });
 
   describe('state', () => {
@@ -167,6 +117,161 @@ describe('component: RelatedResources', () => {
       });
 
       expect(rowOf(wrapper, 'default/gone').state).toStrictEqual('missing');
+    });
+  });
+
+  describe('rows', () => {
+    const mountWith = ({
+      value = { metadata: { relationships } } as any, props = {}, currentStore = 'cluster', clusterId = 'local', byId = (() => undefined) as (type: string, id: string) => any, dispatch = jest.fn()
+    } = {}) => shallowMount(RelatedResources, {
+      props:  { value, ...props },
+      global: {
+        mocks: {
+          $store: {
+            dispatch,
+            getters: {
+              clusterId,
+              currentStore:                    () => currentStore,
+              [`${ currentStore }/byId`]:      byId,
+              [`${ currentStore }/schemaFor`]: (type: string) => ({ id: type }),
+              'type-map/labelFor':             (schema: any) => schema.id,
+            }
+          }
+        },
+        stubs: { ResourceTable: true },
+      },
+    });
+    const idsOf = (wrapper: any) => wrapper.vm.rows.map((row: any) => row.id);
+    const firstRow = (wrapper: any) => wrapper.vm.rows[0];
+
+    it('should have no rows when the resource has no relationships', () => {
+      const wrapper = mountWith({ value: { metadata: {} } });
+
+      expect(wrapper.vm.rows).toStrictEqual([]);
+    });
+
+    it('should leave out the relationships of a type it is told to ignore', () => {
+      const wrapper = mountWith({ props: { ignoreTypes: [CONFIG_MAP] } });
+
+      expect(idsOf(wrapper)).toStrictEqual(['default/frontend-abcde', 'default/frontend-567d5b464c']);
+    });
+
+    it('should only show relationships of the given kind', () => {
+      const wrapper = mountWith({ props: { rel: 'uses' } });
+
+      expect(idsOf(wrapper)).toStrictEqual(['default/kube-root-ca.crt']);
+    });
+
+    it('should show the resources on the other side of the given direction', () => {
+      const wrapper = mountWith({
+        props: { direction: 'from' },
+        value: {
+          metadata: {
+            relationships: [
+              {
+                fromType: WORKLOAD_TYPES.DEPLOYMENT, fromId: 'default/frontend', rel: 'owner', state: 'active'
+              },
+              {
+                toType: POD, toId: 'default/frontend-abcde', rel: 'owner', state: 'running'
+              },
+            ]
+          }
+        }
+      });
+
+      expect(idsOf(wrapper)).toStrictEqual(['default/frontend']);
+    });
+
+    it('should leave out a relationship that matches resources by selector rather than naming one', () => {
+      const wrapper = mountWith({
+        value: {
+          metadata: {
+            relationships: [{
+              toType: POD, toNamespace: 'default', selector: 'app=frontend', rel: 'selects'
+            }]
+          }
+        }
+      });
+
+      expect(wrapper.vm.rows).toStrictEqual([]);
+    });
+
+    it('should link a namespaced resource to its detail page', () => {
+      const wrapper = mountWith();
+
+      expect(firstRow(wrapper).detailLocation).toStrictEqual({
+        name:   'c-cluster-product-resource-namespace-id',
+        params: {
+          product: 'explorer', cluster: 'local', resource: POD, namespace: 'default', id: 'frontend-abcde'
+        }
+      });
+    });
+
+    it('should link a resource that is not namespaced without a namespace in the route', () => {
+      const wrapper = mountWith({
+        value: {
+          metadata: {
+            relationships: [{
+              toType: NODE, toId: 'node-1', rel: 'uses', state: 'active'
+            }]
+          }
+        }
+      });
+
+      expect(firstRow(wrapper).detailLocation).toStrictEqual({
+        name:   'c-cluster-product-resource-id',
+        params: {
+          product: 'explorer', cluster: 'local', resource: NODE, id: 'node-1'
+        }
+      });
+    });
+
+    it('should link a resource in the management store to the local cluster', () => {
+      const wrapper = mountWith({
+        currentStore: 'management',
+        clusterId:    'c-m-abcde',
+        value:        {
+          metadata: {
+            relationships: [{
+              toType: MANAGEMENT.PROJECT, toId: 'local/p-abcde', rel: 'owner', state: 'active'
+            }]
+          }
+        }
+      });
+
+      expect(firstRow(wrapper).detailLocation.params.cluster).toStrictEqual('local');
+    });
+
+    describe('getRealResources', () => {
+      it('should fetch each row and return the resources that were found', async() => {
+        const pod = { id: 'default/frontend-abcde' };
+        const dispatch = jest.fn((action: string, { id }: any) => (id === pod.id ? Promise.resolve(pod) : Promise.reject(new Error('not found'))));
+        const wrapper = mountWith({ dispatch });
+        const rows = wrapper.vm.rows;
+
+        const found = await wrapper.vm.getRealResources(rows);
+
+        expect(dispatch).toHaveBeenCalledWith('cluster/find', { type: POD, id: 'default/frontend-abcde' });
+        expect(dispatch).toHaveBeenCalledWith('cluster/find', { type: CONFIG_MAP, id: 'default/kube-root-ca.crt' });
+        expect(found).toStrictEqual([pod]);
+      });
+
+      it("should show a fetched resource's own state once it is loaded", async() => {
+        const store: { pod?: any } = {};
+        const wrapper = mountWith({
+          byId:     (type, id) => (type === POD && id === 'default/frontend-abcde' ? store.pod : undefined),
+          dispatch: jest.fn(() => Promise.resolve({})),
+        });
+
+        expect(firstRow(wrapper).state).toStrictEqual('running');
+
+        store.pod = {
+          state: 'crashLoopBackOff', stateDisplay: 'CrashLoopBackOff', stateColor: 'text-error', stateBackground: 'bg-error'
+        };
+        await wrapper.vm.getRealResources(wrapper.vm.rows);
+
+        expect(firstRow(wrapper).state).toStrictEqual('crashLoopBackOff');
+      });
     });
   });
 });

@@ -363,3 +363,16 @@ describe('component: PopoverCard.vue keyboard button', () => {
     });
   });
 });
+
+describe('component: PopoverCard.vue target', () => {
+  const rules = compileStyleRules();
+  const targetDecls = () => rules
+    .filter(({ selector }) => /\.popover-card-target(\[data-v-test\])?$/.test(selector))
+    .reduce((acc, { decls }) => ({ ...acc, ...decls }), {} as Record<string, string>);
+
+  it('should size the target to its content, no wider than the space it is given', () => {
+    expect(targetDecls()).toStrictEqual({
+      height: '17px', display: 'inline-block', 'max-width': '100%'
+    });
+  });
+});

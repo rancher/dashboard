@@ -1,3 +1,7 @@
+import fs from 'fs';
+import path from 'path';
+import postcss from 'postcss';
+import { compileStyle, parse } from '@vue/compiler-sfc';
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import IdentifyingInformation from '@shell/components/Resource/Detail/Metadata/IdentifyingInformation/index.vue';
 import KeyValueRow from '@shell/components/Resource/Detail/Metadata/KeyValueRow.vue';
@@ -126,5 +130,26 @@ describe('component: Metadata/IdentifyingInformation', () => {
     const testComponent: any = wrapper.find('.value').getComponent('a');
 
     expect(testComponent.props('to')).toStrictEqual('#');
+  });
+
+  it('should leave the width of a popover target to the popover, so the space next to its link does not open it', () => {
+    const globalMixinsUsed = '@mixin clip {}\n';
+    const style = parse(fs.readFileSync(path.resolve(__dirname, '../index.vue'), 'utf8')).descriptor.styles[0];
+    const { code, errors } = compileStyle({
+      source:            style.content,
+      filename:          'index.vue',
+      id:                'data-v-test',
+      scoped:            style.scoped,
+      preprocessLang:    'scss',
+      preprocessOptions: { additionalData: globalMixinsUsed },
+    });
+    const selectors: string[] = [];
+
+    postcss.parse(code).walkRules((rule) => {
+      selectors.push(...rule.selectors);
+    });
+
+    expect(errors).toStrictEqual([]);
+    expect(selectors.filter((selector) => selector.includes('.popover-card-target'))).toStrictEqual([]);
   });
 });

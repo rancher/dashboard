@@ -119,12 +119,6 @@ const getRowValueId = (row:Row): string => `value-${ row.label }:${ row.value }`
       .full-custom-value {
         flex: 1;
         min-width: 0;
-
-        // Override inline-block on .popover-card-target so it respects the
-        // parent's width constraint instead of sizing to its content
-        :deep(.popover-card-target) {
-          width: 100%;
-        }
       }
 
       .value {
