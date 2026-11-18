@@ -73,6 +73,8 @@
     "webpack-dev-server": "5.2.6",
     "qs": "6.16.0",
     "fast-xml-parser": "5.11.1",
-    "basic-ftp": "6.2.2"
+    "basic-ftp": "6.2.2",
+    "**/nyc/glob": "14.0.6",
+    "**/nyc/test-exclude/glob": "14.0.6"
   }
 }
