@@ -9629,6 +9629,19 @@ oidcclient:
     label: Token Expiration
     placeholder:  Duration (in seconds) the token containing user authentication information is valid
 
+persona:
+  displayName:
+    label: Display Name
+    placeholder: e.g. App Developer
+  description:
+    placeholder: Who this persona is for
+  priority:
+    label: Priority
+    tooltip: When only one persona can apply, the one with the highest priority is used. Ties are broken by display name
+  tags:
+    label: Tags
+    addLabel: Add Tag
+
 action:
   ariaLabel:
     hidePass: Hide {area}
