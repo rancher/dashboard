@@ -7,6 +7,7 @@ import { ActionFindPageArgs } from '@shell/types/store/dashboard-store.types';
 import { PaginationParam, PaginationParamFilter, PaginationSort } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import { clusterFilterSignature, filterHiddenLocalCluster, filterOnlyKubernetesClusters, paginationFilterClusters } from '@shell/utils/cluster';
+import { commitAndReconcile, setPinned } from '@shell/utils/cluster-pref-writer';
 import PaginationWrapper from '@shell/utils/pagination-wrapper';
 import { sortBy } from '@shell/utils/sort';
 import { reactive } from 'vue';
@@ -154,7 +155,8 @@ export interface TopLevelMenuHelper {
   /** Flip every cached cluster's `pinned` flag from the pinned pref (keeps the pin icon in sync). */
   syncPinnedFlags: (pinnedIds: string[]) => void;
 
-  /** Refresh the watched context set (local + pinned). */
+  /** Refresh the watched context set (local + pinned). With SSP, pinned ids the server no longer returns
+   * are also removed from the pinned-clusters pref. */
   update: (args: UpdateArgs) => Promise<void>;
 
   /** Fetch RECENTLY USED. Unwatched and on demand: it is only on screen while the flyout is open, so it
@@ -384,8 +386,9 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
       forceWatch: args.forceWatch,
       pagination: {
         filters: this.constructParams({
-          ids:        contextIds,
-          includeIds: true,
+          ids:                   contextIds,
+          includeIds:            true,
+          includeClusterFilters: false,
         }),
         page:                 1,
         sort:                 DEFAULT_SORT,
@@ -398,17 +401,26 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     // requested set returns in one page and "a requested id is absent" reliably means the cluster no
     // longer exists (the basis for the prune below).
     const returnedIds = new Set<string>(r.data.map((c: MgmtCluster) => c.id));
+    const shown: MgmtCluster[] = filterHiddenLocalCluster(filterOnlyKubernetesClusters(r.data, this.$store), this.$store);
+    const shownIds = new Set<string>(shown.map((c) => c.id));
 
-    r.data.forEach((mgmtCluster: MgmtCluster) => this.convertToCluster(mgmtCluster));
+    shown.forEach((mgmtCluster) => this.convertToCluster(mgmtCluster));
 
     // Prune deleted clusters: any id we asked for but the server didn't return is gone/invisible, so drop
     // it so it leaves the pinned shelf at once. Only prune ids we actually requested (never rows the
     // ALL-list fetch cached); no backfill — the shelf just shows fewer rows until a fresh pin.
     contextIds.forEach((id) => {
-      if (!returnedIds.has(id)) {
+      if (!shownIds.has(id)) {
         delete this.clusterCache[id];
       }
     });
+
+    const deletedPins = pinnedIds.filter((id) => !returnedIds.has(id));
+
+    if (deletedPins.length) {
+      commitAndReconcile(this.$store.dispatch, [setPinned(deletedPins, false)])
+        .catch((e) => console.warn('Unable to unpin clusters that no longer exist', e)); // eslint-disable-line no-console
+    }
   }
 
   // RECENT is its own list here, not a view of the shared cache: the cache only holds what the watch keeps
@@ -487,14 +499,15 @@ export class TopLevelMenuHelperPagination extends BaseTopLevelMenuHelper impleme
     searchTerm,
     includeSearchTerm,
     includeIds,
+    includeClusterFilters = true,
   }: {
     ids?: string[],
     searchTerm?: string,
     includeSearchTerm?: boolean,
     includeIds?: boolean,
+    includeClusterFilters?: boolean,
   }): PaginationParam[] {
-    const commonClusterFilters = paginationFilterClusters({ getters: this.$store.getters });
-    const filters: PaginationParam[] = [...commonClusterFilters];
+    const filters: PaginationParam[] = includeClusterFilters ? [...paginationFilterClusters({ getters: this.$store.getters })] : [];
 
     if (ids && includeIds) {
       // cluster id is 1 OR 2 OR 3 OR 4...
