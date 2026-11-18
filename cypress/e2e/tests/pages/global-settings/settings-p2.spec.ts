@@ -438,7 +438,12 @@ describe('Settings', { testIsolation: false }, () => {
 
     createRKE2ClusterPage.selectCustom(0);
     createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
-    cy.contains(settings['system-default-registry'].new).should('exist'); // Note - this doesn't test anything. docker.io exists in the chart in all worlds, system-default-registry value does not
+    // Read the editor's value, not the page: CodeMirror only renders the lines near the viewport, so
+    // whether this string is in the DOM depends on how wide the editor is.
+    // Note - this doesn't test anything. docker.io exists in the chart in all worlds, system-default-registry value does not
+    createRKE2ClusterPage.calicoAddonConfig().yamlEditor().input()
+      .value()
+      .should('include', settings['system-default-registry'].new);
 
     const settingsPageBlank = new SettingsPagePo();
     const settingsEditBlank = settingsPageBlank.editSettings(undefined, 'system-default-registry');
