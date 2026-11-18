@@ -14,6 +14,7 @@ import {
   CRD,
   GATEWAY_API,
   FLEET,
+  HELM,
 } from '@shell/config/types';
 
 import {
@@ -208,9 +209,10 @@ export function init(store) {
   configureType(VIRTUAL_TYPES.PROJECT_SECRETS, { showListMasthead: false, resource: SECRET });
   weightType(VIRTUAL_TYPES.PROJECT_SECRETS, 2, false);
 
-  // These lists render their own masthead. The Fleet product hides the default one for itself only, so hide it here too
+  // These lists render their own masthead. Their products (Fleet, Monitoring) hide the default one for themselves only, so hide it here too
   configureType(FLEET.GIT_REPO, { showListMasthead: false });
   configureType(FLEET.HELM_OP, { showListMasthead: false });
+  configureType(HELM.PROJECTHELMCHART, { showListMasthead: false });
 
   configureType(EVENT, { limit: 500 });
   weightType(EVENT, -1, true);

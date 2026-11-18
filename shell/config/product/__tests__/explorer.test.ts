@@ -1,6 +1,6 @@
 import { init } from '@shell/config/product/explorer';
 import { NODE as NODE_COL } from '@shell/config/table-headers';
-import { FLEET, POD } from '@shell/config/types';
+import { FLEET, HELM, POD } from '@shell/config/types';
 
 describe('product: explorer', () => {
   const initExplorer = () => {
@@ -70,6 +70,7 @@ describe('product: explorer', () => {
   it.each([
     FLEET.GIT_REPO,
     FLEET.HELM_OP,
+    HELM.PROJECTHELMCHART,
   ])('should hide the default masthead of the %s list, which renders its own', (type) => {
     const commit = initExplorer();
     const options = commit.mock.calls
