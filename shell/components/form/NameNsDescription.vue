@@ -125,6 +125,13 @@ export default {
       type:    Boolean,
       default: true,
     },
+    /**
+     * Schema id of the resource the selected namespace must allow creating. Defaults to the type of `value`
+     */
+    resourceType: {
+      type:    String,
+      default: null,
+    },
     descriptionLabel: {
       type:    String,
       default: 'nameNsDescription.description.label',
@@ -366,6 +373,7 @@ export default {
         :mapper="namespaceMapper"
         :create-namespace-override="createNamespaceOverride"
         :create-allowed="namespaceCreateAllowed"
+        :resource-type="resourceType || value?.type"
         :placeholder="namespacePlaceholder"
         :create-placeholder="namespaceCreatePlaceholder"
         :rules="rules.namespace"

@@ -254,6 +254,26 @@ describe('nameNsDescription', () => {
     expect(wrapper.emitted('update:value')).toBeTruthy();
   });
 
+  it.each([
+    {
+      desc: 'the type of the value', props: {}, expected: 'secret'
+    },
+    {
+      desc: 'resourceType, when provided', props: { resourceType: 'configmap' }, expected: 'configmap'
+    },
+  ])('asks the namespace select for namespaces allowing $desc', ({ props, expected }) => {
+    const wrapper = shallowMount(NameNsDescription, {
+      ...requiredSetup(),
+      props: {
+        value: { type: 'secret', metadata: {} },
+        mode:  _CREATE,
+        ...props,
+      },
+    });
+
+    expect(wrapper.findComponent({ name: 'NamespaceSelect' }).attributes('resource-type')).toStrictEqual(expected);
+  });
+
   it('persists forceNamespace via namespaceKey immediately on mount, when provided', () => {
     const value = { metadata: {}, spec: { myNs: '' } };
     const wrapper = shallowMount(NameNsDescription, {
