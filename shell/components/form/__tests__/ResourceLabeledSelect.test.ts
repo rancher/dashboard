@@ -72,6 +72,25 @@ describe('component: ResourceLabeledSelect.vue', () => {
     expect(wrapper.emitted('update:value')?.[0]).toStrictEqual(['baz']);
   });
 
+  it('should only offer the paginate fn to LabeledSelect while actually paginating', async() => {
+    // LabeledSelect's `canPaginate` re-enables server-side pagination whenever it is handed a
+    // paginate fn for an SSP-registered type, so the wrapper must withhold it once it has decided
+    // not to paginate (e.g. paginateMode ALL_RESOURCES) - otherwise the mapped `allOfType` options
+    // are ignored in favour of raw pages.
+    const wrapper = shallowMount(ResourceLabeledSelect, {
+      ...requiredSetup(),
+      props: { resourceType: 'testResource' }
+    });
+
+    await wrapper.setData({ paginate: false });
+    // A withheld fn falls through to LabeledSelect's `paginate` prop default (null), which is what
+    // switches its `canPaginate` off.
+    expect(wrapper.findComponent(LabeledSelect).props('paginate')).toBeNull();
+
+    await wrapper.setData({ paginate: true });
+    expect(typeof wrapper.findComponent(LabeledSelect).props('paginate')).toBe('function');
+  });
+
   it('should pass correct props and attrs to LabeledSelect', async() => {
     const wrapper = shallowMount(ResourceLabeledSelect, {
       ...requiredSetup(),

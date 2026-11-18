@@ -336,6 +336,52 @@ describe('catalog', () => {
       expect(versionInfos[unrelatedVersionKey]).toBeDefined();
       expect(versionInfos[unrelatedVersionKey].data).toBe('keep-me');
     });
+
+    describe('airgap mirror repo', () => {
+      const loadMirrorChart = async(repoFlags: Record<string, boolean>, annotations: Record<string, string>) => {
+        const chart = {
+          name: 'mirrored-chart', type: 'namespaced', version: 1, annotations, metadata: { name: 'mirrored-chart' }
+        };
+        const mirrorRepo = {
+          metadata:        { name: 'mirror' },
+          _key:            'mirror',
+          canLoad:         true,
+          isRancherSource: true,
+          isAirgapMirror:  true,
+          ...repoFlags,
+          followLink:      () => ({ entries: { [chart.name]: [chart] } })
+        };
+        const config = constructStore();
+
+        config.modules[clusterStore].actions.findAll = (ctx: any, ...args: any[]) => Promise.resolve(args[0].type === CATALOG.REPO ? [mirrorRepo] : []);
+
+        const store = createStore(config);
+
+        await store.dispatch(`${ catalogStoreName }/load`, { force: true, reset: true });
+
+        return store.getters[`${ catalogStoreName }/rawCharts`][`namespace/mirror/${ chart.name }`];
+      };
+
+      it.each([
+        [{ isRancher: true }, CATALOG_ANNOTATIONS._RANCHER],
+        [{ isPartner: true }, CATALOG_ANNOTATIONS._PARTNER],
+      ])('certifies the chart when the repo is %p and the annotation is %p', async(repoFlags, annotation) => {
+        const chart = await loadMirrorChart(repoFlags, { [CATALOG_ANNOTATIONS.CERTIFIED]: annotation });
+
+        expect(chart.certified).toBe(annotation);
+        expect(chart.isRancherRepo).toBe(true);
+      });
+
+      it.each([
+        ['is missing', {}],
+        ['does not match the repo', { [CATALOG_ANNOTATIONS.CERTIFIED]: CATALOG_ANNOTATIONS._PARTNER }],
+      ])('does not certify the chart when the annotation %s', async(_, annotations) => {
+        const chart = await loadMirrorChart({ isRancher: true }, annotations);
+
+        expect(chart.certified).toBe(CATALOG_ANNOTATIONS._OTHER);
+        expect(chart.isRancherRepo).toBe(false);
+      });
+    });
   });
 
   describe('refresh', () => {
@@ -468,14 +514,14 @@ describe('catalog', () => {
         };
 
         const allCharts = [regularChart, deprecatedChart];
-        const state = {};
+        const localState = state();
         const localGetters = {
           charts: allCharts,
-          chart:  (args: any) => getters.chart(state, { charts: allCharts })(args)
+          chart:  (args: any) => getters.chart(localState, { charts: allCharts })(args)
         };
 
         // Scenario 1: Get a version from a regular chart
-        const result1 = getters.version(state, localGetters)({
+        const result1 = getters.version(localState, localGetters)({
           repoType:       'cluster',
           repoName:       'rancher-charts',
           chartName:      'regular-chart',
@@ -486,7 +532,7 @@ describe('catalog', () => {
         expect(result1).toStrictEqual({ version: '1.2.3' });
 
         // Scenario 2: Get a version from a deprecated chart
-        const result2 = getters.version(state, localGetters)({
+        const result2 = getters.version(localState, localGetters)({
           repoType:       'cluster',
           repoName:       'rancher-charts',
           chartName:      'deprecated-chart',
@@ -497,7 +543,7 @@ describe('catalog', () => {
         expect(result2).toStrictEqual({ version: '2.0.0' });
 
         // Scenario 3: Try to get a version from a deprecated chart without the flag should fail
-        const result3 = getters.version(state, localGetters)({
+        const result3 = getters.version(localState, localGetters)({
           repoType:       'cluster',
           repoName:       'rancher-charts',
           chartName:      'deprecated-chart',
@@ -527,6 +573,32 @@ describe('catalog', () => {
       const repo = { isRancherSource: false } as any;
 
       expect(isRancherRepo(repo, null)).toBe(false);
+    });
+
+    describe('airgap mirror repo', () => {
+      it.each([
+        [{ isRancher: true }, CATALOG_ANNOTATIONS._RANCHER],
+        [{ isPartner: true }, CATALOG_ANNOTATIONS._PARTNER],
+      ])('should return true if the repo is %p and the chart annotation is %p', (repoFlags, annotation) => {
+        const repo = {
+          isRancherSource: true, isAirgapMirror: true, ...repoFlags
+        } as any;
+        const chart = { annotations: { [CATALOG_ANNOTATIONS.CERTIFIED]: annotation } };
+
+        expect(isRancherRepo(repo, chart)).toBe(true);
+      });
+
+      it.each([
+        ['has no certified annotation', { annotations: {} }],
+        ['is certified for a different repo', { annotations: { [CATALOG_ANNOTATIONS.CERTIFIED]: CATALOG_ANNOTATIONS._PARTNER } }],
+        ['is missing', null],
+      ])('should return false if the chart %s', (_, chart) => {
+        const repo = {
+          isRancherSource: true, isAirgapMirror: true, isRancher: true
+        } as any;
+
+        expect(isRancherRepo(repo, chart)).toBe(false);
+      });
     });
   });
 

@@ -32,6 +32,14 @@ export default defineComponent({
       required: true
     },
 
+    /**
+     * Used with @resourceType to determine if pagination is enabled
+     */
+    context: {
+      type:    String,
+      default: null,
+    },
+
     inStore: {
       type:    String,
       default: undefined,
@@ -166,7 +174,7 @@ export default defineComponent({
     v-bind="labelSelectAttributes"
     :loading="$fetchState.pending"
     :options="allOfType"
-    :paginate="paginateType"
+    :paginate="paginate ? paginateType : undefined"
     :multiple="$attrs.multiple || false"
     @update:value="$emit('update:value', $event)"
   >

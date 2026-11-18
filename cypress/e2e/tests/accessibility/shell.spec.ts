@@ -35,7 +35,6 @@ import DigitalOceanCloudCredentialsCreateEditPo from '@/cypress/e2e/po/edit/clou
 import KontainerDriversPagePo from '@/cypress/e2e/po/pages/cluster-manager/kontainer-drivers.po';
 import UsersPo from '@/cypress/e2e/po/pages/users-and-auth/users.po';
 import UserRetentionPo from '@/cypress/e2e/po/pages/users-and-auth/user.retention.po';
-import ResourceSearchDialog from '@/cypress/e2e/po/prompts/ResourceSearchDialog.po';
 import { StorageClassesPagePo } from '@/cypress/e2e/po/pages/explorer/storage-classes.po';
 import { BrandingPagePo } from '@/cypress/e2e/po/pages/global-settings/branding.po';
 import { BannersPagePo } from '@/cypress/e2e/po/pages/global-settings/banners.po';
@@ -43,7 +42,34 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 import { FleetApplicationCreatePo, FleetGitRepoCreateEditPo } from '@/cypress/e2e/po/pages/fleet/fleet.cattle.io.application.po';
 import GenericDialog from '@/cypress/e2e/po/prompts/genericDialog.po';
 
-describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () => {
+// Scan at a desktop resolution. Cypress defaults to 1000x660, and one of axe's documented reasons
+// for abandoning a colour-contrast check is `outsideViewport` - "Element's background color could
+// not be determined because it's outside the viewport". A short viewport on a dense list page
+// pushes real contrast results into the 'needs review' bucket. Scoped to this suite so every other
+// e2e spec keeps the default viewport.
+//
+// Keep the config object on a single line. `scripts/check-e2e-tests-for-tags` parses spec files line
+// by line and only finds `tags:` if it sits on the same line as `describe(` - splitting this across
+// lines makes the PR gate report every test in the suite as untagged.
+// eslint-disable-next-line object-curly-newline
+describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'], viewportWidth: 1920, viewportHeight: 1080 }, () => {
+  // Colour contrast results are only meaningful against a known palette, so pin the whole suite to
+  // Prime branding in light mode instead of relying on the server/browser defaults. See #18621.
+  let originalBrand = '';
+
+  before(() => {
+    cy.login();
+
+    cy.getRancherResource('v3', 'settings', 'ui-brand').then((resp: Cypress.Response<any>) => {
+      originalBrand = resp.body.value || '';
+    });
+
+    cy.setRancherResource('v3', 'settings', 'ui-brand', { value: 'suse' });
+    // The stored form of the `light` theme preference is `ui-light` (see `mangleWrite` on `THEME` in
+    // `shell/store/prefs.ts`). `true` verifies the preference actually landed.
+    cy.setUserPreference({ theme: 'ui-light' }, true);
+  });
+
   describe('Login page', () => {
     it('login page', () => {
       const loginPage = new LoginPagePo();
@@ -63,11 +89,12 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       loginPage.waitForPage();
       cy.injectAxe();
       loginPage.localSelector().click();
+      loginPage.localeMenuItems().should('be.visible');
       cy.checkPageAccessibility();
     });
   });
 
-  describe('Logged in', { testIsolation: 'off' }, () => {
+  describe('Logged in', { testIsolation: false }, () => {
     const aboutPage = new AboutPagePo();
     const prefPage = new PreferencesPagePo();
     const userMenu = new UserMenuPo();
@@ -209,6 +236,8 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
               .getMenuItem('Move')
               .click();
 
+            promptModal().self().should('have.attr', 'aria-labelledby');
+
             cy.injectAxe();
 
             promptModal().self().then((el) => {
@@ -220,8 +249,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
           it('Projects-Namespaces - Delete Project dialog', () => {
             projectsNamespacesPage.waitForPage();
-            projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(1)
-              .click();
+            projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('Project');
             projectsNamespacesPage.list().resourceTable().sortableTable().rowActionMenuOpen('Project: Default')
               .getMenuItem('Delete')
               .click();
@@ -275,8 +303,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
 
           it('Projects-Namespaces - Create Namespace', () => {
             projectsNamespacesPage.waitForPage();
-            projectsNamespacesPage.list().resourceTable().sortableTable().groupByButtons(0)
-              .click();
+            projectsNamespacesPage.list().resourceTable().sortableTable().groupBy('None');
             projectsNamespacesPage.createNamespaceButton().should('be.visible').click();
             projectsNamespacesPage.mastheadTitle().then((title) => {
               expect(title.replace(/\s+/g, ' ')).to.contain('Namespace: Create');
@@ -417,6 +444,8 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           slideIn.checkVisible();
           slideIn.waitforContent();
 
+          header.hideKubectlExplainTooltip();
+
           cy.injectAxe();
 
           cy.checkPageAccessibility();
@@ -473,22 +502,6 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           });
 
           header.kubectlShell().closeTerminal();
-        });
-
-        it('Resource Search', () => {
-          const dialog = new ResourceSearchDialog();
-
-          header.resourceSearchButton().click();
-          dialog.searchBox().should('be.visible');
-
-          cy.injectAxe();
-
-          dialog.self().then((el: any) => {
-            cy.checkElementAccessibility(el);
-          });
-
-          dialog.close();
-          dialog.checkNotExists();
         });
       });
     });
@@ -674,7 +687,33 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       it('Chart Detail Page - Kubecost', () => {
         const chartPage = new ChartPage();
 
-        ChartPage.navTo(undefined, 'Kubecost');
+        // Kubecost ships from the partner charts repo, which Rancher downloads and indexes
+        // asynchronously after install. Until that finishes the Charts page lists no card for it,
+        // so filtering finds nothing and the click fails on a card lookup that never resolves.
+        // Wait for the chart to actually be served before navigating. failOnStatusCode is off
+        // because the index answers 500 while the repo is still being indexed.
+        const waitForPartnerChart = (retries = 30): void => {
+          cy.request({
+            url:              `${ Cypress.env('api') }/v1/catalog.cattle.io.clusterrepos/rancher-partner-charts?link=index`,
+            failOnStatusCode: false,
+          }).then((resp) => {
+            if ((resp.status === 200 && resp.body?.entries?.['cost-analyzer']) || retries === 0) {
+              return;
+            }
+            cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
+            waitForPartnerChart(retries - 1);
+          });
+        };
+
+        waitForPartnerChart();
+
+        // Go straight to the detail page rather than through the Charts list. This test checks the
+        // accessibility of the detail page; the list, filter and click on the way there are what
+        // flaked. The list lazy-loads its cards, so a card can be absent without anything being
+        // wrong, and it can render a catalog from before the partner chart was published and never
+        // re-read it (Known issue rancher/dashboard#19319). A full page load of the detail URL
+        // reads a fresh catalog and needs none of that.
+        chartPage.goTo('repo-type=cluster&repo=rancher-partner-charts&chart=cost-analyzer');
         chartPage.waitForChartPage('rancher-partner-charts', 'cost-analyzer');
         chartPage.waitForChartHeader('Kubecost', MEDIUM_TIMEOUT_OPT);
 
@@ -725,9 +764,7 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
       it('Import Extension Catalog Modal', () => {
         extensionsPo.extensionMenuToggle();
         extensionsPo.manageExtensionCatalogsClick();
-        extensionsPo.catalogsList().sortableTable()
-          .bulkActionButton('Import Extension Catalog')
-          .click();
+        extensionsPo.importExtensionCatalogClick();
         dialogModal.checkVisible();
 
         cy.injectAxe();
@@ -846,10 +883,44 @@ describe('Shell a11y testing', { tags: ['@adminUser', '@accessibility'] }, () =>
           });
         });
       });
+
+      it('Side navigation jump-to', () => {
+        const clusterDashboard = new ClusterDashboardPagePo('local');
+
+        clusterDashboard.goTo();
+        clusterDashboard.waitForPage();
+
+        const actionBar = new ProductNavPo().actionBar();
+
+        actionBar.openJumpTo();
+        actionBar.jumpToResults().should('have.length.gt', 0);
+
+        cy.injectAxe();
+
+        // The results are teleported out of the nav, so both halves of the
+        // combobox are checked
+        actionBar.self().then((el: any) => {
+          cy.checkElementAccessibility(el);
+        });
+
+        actionBar.jumpToDropdown().then((el: any) => {
+          cy.checkElementAccessibility(el);
+        });
+
+        // The empty state renders different markup, so check it too
+        actionBar.searchJumpTo('zzzzzz');
+        actionBar.jumpToResults().should('have.length', 0);
+
+        actionBar.jumpToDropdown().then((el: any) => {
+          cy.checkElementAccessibility(el);
+        });
+      });
     });
   });
 
   after(() => {
+    cy.setRancherResource('v3', 'settings', 'ui-brand', { value: originalBrand });
+    cy.setUserPreference({ theme: '' });
     cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
   });
 });

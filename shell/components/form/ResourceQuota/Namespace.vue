@@ -1,9 +1,12 @@
 <script>
+import { Banner } from '@components/Banner';
+import { RESOURCE_QUOTA } from '@shell/config/labels-annotations';
+import { _VIEW } from '@shell/config/query-params';
 import Row from './NamespaceRow';
 import { QUOTA_COMPUTED } from './shared';
 
 export default {
-  components: { Row },
+  components: { Banner, Row },
 
   props: {
     mode: {
@@ -29,7 +32,10 @@ export default {
   },
 
   data() {
-    return { rows: {} };
+    return {
+      rows:                 {},
+      hasInvalidAnnotation: !!this.value.hasInvalidResourceQuota,
+    };
   },
 
   computed: {
@@ -45,6 +51,11 @@ export default {
     },
     editableLimits() {
       return Object.keys(this.projectResourceQuotaLimits);
+    },
+    invalidAnnotationMessage() {
+      const key = this.mode === _VIEW ? 'resourceQuota.invalidAnnotationDetail' : 'resourceQuota.invalidAnnotation';
+
+      return this.t(key, { annotation: RESOURCE_QUOTA });
     },
     defaultResourceQuotaLimits() {
       return this.flatListFromLimits(this.project.spec.namespaceDefaultResourceQuota.limit || {});
@@ -92,6 +103,14 @@ export default {
 </script>
 <template>
   <div>
+    <Banner
+      v-if="hasInvalidAnnotation"
+      color="error"
+      role="alert"
+      class="mt-0 mb-20"
+      data-testid="resource-quota-invalid-annotation"
+      :label="invalidAnnotationMessage"
+    />
     <div class="headers mb-10">
       <div class="mr-10">
         <label>{{ t('resourceQuota.headers.resourceType') }}</label>

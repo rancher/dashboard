@@ -1,10 +1,12 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
+import RcSeparator from '@components/RcSeparator/RcSeparator.vue';
 
 export default defineComponent({
 
-  name:  'Card',
-  props: {
+  name:       'Card',
+  components: { RcSeparator },
+  props:      {
     /**
      * The card's title.
      */
@@ -51,7 +53,7 @@ export default defineComponent({
       type:    Boolean,
       default: false,
     }
-  }
+  },
 });
 </script>
 
@@ -65,13 +67,14 @@ export default defineComponent({
     <div class="card-wrap">
       <div
         class="card-title"
+        data-modal-title
         data-testid="card-title-slot"
       >
         <slot name="title">
           {{ title }}
         </slot>
       </div>
-      <hr role="none">
+      <RcSeparator />
       <div
         class="card-body"
         data-testid="card-body-slot"
@@ -111,7 +114,6 @@ export default defineComponent({
   padding: 10px;
   box-shadow: 0 0 20px var(--shadow);
   &:not(.top) {
-    align-items: top;
     flex-direction: row;
     justify-content: start;
   }

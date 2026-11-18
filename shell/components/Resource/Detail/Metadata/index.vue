@@ -27,6 +27,7 @@ const store = useStore();
 const i18n = useI18n(store);
 
 const showBothEmpty = computed(() => labels.length === 0 && annotations.length === 0);
+const hasIdentifyingInformation = computed(() => identifyingInformation.length > 0);
 </script>
 
 <template>
@@ -35,6 +36,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     v-bind="$attrs"
   >
     <div
+      v-if="hasIdentifyingInformation"
       class="identifying-info"
     >
       <IdentifyingInformation :rows="identifyingInformation" />
@@ -64,6 +66,7 @@ const showBothEmpty = computed(() => labels.length === 0 && annotations.length =
     <div
       v-if="!showBothEmpty"
       class="annotations"
+      data-testid="resource-detail-annotations"
     >
       <Annotations
         :annotations="annotations"

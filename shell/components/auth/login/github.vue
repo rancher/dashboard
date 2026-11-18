@@ -1,23 +1,29 @@
 <script>
+import { RcButton } from '@components/RcButton';
 import Login from '@shell/mixins/login';
 
 export default {
-  mixins: [Login],
+  components: { RcButton },
+  mixins:     [Login],
 
   methods: {
     login() {
-      this.$store.dispatch('auth/redirectTo', { provider: 'github' });
+      this.$store.dispatch('auth/redirectTo', { provider: this.name });
     },
   },
 };
 </script>
 
 <template>
-  <button
-    ref="btn"
-    class="btn role-primary"
-    @click="login"
-  >
-    Log In with GitHub
-  </button>
+  <div class="text-center">
+    <RcButton
+      ref="btn"
+      variant="primary"
+      size="large"
+      data-testid="login-provider-submit"
+      @click="login"
+    >
+      {{ t('login.loginWithProvider', {provider: displayName}) }}
+    </RcButton>
+  </div>
 </template>

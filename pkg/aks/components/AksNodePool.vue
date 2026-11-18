@@ -14,6 +14,8 @@ import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
 
 import { randomStr } from '@shell/utils/string';
+import isEqual from 'lodash/isEqual';
+import { DEFAULT_AVAILABILITY_ZONES } from '../util/aks-regions';
 
 export default defineComponent({
   name: 'AKSNodePool',
@@ -77,12 +79,13 @@ export default defineComponent({
 
   data() {
     return {
-      taints: (this.pool.nodeTaints || []).map((taint: String) => {
+      taints: (this.pool.nodeTaints || []).map((taint: string) => {
         return { taint, _id: randomStr() };
       }),
-      osDiskTypeOptions:       ['Managed', 'Ephemeral'] as AKSDiskType[],
-      modeOptions:             ['User', 'System'] as AKSPoolMode[],
-      availabilityZoneOptions: [{ label: 'zone 1', value: '1' }, { label: 'zone 2', value: '2' }, { label: 'zone 3', value: '3' }],
+      osDiskTypeOptions:        ['Managed', 'Ephemeral'] as AKSDiskType[],
+      modeOptions:              ['User', 'System'] as AKSPoolMode[],
+      availabilityZoneOptions:  [{ label: 'zone 1', value: '1' }, { label: 'zone 2', value: '2' }, { label: 'zone 3', value: '3' }],
+      touchedAvailabilityZones: false,
 
       originalOrchestratorVersion: this.pool.orchestratorVersion
     };
@@ -105,17 +108,39 @@ export default defineComponent({
       }
     },
 
-    validAZ(neu) {
-      this.pool['_validAZ'] = neu;
-      this.$emit('update:value');
+    // keep untouched zones consistent with whether the selected region supports them
+    canUseAvailabilityZones: {
+      handler(neu: boolean, old?: boolean) {
+        // in view mode a change would show zones that differ from the saved config
+        if (this.isView || this.touchedAvailabilityZones || !this.pool._isNewOrUnprovisioned) {
+          return;
+        }
+
+        if (!neu) {
+          if (isEqual(this.pool.availabilityZones, DEFAULT_AVAILABILITY_ZONES)) {
+            this.pool['availabilityZones'] = [];
+          }
+
+          return;
+        }
+
+        // undefined on the initial run: add zones on a region change, not to pools loaded without zones
+        if (old !== undefined && !this.pool.availabilityZones?.length) {
+          this.pool['availabilityZones'] = [...DEFAULT_AVAILABILITY_ZONES];
+        }
+      },
+      immediate: true
     }
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
-    validAZ(): Boolean {
-      return !this.pool.availabilityZones || !this.pool.availabilityZones.length || this.canUseAvailabilityZones;
+    // a missing key would otherwise look like the form-level call, which checks every pool
+    availabilityZoneRules(): Array<(zones?: string[] | null) => string | undefined> {
+      const rules: Array<(zones: string[]) => string | undefined> = this.validationRules.az || [];
+
+      return rules.map((rule) => (zones?: string[] | null) => rule(zones ?? []));
     },
 
     isView() {
@@ -173,10 +198,6 @@ export default defineComponent({
 
       this['taints'] = neu;
       this.pool['nodeTaints'] = neu.map((taint) => taint.taint);
-    },
-
-    availabilityZonesSupport() {
-      return this.validAZ ? undefined : this.t('aks.errors.availabilityZones');
     },
 
     poolCountValidator() {
@@ -261,7 +282,9 @@ export default defineComponent({
           :taggable="true"
           :disabled="!pool._isNewOrUnprovisioned || (!canUseAvailabilityZones && !(pool.availabilityZones && pool.availabilityZones.length))"
           :require-dirty="false"
-          :rules="validationRules.az"
+          :rules="availabilityZoneRules"
+          data-testid="aks-pool-az-select"
+          @update:value="touchedAvailabilityZones = true"
         />
       </div>
       <div class="col span-2">

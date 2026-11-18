@@ -47,6 +47,7 @@ export const API_GROUP = 'apiGroups';
 export const API_SERVICE = 'apiregistration.k8s.io.apiservice';
 export const CONFIG_MAP = 'configmap';
 export const COUNT = 'count';
+export const CRD = 'apiextensions.k8s.io.customresourcedefinition';
 export const EVENT = 'event';
 export const ENDPOINTS = 'endpoints';
 export const HPA = 'autoscaling.horizontalpodautoscaler';
@@ -116,7 +117,7 @@ export const WORKLOAD_KINDS = {
  */
 export const WORKLOAD_TYPE_TO_KIND_MAPPING = {
   // Each deployment creates a replicaset and the metrics are published for a replicaset.
-  [WORKLOAD_TYPES.DEPLOYMENT]:             WORKLOAD_KINDS.DEPLOYMENT,
+  [WORKLOAD_TYPES.DEPLOYMENT]:             WORKLOAD_KINDS.REPLICA_SET,
   [WORKLOAD_TYPES.CRON_JOB]:               WORKLOAD_KINDS.CRON_JOB,
   [WORKLOAD_TYPES.DAEMON_SET]:             WORKLOAD_KINDS.DAEMON_SET,
   [WORKLOAD_TYPES.JOB]:                    WORKLOAD_KINDS.JOB,
@@ -223,6 +224,7 @@ export const OPERATION = {
   ETCD_SNAPSHOT:         'operation.cattle.io.etcdsnapshotsave',
   ETCD_SNAPSHOT_RESTORE: 'operation.cattle.io.etcdsnapshotrestore',
   ENCRYPTION_KEY_ROTATE: 'operation.cattle.io.encryptionkeyrotation',
+  CERTIFICATE_ROTATE:    'operation.cattle.io.certificaterotation',
 };
 
 // --------------------------------------
@@ -266,7 +268,6 @@ export const MANAGEMENT = {
 
 export const BRAND = {
   SUSE:    'suse',
-  CSP:     'csp',
   FEDERAL: 'federal',
   RGS:     'rgs',
 };
@@ -307,7 +308,8 @@ export const FLEET = {
   WORKSPACE:                'management.cattle.io.fleetworkspace',
   TOKEN:                    'fleet.cattle.io.clusterregistrationtoken',
   BUNDLE_NAMESPACE_MAPPING: 'fleet.cattle.io.bundlenamespacemapping',
-  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction'
+  GIT_REPO_RESTRICTION:     'fleet.cattle.io.gitreporestriction',
+  POLICY:                   'fleet.cattle.io.policy'
 };
 
 export const GATEKEEPER = {
@@ -319,6 +321,11 @@ export const ISTIO = {
   VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',
   DESTINATION_RULE: 'networking.istio.io.destinationrule',
   GATEWAY:          'networking.istio.io.gateway'
+};
+
+export const GATEWAY_API = {
+  GATEWAY:    'gateway.networking.k8s.io.gateway',
+  HTTP_ROUTE: 'gateway.networking.k8s.io.httproute'
 };
 
 export const LOGGING = {
@@ -368,7 +375,10 @@ export const COMPLIANCE = {
   REPORT:               'compliance.cattle.io.clusterscanreport'
 };
 
-export const UI = { NAV_LINK: 'ui.cattle.io.navlink' };
+export const UI = {
+  NAV_LINK:            'ui.cattle.io.navlink',
+  TABLE_CONFIGURATION: 'ui.cattle.io.tableconfiguration',
+};
 
 export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',
@@ -384,6 +394,8 @@ export const HCI = {
   DASHBOARD:        'harvesterhci.io.dashboard',
   IMAGE:            'harvesterhci.io.virtualmachineimage',
   VGPU_DEVICE:      'devices.harvesterhci.io.vgpudevice',
+  PCI_DEVICE:       'devices.harvesterhci.io.pcidevice',
+  PCI_DEVICE_CLAIM: 'devices.harvesterhci.io.pcideviceclaim',
   SETTING:          'harvesterhci.io.setting',
   RESOURCE_QUOTA:   'harvesterhci.io.resourcequota',
   HARVESTER_CONFIG: 'rke-machine-config.cattle.io.harvesterconfig',

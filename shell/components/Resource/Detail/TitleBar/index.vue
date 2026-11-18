@@ -71,34 +71,37 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
 <template>
   <div class="title-bar">
     <Top>
-      <Title class="title">
-        <TabTitle :show-child="false">
-          {{ resourceTypeLabel }}
-        </TabTitle>
-        <router-link
-          v-if="resourceTo"
-          :to="resourceTo"
-          class="resource-link"
-        >
-          {{ resourceTypeLabel }}:
-        </router-link>
-        <span
-          v-else
-          class="resource-text"
-        >
-          {{ resourceTypeLabel }}:
-        </span>
-        <span class="resource-name masthead-resource-title">
-          {{ resourceName }}
-        </span>
-        <BadgeState
-          v-if="badge"
-          v-ui-context="{ store: store, icon: 'icon-folder', hookable: true, value: resource, tag: '__details-state', description: 'Details' }"
-          class="badge-state"
-          :color="badge.color"
-          :label="badge.label"
-        />
-      </Title>
+      <div class="title-row">
+        <Title class="title">
+          <TabTitle :show-child="false">
+            {{ resourceTypeLabel }}
+          </TabTitle>
+          <router-link
+            v-if="resourceTo"
+            :to="resourceTo"
+            class="resource-link"
+          >
+            {{ resourceTypeLabel }}:
+          </router-link>
+          <span
+            v-else
+            class="resource-text"
+          >
+            {{ resourceTypeLabel }}:
+          </span>
+          <span class="resource-name masthead-resource-title">
+            {{ resourceName }}
+          </span>
+          <BadgeState
+            v-if="badge"
+            v-ui-context="{ store: store, icon: 'icon-folder', hookable: true, value: resource, tag: '__details-state', description: 'Details' }"
+            class="badge-state"
+            :color="badge.color"
+            :label="badge.label"
+          />
+        </Title>
+        <slot name="title-suffix" />
+      </div>
       <div class="actions">
         <slot name="additional-actions">
           <template v-if="additionalActions">
@@ -195,11 +198,20 @@ const showAdditionalActionButtons = computed(() => isArray(additionalActions));
     max-width: 60%;
   }
 
-  // Title takes the remaining row space; min-width: 0 lets its children
-  // (resource-name) shrink so the action buttons stay visible on narrow viewports.
-  .title {
+  // The row holds the heading and whatever a page hangs beside it — an `h1` takes phrasing content
+  // only, and a screen reader reads whatever is inside it as part of the heading. It carries the
+  // heading's bottom margin too, which on the heading would count towards the row's height.
+  .title-row {
+    display: flex;
+    align-items: center;
     flex: 1 1 auto;
     min-width: 0;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    min-width: 0;
+    margin-bottom: 0;
   }
 
   .resource-name {

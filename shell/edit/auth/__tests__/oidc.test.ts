@@ -4,6 +4,8 @@ import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 
 import oidc from '@shell/edit/auth/oidc.vue';
+import ArrayList from '@shell/components/form/ArrayList.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -181,14 +183,14 @@ describe('oidc.vue', () => {
     });
 
     it('`groupSearchEnabled` defaults to false', async() => {
-      const groupSearchCheckbox = wrapper.getComponent('[data-testid="input-group-search"]');
+      const groupSearchCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="input-group-search"]');
 
       expect(groupSearchCheckbox.isVisible()).toBe(true);
       expect(wrapper.vm.model.groupSearchEnabled).toBe(false);
     });
 
     it('`groupSearchEnabled` updates when checkbox is clicked', async() => {
-      const groupSearchCheckbox = wrapper.getComponent('[data-testid="input-group-search"]');
+      const groupSearchCheckbox = wrapper.getComponent<typeof Checkbox>('[data-testid="input-group-search"]');
 
       await groupSearchCheckbox.find('[role="checkbox"]').trigger('click');
 
@@ -197,7 +199,7 @@ describe('oidc.vue', () => {
     });
 
     it('changing URL should update issuer and auth-endpoint if Keycloak', async() => {
-      wrapper.vm.model.id = 'keycloakoidc';
+      await wrapper.setData({ model: { type: 'keyCloakOIDCConfig' } });
       const newUrl = 'whatever';
 
       await wrapper.find(`[data-testid="oidc-url"]`).setValue(newUrl);
@@ -214,7 +216,7 @@ describe('oidc.vue', () => {
       const newRealm = 'newRealm';
       const oldUrl = 'oldUrl';
 
-      wrapper.vm.model.id = 'keycloakoidc';
+      await wrapper.setData({ model: { type: 'keyCloakOIDCConfig' } });
       wrapper.vm.oidcUrls.url = oldUrl;
 
       await wrapper.find(`[data-testid="oidc-realm"]`).setValue(newRealm);
@@ -228,7 +230,7 @@ describe('oidc.vue', () => {
     });
 
     it('clear URL should clear issuer and auth-endpoint if Keycloak', async() => {
-      wrapper.vm.model.id = 'keycloakoidc';
+      await wrapper.setData({ model: { type: 'keyCloakOIDCConfig' } });
       const newUrl = 'whatever';
       const urlInput = wrapper.find(`[data-testid="oidc-url"]`);
 
@@ -244,7 +246,7 @@ describe('oidc.vue', () => {
     });
 
     it('custom claims fields should not appear in UI if Amazon cognito', async() => {
-      wrapper.vm.model.id = 'cognito';
+      await wrapper.setData({ model: { type: 'cognitoConfig' } });
 
       const nameClaim = wrapper.find('[data-testid="input-name-claim"]');
       const groupsClaim = wrapper.find('[data-testid="input-groups-claim"]');
@@ -256,7 +258,7 @@ describe('oidc.vue', () => {
     });
 
     it('custom claims fields should appear in UI if genericoidc', async() => {
-      wrapper.vm.model.id = 'genericoidc';
+      await wrapper.setData({ model: { type: 'genericOIDCConfig' } });
       wrapper.vm.addCustomClaims = true;
       await nextTick();
 
@@ -270,7 +272,7 @@ describe('oidc.vue', () => {
     });
 
     it('should render addCustomClaims and supportsGroupSearch  checkbox when provider is keycloak', async() => {
-      wrapper.vm.model.id = 'keycloakoidc';
+      await wrapper.setData({ model: { type: 'keyCloakOIDCConfig' } });
       await nextTick();
 
       const addCustomClaimsCheckbox = wrapper.find('[data-testid="input-add-custom-claims"]');
@@ -281,7 +283,7 @@ describe('oidc.vue', () => {
     });
 
     it('should render custom claims section when provider is keycloak and addCustomClaims is true', async() => {
-      wrapper.vm.model.id = 'keycloakoidc';
+      await wrapper.setData({ model: { type: 'keyCloakOIDCConfig' } });
       wrapper.vm.addCustomClaims = true;
       await nextTick();
 
@@ -295,7 +297,7 @@ describe('oidc.vue', () => {
     });
 
     it('should render both addCustomClaims and groupSearch checkboxes when provider is genericoidc', async() => {
-      wrapper.vm.model.id = 'genericoidc';
+      await wrapper.setData({ model: { type: 'genericOIDCConfig' } });
       await nextTick();
 
       const addCustomClaimsCheckbox = wrapper.find('[data-testid="input-add-custom-claims"]');
@@ -306,7 +308,7 @@ describe('oidc.vue', () => {
     });
 
     it('should NOT render custom claims section when provider is keycloak and addCustomClaims is false', async() => {
-      wrapper.vm.model.id = 'keycloakoidc';
+      await wrapper.setData({ model: { type: 'keyCloakOIDCConfig' } });
       wrapper.vm.addCustomClaims = false;
       await nextTick();
 
@@ -327,7 +329,7 @@ describe('oidc.vue', () => {
       });
 
       it('is not rendered for cognito', async() => {
-        await wrapper.setData({ model: { ...mockModel, id: 'cognito' } });
+        await wrapper.setData({ model: { ...mockModel, type: 'cognitoConfig' } });
 
         const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
 
@@ -335,7 +337,7 @@ describe('oidc.vue', () => {
       });
 
       it('is rendered for keycloakoidc', async() => {
-        await wrapper.setData({ model: { ...mockModel, id: 'keycloakoidc' } });
+        await wrapper.setData({ model: { ...mockModel, type: 'keyCloakOIDCConfig' } });
 
         const checkbox = wrapper.find('[data-testid="input-client-authenticated-group-search"]');
 
@@ -343,7 +345,7 @@ describe('oidc.vue', () => {
       });
 
       it('defaults to falsy when not set on keycloakoidc', async() => {
-        await wrapper.setData({ model: { ...mockModel, id: 'keycloakoidc' } });
+        await wrapper.setData({ model: { ...mockModel, type: 'keyCloakOIDCConfig' } });
 
         expect(wrapper.vm.model.clientAuthenticatedSearch).toBeFalsy();
       });
@@ -351,11 +353,11 @@ describe('oidc.vue', () => {
       it('updates model when checkbox is clicked', async() => {
         await wrapper.setData({
           model: {
-            ...mockModel, id: 'keycloakoidc', clientAuthenticatedSearch: false
+            ...mockModel, type: 'keyCloakOIDCConfig', clientAuthenticatedSearch: false
           }
         });
 
-        const checkbox = wrapper.getComponent('[data-testid="input-client-authenticated-group-search"]');
+        const checkbox = wrapper.getComponent<typeof Checkbox>('[data-testid="input-client-authenticated-group-search"]');
 
         await checkbox.find('[role="checkbox"]').trigger('click');
 
@@ -365,11 +367,64 @@ describe('oidc.vue', () => {
       it('reflects a pre-existing true value from the model', async() => {
         await wrapper.setData({
           model: {
-            ...mockModel, id: 'keycloakoidc', clientAuthenticatedSearch: true
+            ...mockModel, type: 'keyCloakOIDCConfig', clientAuthenticatedSearch: true
           }
         });
 
         expect(wrapper.vm.model.clientAuthenticatedSearch).toBe(true);
+      });
+    });
+
+    describe('required scopes', () => {
+      it('passes the required scopes to the scope list so they cannot be removed', async() => {
+        await flushPromises();
+
+        const scopeList = wrapper.findComponent(ArrayList);
+
+        expect(scopeList.exists()).toBe(true);
+        expect(scopeList.props('disabledList')).toStrictEqual(['openid', 'profile', 'email']);
+      });
+
+      it('updates the protected scopes when the provider changes', async() => {
+        await wrapper.setData({ model: { ...mockModel, type: 'cognitoConfig' } });
+        await flushPromises();
+
+        const scopeList = wrapper.findComponent(ArrayList);
+
+        expect(scopeList.props('disabledList')).toStrictEqual(['openid', 'email']);
+      });
+
+      it('shows the missing required scopes message when a required scope is removed', async() => {
+        wrapper.vm.oidcScope = ['openid'];
+        await wrapper.vm.validateAllFields();
+        await flushPromises();
+
+        const banner = wrapper.findComponent(ArrayList).find('.validation-banner');
+
+        expect(banner.text()).toBe('authConfig.oidc.scope.missingRequired-{"scopes":"profile, email","count":2}');
+      });
+    });
+
+    // A config's id is its own name, and a new config has none yet, so the form
+    // has to know it is Cognito from the config's type
+    describe.each([
+      ['named something else', 'corp-cognito'],
+      ['that has not been created yet', undefined],
+    ])('a Cognito config %s', (_label, id) => {
+      beforeEach(async() => {
+        await wrapper.setData({
+          model: {
+            ...mockModel, id, type: 'cognitoConfig'
+          }
+        });
+      });
+
+      it('should show the Cognito form', () => {
+        expect(wrapper.find('[data-testid="oidc-cognito-banner"]').exists()).toBe(true);
+      });
+
+      it('should let the issuer be entered', () => {
+        expect(wrapper.find('[data-testid="oidc-issuer"]').attributes('disabled')).toBeUndefined();
       });
     });
   });

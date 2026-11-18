@@ -1,6 +1,6 @@
 
 import { addParams, QueryParams } from '@shell/utils/url';
-import { Store } from 'vuex';
+import { VuexStore } from '@shell/types/store/vuex';
 
 // taken from https://learn.microsoft.com/en-us/azure/reliability/availability-zones-service-support#azure-regions-with-availability-zone-support
 import { regionsWithAvailabilityZones } from './aks-regions';
@@ -14,7 +14,7 @@ export { regionsWithAvailabilityZones };
  * @param clusterId (optional) norman cluster id
  * @param resource AKS resource to be fetched - one of aksLocations, aksVersions, aksVMSizes, aksVirtualNetworks
  */
-async function getAKSOptions(store: any, azureCredentialSecret: string, resourceLocation: string | null, resource: string, clusterId?: string) :Promise<any> {
+async function getAKSOptions(store: any, azureCredentialSecret: string | undefined, resourceLocation: string | null | undefined, resource: string, clusterId?: string | null) :Promise<any> {
   if (!azureCredentialSecret) {
     return null;
   }
@@ -41,7 +41,7 @@ async function getAKSOptions(store: any, azureCredentialSecret: string, resource
  * @returns Array of regions in the form {name, displayName}
  */
 
-export async function getAKSRegions(store: Store<any>, azureCredentialSecret: string, clusterId?: string) :Promise<any> {
+export async function getAKSRegions(store: VuexStore, azureCredentialSecret?: string, clusterId?: string | null) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, '', 'aksLocations', clusterId );
 }
 
@@ -53,7 +53,7 @@ export async function getAKSRegions(store: Store<any>, azureCredentialSecret: st
  * @param clusterId (optional) norman cluster id
  * @returns An array of strings
  */
-export async function getAKSVMSizes(store: Store<any>, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+export async function getAKSVMSizes(store: VuexStore, azureCredentialSecret?: string, resourceLocation?: string, clusterId?: string | null) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVMSizes', clusterId );
 }
 
@@ -65,7 +65,7 @@ export async function getAKSVMSizes(store: Store<any>, azureCredentialSecret: st
  * @param clusterId (optional) norman cluster id
  * @returns Array of versions
  */
-export async function getAKSKubernetesVersions(store: Store<any>, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+export async function getAKSKubernetesVersions(store: VuexStore, azureCredentialSecret?: string, resourceLocation?: string, clusterId?: string | null) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVersions', clusterId );
 }
 
@@ -77,7 +77,7 @@ export async function getAKSKubernetesVersions(store: Store<any>, azureCredentia
  * @param clusterId (optional) norman cluster id
  * @returns {[AKSVirtualNetwork]}
  */
-export async function getAKSVirtualNetworks(store: Store<any>, azureCredentialSecret: string, resourceLocation: string, clusterId?: string) :Promise<any> {
+export async function getAKSVirtualNetworks(store: VuexStore, azureCredentialSecret?: string, resourceLocation?: string, clusterId?: string | null) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, resourceLocation, 'aksVirtualNetworks', clusterId );
 }
 
@@ -87,6 +87,6 @@ export async function getAKSVirtualNetworks(store: Store<any>, azureCredentialSe
  * @param azureCredentialSecret id of an azure cloud credential
  * @returns {[AKSVirtualNetwork]}
  */
-export async function getAKSClusters(store: Store<any>, azureCredentialSecret: string) :Promise<any> {
+export async function getAKSClusters(store: VuexStore, azureCredentialSecret?: string) :Promise<any> {
   return getAKSOptions(store, azureCredentialSecret, null, 'aksClusters' );
 }

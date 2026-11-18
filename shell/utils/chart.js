@@ -14,8 +14,8 @@ import {
  * If the "up" logic doesn't apply or results in equality, it falls back to `semver.compareBuild` to handle
  * other build metadata differences (e.g. sorting alphabetically).
  *
- * @param {string} v1 - The first version string.
- * @param {string} v2 - The second version string.
+ * @param {string | null | undefined} v1 - The first version string.
+ * @param {string | null | undefined} v2 - The second version string.
  * @returns {number} - 0 if equal, -1 if v1 < v2, 1 if v1 > v2.
  */
 export function compareChartVersions(v1, v2) {
@@ -85,10 +85,33 @@ export function getLatestCompatibleVersion(chart, workerOSs, showPrerelease) {
 }
 
 /**
+ * The chart context to build the readme route from.
+ *
+ * The only production caller passes route values straight through, so the types here are the
+ * vue-router ones: `RouteParamValue | RouteParamValue[]` for the cluster and
+ * `LocationQueryValue | LocationQueryValue[]` for everything read off the query, where a repeated
+ * param (`?chart=a&chart=b`) is an array and a bare param (`?deprecated`) is null.
+ *
+ * @typedef {object} StandaloneReadmeUrlOptions
+ * @property {string | string[]} [cluster] - Id of the cluster the readme is being opened from.
+ * @property {string | null | (string | null)[]} [repoType] - Which kind of repo holds the chart, `cluster` or `catalog`.
+ * @property {string | null | (string | null)[]} [repoName] - Name of the repo holding the chart.
+ * @property {string | null | (string | null)[]} [chartName] - Name of the chart.
+ * @property {string | null | (string | null)[]} [versionName] - Version of the chart to show the readme for.
+ * @property {string | null | (string | null)[]} [deprecated] - Whether the chart is deprecated, as carried by the query param.
+ * @property {boolean} [showAppReadme] - Whether the readme page also shows the app readme. Defaults to true.
+ * @property {boolean} [hideReadmeFirstTitle] - Whether the readme page hides the first title. Defaults to true.
+ */
+
+/**
  * Builds the route URL for the standalone chart readme page.
  *
  * The helper maps chart context into query params so the readme page can fetch
  * version info directly (instead of relying on local/session storage transfer).
+ *
+ * @param {import('vue-router').Router} router - The router used to resolve the route.
+ * @param {StandaloneReadmeUrlOptions} [opt] - The chart context to put in the route.
+ * @returns {string} The href of the readme route.
  */
 export function getStandaloneReadmeUrl(router, {
   cluster,

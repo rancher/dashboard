@@ -2,16 +2,18 @@
 import difference from 'lodash/difference';
 import throttle from 'lodash/throttle';
 import isArray from 'lodash/isArray';
-import merge from 'lodash/merge';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import FormValidation from '@shell/mixins/form-validation';
+import { useKubernetesVersions, getDefaultVersion } from '@shell/composables/useKubernetesVersions';
+import { usePodSecurityAdmissionTemplates } from '@shell/composables/usePodSecurityAdmissionTemplates';
+import { useMachinePools, syncMachineConfigWithLatest } from '@shell/composables/useMachinePools';
+import { useRegistryConfig } from '@shell/composables/useRegistryConfig';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import { normalizeName } from '@shell/utils/kube';
 import AccountAccess from '@shell/components/google/AccountAccess.vue';
-import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
 
 import {
   CAPI,
-  MANAGEMENT,
   NAMESPACE,
   NORMAN,
   SCHEMA,
@@ -21,16 +23,13 @@ import {
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
-import { findBy, removeObject, clear } from '@shell/utils/array';
+import { clear } from '@shell/utils/array';
 import { createYaml } from '@shell/utils/create-yaml';
 import {
   clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
-import { allHash } from '@shell/utils/promise';
-import {
-  getAllOptionsAfterCurrentVersion, filterOutDeprecatedPatchVersions, isHarvesterSatisfiesVersion, labelForAddon, initSchedulingCustomization, addonConfigPreserve,
-} from '@shell/utils/cluster';
-import { AGENT_CONFIGURATION_TYPES, SETTING } from '@shell/config/settings';
+import { labelForAddon, initSchedulingCustomization, addonConfigPreserve } from '@shell/utils/cluster';
+import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
@@ -40,7 +39,6 @@ import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
 
-import { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor';
 import semver from 'semver';
 
 import { CLOUD_CREDENTIAL_OVERRIDE } from '@shell/models/nodedriver';
@@ -67,7 +65,7 @@ import ClusterAppearance from '@shell/components/form/ClusterAppearance';
 import AddOnAdditionalManifest from '@shell/edit/provisioning.cattle.io.cluster/tabs/AddOnAdditionalManifest';
 import VsphereUtils, { VMWARE_VSPHERE } from '@shell/utils/v-sphere';
 import {
-  HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE
+  HARVESTER, RETENTION_DEFAULT, RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, mergeExtensionSectionProps
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 import { mapGetters } from 'vuex';
 
@@ -75,29 +73,10 @@ const GOOGLE = 'google';
 const HARVESTER_CLOUD_PROVIDER = 'harvester-cloud-provider';
 const NETBIOS_TRUNCATION_LENGTH = 15;
 
-/**
- * Classes to be adopted by the node badges in Machine pools
- */
-const NODE_TOTAL = {
-  error: {
-    color: 'bg-error',
-    icon:  'icon-x',
-  },
-  warning: {
-    color: 'bg-warning',
-    icon:  'icon-warning',
-  },
-  success: {
-    color: 'bg-success',
-    icon:  'icon-checkmark'
-  }
-};
 const CLUSTER_AGENT_CUSTOMIZATION = 'clusterAgentDeploymentCustomization';
 const FLEET_AGENT_CUSTOMIZATION = 'fleetAgentDeploymentCustomization';
 const REGISTRIES_TAB_NAME = 'registry';
 const INIT_HOOKS = '_initHooks';
-
-const isAzureK8sUnsupported = (version) => semver.gte(version, '1.30.0');
 
 export default {
   emits: ['update:value', 'input'],
@@ -152,8 +131,21 @@ export default {
     }
   },
 
+  setup(props) {
+    return {
+      ...useKubernetesVersions(props),
+      ...usePodSecurityAdmissionTemplates(),
+      ...useMachinePools(),
+      ...useRegistryConfig(props),
+      ...useClusterMembership(),
+    };
+  },
+
   async fetch() {
-    await this.fetchRke2Versions();
+    await this.fetchK8sVersions();
+    this.errors = this.errors.concat(this.fetchVersionsErrors);
+    await this.fetchAllPSAs();
+    this.errors = this.errors.concat(this.psaErrors);
     await this.initSpecs();
     await this.initAddons();
     await this.initRegistry();
@@ -236,18 +228,12 @@ export default {
     const isGoogle = this.provider === GOOGLE;
 
     return {
-      loadedOnce:                      false,
-      lastIdx:                         0,
-      allPSAs:                         [],
-      credentialId:                    '',
-      credential:                      null,
-      initialMachinePoolsValues:       {},
-      machinePools:                    null,
-      rke2Versions:                    null,
-      k3sVersions:                     null,
-      defaultRke2:                     '',
-      defaultK3s:                      '',
-      s3Backup:                        false,
+      loadedOnce:                false,
+      lastIdx:                   0,
+      credentialId:              '',
+      credential:                null,
+      initialMachinePoolsValues: {},
+      s3Backup:                  false,
       /**
        * All info related to a specific version of the chart
        *
@@ -255,28 +241,20 @@ export default {
        *
        * { [chartName:string]: { chart: json, readme: string, values: json } }
        */
-      versionInfo:                     {},
-      membershipUpdate:                {},
-      showDeprecatedPatchVersions:     false,
-      systemRegistry:                  null,
-      registryHost:                    null,
-      showCustomRegistryInput:         false,
-      showCustomRegistryAdvancedInput: false,
-      registrySecret:                  null,
-      userChartValues:                 {},
-      userChartValuesTemp:             {},
-      addonsRev:                       0,
-      fvFormRuleSets:                  [{
+      versionInfo:               {},
+      userChartValues:           {},
+      userChartValuesTemp:       {},
+      addonsRev:                 0,
+      fvFormRuleSets:            [{
         path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
       }],
       harvesterVersionRange:                    {},
       complianceOverride:                       false,
       truncateLimit:                            this.value.defaultHostnameLengthLimit || 0,
       busy:                                     false,
-      machinePoolValidation:                    {}, // map of validation states for each machine pool
       infrastructureClusterValid:               true,
-      machinePoolErrors:                        {},
-      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether codemirror's yaml lint passed)
+      provisioningClusterValid:                 true,
+      addonConfigValidation:                    {}, // validation state of each addon config (boolean of whether the code editor's yaml lint passed)
       stackPreferenceError:                     false, //  spec.networking.stackPreference is validated in conjunction with hasOnlyIpv6Pools
       allNamespaces:                            [],
       extensionTabs:                            getApplicableExtensionEnhancements(this, ExtensionPoint.TAB, TabLocation.CLUSTER_CREATE_RKE2, this.$route, this),
@@ -396,103 +374,6 @@ export default {
       return (global > 1 || other > 0);
     },
 
-    versionOptions() {
-      const cur = this.liveValue?.spec?.kubernetesVersion || '';
-      const existingRke2 = this.mode === _EDIT && cur.includes('rke2');
-      const existingK3s = this.mode === _EDIT && cur.includes('k3s');
-      const isAzure = this.agentConfig?.['cloud-provider-name'] === 'azure';
-
-      let allValidRke2Versions = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, (existingRke2 ? cur : null), this.defaultRke2);
-      let allValidK3sVersions = getAllOptionsAfterCurrentVersion(this.$store, this.k3sVersions, (existingK3s ? cur : null), this.defaultK3s);
-
-      if (!this.showDeprecatedPatchVersions) {
-        // Normally, we only want to show the most recent patch version
-        // for each Kubernetes minor version. However, if the user
-        // opts in to showing deprecated versions, we don't filter them.
-        allValidRke2Versions = filterOutDeprecatedPatchVersions(allValidRke2Versions, cur);
-        allValidK3sVersions = filterOutDeprecatedPatchVersions(allValidK3sVersions, cur);
-      }
-
-      if (isAzure) {
-        allValidRke2Versions = allValidRke2Versions.filter((v) => !isAzureK8sUnsupported(v.value));
-        allValidK3sVersions = allValidK3sVersions.filter((v) => !isAzureK8sUnsupported(v.value));
-      }
-
-      const showRke2 = allValidRke2Versions.length && !existingK3s;
-      const showK3s = allValidK3sVersions.length && !existingRke2;
-      const out = [];
-
-      if (showRke2) {
-        if (showK3s) {
-          out.push({ kind: 'group', label: this.t('cluster.provider.rke2') });
-        }
-
-        out.push(...allValidRke2Versions);
-      }
-
-      if (showK3s) {
-        if (showRke2) {
-          out.push({ kind: 'group', label: this.t('cluster.provider.k3s') });
-        }
-
-        out.push(...allValidK3sVersions);
-      }
-
-      if (cur) {
-        const existing = out.find((x) => x.value === cur);
-
-        if (existing) {
-          existing.disabled = false;
-        }
-      }
-
-      return out;
-    },
-
-    /**
-     * Kube Version
-     */
-    selectedVersion() {
-      const str = this.value.spec.kubernetesVersion;
-
-      if (!str) {
-        return;
-      }
-
-      const out = findBy(this.versionOptions, 'value', str);
-
-      // Adding the option 'none' to Container Network select (used in Basics component)
-      // https://github.com/rancher/dashboard/issues/10338
-      // there's an update loop on refresh that might include 'none'
-      // multiple times... Prevent that
-      if (out?.serverArgs?.cni?.options && !out.serverArgs?.cni?.options.includes('none')) {
-        out.serverArgs.cni.options.push('none');
-      }
-
-      return out;
-    },
-
-    haveArgInfo() {
-      return Boolean(this.selectedVersion?.serverArgs && this.selectedVersion?.agentArgs);
-    },
-
-    serverArgs() {
-      return this.selectedVersion?.serverArgs || {};
-    },
-
-    agentArgs() {
-      return this.selectedVersion?.agentArgs || {};
-    },
-
-    /**
-     * The addons (kube charts) applicable for the selected kube version
-     *
-     * { [chartName:string]: { repo: string, version: string } }
-     */
-    chartVersions() {
-      return this.selectedVersion?.charts || {};
-    },
-
     needCredential() {
       // Check non-provider specific config
       if (
@@ -502,6 +383,11 @@ export default {
         this.mode === _VIEW
       ) {
         return false;
+      }
+
+      // takes precedence over a `cloud-credential: false` registration
+      if (this.extensionCredentialSection) {
+        return true;
       }
 
       // Check provider specific config
@@ -540,10 +426,6 @@ export default {
       }
 
       return true;
-    },
-
-    unremovedMachinePools() {
-      return (this.machinePools || []).filter((x) => !x.remove);
     },
 
     /**
@@ -600,70 +482,6 @@ export default {
       return this.$store.getters['management/schemaFor'](schema);
     },
 
-    nodeTotals() {
-      const roles = ['etcd', 'controlPlane', 'worker'];
-      const counts = {};
-      const out = {
-        color:   {},
-        label:   {},
-        icon:    {},
-        tooltip: {},
-      };
-
-      for (const role of roles) {
-        counts[role] = 0;
-        out.color[role] = NODE_TOTAL.success.color;
-        out.icon[role] = NODE_TOTAL.success.icon;
-      }
-
-      for (const row of this.machinePools || []) {
-        if (row.remove) {
-          continue;
-        }
-
-        const qty = parseInt(row.pool.quantity, 10);
-
-        if (isNaN(qty)) {
-          continue;
-        }
-
-        for (const role of roles) {
-          counts[role] = counts[role] + (row.pool[`${ role }Role`] ? qty : 0);
-        }
-      }
-
-      for (const role of roles) {
-        out.label[role] = this.t(`cluster.machinePool.nodeTotals.label.${ role }`, { count: counts[role] });
-        out.tooltip[role] = this.t(`cluster.machinePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
-      }
-
-      if (counts.etcd <= 0) {
-        out.color.etcd = NODE_TOTAL.error.color;
-        out.icon.etcd = NODE_TOTAL.error.icon;
-      } else if (counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7) {
-        out.color.etcd = NODE_TOTAL.warning.color;
-        out.icon.etcd = NODE_TOTAL.warning.icon;
-      }
-
-      if (counts.controlPlane <= 0) {
-        out.color.controlPlane = NODE_TOTAL.error.color;
-        out.icon.controlPlane = NODE_TOTAL.error.icon;
-      } else if (counts.controlPlane === 1) {
-        out.color.controlPlane = NODE_TOTAL.warning.color;
-        out.icon.controlPlane = NODE_TOTAL.warning.icon;
-      }
-
-      if (counts.worker <= 0) {
-        out.color.worker = NODE_TOTAL.error.color;
-        out.icon.worker = NODE_TOTAL.error.icon;
-      } else if (counts.worker === 1) {
-        out.color.worker = NODE_TOTAL.warning.color;
-        out.icon.worker = NODE_TOTAL.warning.icon;
-      }
-
-      return out;
-    },
-
     showCni() {
       return !!this.serverArgs.cni;
     },
@@ -711,33 +529,28 @@ export default {
 
     cloudProviderOptions() {
       const out = [{
-        label:    this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
-        value:    '',
-        disabled: this.canAzureMigrateOnEdit
+        label: this.$store.getters['i18n/t']('cluster.rke2.cloudProvider.defaultValue.label'),
+        value: '',
       }];
 
       if (!!this.agentArgs['cloud-provider-name']?.options) {
         const preferred = this.$store.getters['plugins/cloudProviderForDriver'](this.provider);
 
         for (const opt of this.agentArgs['cloud-provider-name']?.options) {
+          // Azure in-tree cloud provider has been deprecated and is no longer supported in RKE2. It is being removed from the list of cloud provider options.
+          if (opt === 'azure') {
+            continue;
+          }
+
           // If we don't have a preferred provider... show all options
           const showAllOptions = preferred === undefined;
           // If we have a preferred provider... only show default, preferred and external
           const isPreferred = opt === preferred;
           const isExternal = opt === 'external';
-          const isAzure = opt === 'azure';
 
           let disabled = false;
 
           if ((this.isHarvesterExternalCredential || this.isHarvesterIncompatible) && isPreferred) {
-            disabled = true;
-          }
-
-          if (isAzure && isAzureK8sUnsupported(this.value.spec.kubernetesVersion)) {
-            disabled = true;
-          }
-
-          if (!isAzure && !isExternal && this.canAzureMigrateOnEdit) {
             disabled = true;
           }
 
@@ -760,57 +573,18 @@ export default {
       return out;
     },
 
-    isAzureProviderUnsupported() {
-      const isAzureAvailable = !!this.cloudProviderOptions.find((p) => p.value === 'azure');
-      const isAzureSelected = this.agentConfig['cloud-provider-name'] === 'azure';
-
-      return isAzureAvailable && (isAzureK8sUnsupported(this.value.spec.kubernetesVersion) || isAzureSelected);
-    },
-
-    canAzureMigrateOnEdit() {
-      if (!this.isEdit) {
-        return false;
-      }
-
-      const isAzureLiveProvider = this.liveValue.agentConfig['cloud-provider-name'] === 'azure';
-
-      return isAzureLiveProvider &&
-        semver.gte(this.liveValue?.spec?.kubernetesVersion, '1.27.0') &&
-        semver.lt(this.liveValue?.spec?.kubernetesVersion, '1.30.0');
-    },
-
-    canManageMembers() {
-      return canViewClusterMembershipEditor(this.$store);
-    },
-
     isHarvesterDriver() {
       return this.$route.query.type === HARVESTER;
     },
 
     defaultVersion() {
-      const all = this.versionOptions.filter((x) => !!x.value);
-      const first = all[0]?.value;
-      const preferred = all.find((x) => x.value === this.defaultRke2)?.value;
-
-      const rke2 = getAllOptionsAfterCurrentVersion(this.$store, this.rke2Versions, null);
-      const showRke2 = rke2.length;
-      let out;
-
-      if (this.isHarvesterDriver && showRke2) {
-        const satisfiesVersion = rke2.filter((v) => {
-          return isHarvesterSatisfiesVersion(v.value);
-        }) || [];
-
-        if (satisfiesVersion.length > 0) {
-          out = satisfiesVersion[0]?.value;
-        }
-      }
-
-      if (!out) {
-        out = preferred || first;
-      }
-
-      return out;
+      return getDefaultVersion({
+        store:             this.$store,
+        versionOptions:    this.versionOptions,
+        defaultRke2:       this.defaultRke2,
+        rke2Versions:      this.rke2Versions,
+        isHarvesterDriver: this.isHarvesterDriver,
+      });
     },
 
     appsOSWarning() {
@@ -836,12 +610,69 @@ export default {
       return null;
     },
 
+    showForm() {
+      return !!this.credentialId || !this.needCredential;
+    },
+
     extensionInfrastructureSection() {
       return this.extensionProvider?.extensionInfrastructureSection || null;
     },
+    extensionProvisioningSection() {
+      return this.extensionProvider?.extensionProvisioningSection || null;
+    },
+    extensionCredentialSection() {
+      return this.extensionProvider?.extensionCredentialSection || null;
+    },
 
-    showForm() {
-      return !!this.credentialId || !this.needCredential;
+    extensionInfrastructureSectionProps() {
+      const defaultProps = {
+        value:               this.infrastructureCluster,
+        mode:                this.mode,
+        credentialId:        this.credentialId,
+        provisioningCluster: this.value,
+      };
+
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionInfrastructureSectionProps,
+        { ...defaultProps, infrastructureCluster: this.infrastructureCluster }
+      );
+    },
+
+    extensionProvisioningSectionProps() {
+      const defaultProps = {
+        value: this.value,
+        mode:  this.mode,
+      };
+
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionProvisioningSectionProps,
+        { ...defaultProps, provisioningCluster: this.value }
+      );
+    },
+
+    /**
+     * props for `extensionCredentialSection`
+     * SelectCredential passes `value`, `mode` and `provider` itself
+     */
+    extensionCredentialSectionProps() {
+      if (!this.extensionCredentialSection) {
+        return {};
+      }
+
+      const defaultProps = {
+        provisioningCluster:   this.value,
+        infrastructureCluster: this.infrastructureCluster,
+      };
+
+      return mergeExtensionSectionProps(
+        defaultProps,
+        this.extensionProvider?.extensionCredentialSectionProps,
+        {
+          ...defaultProps, value: this.credentialId || null, mode: this.mode, provider: this.provider
+        }
+      );
     },
 
     isHarvesterExternalCredential() {
@@ -875,14 +706,6 @@ export default {
       }
     },
 
-    hasOnlyIpv6Pools() {
-      return !(this.machinePools || []).find((p) => !p.isIpv6 || p.isDualStack);
-    },
-
-    hasDualStackPools() {
-      return !!(this.machinePools || []).find((p) => p.isDualStack);
-    },
-
     validationPassed() {
       const validRequiredPools = this.hasMachinePools ? this.hasRequiredNodes() : true;
 
@@ -894,8 +717,9 @@ export default {
       const hasAddonConfigErrors = Object.values(this.addonConfigValidation).filter((v) => v === false).length > 0;
 
       const hasInfrastructureClusterError = this.isUpstreamCAPIProvider ? !this.infrastructureClusterValid : false;
+      const hasProvisioningClusterError = this.isUpstreamCAPIProvider ? !this.provisioningClusterValid : false;
 
-      return validRequiredPools && base && !hasAddonConfigErrors && !hasInfrastructureClusterError && !this.stackPreferenceError;
+      return validRequiredPools && base && !hasAddonConfigErrors && !hasInfrastructureClusterError && !hasProvisioningClusterError && !this.stackPreferenceError;
     },
 
     currentCluster() {
@@ -928,7 +752,14 @@ export default {
             this.fvFormIsValid &&
             this.etcdConfigValid &&
             this.basicsValid &&
-            this.registryConfigValid;
+            this.registryConfigValid &&
+            !this.ingressNginxUnsupported;
+    },
+    ingressNginxUnsupported() {
+      return !this.isK3s &&
+        !!this.value.spec.kubernetesVersion &&
+        semver.gte(this.value.spec.kubernetesVersion, 'v1.37.0') &&
+        this.value.spec.rkeConfig.machineGlobalConfig?.[INGRESS_CONTROLLER] === INGRESS_NGINX;
     },
     nginxSupported() {
       if (this.serverArgs?.disable?.options.includes(RKE2_INGRESS_NGINX)) {
@@ -963,6 +794,11 @@ export default {
     },
 
     credentialId(val) {
+      // the extension credential section value is not a rancher cloud credential
+      if (this.extensionCredentialSection) {
+        return;
+      }
+
       if (val) {
         this.credential = this.$store.getters['rancher/byId'](NORMAN.CLOUD_CREDENTIAL, this.credentialId);
 
@@ -1073,6 +909,21 @@ export default {
       mergeWithReplace(this.infrastructureCluster, neu, { mutateOriginal: true });
     },
 
+    updateExtensionProvisioningSection(neu) {
+      if (!neu || typeof neu !== 'object') {
+        return;
+      }
+
+      if (!this.value || typeof this.value !== 'object') {
+        this.value = neu;
+
+        return;
+      }
+
+      // Preserve the original resource model instance while applying extension updates.
+      mergeWithReplace(this.value, neu, { mutateOriginal: true });
+    },
+
     async handleVsphereCpiSecret() {
       return VsphereUtils.handleVsphereCpiSecret(this);
     },
@@ -1148,66 +999,6 @@ export default {
 
       await this.applyHooks(INIT_HOOKS, this.value);
       this.localValue = this.value;
-    },
-
-    /**
-     * Fetch RKE versions and their configurations to be mapped to the form
-     */
-    async fetchRke2Versions() {
-      if (!this.rke2Versions) {
-        const hash = {
-          rke2Versions: this.$store.dispatch('management/request', { url: '/v1-rke2-release/releases' }),
-          k3sVersions:  this.$store.dispatch('management/request', { url: '/v1-k3s-release/releases' }),
-        };
-
-        if (this.$store.getters['management/canList'](MANAGEMENT.PSA)) {
-          hash.allPSAs = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PSA });
-        }
-
-        // Get the latest versions from the global settings if possible
-        const globalSettings = await this.$store.getters['management/all'](MANAGEMENT.SETTING) || [];
-        const defaultRke2Setting = globalSettings.find((setting) => setting.id === 'rke2-default-version') || {};
-        const defaultK3sSetting = globalSettings.find((setting) => setting.id === 'k3s-default-version') || {};
-
-        let defaultRke2 = defaultRke2Setting?.value || defaultRke2Setting?.default;
-        let defaultK3s = defaultK3sSetting?.value || defaultK3sSetting?.default;
-
-        // RKE2: Use the channel if we can not get the version from the settings
-        if (!defaultRke2) {
-          hash.rke2Channels = this.$store.dispatch('management/request', { url: '/v1-rke2-release/channels' });
-        }
-
-        // K3S: Use the channel if we can not get the version from the settings
-        if (!defaultK3s) {
-          hash.k3sChannels = this.$store.dispatch('management/request', { url: '/v1-k3s-release/channels' });
-        }
-
-        const res = await allHash(hash);
-
-        this.allPSAs = res.allPSAs || [];
-        this.rke2Versions = res.rke2Versions.data || [];
-        this.k3sVersions = res.k3sVersions.data || [];
-
-        if (!defaultRke2) {
-          const rke2Channels = res.rke2Channels.data || [];
-
-          defaultRke2 = rke2Channels.find((x) => x.id === 'default')?.latest;
-        }
-
-        if (!defaultK3s) {
-          const k3sChannels = res.k3sChannels.data || [];
-
-          defaultK3s = k3sChannels.find((x) => x.id === 'default')?.latest;
-        }
-
-        if (!this.rke2Versions.length && !this.k3sVersions.length) {
-          throw new Error('No version info found in KDM');
-        }
-
-        // Store default versions
-        this.defaultRke2 = defaultRke2;
-        this.defaultK3s = defaultK3s;
-      }
     },
 
     setSchedulingCustomization({ event, agentType }) {
@@ -1455,49 +1246,8 @@ export default {
       });
     },
 
-    removeMachinePool(idx) {
-      const entry = this.machinePools[idx];
-
-      if (!entry) {
-        return;
-      }
-
-      if (entry.create) {
-        // If this is a new pool that isn't saved yet, it can just be dropped
-        removeObject(this.machinePools, entry);
-      } else {
-        // Mark for removal on save
-        entry.remove = true;
-      }
-    },
-
     async syncMachineConfigWithLatest(machinePool) {
-      if (machinePool?.config?.id) {
-        // Use management/request instead of management/find to avoid overwriting the current machine pool in the store
-        const _latestConfig = await this.$store.dispatch('management/request', { url: `/v1/${ machinePool.config.type }s/${ machinePool.config.id }` });
-        const latestConfig = await this.$store.dispatch('management/create', _latestConfig);
-
-        const _initialMachinePoolValue = this.initialMachinePoolsValues[machinePool?.config?.id] || {};
-        const initialMachinePoolValue = await this.$store.dispatch('management/create', _initialMachinePoolValue);
-
-        // if there's the initial machine pool config, we are in a good position to apply the handleConflict function
-        // to deal with out-of-sync data between machinePools configs. This also mutates the data inside machinePool.config through object reference
-        const conflict = await handleConflict(
-          initialMachinePoolValue,
-          machinePool.config,
-          latestConfig,
-          {
-            dispatch: this.$store.dispatch,
-            getters:  this.$store.getters
-          },
-          'management'
-        );
-
-        // if there's conflicts, throw Error stops save process and surfaces error to user
-        if (conflict) {
-          throw Error(conflict);
-        }
-      }
+      return syncMachineConfigWithLatest(this.$store, this.initialMachinePoolsValues, machinePool);
     },
 
     async saveMachinePools(hookContext) {
@@ -1610,9 +1360,7 @@ export default {
     async saveRoleBindings() {
       await this.value.waitForMgmt();
 
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.value.mgmt.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.value.mgmt.id);
     },
 
     async showIpv6Warning(hookContext) {
@@ -1666,13 +1414,6 @@ export default {
           },
         });
       });
-    },
-
-    /**
-     * Ensure that all the existing node roles pool are at least 1 each
-     */
-    hasRequiredNodes() {
-      return this.nodeTotals?.color && Object.values(this.nodeTotals.color).every((color) => color !== NODE_TOTAL.error.color);
     },
 
     cancelCredential() {
@@ -2041,119 +1782,6 @@ export default {
       return addonVersion ? `${ name }-${ addonVersion.version }` : name;
     },
 
-    onMembershipUpdate(update) {
-      this['membershipUpdate'] = update;
-    },
-
-    async initRegistry() {
-      // Check for an existing cluster scoped registry
-      const clusterRegistry = this.agentConfig?.['system-default-registry'] || '';
-
-      // Check for the global registry
-      this.systemRegistry = (await this.$store.dispatch('management/find', { type: MANAGEMENT.SETTING, id: SETTING.SYSTEM_DEFAULT_REGISTRY })).value || '';
-
-      // The order of precedence is to use the cluster scoped registry
-      // if it exists, then use the global scoped registry as a fallback
-      if (clusterRegistry) {
-        this.registryHost = clusterRegistry;
-      } else {
-        this.registryHost = this.systemRegistry;
-      }
-
-      let registrySecret = null;
-      let regs = this.rkeConfig.registries;
-
-      if (!regs) {
-        regs = {};
-        this.rkeConfig.registries = regs;
-      }
-
-      if (!regs.configs) {
-        regs.configs = {};
-      }
-
-      if (!regs.mirrors) {
-        regs.mirrors = {};
-      }
-
-      const config = regs.configs[this.registryHost];
-
-      if (config) {
-        registrySecret = config.authConfigSecretName;
-      }
-
-      this.registrySecret = registrySecret;
-
-      const hasMirrorsOrAuthConfig = Object.keys(regs.configs).length > 0 || Object.keys(regs.mirrors).length > 0;
-
-      if (this.registryHost || registrySecret) {
-        this.showCustomRegistryInput = true;
-      }
-
-      if (hasMirrorsOrAuthConfig) {
-        this.showCustomRegistryAdvancedInput = true;
-      }
-    },
-
-    setRegistryConfig() {
-      const hostname = (this.registryHost || '').trim();
-
-      if (this.systemRegistry) {
-        // Empty string overrides the system default to nothing
-        this.agentConfig['system-default-registry'] = '';
-      } else {
-        // No need to set anything
-        this.agentConfig['system-default-registry'] = undefined;
-      }
-      if (!hostname || hostname === this.systemRegistry) {
-        // Undefined removes the key which uses the global setting without hardcoding it into the config
-        this.agentConfig['system-default-registry'] = undefined;
-      } else {
-        this.agentConfig['system-default-registry'] = hostname;
-      }
-
-      if (hostname && this.registrySecret) {
-        // For a registry with basic auth, but no mirrors,
-        // add a single registry config with the basic auth secret.
-        const basicAuthConfig = {
-          [hostname]: {
-            authConfigSecretName: this.registrySecret,
-            caBundle:             null,
-            insecureSkipVerify:   false,
-            tlsSecretName:        null,
-          }
-        };
-
-        const rkeConfig = this.value.spec.rkeConfig;
-
-        if (!rkeConfig) {
-          this.value.spec.rkeConfig = { registries: { configs: basicAuthConfig } };
-        } else if (rkeConfig.registries.configs && Object.keys(rkeConfig.registries.configs).length > 0) {
-          // If some existing authentication secrets are already configured
-          // for registry mirrors, the basic auth is added to the existing ones.
-          const existingConfigs = rkeConfig.registries.configs;
-
-          this.value.spec.rkeConfig.registries.configs = { ...basicAuthConfig, ...existingConfigs };
-        } else {
-          const existingMirrorAndAuthConfig = this.value.spec.rkeConfig.registries;
-
-          this.value.spec.rkeConfig.registries = {
-            ...existingMirrorAndAuthConfig,
-            configs: basicAuthConfig
-          };
-        }
-      }
-    },
-
-    updateConfigs(configs) {
-      // Update authentication configuration
-      // for each mirror
-      if (!this.value.spec?.rkeConfig) {
-        this.value.spec.rkeConfig = { registries: {} };
-      }
-      this.value.spec.rkeConfig.registries.configs = configs;
-    },
-
     generateYaml() {
       const resource = this.value;
       const inStore = this.$store.getters['currentStore'](resource);
@@ -2215,15 +1843,6 @@ export default {
       }
       this.setHarvesterDefaultCloudProvider();
     },
-    toggleCustomRegistry(neu) {
-      this.showCustomRegistryInput = neu;
-      if (this.registryHost) {
-        this.registryHost = null;
-        this.registrySecret = null;
-      } else {
-        this.initRegistry();
-      }
-    },
 
     /**
      * Reset PSA on several input changes for given conditions
@@ -2280,16 +1899,6 @@ export default {
     handleShowDeprecatedPatchVersionsChanged(value) {
       this.showDeprecatedPatchVersions = value;
     },
-    /**
-     * Track Machine Pool validation status
-     */
-    machinePoolValidationChanged(id, value) {
-      if (value === undefined) {
-        delete this.machinePoolValidation[id];
-      } else {
-        this.machinePoolValidation[id] = value;
-      }
-    },
 
     updateNginxConfiguration(disabledServerConfig) {
       // We only need to explicitly set INGRESS_CONTROLLER for RKE2, we continue to rely on disable list for K3s
@@ -2306,6 +1915,9 @@ export default {
             this.serverConfig[INGRESS_CONTROLLER] = INGRESS_NONE;
           }
         }
+      } else if (this.isCreate) {
+        // Switching from an RKE2 to a K3s version while creating, drop the RKE2 only setting
+        delete this.serverConfig[INGRESS_CONTROLLER];
       }
     },
 
@@ -2337,35 +1949,9 @@ export default {
     },
 
     handleMachinePoolError(error) {
-      this.machinePoolErrors = merge(this.machinePoolErrors, error);
+      const errors = this.recordMachinePoolError(error);
 
-      const errors = Object.entries(this.machinePoolErrors)
-        .map((x) => {
-          if (!x[1].length) {
-            return;
-          }
-
-          const formattedFields = (() => {
-            switch (x[1].length) {
-            case 1:
-              return x[1][0];
-            case 2:
-              return `${ x[1][0] } and ${ x[1][1] }`;
-            default: {
-              const [head, ...rest] = x[1];
-
-              return `${ rest.join(', ') }, and ${ head }`;
-            }
-            }
-          })();
-
-          return this.t('cluster.banner.machinePoolError', {
-            count: x[1].length, pool_name: x[0], fields: formattedFields
-          }, true);
-        })
-        .filter((x) => x);
-
-      if (!errors) {
+      if (!errors.length) {
         return;
       }
 
@@ -2385,13 +1971,6 @@ export default {
     handleConfigEtcdExposeMetricsChanged(neu) {
       this.serverConfig['etcd-expose-metrics'] = neu;
     },
-    handleRegistryHostChanged(neu) {
-      this.registryHost = neu;
-    },
-    handleRegistrySecretChanged(neu) {
-      this.registrySecret = neu;
-    },
-
     handleFlannelMasqChanged(neu) {
       if (neu || neu === false) {
         this.serverConfig['flannel-ipv6-masq'] = neu;
@@ -2499,11 +2078,12 @@ export default {
         :provider="provider"
         :cancel="cancelCredential"
         :showing-form="showForm"
+        :extension-component="extensionCredentialSection"
+        :extension-component-props="extensionCredentialSectionProps"
         :default-on-cancel="true"
         data-testid="select-credential"
         class="mt-20"
       />
-
       <div
         v-if="showForm"
         data-testid="form"
@@ -2541,12 +2121,7 @@ export default {
           <component
             :is="extensionInfrastructureSection"
             v-if="extensionInfrastructureSection"
-            :value="infrastructureCluster"
-            :mode="mode"
-            :provider="provider"
-            :credential-id="credentialId"
-            :provisioning-cluster="value"
-            data-testid="extension-top-section"
+            v-bind="extensionInfrastructureSectionProps"
             class="span-12"
             @update:value="updateExtensionInfrastructureSection"
             @error="e => errors.push(e)"
@@ -2636,6 +2211,15 @@ export default {
 
         <!-- Cluster Tabs -->
         <h2 v-t="'cluster.tabs.cluster'" />
+        <component
+          :is="extensionProvisioningSection"
+          v-if="extensionProvisioningSection"
+          v-bind="extensionProvisioningSectionProps"
+          class="span-12"
+          @update:value="updateExtensionProvisioningSection"
+          @error="e => errors.push(e)"
+          @validationChanged="(val) => provisioningClusterValid = val"
+        />
         <Tabbed
           :side-tabs="true"
           class="min-height"
@@ -2671,10 +2255,9 @@ export default {
               :show-cni="showCni"
               :show-cloud-provider="showCloudProvider"
               :cloud-provider-options="cloudProviderOptions"
-              :is-azure-provider-unsupported="isAzureProviderUnsupported"
-              :can-azure-migrate-on-edit="canAzureMigrateOnEdit"
               :has-some-ipv6-pools="hasOnlyIpv6Pools"
               :original-ingress-controller="originalIngressController"
+              :previous-kube-version="liveValue?.spec?.kubernetesVersion"
               @update:value="$emit('input', $event)"
               @cilium-values-changed="handleCiliumValuesChanged"
               @enabled-system-services-changed="handleEnabledSystemServicesChanged"
@@ -2707,6 +2290,7 @@ export default {
           <Tab
             name="etcd"
             label-key="cluster.tabs.etcd"
+            :error="!etcdConfigValid"
           >
             <Etcd
               v-model:value="localValue"

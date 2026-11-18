@@ -7,6 +7,7 @@ import PaginatedResourceTable from '@shell/components/PaginatedResourceTable';
 import { TableColumn } from '@shell/types/store/type-map';
 import ResourceFetch from '@shell/mixins/resource-fetch';
 import { mapGetters } from 'vuex';
+import { PagTableFetchPageSecondaryResourcesOpts } from '@shell/types/components/paginatedResourceTable';
 import { SECRET_ORIGIN } from '@shell/config/table-headers';
 import { STEVE_SECRET_ORIGIN } from '@shell/config/pagination-table-headers';
 
@@ -83,6 +84,23 @@ export default {
     ...mapGetters(['currentCluster']),
   },
 
+  methods: {
+    async fetchPageSecondaryResources({ canPaginate, page }: PagTableFetchPageSecondaryResourcesOpts) {
+      if (!canPaginate || !page?.length) {
+        return;
+      }
+
+      // Fetch clusters other than the current one in order to populate the `Project Secret` column (specifically the cluster name where this PSS is in)
+      await Promise.all(page.map((s) => {
+        if (s.projectScopedClusterId) {
+          return this.$store.dispatch(`${ STORE.MANAGEMENT }/find`, { type: MANAGEMENT.CLUSTER, id: s.projectScopedClusterId }).catch((e: any) => {
+            console.error(`Unable to fetch cluster '${ s.projectScopedClusterId }' for secret '${ s.name }'`, e); // eslint-disable-line no-console
+          });
+        }
+      }));
+    }
+  }
+
 };
 </script>
 
@@ -99,6 +117,8 @@ export default {
       :headers="namespacedHeaders"
       :pagination-headers="namespacedHeadersSsp"
       :use-query-params-for-simple-filtering="useQueryParamsForSimpleFiltering"
+
+      :fetchPageSecondaryResources="fetchPageSecondaryResources"
     />
   </div>
 </template>

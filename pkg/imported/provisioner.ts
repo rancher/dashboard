@@ -15,7 +15,7 @@ import { mapDriver } from '@shell/store/plugins';
  * EditImportedGenericCluster handles editing already imported generic cluster.
  */
 export class EditImportedGenericCluster implements IClusterProvisioner {
-  static ID = 'imported'
+  static ID = 'imported';
 
   get id(): string {
     return EditImportedGenericCluster.ID;
@@ -44,72 +44,72 @@ export class EditImportedGenericCluster implements IClusterProvisioner {
  * ImportGenericCluster is used to import a new generic cluster.
  */
 export class ImportGenericCluster implements IClusterProvisioner {
-    static ID = 'import'
+  static ID = 'import';
 
-    constructor(private context: ClusterProvisionerContext) {
-      mapDriver(this.id, 'generic' );
-    }
+  constructor(private context: ClusterProvisionerContext) {
+    mapDriver(this.id, 'generic' );
+  }
 
-    get id(): string {
-      return ImportGenericCluster.ID;
-    }
+  get id(): string {
+    return ImportGenericCluster.ID;
+  }
 
-    get component(): Component {
-      return CruImported;
-    }
+  get component(): Component {
+    return CruImported;
+  }
 
-    get detailTabs(): any {
-      return {};
-    }
+  get detailTabs(): any {
+    return {};
+  }
 
-    get label(): string {
-      return this.context.t('import.label');
-    }
+  get label(): string {
+    return this.context.t('import.label');
+  }
 
-    // We want to show it in the import wizard only and hide it on create
-    get showImport(): boolean {
-      return true;
-    }
+  // We want to show it in the import wizard only and hide it on create
+  get showImport(): boolean {
+    return true;
+  }
 
-    get hideCreate(): boolean {
-      return true;
-    }
+  get hideCreate(): boolean {
+    return true;
+  }
 
-    // It is not rke2-specific and we want to have it available independently from RKE2 or RKE1 toggle
-    get group(): string {
-      return 'custom';
-    }
+  // It is not rke2-specific and we want to have it available independently from RKE2 or RKE1 toggle
+  get group(): string {
+    return 'custom';
+  }
 
-    get icon(): any {
-      return require('./assets/generic.svg');
-    }
+  get icon(): any {
+    return require('./assets/generic.svg');
+  }
 }
 
 /**
  * EditLocalCluster edits a local cluster.
  */
 export class EditLocalCluster implements IClusterProvisioner {
-    static ID = 'local'
+  static ID = 'local';
 
-    get id(): string {
-      return EditLocalCluster.ID;
-    }
+  get id(): string {
+    return EditLocalCluster.ID;
+  }
 
-    get component(): Component {
-      return CruImported;
-    }
+  get component(): Component {
+    return CruImported;
+  }
 
-    get detailTabs(): any {
-      return { logs: false };
-    }
+  get detailTabs(): any {
+    return { logs: false };
+  }
 
-    // Since it is only used for edit, we want to hide it from both create and import wizards
-    get hidden(): boolean {
-      return true;
-    }
+  // Since it is only used for edit, we want to hide it from both create and import wizards
+  get hidden(): boolean {
+    return true;
+  }
 
-    // It is not rke2-specific and we want to have it available independently from RKE2 or RKE1 toggle
-    get group(): string {
-      return 'kontainer';
-    }
+  // It is not rke2-specific and we want to have it available independently from RKE2 or RKE1 toggle
+  get group(): string {
+    return 'kontainer';
+  }
 }

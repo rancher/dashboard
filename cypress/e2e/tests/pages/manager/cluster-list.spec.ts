@@ -33,9 +33,11 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
 
     clusterList.goTo();
     clusterList.waitForPage();
-    // group by namespace feature should not visible by default
-    clusterList.list().resourceTable().sortableTable().groupByButtons(0)
+    // group by workspace should not be offered by default
+    clusterList.list().resourceTable().sortableTable().openGroupBy();
+    clusterList.list().resourceTable().sortableTable().groupByOption('Workspace')
       .should('not.exist');
+    clusterList.list().resourceTable().sortableTable().closeViewMenu();
 
     clusterList.createCluster();
     createRKE2ClusterPage.waitForPage();
@@ -69,13 +71,16 @@ describe('Cluster List', { tags: ['@manager', '@adminUser'] }, () => {
     clusterList.waitForPage();
 
     clusterList.goTo();
-    clusterList.list().state(customClusterName).should('contain.text', 'Updating');
+    // The freshly-created cluster may still be provisioning ('Updating') or, if it came up
+    // quickly, already 'Active' - both are valid right after create, so accept either rather
+    // than racing the transient 'Updating' state.
+    clusterList.list().state(customClusterName).should(($el) => {
+      expect($el.text().trim()).to.match(/Updating|Active/);
+    });
 
     // testing https://github.com/rancher/dashboard/issues/13341
-    // group by namespace feature should be visible - group by namespace
-    clusterList.list().resourceTable().sortableTable().groupByButtons(1)
-      .should('be.visible')
-      .click();
+    // group by workspace should be offered now
+    clusterList.list().resourceTable().sortableTable().groupBy('Workspace');
     clusterList.list().resourceTable().sortableTable().groupElementWithName(`Workspace: ${ nsName }`)
       .scrollIntoView()
       .should('be.visible');

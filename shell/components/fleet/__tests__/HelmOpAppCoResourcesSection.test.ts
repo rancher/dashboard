@@ -17,8 +17,9 @@ describe('component: HelmOpAppCoResourcesSection', () => {
       props:  { ...props, ...overrides },
       global: {
         stubs: {
-          RcSection: { template: '<div><slot /></div>' },
-          RcIcon:    true,
+          RcSection:      { template: '<div><slot /></div>' },
+          RcIcon:         true,
+          RcContentGroup: false,
         }
       }
     });

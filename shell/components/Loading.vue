@@ -1,4 +1,6 @@
 <script>
+import { announce } from '@shell/utils/aria-announce';
+
 export default {
   props: {
     loading: {
@@ -16,6 +18,14 @@ export default {
     noDelay: {
       type:    Boolean,
       default: false,
+    },
+    /**
+     * Announce the wait to screen readers (WCAG 2.2 SC 4.1.3). The overlay is visual only, so
+     * without this a screen reader user gets no sign that anything is happening.
+     */
+    announceStatus: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -26,6 +36,12 @@ export default {
   mounted() {
     this.timer = setTimeout(() => {
       this.showMessage = true;
+
+      // Tied to the same delay as the visible overlay, so a load that resolves straight away
+      // stays silent instead of announcing a wait that never happened.
+      if (this.loading && this.announceStatus) {
+        announce(this.$store.getters['i18n/t']('generic.loading'));
+      }
     }, 250);
   },
 

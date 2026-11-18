@@ -19,6 +19,7 @@ import { exceptionToErrorsArray } from '@shell/utils/error';
 import Banner from '@components/Banner/Banner.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
+import FleetMigrationGuideLink from '@shell/components/fleet/FleetMigrationGuideLink.vue';
 
 export default {
   name: 'FleetCruWorkspace',
@@ -28,6 +29,7 @@ export default {
   inheritAttrs: false,
   components:   {
     CruResource,
+    FleetMigrationGuideLink,
     FleetOCIStorageSecret,
     Labels,
     Loading,
@@ -220,6 +222,21 @@ export default {
         label-key="fleet.workspaces.tabs.restrictions"
         :weight="3"
       >
+        <Banner
+          color="warning"
+          data-testid="fleet-workspace-restriction-deprecation-banner"
+        >
+          <div>
+            <div>{{ t('fleet.restrictions.deprecationWarningTargetNamespaces') }}</div>
+            <!-- The migration guide documents how to replace allowedTargetNamespaces (no Policy
+                 equivalent) with downstream ServiceAccount RBAC. -->
+            <FleetMigrationGuideLink
+              data-testid="fleet-workspace-restriction-migration-guide"
+              class="mt-5"
+            />
+          </div>
+        </Banner>
+
         <Banner
           color="info"
         >

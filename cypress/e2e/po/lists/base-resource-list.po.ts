@@ -14,8 +14,11 @@ export default class BaseResourceList extends ComponentPo {
     return new ResourceTablePo(this.self());
   }
 
-  actionMenu(rowLabel: string) {
-    return this.resourceTable().sortableTable().rowActionMenuOpen(rowLabel);
+  /**
+   * @param resourceRowsOnly see `SortableTablePo.rowElementWithName`
+   */
+  actionMenu(rowLabel: string, resourceRowsOnly = false) {
+    return this.resourceTable().sortableTable().rowActionMenuOpen(rowLabel, undefined, resourceRowsOnly);
   }
 
   actionMenuClose(rowLabel: string) {

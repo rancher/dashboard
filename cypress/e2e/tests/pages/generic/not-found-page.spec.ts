@@ -4,10 +4,31 @@ import NotFoundPagePo from '@/cypress/e2e/po/pages/not-found-page.po';
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 import ChartRepositoriesPagePo from '~/cypress/e2e/po/pages/chart-repositories.po';
 import { ChartsPage } from '@/cypress/e2e/po/pages/explorer/charts/charts.po';
+import FailWhalePo from '@/cypress/e2e/po/components/fail-whale.po';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 
 describe('Not found page display', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   beforeEach(() => {
     cy.login();
+  });
+
+  it('Will show the fail whale in-context (retaining cluster context) when a resource list is loaded with an unknown resource type', () => {
+    // Load a list page with a junky resource type in the url
+    const page = new PagePo('/c/local/explorer/thisisatypethatdoesnotexist');
+    const failWhale = new FailWhalePo();
+    const sideNav = new ProductNavPo();
+
+    page.goTo();
+    page.waitForPage();
+
+    // The fail whale is shown in-context (in place of the list), not on the global fail-whale page
+    cy.url().should('not.include', '/fail-whale');
+    failWhale.checkExists();
+    failWhale.title().should('contain.text', 'Error');
+    failWhale.message().should('contain.text', 'Resource type thisisatypethatdoesnotexist');
+
+    // The cluster explorer context (side menu) is retained
+    sideNav.checkVisible();
   });
 
   it('Will show a 404 if we do not have a valid Product id on the route path', () => {

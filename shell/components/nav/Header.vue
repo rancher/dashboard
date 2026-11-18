@@ -4,11 +4,12 @@ import debounce from 'lodash/debounce';
 import { MANAGEMENT, NORMAN, STEVE } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { ucFirst } from '@shell/utils/string';
-import { isAlternate, isMac } from '@shell/utils/platform';
+import { isAlternate } from '@shell/utils/platform';
 import BrandImage from '@shell/components/BrandImage';
 import { getProduct, getVendor } from '@shell/config/private-label';
 import ClusterProviderIcon from '@shell/components/ClusterProviderIcon';
 import ClusterBadge from '@shell/components/ClusterBadge';
+import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
 import AppModal from '@shell/components/AppModal';
 import { LOGGED_OUT, IS_SSO } from '@shell/config/query-params';
 import NamespaceFilter from './NamespaceFilter';
@@ -20,7 +21,7 @@ import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
-import { configType } from '@shell/models/management.cattle.io.authconfig';
+import { configTypeForProvider } from '@shell/models/management.cattle.io.authconfig';
 import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
 import NotificationCenter from './NotificationCenter';
 import {
@@ -31,6 +32,7 @@ import {
 } from '@components/RcDropdown';
 import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { CLUSTER_SHELL } from '@shell/store/features';
+import { openReleaseWelcome, releaseWelcomeVersion } from '@shell/utils/release-welcome';
 
 export default {
 
@@ -41,6 +43,7 @@ export default {
     BrandImage,
     ClusterBadge,
     ClusterProviderIcon,
+    ClusterPinControl,
     IconOrSvg,
     AppModal,
     NotificationCenter,
@@ -64,7 +67,6 @@ export default {
   },
 
   data() {
-    const searchShortcut = isMac ? '(\u2318-K)' : '(Ctrl+K)';
     const shellShortcut = '(Ctrl+`)';
 
     return {
@@ -74,7 +76,6 @@ export default {
       isUserMenuOpen:          false,
       isPageActionMenuOpen:    false,
       kubeConfigCopying:       false,
-      searchShortcut,
       shellShortcut,
       LOGGED_OUT,
       navHeaderRight:          null,
@@ -104,7 +105,7 @@ export default {
     sloAuthProviderEnabled() {
       const publicAuthProviders = this.$store.getters['rancher/all']('authProvider');
 
-      return publicAuthProviders.find((authProvider) => SLO_AUTH_PROVIDERS.includes(configType[authProvider?.id])) || {};
+      return publicAuthProviders.find((authProvider) => SLO_AUTH_PROVIDERS.includes(configTypeForProvider(authProvider?.type))) || {};
     },
 
     shouldShowSloLogoutModal() {
@@ -181,6 +182,19 @@ export default {
       return canSeeTokens && (this.isRancher || this.isSingleProduct);
     },
 
+    // Reopens the welcome modal, not for builds without a version (e.g. dev)
+    showWhatsNewLink() {
+      return this.isRancher && !this.isSingleProduct && !!releaseWelcomeVersion();
+    },
+
+    showWhatsNewSeparator() {
+      return this.showWhatsNewLink && (this.showPreferencesLink || this.showAccountAndApiKeyLink);
+    },
+
+    showLogOutSeparator() {
+      return this.authEnabled && (this.showWhatsNewLink || this.showPreferencesLink || this.showAccountAndApiKeyLink);
+    },
+
     showPageActions() {
       return !this.featureRancherDesktop && this.pageActions && this.pageActions.length;
     },
@@ -232,12 +246,14 @@ export default {
       return !!this.currentCluster?.actions?.apply;
     },
 
-    showSearch() {
-      return this.rootProduct?.inStore === 'cluster';
-    },
-
     showImportYaml() {
       return this.rootProduct?.inStore !== 'harvester';
+    },
+
+    // The name as rendered, so the clip check below and the template can never disagree about what is
+    // on screen.
+    clusterDisplayName() {
+      return this.currentCluster?.spec?.displayName || '';
     },
 
     nameTooltip() {
@@ -285,14 +301,45 @@ export default {
     // This is to enforce the logo display on certain routes like home, about, prefs, account, etc
     isLogoRoute() {
       return !this.$route.name.includes('c-cluster');
-    }
+    },
+
+    /**
+     * Whether each extension action is enabled now. A synchronous `enabled` is asked again whenever
+     * what it reads changes, so a button can follow the page's state; an async one is settled on
+     * navigation, by updateExtensionActionsEnabled.
+     */
+    extensionHeaderActionsEnabled() {
+      return this.extensionHeaderActions.map((action, i) => {
+        if (typeof action.enabled === 'function') {
+          const now = action.enabled(this.ctx);
+
+          if (typeof now === 'boolean') {
+            return now;
+          }
+        } else if (typeof action.enabled === 'boolean') {
+          return action.enabled;
+        }
+
+        return !!this.extensionActionsEnabled[i];
+      });
+    },
+
+    extensionHeaderActionsAriaExpanded() {
+      return this.extensionHeaderActions.map((action) => {
+        const expanded = typeof action.ariaExpanded === 'function' ? action.ariaExpanded() : action.ariaExpanded;
+
+        return typeof expanded === 'boolean' ? expanded : undefined;
+      });
+    },
   },
 
   watch: {
-    currentCluster(neu, old) {
-      if (neu && old && neu.id !== old.id) {
-        this.checkClusterName();
-      }
+    // Whether the name is clipped — and so whether the tooltip that reveals the rest of it is offered —
+    // depends on the name itself, so re-measure whenever the rendered one changes. Watching the cluster
+    // id missed both ends of that: the header outlives the route, so the first cluster arrives with no
+    // previous one to compare against, and a rename never changes the id at all.
+    clusterDisplayName() {
+      this.checkClusterName();
     },
     // since the Header is a "persistent component" we need to update it at every route change...
     $route: {
@@ -301,7 +348,9 @@ export default {
           this.extensionHeaderActions = getApplicableExtensionEnhancements(this, ExtensionPoint.ACTION, ActionLocation.HEADER, neu);
           this.updateExtensionActionsEnabled();
 
-          this.navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight');
+          // getDynamic marks component definitions raw, so they stay out of the
+          // reactivity system (avoids the Vue reactive-component warning + overhead).
+          this.navHeaderRight = this.$extension?.getDynamic('component', 'NavHeaderRight') || null;
         }
       },
       immediate: true,
@@ -311,7 +360,13 @@ export default {
 
   mounted() {
     this.checkClusterName();
-    this.debouncedLayoutHeader = debounce(this.layoutHeader, 400);
+    // Re-measure on resize as well as on mount: the name is clipped by the space the header has, so a
+    // window that narrows can start clipping a name that fitted before — and the tooltip is the only way
+    // to read the part that has been cut off.
+    this.debouncedLayoutHeader = debounce(() => {
+      this.layoutHeader();
+      this.checkClusterName();
+    }, 400);
     window.addEventListener('resize', this.debouncedLayoutHeader);
 
     this.$nextTick(() => this.layoutHeader(null, true));
@@ -322,6 +377,10 @@ export default {
   },
 
   methods: {
+    openWhatsNew() {
+      openReleaseWelcome(this.$store.commit);
+    },
+
     showSloModal() {
       this.$store.dispatch('management/promptModal', {
         component:      'SloDialog',
@@ -371,17 +430,6 @@ export default {
       });
     },
 
-    openSearch() {
-      this.$store.dispatch('cluster/promptModal', {
-        component:           'SearchDialog',
-        testId:              'search-modal',
-        modalWidth:          '50%',
-        height:              'auto',
-        styles:              'max-height: 90vh;',
-        returnFocusSelector: '#header-btn-search'
-      });
-    },
-
     checkClusterName() {
       this.$nextTick(() => {
         const el = this.$refs.clusterName;
@@ -422,7 +470,8 @@ export default {
         event,
         action,
         isAlt:   isAlternate(event),
-        product: this.currentProduct.name,
+        // A global action (a shortcut, say) can run on a page with no product
+        product: this.currentProduct?.name,
         cluster: this.currentCluster,
       };
       const enabled = await this.isActionEnabled(action);
@@ -432,7 +481,12 @@ export default {
       }
     },
 
-    handleExtensionTooltip(action) {
+    handleExtensionTooltip(action, enabled = true) {
+      // A disabled button says why, when the action gives a reason
+      if (!enabled && (action.disabledTooltipKey || action.disabledTooltip)) {
+        return action.disabledTooltipKey ? this.t(action.disabledTooltipKey) : action.disabledTooltip;
+      }
+
       if (action.tooltipKey || action.tooltip) {
         const tooltip = action.tooltipKey ? this.t(action.tooltipKey) : action.tooltip;
         const shortcut = action.shortcutLabel ? action.shortcutLabel() : '';
@@ -441,6 +495,14 @@ export default {
       }
 
       return null;
+    },
+
+    getExtensionNotificationIndicator(action) {
+      if (action && typeof action.showNotificationIndicator === 'function') {
+        return action.showNotificationIndicator() || false;
+      }
+
+      return false;
     },
 
     async updateExtensionActionsEnabled() {
@@ -532,7 +594,7 @@ export default {
             ref="clusterName"
             class="cluster-name"
           >
-            {{ currentCluster.spec.displayName }}
+            {{ clusterDisplayName }}
           </div>
           <ClusterBadge
             v-if="currentCluster"
@@ -540,6 +602,7 @@ export default {
             class="ml-10"
             :alt="t('branding.logos.label')"
           />
+          <ClusterPinControl :cluster="currentCluster" />
           <div
             v-if="!currentCluster && !$route.path.startsWith('/c/')"
             class="simple-title"
@@ -596,7 +659,7 @@ export default {
           class="side-menu-logo-img"
           data-testid="header__brand-img"
           file-name="rancher-logo.svg"
-          :alt="t('branding.logos.label')"
+          :alt="t('branding.logos.logoLabel')"
         />
       </div>
     </div>
@@ -689,23 +752,6 @@ export default {
             />
           </button>
         </template>
-
-        <button
-          v-if="showSearch"
-          id="header-btn-search"
-          v-clean-tooltip="t('nav.resourceSearch.toolTip', {key: searchShortcut})"
-          v-shortkey="{windows: ['ctrl', 'k'], mac: ['meta', 'k']}"
-          type="button"
-          class="btn header-btn role-tertiary"
-          data-testid="header-resource-search"
-          role="button"
-          tabindex="0"
-          :aria-label="t('nav.resourceSearch.toolTip', {key: ''})"
-          @shortkey="openSearch()"
-          @click="openSearch()"
-        >
-          <i class="icon icon-search icon-lg" />
-        </button>
       </div>
 
       <!-- Extension header actions -->
@@ -713,29 +759,48 @@ export default {
         v-if="extensionHeaderActions.length"
         class="header-buttons"
       >
-        <button
+        <template
           v-for="action, i in extensionHeaderActions"
           :key="`${action.label}${i}`"
-          v-clean-tooltip="handleExtensionTooltip(action)"
-          v-shortkey="action.shortcutKey"
-          :disabled="!extensionActionsEnabled[i]"
-          type="button"
-          class="btn header-btn role-tertiary"
-          :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
-          role="button"
-          tabindex="0"
-          :aria-label="action.labelKey ? t(action.labelKey) : action.label"
-          @shortkey="handleExtensionAction(action, $event)"
-          @click="handleExtensionAction(action, $event)"
         >
-          <IconOrSvg
-            class="icon icon-lg"
-            :icon="action.icon"
-            :src="action.svg"
-            :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
-            color="header"
+          <!-- A hidden action is only its shortcut: no button, nothing to see or tab to -->
+          <span
+            v-if="action.hidden"
+            v-shortkey="action.shortcutKey"
+            class="hide"
+            :data-testid="`extension-header-shortcut-${ action.labelKey || action.label }`"
+            @shortkey="handleExtensionAction(action, $event)"
           />
-        </button>
+          <button
+            v-else
+            v-clean-tooltip="handleExtensionTooltip(action, extensionHeaderActionsEnabled[i])"
+            v-shortkey="action.shortcutKey"
+            :disabled="!extensionHeaderActionsEnabled[i]"
+            type="button"
+            class="btn header-btn role-tertiary"
+            :data-testid="`extension-header-action-${ action.labelKey || action.label }`"
+            role="button"
+            tabindex="0"
+            :aria-label="action.labelKey ? t(action.labelKey) : action.label"
+            :aria-expanded="extensionHeaderActionsAriaExpanded[i]"
+            @shortkey="handleExtensionAction(action, $event)"
+            @click="handleExtensionAction(action, $event)"
+          >
+            <div class="extension-action-icon-container">
+              <IconOrSvg
+                class="icon icon-lg"
+                :icon="action.icon"
+                :src="action.svg"
+                :img-alt="action.tooltipKey ? t(action.tooltipKey) : action.labelKey ? t(action.labelKey) : action.label ? action.label : t('generic.imageAlt')"
+                color="header"
+              />
+              <div
+                v-if="getExtensionNotificationIndicator(action)"
+                class="extension-action-icon-container-notification-indicator"
+              />
+            </div>
+          </button>
+        </template>
       </div>
 
       <div class="center-self">
@@ -779,25 +844,44 @@ export default {
               <rc-dropdown-separator />
             </template>
             <rc-dropdown-item
+              v-if="showWhatsNewLink"
+              data-testid="user-menu-whats-new"
+              @click="openWhatsNew"
+            >
+              {{ t('nav.userMenu.whatsNew', {}, true) }}
+            </rc-dropdown-item>
+            <rc-dropdown-separator
+              v-if="showWhatsNewSeparator"
+              data-testid="user-menu-separator-whats-new"
+            />
+            <rc-dropdown-item
               v-if="showPreferencesLink"
+              data-testid="user-menu-preferences"
               @click="$router.push({ name: 'prefs'})"
             >
               {{ t('nav.userMenu.preferences') }}
             </rc-dropdown-item>
             <rc-dropdown-item
               v-if="showAccountAndApiKeyLink"
+              data-testid="user-menu-account"
               @click="$router.push({ name: 'account'})"
             >
               {{ t('nav.userMenu.accountAndKeys', {}, true) }}
             </rc-dropdown-item>
+            <rc-dropdown-separator
+              v-if="showLogOutSeparator"
+              data-testid="user-menu-separator-log-out"
+            />
             <rc-dropdown-item
               v-if="authEnabled && shouldShowSloLogoutModal"
+              data-testid="user-menu-log-out"
               @click="showSloModal"
             >
               {{ t('nav.userMenu.logOut') }}
             </rc-dropdown-item>
             <rc-dropdown-item
               v-else-if="authEnabled"
+              data-testid="user-menu-log-out"
               @click="$router.push(generateLogoutRoute)"
             >
               {{ t('nav.userMenu.logOut') }}
@@ -816,6 +900,11 @@ export default {
   HEADER {
     display: flex;
     z-index: z-index('mainHeader');
+    // The header is a grid item, and a grid/flex item's `min-width: auto` floor is its content — so a long
+    // cluster name grew the header past its track and took the page into horizontal overflow instead of
+    // being clipped. Zero that floor here and at every step down to the name: an item can only shrink
+    // below its content once ALL of its ancestors are allowed to.
+    min-width: 0;
 
     > .spacer {
       flex: 1;
@@ -882,12 +971,16 @@ export default {
       align-items: center;
       display: flex;
       height: 32px;
+      min-width: 0;
       white-space: nowrap;
       .cluster-name {
         font-size: 16px;
+        min-width: 0;
         text-overflow: ellipsis;
         overflow: hidden;
       }
+
+      // The pin keeps its size while the name gives way, so a long name is what gets clipped.
       &.cluster-clipped {
         overflow: hidden;
       }
@@ -897,6 +990,7 @@ export default {
       align-items: center;
       position: relative;
       display: flex;
+      min-width: 0;
 
       .logo {
         height: 30px;
@@ -1209,4 +1303,20 @@ export default {
     }
   }
 
+  .extension-action-icon-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &-notification-indicator {
+      position: absolute;
+      right: -8px;
+      top: -4px;
+      border-radius: 50%;
+      height: 8px;
+      width: 8px;
+      background-color: var(--error);
+    }
+  }
 </style>

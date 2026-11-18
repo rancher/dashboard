@@ -5,6 +5,20 @@ import { NODE_DRIVER_FIELD_HINTS } from '@shell/config/labels-annotations';
 import { Banner } from '@components/Banner';
 import Questions from '@shell/components/Questions';
 
+/**
+ * `generic.vue` is a plain-JS SFC built on the untyped `create-edit-view` mixin, so
+ * `vue-tsc` cannot infer its data/methods and `wrapper.vm.$nextTick` resolves to `never`.
+ * Describe just the surface these tests drive.
+ * Remove this once the component is converted to `<script lang="ts"> defineComponent`.
+ */
+interface GenericInstance {
+  $nextTick(): Promise<void>;
+  fields: Record<string, { type: string }>;
+  errors: Array<{ message: string }>;
+}
+
+const asGeneric = (wrapper: { vm: unknown }): GenericInstance => wrapper.vm as GenericInstance;
+
 const PROVIDER = 'testdriver';
 
 const buildFields = () => ({
@@ -65,7 +79,7 @@ const mountAndFetch = async(storeOverrides: Record<string, any> = {}) => {
   });
 
   await (Generic as any).fetch.call(wrapper.vm);
-  await wrapper.vm.$nextTick();
+  await asGeneric(wrapper).$nextTick();
 
   return wrapper;
 };
@@ -82,8 +96,8 @@ describe('generic machine config', () => {
         getters: { ...mockedStore(hints).getters },
       });
 
-      expect((wrapper.vm as any).fields.zone.type).toBe('multiline');
-      expect((wrapper.vm as any).fields.diskSize.type).toBe('multiline');
+      expect(asGeneric(wrapper).fields.zone.type).toBe('multiline');
+      expect(asGeneric(wrapper).fields.diskSize.type).toBe('multiline');
     });
 
     it('should not modify fields that are not in the hints', async() => {
@@ -93,15 +107,15 @@ describe('generic machine config', () => {
         getters: { ...mockedStore(hints).getters },
       });
 
-      expect((wrapper.vm as any).fields.enginePort.type).toBe('string');
+      expect(asGeneric(wrapper).fields.enginePort.type).toBe('string');
     });
 
     it('should not modify fields when no hints annotation exists', async() => {
       const wrapper = await mountAndFetch();
 
-      expect((wrapper.vm as any).fields.zone.type).toBe('string');
-      expect((wrapper.vm as any).fields.diskSize.type).toBe('string');
-      expect((wrapper.vm as any).fields.enginePort.type).toBe('string');
+      expect(asGeneric(wrapper).fields.zone.type).toBe('string');
+      expect(asGeneric(wrapper).fields.diskSize.type).toBe('string');
+      expect(asGeneric(wrapper).fields.enginePort.type).toBe('string');
     });
 
     it('should ignore hint entries for fields not present in the schema', async() => {
@@ -111,8 +125,8 @@ describe('generic machine config', () => {
         getters: { ...mockedStore(hints).getters },
       });
 
-      expect((wrapper.vm as any).fields.zone.type).toBe('string');
-      expect((wrapper.vm as any).fields.nonExistentField).toBeUndefined();
+      expect(asGeneric(wrapper).fields.zone.type).toBe('string');
+      expect(asGeneric(wrapper).fields.nonExistentField).toBeUndefined();
     });
 
     it('should ignore hint entries that do not specify a type', async() => {
@@ -122,15 +136,15 @@ describe('generic machine config', () => {
         getters: { ...mockedStore(hints).getters },
       });
 
-      expect((wrapper.vm as any).fields.zone.type).toBe('string');
+      expect(asGeneric(wrapper).fields.zone.type).toBe('string');
     });
 
     it('should handle malformed JSON in the annotation gracefully', async() => {
       const driver = { metadata: { annotations: { [NODE_DRIVER_FIELD_HINTS]: 'testing bad json{' } } };
       const wrapper = await mountAndFetch({ dispatch: jest.fn(() => Promise.resolve(driver)) });
 
-      expect((wrapper.vm as any).fields.zone.type).toBe('string');
-      expect((wrapper.vm as any).errors.length).toBe(1);
+      expect(asGeneric(wrapper).fields.zone.type).toBe('string');
+      expect(asGeneric(wrapper).errors.length).toBe(1);
     });
   });
 
@@ -138,8 +152,8 @@ describe('generic machine config', () => {
     it('should render an error banner and not render Questions when unable to determine fields for the driver', async() => {
       const wrapper = await mountAndFetch({ getters: { 'plugins/fieldsForDriver': () => Promise.resolve(null) } });
 
-      expect((wrapper.vm as any).errors.length).toBe(1);
-      expect((wrapper.vm as any).errors[0].message).toContain(`Machine Driver config schema not found for rke-machine-config.cattle.io.${ PROVIDER }config`);
+      expect(asGeneric(wrapper).errors.length).toBe(1);
+      expect(asGeneric(wrapper).errors[0].message).toContain(`Machine Driver config schema not found for rke-machine-config.cattle.io.${ PROVIDER }config`);
 
       const banners = wrapper.findAllComponents(Banner);
 
@@ -151,8 +165,8 @@ describe('generic machine config', () => {
       const driverError = 'node driver not found';
       const wrapper = await mountAndFetch({ dispatch: jest.fn(() => Promise.reject(new Error(driverError))) });
 
-      expect((wrapper.vm as any).errors.length).toBe(1);
-      expect((wrapper.vm as any).errors[0].message).toContain(driverError);
+      expect(asGeneric(wrapper).errors.length).toBe(1);
+      expect(asGeneric(wrapper).errors[0].message).toContain(driverError);
 
       const banners = wrapper.findAllComponents(Banner);
 

@@ -2,7 +2,6 @@ import { CAPI } from '@shell/config/labels-annotations';
 import { fullFields, prefixFields, simplify, suffixFields } from '@shell/store/plugins';
 import { isEmpty, set } from '@shell/utils/object';
 import { SECRET } from '@shell/config/types';
-import { escapeHtml } from '@shell/utils/string';
 import NormanModel from '@shell/plugins/steve/norman-class';
 
 export default class CloudCredential extends NormanModel {
@@ -11,6 +10,10 @@ export default class CloudCredential extends NormanModel {
   }
 
   get canCustomEdit() {
+    return true;
+  }
+
+  get disableResourceDetailDrawer() {
     return true;
   }
 
@@ -166,15 +169,15 @@ export default class CloudCredential extends NormanModel {
     const maxLength = Math.min(8, Math.floor(val.length / 2));
 
     if ( publicMode === 'prefix' ) {
-      return `${ escapeHtml(val.substr(0, maxLength)) }&hellip;`;
+      return `${ val.substr(0, maxLength) }…`;
     } else if ( publicMode === 'suffix' ) {
-      return `&hellip;${ escapeHtml(val.substr(-1 * maxLength)) }`;
+      return `…${ val.substr(-1 * maxLength) }`;
     } else {
-      return escapeHtml(val);
+      return val;
     }
   }
 
   get doneRoute() {
-    return 'c-cluster-manager-secret';
+    return 'c-cluster-manager-cloudCredential';
   }
 }

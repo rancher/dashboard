@@ -59,6 +59,10 @@ export default {
       default: false,
       type:    Boolean
     },
+    rules: {
+      type:    Object,
+      default: () => ({})
+    },
   },
 
   async fetch() {
@@ -125,6 +129,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value="value.name"
+            :rules="rules.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -134,6 +139,7 @@ export default {
           <LabeledSelect
             v-if="!createNew"
             v-model:value="value.persistentVolumeClaim.claimName"
+            :rules="rules['persistentVolumeClaim.claimName']"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.subtypes.persistentVolumeClaim')"

@@ -4,6 +4,8 @@ import TabbedPo from '~/cypress/e2e/po/components/tabbed.po';
 import CheckboxInputPo from '~/cypress/e2e/po/components/checkbox-input.po';
 import LabeledInputPo from '~/cypress/e2e/po/components/labeled-input.po';
 import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
+import CodeMirrorPo from '@/cypress/e2e/po/components/code-mirror.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 export class InstallChartPage extends PagePo {
   private static createPath(clusterId: string) {
@@ -41,11 +43,12 @@ export class InstallChartPage extends PagePo {
   }
 
   installChart() {
-    // Use the same pattern as nextPage() but target the finish/install button specifically
-    // The install button is in the controls-steps area and is the async button for the final step
+    // The install button is in the controls-steps area and is the async button for the final step.
+    // It is `:disabled="!activeStep.ready"`, so it stays disabled until the step's schema/validation
+    // has loaded; clickWhenEnabled waits that out (generous window for CI) before clicking.
     const btn = new AsyncButtonPo('.controls-steps [data-testid="action-button-async-button"]');
 
-    btn.click(true);
+    btn.clickWhenEnabled(MEDIUM_TIMEOUT_OPT, true);
 
     return this;
   }
@@ -54,6 +57,38 @@ export class InstallChartPage extends PagePo {
     this.self().get('[data-testid="btn-group-options-view"]').contains('Edit YAML').click();
 
     return this;
+  }
+
+  compareChanges() {
+    this.self().get('[data-testid="btn-group-options-view"]').contains('Compare Changes').click();
+
+    return this;
+  }
+
+  /** The rendered Compare Changes diff (diff2html output) */
+  diffView() {
+    return this.self().get('#diffElement');
+  }
+
+  overridesPane() {
+    return this.self().get('[data-testid="chart-values-overrides-pane"]');
+  }
+
+  defaultsPane() {
+    return this.self().get('[data-testid="chart-values-defaults-pane"]');
+  }
+
+  overridesEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="chart-values-overrides-code-mirror"]');
+  }
+
+  defaultsEditor(): CodeMirrorPo {
+    return CodeMirrorPo.bySelector(this.self(), '[data-testid="chart-values-defaults-code-mirror"]');
+  }
+
+  /** The editable content of the chart-defaults pane, used to focus and blur it */
+  defaultsEditorContent() {
+    return this.self().find('[data-testid="chart-values-defaults-code-mirror"] .cm-content');
   }
 
   footerControls() {

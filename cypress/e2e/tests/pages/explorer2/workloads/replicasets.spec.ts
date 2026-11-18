@@ -1,5 +1,4 @@
 import { WorkloadsReplicasetsListPagePo, WorkloadsReplicasetsEditPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-replicasets.po';
-import ResourceSearchDialog from '@/cypress/e2e/po/prompts/ResourceSearchDialog.po';
 import { qase } from '@/cypress/support/qase';
 
 describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
@@ -14,7 +13,6 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser', '@standardUser
       qase(7800, it('should not be able to rollback a replicaset', () => {
         // list view for replicasets
         const workloadsReplicasetsListPage = new WorkloadsReplicasetsListPagePo('local');
-        const resourceSearchDialog = new ResourceSearchDialog();
 
         workloadsReplicasetsListPage.goTo();
         workloadsReplicasetsListPage.waitForPage();
@@ -28,7 +26,6 @@ describe('Cluster Explorer', { tags: ['@explorer2', '@adminUser', '@standardUser
         workloadsDaemonsetsEditPage.containerImageInput().set('nginx');
         workloadsDaemonsetsEditPage.resourceDetail().createEditView().save();
         workloadsReplicasetsListPage.waitForPage();
-        resourceSearchDialog.waitForNoDialog();
         workloadsReplicasetsListPage.waitForListReady();
 
         workloadsReplicasetsListPage.list().resourceTable().sortableTable().rowElementWithName(replicasetName)

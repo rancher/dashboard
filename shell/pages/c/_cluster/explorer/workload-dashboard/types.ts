@@ -35,46 +35,18 @@ export interface WorkloadDashboardByStateLayout {
   cards: WorkloadDashboardStateCard[];
 }
 
-export interface WorkloadDashboardByTypeCard {
-  title: string;
-  type: string;
-  resources: {
-    stateDisplay: string;
-    stateId: string;
-    stateSimpleColor: StateColor;
-    count: number;
-  }[];
-}
+export type WorkloadDashboardResourceRouteFn = (type: string, stateNames?: string[], nameFilter?: string) => RouteLocationRaw;
 
-export type WorkloadDashboardResourceRouteFn = (type: string, stateNames?: string[]) => RouteLocationRaw;
-
-export interface WorkloadDashboardByNamespaceCardRow {
-  label: string;
-  type: string;
-  counts: {
-    color: StateColor;
-    count: number;
-    stateNames: string[];
-  }[];
-}
-
-export interface WorkloadDashboardByNamespaceCard {
-  title: string;
-  rows: WorkloadDashboardByNamespaceCardRow[];
-}
-
-export type WorkloadDashboardNamespaceNavigateFn = (type: string, namespace: string, stateNames?: string[]) => void;
 export type WorkloadDashboardFilterByNamespaceFn = (namespace: string) => void;
 
-export const WORKLOAD_RESOURCE_TYPES: string[] = [
+export type WorkloadDashboardNamespaceNavigateFn = (type: string, namespace: string) => void;
+
+export const WORKLOAD_DASHBOARD_RESOURCE_TYPES: string[] = [
   WORKLOAD_TYPES.CRON_JOB,
   WORKLOAD_TYPES.DAEMON_SET,
   WORKLOAD_TYPES.DEPLOYMENT,
   WORKLOAD_TYPES.JOB,
+  WORKLOAD_TYPES.REPLICA_SET,
   WORKLOAD_TYPES.STATEFUL_SET,
   POD,
 ];
-
-export const COLOR_ORDER: Record<string, number> = {
-  error: 0, warning: 1, disabled: 2, info: 3, success: 4
-};

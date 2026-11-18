@@ -5,18 +5,15 @@
  */
 
 const request = require('./request');
+const { QA_NONE_LABEL, getReferencedIssues, hasLabel } = require('./pr-check-linked-issue');
 
 const TECH_DEBT_LABEL = 'kind/tech-debt';
 const DEV_VALIDATE_LABEL = 'status/dev-validate';
-const QA_NONE_LABEL = 'QA/None';
 const QA_DEV_AUTOMATION_LABEL = 'QA/dev-automation'
 
 const GH_PRJ_TO_TEST = 'To Test';
 const GH_PRJ_QA_REVIEW = 'QA Review';
 const GH_PRJ_IN_REVIEW = 'Review';
-
-// This label is used so that PRs from dependabot don't fail the check for 'fixes' notation
-const GH_DEPENDENCIES_LABEL = 'area/dependencies';
 
 function parseOrgAndRepo(repoUrl) {
   const parts = repoUrl.split('/');
@@ -55,32 +52,6 @@ if (ghProjectId.length !== 2) {
 // which would shadow the custom value set in the workflow YAML.
 const path = require('path');
 const event = require(path.resolve(process.cwd(), process.env.PR_EVENT_PATH));
-
-function getReferencedIssues(body) {
-  // https://docs.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword
-  // Handle both Fixes #NNNN and Fixes https://github.com/rancher/dashboard/issuues/NNNN
-  const regexp = /[Ff]ix(es|ed)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)|[Cc]lose(s|d)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)|[Rr]esolve(s|d)?\s*(#|https:\/\/github\.com\/rancher\/dashboard\/issues\/)([0-9]*)/g;
-  var v;
-  const issues = [];
-  do {
-    v = regexp.exec(body);
-    if (v) {
-      // Matches - 0 = Full string, 1 = es or ed, 2 = # or https://github.com/rancher/dashboard/issuues/, 3 = Issue number
-      const vNumber = parseInt(v[3], 10);
-
-      if (!isNaN(vNumber)) {
-        issues.push(vNumber);
-      }
-    }
-  } while (v);
-  return issues;
-}
-
-function hasLabel(issue, label) {
-  const labels = issue.labels || [];
-
-  return !!(labels.find(l => l.name.toLowerCase() === label.toLowerCase()));
-}
 
 async function moveIssueToProjectState(project, prjIssueID, issue, state) {
   // console.log(`moveIssueToProjectState ${ state }`);
@@ -273,15 +244,8 @@ async function processOpenOrEditAction() {
   if (issues.length > 0) {
     console.log('+ This PR fixes issues: #' + issues.join(', '));
   } else {
+    // Enforcing that PRs fix an issue or have the QA/None label is done by pr-check-linked-issue.js in valid-pr.yaml
     console.log("+ This PR does not fix any issues");
-
-    // PRs must fix an issue or have the label 'QA/None'
-    if (!hasLabel(pr, QA_NONE_LABEL) && !hasLabel(pr, GH_DEPENDENCIES_LABEL)) {
-      console.log('Error: A PR MUST either declare which issues it fixes OR must have the QA/None label');
-      process.exit(1);
-    }
-
-    console.log('Allowing PR to proceed without being linked to an issue because of the labels on the PR');    
   }
 
   const milestones = {};

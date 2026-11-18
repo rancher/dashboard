@@ -12,7 +12,7 @@ const namespace = 'default';
 let removeServices = false;
 const servicesToDelete: string[] = [];
 
-describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Services', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.createE2EResourceName('serviceexternalname').then((name) => {
@@ -144,7 +144,7 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}', { delay: true });
     });
@@ -196,11 +196,10 @@ describe('Services', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
       cy.wait('@servicesDataSmall');
 
       // group by namespace
-      servicesPagePo.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      servicesPagePo.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Target', 'Selector', 'Type', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Target', 'Selector', 'Type', 'Age'];
 
       servicesPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

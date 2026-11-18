@@ -1,3 +1,5 @@
+import { loginDisplayName } from '@shell/composables/useLogin';
+
 export default {
   props: {
     focusOnMount: {
@@ -5,15 +7,22 @@ export default {
       required: true,
     },
 
+    /** The authconfig's name, which an admin is free to choose. */
     name: {
       type:     String,
       required: true
+    },
+
+    /** The provider the config is for, e.g. `githubProvider`. */
+    type: {
+      type:     String,
+      required: true,
     }
   },
 
   computed: {
     displayName() {
-      return this.t(`model.authConfig.provider.${ this.name }`);
+      return loginDisplayName((key) => this.t(key), this.name, this.type);
     }
   },
 
@@ -25,7 +34,7 @@ export default {
 
   methods: {
     focus() {
-      this.$refs.btn.focus();
+      this.$refs.btn?.focus();
     },
   },
 };

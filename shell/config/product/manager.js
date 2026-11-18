@@ -1,5 +1,5 @@
 import {
-  AGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
+  AGE, CLUSTER_BADGE, MGMT_CLUSTER_KUBE_VERSION, MGMT_CLUSTER_MACHINES, MGMT_CLUSTER_PROVIDER, NAME as NAME_COL, STATE
 } from '@shell/config/table-headers';
 import {
   CAPI,
@@ -20,7 +20,7 @@ import { DSL } from '@shell/store/type-map';
 import { BLANK_CLUSTER } from '@shell/store/store-types.js';
 import { markRaw } from 'vue';
 import {
-  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_STATE_COL, STEVE_NAMESPACE_COL
+  STEVE_AGE_COL, STEVE_MGMT_CLUSTER_KUBE_VERSION, STEVE_MGMT_CLUSTER_MACHINES, STEVE_MGMT_CLUSTER_PROVIDER, STEVE_MGMT_STATE_COL, STEVE_NAMESPACE_COL
 } from '@shell/config/pagination-table-headers';
 
 export const NAME = 'manager';
@@ -78,6 +78,8 @@ export function init(store) {
     'providers',
   ]);
 
+  configureType(NORMAN.CLOUD_CREDENTIAL, { canYaml: false });
+
   configureType(SNAPSHOT, { depaginate: true });
   configureType(CATALOG.CLUSTER_REPO, { listCreateButtonLabelKey: 'catalog.repo.add' });
 
@@ -85,6 +87,7 @@ export function init(store) {
   configureType(OPERATION.ETCD_SNAPSHOT, { isCreatable: false, isEditable: false });
   configureType(OPERATION.ETCD_SNAPSHOT_RESTORE, { isCreatable: false, isEditable: false });
   configureType(OPERATION.ENCRYPTION_KEY_ROTATE, { isCreatable: false, isEditable: false });
+  configureType(OPERATION.CERTIFICATE_ROTATE, { isCreatable: false, isEditable: false });
 
   configureType(CAPI.RANCHER_CLUSTER, {
     showListMasthead: false, namespaced: false, alias: [HCI.CLUSTER]
@@ -111,7 +114,7 @@ export function init(store) {
     namespaced: false,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-driver-kontainerdriver' },
-    exact:      true
+    exact:      false
   });
   virtualType({
     labelKey:   'drivers.node.title',
@@ -120,7 +123,7 @@ export function init(store) {
     namespaced: false,
     icon:       'globe',
     route:      { name: 'c-cluster-manager-driver-nodedriver' },
-    exact:      true
+    exact:      false
   });
 
   virtualType({
@@ -163,23 +166,20 @@ export function init(store) {
 
   weightGroup('advanced', -1, true);
 
-  const MACHINE_SUMMARY = {
-    name:      'summary',
-    labelKey:  'tableHeaders.machines',
-    sort:      false,
-    search:    false,
-    formatter: 'MachineSummaryGraph',
-    align:     'center',
-    width:     100,
-  };
+  // A machine deployment has no machine count to sort on
+  const MACHINE_SUMMARY = { ...MGMT_CLUSTER_MACHINES, sort: false };
 
   const EXPLORER = {
-    name:   'explorer',
-    label:  ' ',
-    align:  'right',
-    width:  65,
-    sort:   false,
-    search: false
+    name:                'explorer',
+    labelKey:            'tableHeaders.explore',
+    labelVisuallyHidden: true,
+    align:               'right',
+    width:               65,
+    sort:                false,
+    search:              false,
+    formatter:           'ClusterExplore',
+    // A button, not data
+    tableViews:          false,
   };
 
   headers(MANAGEMENT.CLUSTER, [
@@ -192,12 +192,10 @@ export function init(store) {
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
+    CLUSTER_BADGE,
     MGMT_CLUSTER_PROVIDER,
     MGMT_CLUSTER_KUBE_VERSION,
-    {
-      ...MACHINE_SUMMARY,
-      sort: 'statusInfo.nodeCount'
-    },
+    MGMT_CLUSTER_MACHINES,
     AGE,
     EXPLORER,
   ], [
@@ -211,12 +209,10 @@ export function init(store) {
       formatter:     'ClusterLink',
       canBeVariable: true,
     },
+    CLUSTER_BADGE,
     STEVE_MGMT_CLUSTER_PROVIDER,
     STEVE_MGMT_CLUSTER_KUBE_VERSION,
-    {
-      ...MACHINE_SUMMARY,
-      sort: 'status.info.nodeCount'
-    },
+    STEVE_MGMT_CLUSTER_MACHINES,
     STEVE_AGE_COL,
     EXPLORER
   ]);

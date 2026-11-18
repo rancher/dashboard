@@ -46,6 +46,7 @@ describe('Apps', () => {
             appRepoCreate.nameNsDescription().name().self().scrollIntoView()
               .should('be.visible');
             appRepoCreate.nameNsDescription().name().set(this.helmRepoDupeName);
+            appRepoCreate.enterHelmIndexURL('https://charts.rancher.io');
             appRepoCreate.create().self().scrollIntoView();
             appRepoCreate.create().click();
 
@@ -227,8 +228,9 @@ describe('Apps', () => {
           // Wait for the repository to become active again
           appRepoList.list().state('Rancher').contains('Active', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
-          // Wait for the charts (in repo) to be fetched again
-          cy.wait('@rancherCharts3').its('response.statusCode').should('eq', 200);
+          // Wait for the charts (in repo) to be fetched again. The UI only fetches them once the repo is
+          // active again, which for a git repo can take longer than the default timeout
+          cy.wait('@rancherCharts3', MEDIUM_TIMEOUT_OPT).its('response.statusCode').should('eq', 200);
 
           // Nav to the summary page for a specific chart
           ChartPage.navTo(clusterId, 'Rancher Backups');

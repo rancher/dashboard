@@ -127,7 +127,7 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
         }
       ]
     }
-  }
+  } as const
 ;
 
   describe('with resource metrics:', () => {
@@ -173,18 +173,18 @@ describe('view: autoscaling.horizontalpodautoscaler', () => {
     });
 
     describe.each(valueWithOtherMetrics.spec.metrics)('should display metrics for each resource:', (metric) => {
-      const metricType = camelCase(metric.type);
-      const name = metric[metricType as keyof typeof metric].metric.name;
+      const metricType = camelCase(metric.type) as Uncapitalize<typeof metric.type>;
+      const name = metric[metricType].metric.name;
 
       it(`${ name }:`, () => {
         // Resource metrics
         const resourceValue = wrapper.get(`[data-testid="resource-metrics-value-${ name }"]`);
-        const metricValue = metric[metricType as keyof typeof metric];
+        const metricValue = metric[metricType];
 
         // Current Metrics
         const averageValue = wrapper.get(`[data-testid="current-metrics-Average Value-${ name }"]`);
-        const currentMatch = currentMetrics.find((f) => f[metricType as keyof typeof metric]?.metric.name === name);
-        const currentValue = currentMatch[metricType as keyof typeof metric]?.current;
+        const currentMatch = currentMetrics.find((f) => f[metricType]?.metric.name === name);
+        const currentValue = currentMatch?.[metricType]?.current;
 
         // Resource metrics
         expect(resourceValue.element.textContent).toBe(`${ metricValue?.target?.averageValue }`);

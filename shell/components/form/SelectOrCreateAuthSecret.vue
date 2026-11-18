@@ -1,10 +1,13 @@
 <script>
+import { useStore } from 'vuex';
+import { useFormRules } from '@shell/composables/useFormValidation';
+import { useI18n } from '@shell/composables/useI18n';
 import { _EDIT } from '@shell/config/query-params';
 import { Banner } from '@components/Banner';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import SSHKnownHosts from '@shell/components/form/SSHKnownHosts';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import { AUTH_TYPE, NORMAN, SECRET } from '@shell/config/types';
 import { SECRET_TYPES, GITHUB_APP_SECRET_KEYS } from '@shell/config/secret';
 import { base64Encode } from '@shell/utils/crypto';
@@ -36,7 +39,7 @@ export default {
     LabeledInput,
     LabeledSelect,
     SSHKnownHosts,
-    FileSelector,
+    FileSelectorTextArea,
   },
 
   props: {
@@ -218,6 +221,38 @@ export default {
       type:    [String, null],
       default: null
     }
+  },
+
+  setup() {
+    const store = useStore();
+    const { t } = useI18n(store);
+    const { getRules } = useFormRules(
+      t,
+      [
+        {
+          path:           'sshPublicKey',
+          rules:          ['required'],
+          translationKey: 'selectOrCreateAuthSecret.ssh.publicKey',
+        },
+        {
+          path:           'sshPrivateKey',
+          rules:          ['required'],
+          translationKey: 'selectOrCreateAuthSecret.ssh.privateKey',
+        },
+        {
+          path:           'basicUsername',
+          rules:          ['required'],
+          translationKey: 'selectOrCreateAuthSecret.basic.username',
+        },
+        {
+          path:           'basicPassword',
+          rules:          ['required'],
+          translationKey: 'selectOrCreateAuthSecret.basic.password',
+        },
+      ]
+    );
+
+    return { getRules };
   },
 
   async fetch() {
@@ -786,6 +821,9 @@ export default {
           <LabeledInput
             v-model:value="publicKey"
             data-testid="auth-secret-ssh-public-key"
+            name="sshPublicKey"
+            required
+            :rules="getRules('sshPublicKey')"
             :mode="mode"
             type="multiline"
             label-key="selectOrCreateAuthSecret.ssh.publicKey"
@@ -795,6 +833,9 @@ export default {
           <LabeledInput
             v-model:value="privateKey"
             data-testid="auth-secret-ssh-private-key"
+            name="sshPrivateKey"
+            required
+            :rules="getRules('sshPrivateKey')"
             :mode="mode"
             type="multiline"
             label-key="selectOrCreateAuthSecret.ssh.privateKey"
@@ -823,6 +864,9 @@ export default {
           <LabeledInput
             v-model:value="publicKey"
             data-testid="auth-secret-basic-username"
+            name="basicUsername"
+            required
+            :rules="getRules('basicUsername')"
             :mode="mode"
             label-key="selectOrCreateAuthSecret.basic.username"
           />
@@ -831,6 +875,9 @@ export default {
           <LabeledInput
             v-model:value="privateKey"
             data-testid="auth-secret-basic-password"
+            name="basicPassword"
+            required
+            :rules="getRules('basicPassword')"
             :mode="mode"
             type="password"
             :label-key="isGithubDotComRepository ? 'selectOrCreateAuthSecret.basic.passwordPersonalAccessToken' : 'selectOrCreateAuthSecret.basic.password'"
@@ -878,22 +925,19 @@ export default {
           label-key="selectOrCreateAuthSecret.githubApp.installationId"
         />
       </div>
-      <div :class="vertical ? 'mt-20' : 'col span-6 gap'">
-        <LabeledInput
+    </div>
+    <div
+      v-if="selected === GITHUB_APP"
+      class="mt-20"
+      :class="{'row': !vertical}"
+    >
+      <div :class="vertical ? '' : 'col span-6'">
+        <FileSelectorTextArea
           v-model:value="githubAppPrivateKey"
           data-testid="auth-secret-github-app-private-key"
+          file-selector-testid="auth-secret-github-app-private-key-file"
           :mode="mode"
-          type="multiline"
-          :max-height="1000"
-          :resize-on-value-change-and-resize-window="true"
           label-key="selectOrCreateAuthSecret.githubApp.privateKey"
-        />
-        <FileSelector
-          :as-rc-button="true"
-          :mode="mode"
-          :label="t('generic.readFromFile')"
-          data-testid="auth-secret-github-app-private-key-file"
-          @selected="githubAppPrivateKey = $event"
         />
       </div>
     </div>
@@ -903,11 +947,5 @@ export default {
 <style scoped lang="scss">
 .select-or-create-auth-secret div.labeled-select {
   min-height: $input-height;
-}
-
-.gap {
-  display: flex;
-  flex-flow: row wrap;
-  gap: var(--gap);
 }
 </style>

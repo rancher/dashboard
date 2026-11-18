@@ -13,6 +13,12 @@ const componentProps = computed(() => store.getters['modal/componentProps']);
 const resources = computed(() => store.getters['modal/resources']);
 const closeOnClickOutside = computed(() => store.getters['modal/closeOnClickOutside']);
 const modalWidth = computed(() => store.getters['modal/modalWidth']);
+const ownsModal = computed(() => {
+  const props = component.value?.props;
+
+  return Array.isArray(props) ? props.includes('modal') : !!props && 'modal' in props;
+});
+const modal = computed(() => ({ show: isOpen.value, onClose: close }));
 // const modalSticky = computed(() => store.getters['modal/modalSticky']); // TODO: Implement sticky modals
 
 const backgroundClosing = ref<Function | null>(null);
@@ -41,9 +47,16 @@ function onSlotComponentMounted() {
 </script>
 
 <template>
+  <component
+    :is="component"
+    v-if="isOpen && component && ownsModal"
+    v-bind="componentProps || {}"
+    :resources="resources"
+    :modal="modal"
+  />
   <Teleport to="#modals">
     <app-modal
-      v-if="isOpen && component"
+      v-if="isOpen && component && !ownsModal"
       :click-to-close="closeOnClickOutside"
       :width="modalWidth"
       :style="{ '--prompt-modal-width': modalWidth }"

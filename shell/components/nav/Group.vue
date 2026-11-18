@@ -1,10 +1,12 @@
 <script>
 import Type from '@shell/components/nav/Type';
-import { filterLocationValidParams } from '@shell/utils/router';
+import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
+import { RcSeparator } from '@components/RcSeparator';
+
 export default {
   name: 'Group',
 
-  components: { Type },
+  components: { Type, RcSeparator },
 
   emits: ['expand', 'close'],
 
@@ -38,22 +40,12 @@ export default {
       type:    Boolean,
       default: true,
     },
-
-    fixedOpen: {
-      type:    Boolean,
-      default: false,
-    },
-
-    highlightRoute: {
-      type:    Boolean,
-      default: true,
-    }
   },
 
   data() {
     const id = (this.idPrefix || '') + this.group.name;
 
-    return { id, expanded: false };
+    return { id };
   },
 
   computed: {
@@ -65,8 +57,15 @@ export default {
       return this.group.children?.length > 0;
     },
 
+    // Finds the overview child regardless of its position in the children array.
+    // The new product registration API (PR #17990) pushes the overview last in navNames,
+    // so it may not be at index 0 after weight-based reordering.
+    overviewChild() {
+      return this.group.children?.find((child) => child.overview) || null;
+    },
+
     hasOverview() {
-      return this.group.children?.[0]?.overview;
+      return !!this.overviewChild;
     },
 
     onlyHasOverview() {
@@ -74,33 +73,36 @@ export default {
     },
 
     isOverview() {
-      if (this.group.children && this.group.children.length > 0) {
-        const grp = this.group.children[0];
-        const overviewRoute = grp?.route;
+      const overviewRoute = this.overviewChild?.route;
 
-        if (overviewRoute && grp.overview) {
-          const validRoute = filterLocationValidParams(this.$router, overviewRoute || {});
-          const route = this.$router.resolve(validRoute);
-
-          // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
-          return this.$route.path === route?.path;
-        }
+      if (!overviewRoute?.name || this.$route.name !== overviewRoute.name) {
+        return false;
       }
 
-      return false;
+      // A route name can be shared by several nav items that are told apart only by their params
+      // (a legacy product whose pages all use `c-cluster-<product>-page`, for example), so the name
+      // on its own isn't enough. `cluster` is the exception: the stored route always carries the
+      // BLANK_CLUSTER placeholder rather than the cluster we're actually on (issue #19169).
+      const { params = {} } = filterLocationValidParams(this.$router, overviewRoute) || {};
+
+      return Object.entries(params).every(([key, value]) => key === 'cluster' || this.$route.params?.[key] === value);
     },
 
+    // The expand/collapse state lives on the group itself rather than in this
+    // component, so it survives the group being unmounted (a nested group only
+    // exists while its parent is expanded) and SideNav can read and write the
+    // state of the whole tree, including groups that aren't currently rendered.
     isExpanded: {
       get() {
-        return this.fixedOpen || this.group.isRoot || !!this.expanded;
+        return this.group.isRoot || !!this.group.expanded;
       },
       set(v) {
-        this.expanded = v;
+        this.group.expanded = v;
       }
     },
 
     headerRoute() {
-      return filterLocationValidParams(this.$router, this.group.children[0].route);
+      return filterLocationValidParams(this.$router, this.overviewChild.route);
     }
   },
 
@@ -110,23 +112,13 @@ export default {
       this.$emit('expand', this.group);
     },
 
+    // The group header was clicked, so open the group and navigate into it
     groupSelected() {
-      // Can not click on groups that are fixed open
-      if (this.fixedOpen) {
-        return;
-      }
-
       // Don't auto-select first group entry if we're already expanded and contain the currently-selected nav item
       if (this.hasActiveRoute() && this.isExpanded) {
         return;
-      } else {
-        // Remove all active class if click on group header and not active route
-        const headerEl = document.querySelectorAll('.header');
-
-        headerEl.forEach((el) => {
-          el.classList.remove('active');
-        });
       }
+
       this.expandGroup();
 
       const items = this.group[this.childrenKey];
@@ -163,8 +155,9 @@ export default {
       }
     },
 
+    // A nav item within the group was clicked. The item routes itself, so there's
+    // nothing to navigate here
     selectType() {
-      this.groupSelected();
       this.close();
     },
 
@@ -174,12 +167,8 @@ export default {
 
     // User clicked on the expander icon, so toggle the expansion so the user can see inside the group
     peek($event) {
-      // Add active class to the current header if click on chevron icon
-      $event.target.parentElement.classList.remove('active');
-      if (this.hasActiveRoute() && this.isExpanded) {
-        $event.target.parentElement.classList.add('active');
-      }
       this.isExpanded = !this.isExpanded;
+      this.$emit(this.isExpanded ? 'expand' : 'close', this.group);
       $event.stopPropagation();
     },
 
@@ -205,14 +194,23 @@ export default {
         } else if (item.route) {
           const navLevels = ['cluster', 'product', 'resource'];
           const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
+
+          // Keep the group open wherever the child itself is highlighted, otherwise pages nested under a
+          // child's route (its create/detail pages) would collapse the group out from under it
+          if (matchesNavLevel || isNavItemActive(this.$router, this.$route, item)) {
+            return true;
+          }
+
+          if (!parentPath) {
+            continue;
+          }
+
           const validItemRoute = filterLocationValidParams(this.$router, item.route);
 
           // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
           const itemPath = this.$router.resolve(validItemRoute).path;
 
-          if (matchesNavLevel || itemPath === this.$route.path) {
-            return true;
-          } else if (parentPath && itemPath === parentPath) {
+          if (itemPath === parentPath) {
             return true;
           }
         }
@@ -250,7 +248,7 @@ export default {
 <template>
   <div
     class="accordion"
-    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': highlightRoute && isGroupActive }"
+    :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren, 'group-highlight': isGroupActive }"
   >
     <div
       v-if="showHeader || (!onlyHasOverview && canCollapse)"
@@ -259,12 +257,12 @@ export default {
       <div
         v-if="showHeader"
         class="header"
-        :class="{'active': highlightRoute && isOverview, 'noHover': !canCollapse || fixedOpen}"
-        role="button"
-        :tabindex="fixedOpen ? -1 : 0"
-        :aria-label="group.labelDisplay || group.label || ''"
-        :aria-expanded="!canCollapse || isExpanded"
-        :aria-controls="!canCollapse ? null : `group-${id}`"
+        :class="{'active': isOverview, 'noHover': !canCollapse}"
+        :role="hasChildren && !hasOverview ? 'button' : undefined"
+        :tabindex="hasChildren && !hasOverview ? 0 : undefined"
+        :aria-label="hasChildren && !hasOverview ? (group.labelDisplay || group.label || '') : undefined"
+        :aria-expanded="hasChildren && !hasOverview ? (!canCollapse || isExpanded) : undefined"
+        :aria-controls="hasChildren && !hasOverview ? (!canCollapse ? null : `group-${id}`) : undefined"
         @click="groupSelected()"
         @keyup.enter="groupSelected()"
         @keyup.space="groupSelected()"
@@ -274,8 +272,7 @@ export default {
           <router-link
             v-if="hasOverview && hasChildren"
             :to="headerRoute"
-            :exact="group.children[0].exact"
-            :tabindex="-1"
+            :exact="overviewChild.exact"
           >
             <h6>
               <span v-clean-html="group.labelDisplay || group.label" />
@@ -299,7 +296,6 @@ export default {
               :is-root="depth == 0 && !showHeader"
               :type="group"
               :depth="depth"
-              :highlight-route="highlightRoute"
               @selected="selectType($event)"
             />
           </ul>
@@ -311,7 +307,7 @@ export default {
         :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}"
         role="button"
         tabindex="0"
-        :aria-label="t('nav.ariaLabel.collapseExpand')"
+        :aria-label="isExpanded ? t('nav.ariaLabel.collapse', { group: group.labelDisplay || group.label }) : t('nav.ariaLabel.expand', { group: group.labelDisplay || group.label })"
         :aria-expanded="isExpanded"
         :aria-controls="`group-${id}`"
         @click="peek($event, true)"
@@ -333,7 +329,7 @@ export default {
           v-if="child.divider"
           :key="idx"
         >
-          <hr role="none">
+          <RcSeparator />
         </li>
         <!-- <div v-else-if="child[childrenKey] && hideGroup(child[childrenKey])" :key="child.name">
           HIDDEN
@@ -350,9 +346,6 @@ export default {
             :children-key="childrenKey"
             :can-collapse="canCollapse"
             :group="child"
-            :fixed-open="fixedOpen"
-            :highlight-route="highlightRoute"
-            @selected="groupSelected($event)"
             @expand="expandGroup($event)"
             @close="close($event)"
           />
@@ -363,7 +356,6 @@ export default {
           :is-root="depth == 0 && !showHeader"
           :type="child"
           :depth="depth"
-          :highlight-route="highlightRoute"
           @selected="selectType($event)"
         />
       </template>
@@ -401,6 +393,11 @@ export default {
       &:focus{
         outline:none;
       }
+      &:focus-visible{
+        h6 span {
+          @include focus-outline;
+        }
+      }
     }
   }
 
@@ -427,21 +424,21 @@ export default {
       }
 
       &.active {
-        color: var(--on-active, var(--primary-hover-text));
-        background-color: var(--active-nav, var(--primary-hover-bg));
+        color: var(--on-active);
+        background-color: var(--active);
 
         h6 {
           padding: 8px 0 8px 16px;
           font-weight: bold;
-          color: var(--on-active, var(--primary-hover-text));
+          color: var(--on-active);
         }
 
         &:hover {
-          background-color: var(--nav-active-hover, var(--primary-hover-bg));
+          background-color: var(--active-hover);
         }
 
         ~ I {
-          color: var(--on-active, var(--primary-hover-text));
+          color: var(--on-active);
         }
       }
       &:hover:not(.active) {
@@ -484,11 +481,11 @@ export default {
       }
 
       &.group-highlight {
-        background: var(--category-active, var(--nav-active));
+        background: var(--rc-section-background-secondary, var(--category-active, var(--nav-active)));
 
         .active.header {
           &:hover {
-            background-color: var(--nav-active-hover)
+            background-color: var(--active-hover)
           }
         }
 
@@ -546,16 +543,16 @@ export default {
     padding: 0;
 
     A, A I {
-      color: var(--on-active, var(--primary-hover-text));
+      color: var(--on-active);
     }
 
     A {
-      color: var(--on-active, var(--primary-hover-text));
-      background-color: var(--active-nav, var(--primary-hover-bg));
+      color: var(--on-active);
+      background-color: var(--active);
       font-weight: bold;
 
       &:hover {
-        background: var(--nav-active-hover);
+        background: var(--active-hover);
       }
     }
   }

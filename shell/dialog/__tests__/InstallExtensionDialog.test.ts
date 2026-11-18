@@ -42,6 +42,22 @@ describe('component: InstallExtensionDialog', () => {
       expect(wrapper.vm.currentVersion).toBe('1.0.0');
     });
 
+    it('should disable the installed version in the options when its app version differs', async() => {
+      const plugin = {
+        installed:           true,
+        installedVersion:    '0.4.10',
+        installableVersions: [{ version: '0.4.11', appVersion: '4.1.1' }, { version: '0.4.10', appVersion: '4.1.0' }],
+      };
+
+      wrapper = mountComponent({ plugin, action: 'upgrade' });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      const currentOption = wrapper.vm.versionOptions.find((o: any) => o.value === '0.4.10');
+
+      expect(currentOption.disabled).toBe(true);
+      expect(currentOption.label).toContain('(plugins.labels.current)');
+    });
+
     it('should set version from initialVersion if provided', async() => {
       wrapper = mountComponent({ initialVersion: '1.2.3', plugin: { installed: false } });
       await wrapper.vm.$options.fetch.call(wrapper.vm);

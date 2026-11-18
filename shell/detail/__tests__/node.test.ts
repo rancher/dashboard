@@ -1,6 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import node from '@shell/detail/node.vue';
 import ConsumptionGauge from '@shell/components/ConsumptionGauge.vue';
+import Card from '@shell/components/Resource/Detail/Card/index.vue';
 
 describe('view: node detail', () => {
   const mockStore = {
@@ -26,9 +27,9 @@ describe('view: node detail', () => {
     },
     spec:               { taints: [] },
     pods:               [],
-    cpuCapacity:        4,
+    cpuAllocatable:     4,
     cpuUsage:           2,
-    ramReserved:        8000,
+    ramAllocatable:     8000,
     ramUsage:           4000,
     podCapacity:        110,
     podConsumed:        5,
@@ -42,17 +43,57 @@ describe('view: node detail', () => {
   function createWrapper(nodeOverrides = {}) {
     return shallowMount(node, {
       props:  { value: { ...defaultNodeValue, ...nodeOverrides } },
-      global: { mocks },
+      global: {
+        mocks,
+        // Each gauge lives in a card's default slot, which a stub drops unless told otherwise
+        renderStubDefaultSlot: true,
+      },
     });
   }
 
-  function findGaugeByResource(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
-    const gauges = wrapper.findAllComponents(ConsumptionGauge);
-
-    return gauges.find(
-      (g) => g.attributes('resourcename')?.includes(resourceKey)
-    );
+  function findCardByResource(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
+    return wrapper.findAllComponents(Card).find((c) => c.props('title')?.includes(resourceKey));
   }
+
+  function findGaugeByResource(wrapper: ReturnType<typeof createWrapper>, resourceKey: string) {
+    return findCardByResource(wrapper, resourceKey)?.findComponent(ConsumptionGauge);
+  }
+
+  it.each([
+    'consumptionGauge.cpu',
+    'consumptionGauge.memory',
+    'consumptionGauge.pods',
+  ])('should render the %s gauge inside a card titled with its resource name', (resourceKey) => {
+    const wrapper = createWrapper();
+
+    const gauge = findGaugeByResource(wrapper, resourceKey);
+
+    expect(gauge?.exists()).toStrictEqual(true);
+  });
+
+  it.each([
+    'consumptionGauge.cpu',
+    'consumptionGauge.memory',
+    'consumptionGauge.pods',
+  ])('should NOT pass a resource name to the %s gauge, so the card title is not repeated', (resourceKey) => {
+    const wrapper = createWrapper();
+
+    const gauge = findGaugeByResource(wrapper, resourceKey);
+
+    expect(gauge!.props('resourceName')).toStrictEqual('');
+  });
+
+  it.each([
+    'consumptionGauge.cpu',
+    'consumptionGauge.memory',
+    'consumptionGauge.pods',
+  ])('should render the %s gauge with a small bar', (resourceKey) => {
+    const wrapper = createWrapper();
+
+    const gauge = findGaugeByResource(wrapper, resourceKey);
+
+    expect(gauge!.props('barSize')).toStrictEqual('small');
+  });
 
   it('should pass the "running" translation key as usedlabel to the pods ConsumptionGauge', () => {
     const wrapper = createWrapper();
@@ -79,5 +120,31 @@ describe('view: node detail', () => {
 
     expect(memoryGauge).toBeDefined();
     expect(memoryGauge!.attributes('usedlabel')).toBeUndefined();
+  });
+
+  describe('memory ConsumptionGauge', () => {
+    // The gauge renders a single unit label, taken from the total. The used and total values are
+    // scaled independently, so a shared label misreports any node whose usage is orders of
+    // magnitude below its capacity - 900MiB of 62GiB would read "900 GiB of 62 GiB".
+    it('should NOT pass a shared units label', () => {
+      const wrapper = createWrapper();
+
+      const memoryGauge = findGaugeByResource(wrapper, 'consumptionGauge.memory');
+
+      expect(memoryGauge!.props('units')).toBe('');
+    });
+
+    it.each([
+      ['scales each value on its own', 900 * 1024 ** 2, '900 MiB'],
+      ['keeps used and total in step when they share a unit', 3.55 * 1024 ** 3, '3.55 GiB'],
+      ['reads plain bytes as B rather than iB', 512, '512 B'],
+    ])('should pass a numberFormatter that %s', (_, value, expected) => {
+      const wrapper = createWrapper();
+
+      const memoryGauge = findGaugeByResource(wrapper, 'consumptionGauge.memory');
+      const numberFormatter = memoryGauge!.props('numberFormatter') as (v: number) => string;
+
+      expect(numberFormatter(value as number)).toBe(expected);
+    });
   });
 });

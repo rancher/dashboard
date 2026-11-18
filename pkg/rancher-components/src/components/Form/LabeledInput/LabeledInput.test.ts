@@ -19,7 +19,9 @@ describe('component: LabeledInput', () => {
     jest.useRealTimers();
 
     expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
+    const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+    expect(emitted).toBe(value);
   });
 
   it('using type "multiline" should emit input value correctly', () => {
@@ -37,7 +39,9 @@ describe('component: LabeledInput', () => {
     jest.useRealTimers();
 
     expect(wrapper.emitted('update:value')).toHaveLength(1);
-    expect(wrapper.emitted('update:value')![0][0]).toBe(value);
+    const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+    expect(emitted).toBe(value);
   });
 
   describe('using type "chron"', () => {
@@ -54,6 +58,96 @@ describe('component: LabeledInput', () => {
       const subLabel = wrapper.find('[data-testid="sub-label"]');
 
       expect(subLabel.text()).toBe(hint);
+    });
+  });
+
+  describe('showCronHint prop', () => {
+    it('should not display the hint when showCronHint is false', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      const subLabel = wrapper.find('[data-testid="sub-label"]');
+
+      expect(subLabel.exists()).toBe(false);
+    });
+
+    it('should display the sub-label when showCronHint is false', () => {
+      const subLabel = 'some-sublabel';
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false, subLabel
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.find('[data-testid="sub-label"]').text()).toBe(subLabel);
+    });
+
+    it('should not add the hint to aria-describedby when showCronHint is false', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.find('input').attributes('aria-describedby')).toBeUndefined();
+    });
+  });
+
+  describe('cron-hint-change event', () => {
+    it.each([
+      [true],
+      [false],
+    ])('should emit the initial hint on creation when showCronHint is %p', (showCronHint) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.emitted('cron-hint-change')).toStrictEqual([['Every hour, every day']]);
+    });
+
+    it('should emit the new hint when the value changes', async() => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          value: '0 * * * *', type: 'cron', showCronHint: false
+        },
+        mocks: { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      await wrapper.setProps({ value: '@daily' });
+
+      expect(wrapper.emitted('cron-hint-change')).toStrictEqual([
+        ['Every hour, every day'],
+        ['At 12:00 AM, every day'],
+      ]);
+    });
+
+    it('should emit undefined when the value is cleared', async() => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '0 * * * *', type: 'cron' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      await wrapper.setProps({ value: '' });
+
+      expect(wrapper.emitted('cron-hint-change')?.[1]).toStrictEqual([undefined]);
+    });
+
+    it('should not emit a hint for other types', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '0 * * * *', type: 'text' },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.emitted('cron-hint-change')).toBeUndefined();
     });
   });
 
@@ -209,6 +303,33 @@ describe('component: LabeledInput', () => {
     });
   });
 
+  // The native input used to carry role="textbox" for every type but "number".
+  // On "search" and "password" that role is disallowed outright, and on
+  // "search" it also hid the implicit searchbox role from assistive
+  // technology; on the other types listed below it only repeated the implicit
+  // role. Either way the browser already exposes the right one, so the
+  // component writes none. "number" is listed because it must keep its
+  // implicit spinbutton role, and the "multiline" types are absent because
+  // they render a textarea rather than an input.
+  describe('a11y: leaving the implicit role alone', () => {
+    it.each([
+      ['text'],
+      ['search'],
+      ['password'],
+      ['email'],
+      ['number'],
+      ['integer'],
+      ['cron'],
+    ])('for type %p should not write an explicit role onto the input', (type) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: { value: '', type },
+        mocks:     { $store: { getters: { 'i18n/t': jest.fn() } } }
+      });
+
+      expect(wrapper.find('input').attributes('role')).toBeUndefined();
+    });
+  });
+
   it('a11y: rendering a "label" should not render an "aria-label" prop', () => {
     const label = 'some-label';
 
@@ -221,6 +342,293 @@ describe('component: LabeledInput', () => {
 
     expect(mainInput.attributes('aria-label')).toBeUndefined();
     expect(wrapper.find('label').text()).toBe(label);
+  });
+
+  describe('a11y: "overrideAriaLabel" prop', () => {
+    const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
+    const label = 'Inactivity period';
+    const ariaLabel = 'Inactivity period - Disable user accounts';
+
+    it.each([
+      ['text', 'input'],
+      ['multiline', 'textarea'],
+    ])('for type %p should render the "aria-label" alongside a visible label when enabled', (type, fieldTag) => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type, label, ariaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      const field = wrapper.find(fieldTag);
+
+      // the visible label is still rendered, the aria-label just takes over the accessible name
+      expect(wrapper.find('label').text()).toBe(label);
+      expect(field.attributes('aria-label')).toBe(ariaLabel);
+    });
+
+    it('should not render the "aria-label" alongside a visible label when disabled', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel, overrideAriaLabel: false
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should default to disabled, keeping the visible label as the accessible name', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should not render an empty "aria-label" when enabled without an "ariaLabel" value', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: '', overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('input').attributes('aria-label')).toBeUndefined();
+    });
+
+    it('should still render the "aria-label" when there is no visible label and it is disabled', () => {
+      const wrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', ariaLabel, overrideAriaLabel: false
+        },
+        mocks: i18nMock
+      });
+
+      expect(wrapper.find('label').exists()).toBe(false);
+      expect(wrapper.find('input').attributes('aria-label')).toBe(ariaLabel);
+    });
+
+    it('should give two inputs sharing the same visible label unique accessible names', () => {
+      const disableAriaLabel = 'Inactivity period - Disable user accounts';
+      const deleteAriaLabel = 'Inactivity period - Delete user accounts';
+
+      const disableWrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: disableAriaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+      const deleteWrapper = mount(LabeledInput, {
+        propsData: {
+          type: 'text', label, ariaLabel: deleteAriaLabel, overrideAriaLabel: true
+        },
+        mocks: i18nMock
+      });
+
+      const disableName = disableWrapper.find('input').attributes('aria-label');
+      const deleteName = deleteWrapper.find('input').attributes('aria-label');
+
+      expect(disableName).toBe(disableAriaLabel);
+      expect(deleteName).toBe(deleteAriaLabel);
+      expect(disableName).not.toBe(deleteName);
+    });
+  });
+
+  describe('clear button functionality', () => {
+    const i18nMock = { $store: { getters: { 'i18n/t': jest.fn() } } };
+
+    describe('type="search"', () => {
+      it('should show clear button when type is search and value is not empty', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(true);
+      });
+
+      it('should not show clear button when type is search and value is empty', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: '' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(false);
+      });
+
+      it('should hide native search cancel button', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test' },
+          mocks:     i18nMock
+        });
+        const input = wrapper.find('input[type="search"]');
+
+        expect(input.exists()).toBe(true);
+      });
+
+      it('should clear input value when clear button is clicked', async() => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        await clearButton.trigger('click');
+
+        expect(wrapper.emitted('update:value')).toHaveLength(1);
+        const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+        expect(emitted).toBe('');
+      });
+
+      it('should clear input value when Enter key is pressed on clear button', async() => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        await clearButton.trigger('keydown.enter');
+
+        expect(wrapper.emitted('update:value')).toHaveLength(1);
+        const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+        expect(emitted).toBe('');
+      });
+
+      it('should clear input value when Space key is pressed on clear button', async() => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        await clearButton.trigger('keydown.space');
+
+        expect(wrapper.emitted('update:value')).toHaveLength(1);
+        const [[emitted]] = wrapper.emitted('update:value') as [string][];
+
+        expect(emitted).toBe('');
+      });
+
+      it('should have proper ARIA label for accessibility', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.attributes('aria-label')).toBeDefined();
+        expect(clearButton.attributes('type')).toBe('button');
+      });
+
+      it('should be disabled when input is disabled', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'search', value: 'test query', mode: 'view'
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.attributes('disabled')).toBeDefined();
+      });
+    });
+
+    describe('clearButtonLabel prop', () => {
+      it('should fall back to the generic clear label when no custom label is given', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'search', value: 'test query' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        // The i18n helper wraps unresolved keys in `%...%`, so this asserts
+        // which translation key was requested
+        expect(clearButton.attributes('aria-label')).toBe('%generic.clear%');
+      });
+
+      it('should use the custom label when one is given', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'search', value: 'test query', clearButtonLabel: 'Clear Filter for table results'
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.attributes('aria-label')).toBe('Clear Filter for table results');
+      });
+    });
+
+    describe('showClearButton prop', () => {
+      it('should show clear button when showClearButton is true and value is not empty', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'text', value: 'test', showClearButton: true
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(true);
+      });
+
+      it('should not show clear button when showClearButton is false even for search type', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'search', value: 'test', showClearButton: false
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(false);
+      });
+
+      it('should not show clear button when showClearButton is true but value is empty', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: {
+            type: 'text', value: '', showClearButton: true
+          },
+          mocks: i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(false);
+      });
+    });
+
+    describe('type="text" without showClearButton', () => {
+      it('should not show clear button by default for text type', () => {
+        const wrapper = mount(LabeledInput, {
+          propsData: { type: 'text', value: 'test' },
+          mocks:     i18nMock
+        });
+
+        const clearButton = wrapper.find('.labeled-input-clear-button');
+
+        expect(clearButton.exists()).toBe(false);
+      });
+    });
   });
 
   describe('vee-validate integration', () => {
@@ -306,6 +714,48 @@ describe('component: LabeledInput', () => {
 
       expect(wrapper.find('.labeled-input').classes()).not.toContain('error');
       expect(wrapper.vm.validationMessage).toBeUndefined();
+    });
+
+    describe('touch', () => {
+      const errorMessage = 'Field cannot be empty';
+
+      const mountField = (ruleResult?: string) => mount(LabeledInput, {
+        propsData: {
+          name:  'testField',
+          rules: [jest.fn().mockReturnValue(ruleResult)],
+          value: '',
+        },
+        mocks: i18nMock
+      });
+
+      it('should hide the error until the field is touched', async() => {
+        const wrapper = mountField(errorMessage);
+
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toBeUndefined();
+      });
+
+      it.each([
+        ['the error when the rules fail', errorMessage],
+        ['no error when the rules pass', undefined],
+      ])('should show %s, without the input being blurred', async(_, ruleResult) => {
+        const wrapper = mountField(ruleResult);
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.vm.validationMessage).toStrictEqual(ruleResult);
+      });
+
+      it('should not emit blur', async() => {
+        const wrapper = mountField(errorMessage);
+
+        wrapper.vm.touch();
+        await flushPromises();
+
+        expect(wrapper.emitted('blur')).toBeUndefined();
+      });
     });
 
     it('with name prop: form-level validation schema error is shown when the form validates', async() => {

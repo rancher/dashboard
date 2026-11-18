@@ -21,6 +21,8 @@ env:
   CATTLE_BOOTSTRAP_PASSWORD: password
   TEST_BASE_URL: https://127.0.0.1.sslip.io
   API: https://127.0.0.1.sslip.io
+  # In a pull request the video of a spec that passes is replaced by a placeholder, unless the PR has the ci/videos-all label
+  TEST_NO_PASSED_VIDEOS: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci/videos-all') }}
   # Build the dashboard to use in tests. When set to false it will grab `latest` from CDN (useful for running e2e tests quickly)
   BUILD_DASHBOARD: true
 
@@ -31,11 +33,50 @@ env:
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
 
 jobs:
-  e2e-ui-build:
-    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+  # Verify licenses.json is up to date with the packages that end up in the
+  # bundle. Fails the PR when a dependency was added, removed, or upgraded
+  # without regenerating licenses.json (see scripts/analyze-licenses).
+  check-licenses:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+      - name: Build with bundle analyzer
+        run: ANALYZE_LICENSES=true yarn build
+      - name: Verify licenses.json is up to date
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node ./scripts/analyze-licenses
+
+  extract-e2e-runtime-rancher-version:
+    runs-on: ubuntu-latest
+    outputs:
+      runtime-rancher-version: ${{ steps.extract.outputs.runtime-rancher-version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Extract Rancher version
+        id: extract
+        run: |
+          BRANCH_DATA=$(./scripts/get-branch-metadata.sh ${{ github.base_ref || github.ref_name }} --local 2>/dev/null)
+          VERSION=$(echo "$BRANCH_DATA" | jq -r '.e2e["runtime-rancher-version"]')
+          if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+            echo "Warning: Rancher version not found for branch '${{ github.base_ref || github.ref_name }}', 'runtime-rancher-version' will be empty."
+          fi
+          echo "runtime-rancher-version=$VERSION" >> "$GITHUB_OUTPUT"
+
+  e2e-ui-build:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: extract-e2e-runtime-rancher-version
+    runs-on: ubuntu-latest
+    outputs:
+      runtime-rancher-version: ${{ needs.extract-e2e-runtime-rancher-version.outputs.runtime-rancher-version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
       - name: Setup env
@@ -79,11 +120,10 @@ jobs:
           ['@manager'],
           ['@userMenu', '@usersAndAuths'],
           ['@components'],
-          ['@noVai']
         ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Revert to 'ubuntu-latest' when this is resolved: https://github.com/rancher/rancher/issues/58615 
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
       - name: Setup env
@@ -115,18 +155,26 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
+      - name: Detect Rancher license (Prime vs Community)
+        id: detect-prime
+        run: |
+          IS_PRIME=$(curl -sk "$API/rancherversion" | jq -r '.RancherPrime // "false"')
+          echo "Detected RancherPrime=$IS_PRIME"
+          echo "is-prime=$IS_PRIME" >> "$GITHUB_OUTPUT"
+
       - name: Run user tests
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
-        env: 
+        env:
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           TEST_SKIP: setup
-          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins${{ steps.detect-prime.outputs.is-prime == 'true' && ' --@noPrime' || '' }} ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins${{ steps.detect-prime.outputs.is-prime == 'true' && ' --@noPrime' || '' }}
           TEST_USERNAME: ${{ matrix.role.username }}
-          VAI_ENABLED: ${{ (matrix.features[0] != '@noVai') && 'true' || 'false' }}
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}
@@ -155,9 +203,9 @@ jobs:
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
       - name: Setup env
@@ -187,6 +235,7 @@ jobs:
         run: |
           yarn e2e:prod
         env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_ONLY: setup
@@ -196,6 +245,7 @@ jobs:
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env: 
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           TEST_SKIP: setup
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
@@ -227,16 +277,48 @@ jobs:
           retention-days: 5
           compression-level: 9
 
+      - name: Fetch Rancher Logs
+        if: ${{ failure() }}
+        run: yarn k3s:local:logs
+
+      - name: Upload Rancher Logs
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-accessibility-rancher-logs
+          path: ${{ env.E2E_RANCHER_LOG }}
+          if-no-files-found: ignore
+          retention-days: 5
+          compression-level: 9
+
       - name: Upload report
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: accessibility-report
           path: cypress/accessibility
-        
+
+      # Ratchet gate: fail only on a11y violations that are not in the committed
+      # baseline (cypress/e2e/tests/accessibility/baseline.json). Enforced by
+      # default; set the A11Y_RATCHET_ENFORCE repo variable to 'false' to drop
+      # back to report-only without a code change.
+      #
+      # Deliberately `success()`, not `always()`. Violations are collected with
+      # skipFailures, so they never redden the test step -- a red test step means
+      # the run itself broke, and Cypress still fires `after:run`, leaving a report
+      # that is a strict subset of the baseline. Comparing it would find nothing
+      # new and print a green ratchet directly beneath the failure. The report is
+      # still uploaded on failure by the step above, so nothing is lost.
+      - name: A11y ratchet
+        if: success()
+        run: yarn a11y:compare
+        env:
+          A11Y_RATCHET_ENFORCE: ${{ vars.A11Y_RATCHET_ENFORCE || 'true' }}
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
       
@@ -264,7 +346,7 @@ jobs:
   i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
 
@@ -274,20 +356,30 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
 
       - name: Run tests
         uses: ./.github/actions/lint
-      
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+
+      - name: Run type check
+        uses: ./.github/actions/type-check
+
   check-i18n:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
       
@@ -302,10 +394,10 @@ jobs:
   check-i18n-links:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
       
@@ -346,10 +438,10 @@ jobs:
   check-e2e-tags:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
       - name: Check e2e tags
@@ -359,10 +451,10 @@ jobs:
   check-cypress-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
           fetch-depth: 1
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v6
         with:
           node-version-file: '.nvmrc'
       - name: Verify Cypress build

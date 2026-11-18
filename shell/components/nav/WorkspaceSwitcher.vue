@@ -2,7 +2,7 @@
 import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { mapState } from 'vuex';
 import Select from '@shell/components/form/Select';
-import { WORKSPACE_ANNOTATION } from '@shell/config/labels-annotations';
+import { fleetWorkspaceOptions } from '@shell/utils/fleet-workspace';
 
 export default {
   name:       'WorkspaceSwitcher',
@@ -32,40 +32,20 @@ export default {
     },
 
     options() {
-      if (this.allWorkspaces.length) {
-        const out = this.allWorkspaces.map((obj) => {
-          return {
-            label: obj.nameDisplay,
-            value: obj.id,
-          };
-        });
-
-        return out;
-      }
-
-      // If doesn't have workspaces (e.g. no permissions)
-      // Then find the workspaces from the annotation.
-      return this.allNamespaces.filter((item) => {
-        return item.metadata.annotations[WORKSPACE_ANNOTATION] === WORKSPACE;
-      }).map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id,
-        };
-      });
+      return fleetWorkspaceOptions(this.allWorkspaces, this.allNamespaces);
     },
   },
 
   watch: {
-    options(curr, prev) {
+    options(curr) {
       if (curr.length === 0) {
-        this.value = '';
+        this.$store.dispatch('setWorkspace', { value: '' });
       }
 
       const currentExists = curr.find((item) => item.value === this.value);
 
       if (curr.length && !currentExists) {
-        this.value = curr[0]?.value;
+        this.restoreSelection(this.value);
       }
     },
   },
@@ -74,8 +54,18 @@ export default {
     // in fleet standard user with just the project owner and global git repo permissions
     // returns 'default'
     const initValue = this.workspace || this.$store.getters['prefs/get'](LAST_NAMESPACE) || '';
+    const value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
 
-    this.value = (initValue === 'default' || initValue === '') && this.options.length ? this.options[0].value : initValue;
+    if (!this.options.length || this.options.some((item) => item.value === value)) {
+      // Mounting is not the user picking a workspace, so this must not go through the setter: on a
+      // slow load it runs before the stored workspace is known, and writing then replaces the
+      // user's choice with whatever the switcher happens to be showing.
+      if (value !== this.value) {
+        this.$store.dispatch('setWorkspace', { value });
+      }
+    } else {
+      this.restoreSelection(value);
+    }
   },
 
   data() {
@@ -83,6 +73,17 @@ export default {
   },
 
   methods: {
+    restoreSelection(value) {
+      if (this.allWorkspaces.length) {
+        // The store knows the workspaces - let it correct the value against them.
+        this.$store.dispatch('restoreWorkspace', { value });
+      } else {
+        // The user cannot list workspaces, so the options come from the workspace-annotated
+        // namespaces instead, which the store cannot see. Correct against what is rendered.
+        this.$store.dispatch('setWorkspace', { value: this.options[0]?.value });
+      }
+    },
+
     focus() {
       this.$refs.select.$refs.search.focus();
     },

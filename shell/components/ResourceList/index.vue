@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@shell/components/ResourceTable';
 import Loading from '@shell/components/Loading';
+import FailWhale from '@shell/components/FailWhale';
 import Masthead from './Masthead';
 import ResourceLoadingIndicator from './ResourceLoadingIndicator';
 import ResourceFetch from '@shell/mixins/resource-fetch';
@@ -9,10 +10,14 @@ import { ResourceListComponentName } from './resource-list.config';
 import { PanelLocation, ExtensionPoint } from '@shell/core/types';
 import ExtensionPanel from '@shell/components/ExtensionPanel';
 import { sameContents } from '@shell/utils/array';
+import { nearestMatches } from '@shell/utils/fuzzy';
+import { SCHEMA } from '@shell/config/types';
 import perfSettingsUtils from '@shell/utils/perf-setting.utils';
 import { BadgeState } from '@components/BadgeState';
 import { stateDisplay } from '@shell/plugins/dashboard-store/resource-class';
 import { useStateColor } from '@shell/composables/useStateColor';
+import { isConfigurableTablesEnabled } from '@shell/utils/table-views/feature';
+import { NAME_FILTER_QUERY, STATE_FILTER_QUERY } from '@shell/config/query-params';
 
 export default {
   name: ResourceListComponentName,
@@ -20,6 +25,7 @@ export default {
   components: {
     Loading,
     ResourceTable,
+    FailWhale,
     Masthead,
     ResourceLoadingIndicator,
     IconMessage,
@@ -50,7 +56,6 @@ export default {
   },
 
   async fetch() {
-    const store = this.$store;
     const resource = this.resource;
 
     const schema = this.schema;
@@ -84,8 +89,16 @@ export default {
 
     if ( !this.componentWillFetch ) {
       if ( !schema ) {
-        store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotFound', { resource }, true)));
+        // Render the error in-context (in place of the list) rather than redirecting to
+        // the global fail-whale page, so the side menu and cluster context are retained
+        this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceListNotFound', { resource }, true));
+        this.resourceSuggestion = this.nearestResourceSuggestion(resource);
 
+        return;
+      }
+
+      // Avoid fetch if we've errored here or previously
+      if (this.resourceNotFoundError) {
         return;
       }
 
@@ -103,7 +116,9 @@ export default {
       const canList = this.$store.getters[`${ inStore }/canList`](this.resource);
 
       if (!canList) {
-        this.$store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceListNotListable', { resource: this.schema?.id || this.resource || 'unknown' }, true)));
+        // Render the error in-context (in place of the list) rather than redirecting to
+        // the global fail-whale page, so the side menu and cluster context are retained
+        this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceListNotListable', { resource: this.schema?.id || this.resource || 'unknown' }, true));
       }
     }
   },
@@ -122,6 +137,11 @@ export default {
 
     return {
       schema,
+      // When set, the resource type could not be found/listed. The error is rendered
+      // in-context (in place of the list) instead of redirecting to the fail-whale page
+      resourceNotFoundError:            null,
+      // When set, a 'did you mean ...?' link to the closest matching resource type
+      resourceSuggestion:               null,
       overrideInStore:                  undefined,
       hasListComponent,
       showMasthead:                     showMasthead === undefined ? true : showMasthead,
@@ -166,16 +186,18 @@ export default {
     },
 
     activeStateFilters() {
-      const raw = this.$route?.query?.stateFilter;
+      const raw = this.$route?.query?.[STATE_FILTER_QUERY];
 
-      if (!raw) {
+      // With table views the states are terms in the table's query instead
+      if (!raw || isConfigurableTablesEnabled(this.$store)) {
         return [];
       }
 
       const states = raw.split(',').filter(Boolean);
 
       return states.map((s) => {
-        const match = this.rows.find((row) => row.metadata?.state?.name === s);
+        // The model's own state too: the backend doesn't store every state, eg a certificate's `expiring`
+        const match = this.rows.find((row) => row.metadata?.state?.name === s || row.state === s);
 
         if (match) {
           return {
@@ -191,13 +213,50 @@ export default {
       });
     },
 
+    activeNameFilter() {
+      // With table views the name is a term in the table's query instead
+      return isConfigurableTablesEnabled(this.$store) ? '' : this.$route?.query?.[NAME_FILTER_QUERY] || '';
+    },
   },
 
   methods: {
+    /**
+     * Find the closest matching, listable resource type for an unknown resource and,
+     * if one exists, return a `{ label, to }` suggestion for the fail whale link.
+     */
+    nearestResourceSuggestion(resource) {
+      const inStore = this.$store.getters['currentStore'](resource);
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA) || [];
+      const ids = schemas.map((s) => s.id).filter(Boolean);
+
+      const [match] = nearestMatches(resource, ids, 1);
+
+      if (!match) {
+        return null;
+      }
+
+      const { href } = this.$router.resolve({
+        name:   'c-cluster-product-resource',
+        params: {
+          ...this.$route.params,
+          resource: match
+        }
+      });
+
+      return { label: match, url: href };
+    },
+
     clearStateFilter() {
       const query = { ...this.$route.query };
 
-      delete query.stateFilter;
+      delete query[STATE_FILTER_QUERY];
+      this.$router.push({ ...this.$route, query });
+    },
+
+    clearNameFilter() {
+      const query = { ...this.$route.query };
+
+      delete query[NAME_FILTER_QUERY];
       this.$router.push({ ...this.$route, query });
     },
   },
@@ -272,8 +331,13 @@ export default {
 </script>
 
 <template>
+  <FailWhale
+    v-if="resourceNotFoundError"
+    :error="resourceNotFoundError"
+    :suggestion="resourceSuggestion"
+  />
   <IconMessage
-    v-if="namespaceFilterRequired"
+    v-else-if="namespaceFilterRequired"
     :vertical="true"
     :subtle="false"
     icon="icon-filter_alt"
@@ -306,10 +370,13 @@ export default {
       :load-indeterminate="loadIndeterminate"
     >
       <template
-        v-if="activeStateFilters.length"
+        v-if="activeStateFilters.length || activeNameFilter"
         #subHeader
       >
-        <div class="state-filter-bar text-muted">
+        <div
+          v-if="activeStateFilters.length"
+          class="state-filter-bar text-muted"
+        >
           {{ t('resourceList.stateFilterApplied') }}
           <BadgeState
             v-for="state in activeStateFilters"
@@ -322,6 +389,20 @@ export default {
           <a
             role="button"
             @click="clearStateFilter"
+          >
+            {{ t('resourceList.clearStateFilter') }}
+          </a>
+        </div>
+        <div
+          v-if="activeNameFilter"
+          class="state-filter-bar text-muted"
+        >
+          {{ t('resourceList.nameFilterApplied') }}
+          <span>{{ activeNameFilter }}</span>
+          <span>.</span>
+          <a
+            role="button"
+            @click="clearNameFilter"
           >
             {{ t('resourceList.clearStateFilter') }}
           </a>
@@ -363,6 +444,8 @@ export default {
       :force-update-live-and-delayed="forceUpdateLiveAndDelayed"
       :external-pagination-enabled="canPaginate"
       :external-pagination-result="paginationResult"
+      :external-pagination-args="pagination"
+      :external-pagination-scope="paginationScope"
       @pagination-changed="paginationChanged"
     />
   </div>

@@ -98,6 +98,133 @@ describe('steve: subscribe', () => {
       });
     });
 
+    describe('unwatch', () => {
+      const type = 'pod';
+      const changesWatch = {
+        type, namespace: 'ns-a', mode: STEVE_WATCH_MODE.RESOURCE_CHANGES
+      };
+      const idWatch = {
+        type, namespace: 'ns-b', id: 'pod-1'
+      };
+
+      const unwatch = actions.unwatch as (ctx: any, params: any) => void;
+      const makeCtx = ({ started = [], hasEventListeners = false }: { started?: any[], hasEventListeners?: boolean } = {}) => {
+        const state = { started };
+
+        return {
+          state,
+          commit:   jest.fn(),
+          dispatch: jest.fn(),
+          getters:  {
+            storeName:           'test',
+            schemaFor:           () => ({ id: type }),
+            normalizeType:       (type: string) => type,
+            typeRegistered:      () => true,
+            inError:             () => false,
+            nextResourceVersion: () => null,
+            watchesOfType:       getters.watchesOfType(state),
+            watchStarted:        getters.watchStarted(state),
+            listenerManager:     {
+              hasStandardWatch:  () => false,
+              hasEventListeners: () => hasEventListeners,
+              setStandardWatch:  jest.fn(),
+            },
+          },
+          rootGetters: {
+            'type-map/isSpoofed': () => false,
+            'management/byId':    () => undefined,
+          },
+        };
+      };
+
+      describe('all watches of a type', () => {
+        it.each([
+          ['namespaced resource.changes watch', changesWatch],
+          ['watch of a single resource', idWatch],
+        ])('should mark the %s as stopped', (_, watch) => {
+          const ctx = makeCtx({ started: [changesWatch, idWatch] });
+
+          unwatch(ctx, { type, all: true });
+
+          expect(ctx.commit).toHaveBeenCalledWith('setWatchStopped', watch);
+        });
+
+        it.each([
+          ['namespaced resource.changes watch', changesWatch],
+          ['watch of a single resource', idWatch],
+        ])('should ask the backend to stop the %s', (_, watch) => {
+          const ctx = makeCtx({ started: [changesWatch, idWatch] });
+
+          unwatch(ctx, { type, all: true });
+
+          expect(ctx.dispatch).toHaveBeenCalledWith('watch', { ...watch, stop: true });
+        });
+
+        it('should not stop watches of another type', () => {
+          const other = { type: 'node' };
+          const ctx = makeCtx({ started: [changesWatch, other] });
+
+          unwatch(ctx, { type, all: true });
+
+          expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.objectContaining({ type: other.type }));
+        });
+      });
+
+      describe('all watches of a type, through the watch action', () => {
+        it('should send a stop message for a namespaced resource.changes watch', () => {
+          const ctx = makeCtx({ started: [changesWatch] });
+
+          ctx.dispatch.mockImplementation((action: string, params: any) => {
+            if (action === 'watch') {
+              return actions.watch(ctx, params);
+            }
+          });
+
+          unwatch(ctx, { type, all: true });
+
+          expect(ctx.dispatch).toHaveBeenCalledWith('send', expect.objectContaining({
+            resourceType: type,
+            namespace:    changesWatch.namespace,
+            mode:         changesWatch.mode,
+            stop:         true,
+          }));
+        });
+      });
+
+      describe('single watch', () => {
+        it('should ask the backend to stop the watch', () => {
+          const ctx = makeCtx({ started: [changesWatch] });
+
+          unwatch(ctx, changesWatch);
+
+          expect(ctx.dispatch).toHaveBeenCalledWith('watch', {
+            ...changesWatch, id: undefined, selector: undefined, stop: true
+          });
+        });
+
+        it('should not ask the backend to stop a watch that was never started', () => {
+          const ctx = makeCtx({ started: [idWatch] });
+
+          unwatch(ctx, changesWatch);
+
+          expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+        });
+      });
+
+      describe('watch with event listeners', () => {
+        it.each([
+          ['all watches of a type', { type, all: true }],
+          ['a single watch', changesWatch],
+        ])('should not stop the watch when unwatching %s', (_, params) => {
+          const ctx = makeCtx({ started: [changesWatch], hasEventListeners: true });
+
+          unwatch(ctx, params);
+
+          expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+        });
+      });
+    });
+
     describe('ws.resource.error', () => {
       it('handle no permission error', () => {
         const commit = jest.fn();
@@ -113,6 +240,80 @@ describe('steve: subscribe', () => {
       });
     });
 
+    describe('ws.resource.create', () => {
+      const makeCtx = (overrides: Record<string, any> = {}) => ({
+        state:   { debugSocket: false, queue: [] },
+        getters: {
+          storeName:     'cluster',
+          normalizeType: (t: string) => t,
+          typeEntry:     () => ({ revision: 0 }),
+          havePage:      () => null,
+          haveNamespace: () => null,
+          ...overrides.getters,
+        },
+        rootGetters: {
+          isAllNamespaces: true,
+          ...overrides.rootGetters,
+        },
+        dispatch: jest.fn(),
+        commit:   jest.fn(),
+        ...overrides,
+      });
+
+      it('notifies the worker about a new schema via updateSchema and still queues a load', () => {
+        const postMessage = jest.fn();
+        const ctx = makeCtx();
+
+        // Simulate a worker being registered for this store
+        (actions['ws.resource.create'] as any).call(
+          { $workers: { cluster: { postMessage } } },
+          ctx,
+          { data: { type: 'schema', id: 'my.io.crd' }, revision: '1' }
+        );
+
+        expect(postMessage).toHaveBeenCalledWith({ updateSchema: { type: 'schema', id: 'my.io.crd' } });
+        expect(ctx.state.queue).toStrictEqual([
+          {
+            action: 'dispatch', event: 'load', body: { type: 'schema', id: 'my.io.crd' }
+          },
+        ]);
+      });
+
+      it('does not notify the worker for non-schema resource creates, but still queues a load', () => {
+        const postMessage = jest.fn();
+        const ctx = makeCtx();
+
+        (actions['ws.resource.create'] as any).call(
+          { $workers: { cluster: { postMessage } } },
+          ctx,
+          { data: { type: 'pod', id: 'my-pod' }, revision: '1' }
+        );
+
+        expect(postMessage).not.toHaveBeenCalled();
+        expect(ctx.state.queue).toStrictEqual([
+          {
+            action: 'dispatch', event: 'load', body: { type: 'pod', id: 'my-pod' }
+          },
+        ]);
+      });
+
+      it('still queues a load when no worker is registered', () => {
+        const ctx = makeCtx();
+
+        (actions['ws.resource.create'] as any).call(
+          { $workers: {} },
+          ctx,
+          { data: { type: 'schema', id: 'my.io.crd' }, revision: '1' }
+        );
+
+        expect(ctx.state.queue).toStrictEqual([
+          {
+            action: 'dispatch', event: 'load', body: { type: 'schema', id: 'my.io.crd' }
+          },
+        ]);
+      });
+    });
+
     describe('fetchPageResources', () => {
       const dispatch = jest.fn();
       const getters = {
@@ -124,6 +325,12 @@ describe('steve: subscribe', () => {
       };
       let backOffSpy: any;
       const context = { $socket: {} };
+
+      const fetchPageResources = actions.fetchPageResources as (
+        this: typeof context,
+        ctx: { getters: typeof getters, dispatch: jest.Mock },
+        payload: { opt: object, storePagination: object, params: object },
+      ) => Promise<void>;
 
       beforeEach(() => {
         jest.clearAllMocks();
@@ -148,7 +355,7 @@ describe('steve: subscribe', () => {
           resourceType: 'type', namespace: 'ns', revision: '5'
         };
 
-        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+        await fetchPageResources.call(context, { getters, dispatch }, {
           opt: {}, storePagination: {}, params
         });
 
@@ -161,7 +368,7 @@ describe('steve: subscribe', () => {
           resourceType: 'type', namespace: 'ns', revision: '15'
         };
 
-        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+        await fetchPageResources.call(context, { getters, dispatch }, {
           opt: {}, storePagination: {}, params
         });
 
@@ -177,7 +384,7 @@ describe('steve: subscribe', () => {
           resourceType: 'type', namespace: 'ns', revision: '10'
         };
 
-        await actions.fetchPageResources.call(context, { getters, dispatch }, {
+        await fetchPageResources.call(context, { getters, dispatch }, {
           opt: {}, storePagination: {}, params
         });
 
@@ -194,7 +401,7 @@ describe('steve: subscribe', () => {
         let recurseArgs: any;
 
         beforeEach(async() => {
-          await actions.fetchPageResources.call(context, { getters, dispatch }, {
+          await fetchPageResources.call(context, { getters, dispatch }, {
             opt: {}, storePagination: { request: { filter: 'foo' } }, params
           });
           recurseArgs = backOffSpy.recurse.mock.calls[0][0];
@@ -333,11 +540,21 @@ describe('steve: subscribe', () => {
           - this should backoff until eventually succeeding
        */
 
+      interface WatchFixture {
+        ctx: ReturnType<typeof initStore>;
+        obj: typeof obj;
+        msg: typeof msg;
+      }
+
+      interface RevisionedWatchFixture extends WatchFixture {
+        revision: number;
+      }
+
       const startWatch = ({
         ctx,
         obj, msg,
         revision
-      }) => {
+      }: RevisionedWatchFixture) => {
         const {
           state, dispatch, getters, rootGetters, commit
         } = ctx;
@@ -371,7 +588,7 @@ describe('steve: subscribe', () => {
       const errorWatch = ({
         ctx,
         obj, msg,
-      }) => {
+      }: WatchFixture) => {
         const {
           state, dispatch, getters, commit
         } = ctx;
@@ -412,7 +629,7 @@ describe('steve: subscribe', () => {
         obj, msg,
         revision,
         tooManyTries = false,
-      }) => {
+      }: RevisionedWatchFixture & { tooManyTries?: boolean }) => {
         const { dispatch } = ctx;
 
         startWatch({
@@ -450,7 +667,7 @@ describe('steve: subscribe', () => {
         ctx,
         obj, msg,
         revision
-      }) => {
+      }: RevisionedWatchFixture) => {
         const { dispatch } = ctx;
 
         dispatch.mockImplementation(async(type: string) => {
@@ -496,14 +713,14 @@ describe('steve: subscribe', () => {
           normalizeType:   (type: string) => type,
           schemaFor:       () => ({}),
           storeName:       'test',
-          inError:         (...args) => getters.inError(state)(...args),
-          watchStarted:    (...args) => getters.watchStarted(state)(...args),
-          backOffId:       (...args) => getters.backOffId()(...args),
+          inError:         (...args: any[]) => getters.inError(state)(...args),
+          watchStarted:    (...args: any[]) => getters.watchStarted(state)(...args),
+          backOffId:       (...args: any[]) => getters.backOffId()(...args),
           canBackoff:      () => true,
           listenerManager: state.listenerManager,
           typeRegistered:  () => true,
         };
-        const commit = (type, ...args) => mutations[type](state, ...args);
+        const commit = (type: string, ...args: any[]) => (mutations as Record<string, (...args: any[]) => void>)[type](state, ...args);
 
         return {
           state, dispatch, getters: _getters, rootGetters, commit

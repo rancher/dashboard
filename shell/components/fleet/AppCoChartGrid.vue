@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { ZERO_TIME, CATALOG_SORT_OPTIONS } from '@shell/config/types';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { RcItemCard } from '@components/RcItemCard';
 import AppChartCardSubHeader from '@shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader';
 import AppCoEmptyState from '@shell/components/fleet/AppCoEmptyState.vue';
@@ -24,6 +25,7 @@ interface ChartEntry {
   icon: string;
   version: string;
   created: string;
+  deprecated: boolean;
   versions: ChartVersion[];
 }
 
@@ -80,6 +82,7 @@ const allCharts = computed<ChartEntry[]>(() => {
       icon:        latest.icon || '',
       version:     latest.version || '',
       created:     latest.created || '',
+      deprecated:  !!latest.deprecated || latest.annotations?.[CATALOG_ANNOTATIONS.DEPRECATED] === 'true',
       versions,
     };
   });
@@ -165,9 +168,13 @@ const chartCards = computed(() => {
       });
     }
 
+    const statuses = chart.deprecated ? [{
+      icon: 'icon-alert-alt', color: 'error', tooltip: { key: 'generic.deprecated' }
+    }] : undefined;
+
     return {
       id:       chart.name,
-      header:   { title: { text: chart.name } },
+      header:   { title: { text: chart.name }, statuses },
       image:    chart.icon ? { src: chart.icon, alt: { text: chart.name } } : undefined,
       content:  { text: chart.description },
       subHeaderItems,

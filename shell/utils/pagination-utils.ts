@@ -5,8 +5,6 @@ import {
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
   NAMESPACE_FILTER_ALL as ALL,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
-  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
   NAMESPACE_FILTER_KINDS,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
   NAMESPACE_FILTER_P_FULL_PREFIX,
@@ -14,7 +12,6 @@ import {
 import { PaginationArgs, PaginationResourceContext, PaginationParam, PaginationSort } from '@shell/types/store/pagination.types';
 import { sameArrayObjects } from '@shell/utils/array';
 import { isEqual } from '@shell/utils/object';
-import { STEVE_CACHE } from '@shell/store/features';
 import { getPerformanceSetting } from '@shell/utils/settings';
 import { PAGINATION_SETTINGS_STORE_DEFAULTS } from '@shell/plugins/steve/steve-pagination-utils';
 import { MANAGEMENT } from '@shell/config/types';
@@ -47,7 +44,7 @@ class PaginationUtils {
    *
    * This basically blocks 'Not in a Project'.. which would involve a projectsornamespaces param with every ns not in a project.
    */
-  readonly validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT, NAMESPACED_YES, NAMESPACED_NO];
+  readonly validNsProjectFilters = [ALL, ALL_SYSTEM, ALL_USER, ALL_SYSTEM, NAMESPACE_FILTER_KINDS.NAMESPACE, NAMESPACE_FILTER_KINDS.PROJECT];
 
   private getSettings({ rootGetters }: any): PaginationSettings {
     const perf = getPerformanceSetting(rootGetters);
@@ -75,19 +72,16 @@ class PaginationUtils {
     return PAGINATION_SETTINGS_STORE_DEFAULTS;
   }
 
-  isSteveCacheEnabled({ rootGetters }: any): boolean {
-    // We always get Feature flags as part of start up (see `dispatch('features/loadServer')` in loadManagement)
-    return rootGetters['features/get']?.(STEVE_CACHE);
-  }
-
   /**
    * Determine if the downstream cluster has vai enabled
    *
    * Almost all the time the downstream cluster vai state will align with upstream (it manages it)
    * ... unless it's harvester then weird things happen
+   *
+   * We should be able to remove this once we're confident when all downstream clusters are on steve from 2.16
    */
   async isDownstreamSteveCacheEnabled({ dispatch }: any, clusterId: string): Promise<boolean> {
-    const url = `/k8s/clusters/${ clusterId }/v1/${ MANAGEMENT.FEATURE }s/${ STEVE_CACHE }`;
+    const url = `/k8s/clusters/${ clusterId }/v1/${ MANAGEMENT.FEATURE }s/ui-sql-cache`;
     const entry = await dispatch('cluster/request', { url });
 
     if (entry.status.lockedValue !== null) {
@@ -167,11 +161,6 @@ class PaginationUtils {
    * Is pagination enabled at a global level or for a specific resource
    */
   isEnabled({ rootGetters, $extension }: any, enabledFor: PaginationResourceContext) {
-    // Cache must be enabled to support pagination api
-    if (!this.isSteveCacheEnabled({ rootGetters })) {
-      return false;
-    }
-
     const settings = this.getSettings({ rootGetters });
 
     // No setting, not enabled
@@ -190,7 +179,7 @@ class PaginationUtils {
 
     if (paginationExtensionPoints) {
       const allowed = Object.entries(paginationExtensionPoints).find(([_, settingsFn]) => {
-        if (!settingsFn) {
+        if (typeof settingsFn !== 'function') {
           return false;
         }
 
@@ -235,11 +224,6 @@ class PaginationUtils {
   }
 
   getFeature<Config = any>({ rootGetters }: any, featureName: PaginationFeatureName): PaginationFeature<Config> | undefined {
-    // Cache must be enabled to support pagination api
-    if (!this.isSteveCacheEnabled({ rootGetters })) {
-      return undefined;
-    }
-
     const settings = this.getSettings({ rootGetters });
 
     return settings.features?.[featureName] || PAGINATION_SETTINGS_FEATURE_DEFAULTS[featureName];

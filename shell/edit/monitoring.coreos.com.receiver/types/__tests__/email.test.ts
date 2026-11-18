@@ -21,7 +21,7 @@ describe('page: Routes and Receivers', () => {
       },
     });
 
-    const host = wrapper.find('[data-testid="input-email-host"]');
+    const host = wrapper.find<HTMLInputElement>('[data-testid="input-email-host"]');
 
     host.setValue('10.2.300.3');
 
@@ -47,7 +47,7 @@ describe('page: Routes and Receivers', () => {
       },
     });
 
-    const port = wrapper.find('[data-testid="input-email-port"]');
+    const port = wrapper.find<HTMLInputElement>('[data-testid="input-email-port"]');
 
     port.setValue('8080');
 

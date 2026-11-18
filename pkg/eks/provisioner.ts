@@ -4,7 +4,7 @@ import { Component } from 'vue';
 import { isProviderEnabled } from '@shell/utils/settings';
 import { mapDriver } from '@shell/store/plugins';
 export class EKSProvisioner implements IClusterProvisioner {
-  static ID = 'eks'
+  static ID = 'eks';
 
   constructor(private context: ClusterProvisionerContext) {
     mapDriver(this.id, 'aws' );

@@ -173,6 +173,37 @@ describe('class: Resource', () => {
       });
     });
 
+    it('should restore metadata.resourceVersion on update when the edit YAML omits it', async() => {
+      // While editing, server-managed metadata (incl. resourceVersion) is hidden from the YAML. It must
+      // be restored before saving or a norman-managed resource rejects the update with a 500
+      // ("metadata.resourceVersion is required for update"). uid/generation/etc. are NOT restored (the
+      // server ignores/repopulates them).
+      const instance = new Resource({
+        id:       'default-id',
+        type:     'default-type',
+        metadata: {
+          namespace: 'aaa', name: 'my-resource', resourceVersion: 42
+        },
+      }, mockStore);
+
+      jest.spyOn(instance, 'followLink').mockResolvedValueOnce({ id: 'test-id', type: 'testType' });
+
+      // The stripped edit YAML has NO resourceVersion (it was hidden while editing).
+      const strippedYaml = jsyaml.dump({
+        metadata: { namespace: 'aaa', name: 'my-resource' },
+        spec:     { replicas: 3 },
+      });
+
+      await instance._saveYaml(strippedYaml);
+
+      expect(instance.followLink).toHaveBeenCalledTimes(1);
+      // The PUT payload must carry the restored resourceVersion (jsyaml.dump renders it as `resourceVersion: 42`).
+      expect(instance.followLink).toHaveBeenCalledWith('update', expect.objectContaining({
+        method: 'PUT',
+        data:   expect.stringContaining('resourceVersion: 42'),
+      }));
+    });
+
     it('should resolve 409 conflict automatically and re-save if no actual conflicts', async() => {
       resourceInstance.id = 'test-id-auto-resolve';
       resourceInstance.type = 'testType';
@@ -375,6 +406,74 @@ describe('class: Resource', () => {
     });
   });
 
+  describe('condition helpers', () => {
+    const ctx = {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: { 'i18n/t': jest.fn() },
+    };
+
+    function withConditions(conditions?: any[]) {
+      return new Resource({ type: 'test', status: conditions ? { conditions } : {} }, ctx);
+    }
+
+    describe('method: condition', () => {
+      it('should return the matching condition entry', () => {
+        const ready = { type: 'Ready', status: 'True' };
+
+        expect(withConditions([ready]).condition('Ready')).toStrictEqual(ready);
+      });
+
+      it('should return undefined when the condition is absent', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).condition('Missing')).toBeUndefined();
+      });
+
+      it('should return undefined when status.conditions is missing', () => {
+        expect(withConditions().condition('Ready')).toBeUndefined();
+      });
+    });
+
+    describe('method: hasCondition', () => {
+      it('should be true when the condition exists regardless of status', () => {
+        expect(withConditions([{ type: 'Ready', status: 'False' }]).hasCondition('Ready')).toBe(true);
+      });
+
+      it('should be false when the condition is absent', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).hasCondition('Missing')).toBe(false);
+      });
+
+      it('should be false when status.conditions is missing', () => {
+        expect(withConditions().hasCondition('Ready')).toBe(false);
+      });
+    });
+
+    describe('method: isCondition', () => {
+      it('should default to matching a True status', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).isCondition('Ready')).toBe(true);
+      });
+
+      it('should be false when the status does not match', () => {
+        expect(withConditions([{ type: 'Ready', status: 'False' }]).isCondition('Ready')).toBe(false);
+      });
+
+      it('should match a requested status case-insensitively', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).isCondition('Ready', 'true')).toBe(true);
+      });
+
+      it('should match an explicit non-True status', () => {
+        expect(withConditions([{ type: 'Ready', status: 'False' }]).isCondition('Ready', 'False')).toBe(true);
+      });
+
+      it('should be false when the condition is absent', () => {
+        expect(withConditions([{ type: 'Ready', status: 'True' }]).isCondition('Missing')).toBe(false);
+      });
+
+      it('should be false when status.conditions is missing', () => {
+        expect(withConditions().isCondition('Ready')).toBe(false);
+      });
+    });
+  });
+
   describe('getter: resourceEvents', () => {
     it('should return events from the store', () => {
       const mockEvents = [{ type: 'Normal', reason: 'Test' }];
@@ -429,7 +528,7 @@ describe('class: Resource', () => {
       const cards = resource.cards;
 
       expect(cards).toHaveLength(1);
-      expect(cards[0].props.title).toBe('component.resource.detail.card.resourcesCard.title');
+      expect(cards[0]?.props?.title).toBe('component.resource.detail.card.resourcesCard.title');
     });
   });
 
@@ -470,9 +569,9 @@ describe('class: Resource', () => {
 
       expect(rows).toHaveLength(2);
       expect(rows[0].label).toBe('component.resource.detail.card.resourcesCard.rows.referredToBy');
-      expect(rows[0].counts[0].count).toBe(1);
+      expect(rows[0].counts?.[0].count).toBe(1);
       expect(rows[1].label).toBe('component.resource.detail.card.resourcesCard.rows.refersTo');
-      expect(rows[1].counts[0].count).toBe(2);
+      expect(rows[1].counts?.[0].count).toBe(2);
     });
 
     it('should omit a direction with no relationships', () => {
@@ -529,7 +628,7 @@ describe('class: Resource', () => {
     it('should not throw when currentCluster or currentProduct is undefined', () => {
       const resource = new Resource({
         type:     'test',
-        metadata: { creationTimestamp: '2024-01-01T00:00:00Z' }
+        metadata: { creationTimestamp: '2024-01-01T00:00:00Z', namespace: 'default' }
       }, {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
@@ -547,9 +646,95 @@ describe('class: Resource', () => {
       const glance = resource._glance;
       const namespaceItem = glance.find((item: any) => item.name === 'namespace');
 
-      expect(namespaceItem.formatter).toBeUndefined();
-      expect(namespaceItem.formatterOpts.to.cluster).toBeUndefined();
-      expect(namespaceItem.formatterOpts.to.product).toBeUndefined();
+      expect(namespaceItem!.formatter).toBeUndefined();
+      expect(namespaceItem!.formatterOpts!.to).toBeNull();
+    });
+
+    const glanceResource = (data: any, rootGetters: any = {}) => new Resource({
+      type: 'test', metadata: { creationTimestamp: '2024-01-01T00:00:00Z', ...data.metadata }, ...data
+    }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootState:   { $extension: { getPlugins: () => ({}) } },
+      rootGetters: {
+        'i18n/t':            (key: string) => key,
+        'type-map/labelFor': () => 'Test',
+        productId:           'explorer',
+        clusterId:           'local',
+        currentStore:        () => 'cluster',
+        'cluster/canList':   () => true,
+        ...rootGetters,
+      },
+    });
+
+    const glanceRow = (resource: any, name: string) => resource._glance.find((item: any) => item.name === name);
+
+    describe('namespace row', () => {
+      it('should show only the namespace, linked to its detail page', () => {
+        const row = glanceRow(glanceResource({ metadata: { namespace: 'popover-demo', name: 'frontend' } }), 'namespace');
+
+        expect({
+          formatter: row.formatter, to: row.formatterOpts.to, content: row.content
+        }).toStrictEqual({
+          formatter: 'Link',
+          to:        {
+            name:   'c-cluster-product-resource-id',
+            params: {
+              cluster: 'local', product: 'explorer', resource: 'namespace', id: 'popover-demo'
+            }
+          },
+          content: 'popover-demo'
+        });
+      });
+
+      it('should link to the location the resource gives for its namespace', () => {
+        const resource = glanceResource({ metadata: { namespace: 'fleet-default' } });
+
+        Object.defineProperty(resource, 'namespaceLocation', { get: () => ({ name: 'custom' }) });
+
+        expect(glanceRow(resource, 'namespace').formatterOpts.to).toStrictEqual({ name: 'custom' });
+      });
+
+      it('should not show the namespace row when the resource is not namespaced', () => {
+        expect(glanceRow(glanceResource({ metadata: {} }), 'namespace')).toBeUndefined();
+      });
+
+      it.each([
+        ['the user cannot list namespaces', { namespace: 'ns' }, { 'cluster/canList': () => false }],
+        ['the product hides the namespace location', { namespace: 'ns' }, { currentProduct: { hideNamespaceLocation: true } }],
+      ])('should not link the namespace when %s', (_: string, metadata: any, rootGetters: any) => {
+        const row = glanceRow(glanceResource({ metadata }, rootGetters), 'namespace');
+
+        expect([row.formatter, row.formatterOpts.to]).toStrictEqual([undefined, null]);
+      });
+
+      it('should not link the namespace when the resource says it is in a cluster the user cannot reach', () => {
+        const resource = glanceResource({ metadata: { namespace: 'ns' } });
+
+        Object.defineProperty(resource, 'namespaceLocation', { get: () => null });
+
+        expect(glanceRow(resource, 'namespace').formatter).toBeUndefined();
+      });
+    });
+
+    describe('state row', () => {
+      // The base class has no state getter, the steve one reads it from metadata.state.name
+      const stateRow = (state: any) => glanceRow(glanceResource({ state: state.name, metadata: { state } }), 'state').formatterOpts.row;
+
+      // e.g. a pod whose container keeps exiting with an error
+      it('should show an error state that steve marks as transitioning in the error colour', () => {
+        expect(stateRow({
+          name: 'error', error: false, transitioning: true
+        })).toStrictEqual({ stateDisplay: 'Error', stateBackground: 'bg-error' });
+      });
+
+      it.each([
+        ['a transitioning state that is not an error', { name: 'updating', transitioning: true }, 'Updating', 'bg-info'],
+        ['a state that is not transitioning', { name: 'running' }, 'Running', 'bg-success'],
+        ['an error state that steve marks as an error', { name: 'running', error: true }, 'Running', 'bg-error'],
+      ])('should show %s in its usual colour', (_, state, stateDisplay, stateBackground) => {
+        expect(stateRow(state)).toStrictEqual({ stateDisplay, stateBackground });
+      });
     });
   });
 
@@ -677,6 +862,58 @@ describe('class: Resource', () => {
       expect(showConfig.enabled).toBe(false);
       expect(viewYaml.enabled).toBe(true);
     });
+
+    it('should hide "View Config" when "Show Configuration" is enabled and resource cannot be updated', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        { rootGetters: { 'type-map/hasCustomEdit': () => true } },
+      );
+
+      const actions = resource._availableActions;
+      const viewConfig = findAction(actions, 'goToViewConfig');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(viewConfig.enabled).toBe(false);
+    });
+
+    it('should show "Edit Config" even when "Show Configuration" is enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test', update: '/api/v1/test' },
+        {
+          rootGetters: {
+            'type-map/hasCustomEdit': () => true,
+            'type-map/optionsFor':    () => ({
+              isEditable: true, isRemovable: true, isCreatable: false
+            }),
+          },
+        },
+      );
+
+      const actions = resource._availableActions;
+      const editConfig = findAction(actions, 'goToEdit');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(true);
+      expect(editConfig.enabled).toBe(true);
+    });
+
+    it('should show "View Config" when "Show Configuration" is not enabled', () => {
+      const resource = createResource(
+        { view: '/api/v1/test' },
+        {
+          disableResourceDetailDrawer: true,
+          rootGetters:                 { 'type-map/hasCustomEdit': () => true },
+        },
+      );
+
+      const actions = resource._availableActions;
+      const viewConfig = findAction(actions, 'goToViewConfig');
+      const showConfig = findAction(actions, 'showConfiguration');
+
+      expect(showConfig.enabled).toBe(false);
+      expect(viewConfig.enabled).toBe(true);
+    });
   });
 
   describe('method: dryRunCreate', () => {
@@ -782,7 +1019,7 @@ describe('class: Resource', () => {
         path:           'metadata.name',
         required:       true,
         translationKey: 'generic.name',
-      }]);
+      }] as unknown as never[]);
 
       const rules = resource.modelValidationRules;
 
@@ -813,13 +1050,78 @@ describe('class: Resource', () => {
       jest.spyOn(resource, 'customValidationRules', 'get').mockReturnValue([{
         path:     'metadata.name',
         required: true,
-      }]);
+      }] as unknown as never[]);
 
       const rules = resource.modelValidationRules;
       const requiredRule = rules[0].rules[0];
       const result = requiredRule(null);
 
       expect(result).toStrictEqual(JSON.stringify({ message: 'validation.required', key: 'Value' }));
+    });
+  });
+
+  describe('getters: $plugin and $extension', () => {
+    const makeResource = (rootState: any) => new Resource({ type: 'test.resource' }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootState,
+      rootGetters: { 'i18n/t': jest.fn() },
+    });
+
+    it('should resolve the extension manager from rootState.$extension', () => {
+      const manager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $extension: manager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should fall back to rootState.$plugin, which is all older Rancher versions set', () => {
+      const manager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $plugin: manager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should prefer rootState.$extension when both are set', () => {
+      const manager = { getPlugins: () => ({}) };
+      const legacyManager = { getPlugins: () => ({}) };
+      const resource = makeResource({ $extension: manager, $plugin: legacyManager });
+
+      expect(resource.$extension).toBe(manager);
+      expect(resource.$plugin).toBe(manager);
+    });
+
+    it('should be undefined when neither is set', () => {
+      const resource = makeResource({});
+
+      expect(resource.$extension).toBeUndefined();
+      expect(resource.$plugin).toBeUndefined();
+    });
+  });
+
+  describe('getter: isProdRegistrationV2TopLevelProductResoure', () => {
+    const makeResource = (rootState: any) => new Resource({ type: 'test.resource' }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootState,
+      rootGetters: {
+        'i18n/t':  jest.fn(),
+        productId: 'some-product',
+      },
+    });
+
+    it('should not throw on an older Rancher that only sets rootState.$plugin', () => {
+      const resource = makeResource({ $plugin: { getPlugins: () => ({ somePlugin: { productNames: [] } }) } });
+
+      expect(resource.isProdRegistrationV2TopLevelProductResoure).toBe(false);
+    });
+
+    it('should be true when the matching plugin is registered as a top level product', () => {
+      const resource = makeResource({ $extension: { getPlugins: () => ({ somePlugin: { productNames: ['some-product'], topLevelProduct: true } }) } });
+
+      expect(resource.isProdRegistrationV2TopLevelProductResoure).toBe(true);
     });
   });
 });

@@ -1,8 +1,5 @@
 // system.test.ts
 
-import {
-  describe, it, expect, jest, beforeEach
-} from '@jest/globals';
 import { SystemApiImpl } from '../system';
 import { Store } from 'vuex';
 
@@ -48,7 +45,7 @@ describe('systemApiImpl', () => {
     mockIsPrerelease.mockClear();
 
     // Arrange: Mock the store
-    mockGetter = jest.fn() as any;
+    mockGetter = jest.fn();
     mockStore = {
       getters: { 'management/byId': mockGetter },
       $config: { dashboardVersion: 'v2.9-test' }

@@ -1,5 +1,8 @@
 import Feature from '@shell/models/management.cattle.io.feature.js';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
+import { isRancherPrime } from '@shell/config/version';
+
+jest.mock('@shell/config/version', () => ({ isRancherPrime: jest.fn(() => false) }));
 
 describe('class Feature', () => {
   const ctx = {
@@ -54,6 +57,60 @@ describe('class Feature', () => {
 
       expect(() => feature.enabled).not.toThrow();
       expect(feature.enabled).toBe(true);
+    });
+  });
+
+  describe('a Prime feature', () => {
+    const primeFeature = (value: boolean | null = null) => new Feature({
+      id:     'multiple-auth-providers',
+      spec:   { value },
+      status: {
+        lockedValue: null, default: true, prime: true
+      }
+    }, ctx);
+
+    afterEach(() => {
+      jest.mocked(isRancherPrime).mockReturnValue(false);
+    });
+
+    it('should be off on a build that is not Prime, whatever its default', () => {
+      jest.mocked(isRancherPrime).mockReturnValue(false);
+
+      expect(primeFeature().enabled).toBe(false);
+    });
+
+    it('should be off on a build that is not Prime even when switched on', () => {
+      jest.mocked(isRancherPrime).mockReturnValue(false);
+
+      expect(primeFeature(true).enabled).toBe(false);
+    });
+
+    it('should follow its value on Prime', () => {
+      jest.mocked(isRancherPrime).mockReturnValue(true);
+
+      expect(primeFeature().enabled).toBe(true);
+    });
+
+    it('should not offer to switch it on on a build that is not Prime', () => {
+      jest.mocked(isRancherPrime).mockReturnValue(false);
+      const feature = primeFeature();
+
+      jest.spyOn(feature, 'canUpdate', 'get').mockReturnValue(true);
+
+      const toggle = feature._availableActions.find((a: any) => a.action === 'toggleFeatureFlag');
+
+      expect(toggle?.enabled).toBe(false);
+    });
+
+    it('should offer to switch it on on Prime', () => {
+      jest.mocked(isRancherPrime).mockReturnValue(true);
+      const feature = primeFeature(false);
+
+      jest.spyOn(feature, 'canUpdate', 'get').mockReturnValue(true);
+
+      const toggle = feature._availableActions.find((a: any) => a.action === 'toggleFeatureFlag');
+
+      expect(toggle?.enabled).toBe(true);
     });
   });
 

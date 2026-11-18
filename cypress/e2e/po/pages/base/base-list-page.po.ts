@@ -35,9 +35,10 @@ export abstract class BaseListPagePo extends PagePo {
    * Navigates to the detail page for a given resource name
    * @param name
    * @param selector
+   * @param resourceRowsOnly see `SortableTablePo.rowElementWithName`
    * @returns
    */
-  goToDetailsPage(name: string, selector?: string) {
-    return this.baseResourceList().resourceTable().goToDetailsPage(name, selector);
+  goToDetailsPage(name: string, selector?: string, resourceRowsOnly = false) {
+    return this.baseResourceList().resourceTable().goToDetailsPage(name, selector, resourceRowsOnly);
   }
 }

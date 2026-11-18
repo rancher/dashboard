@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { PropType } from 'vue';
+import { RcButton } from '@components/RcButton';
+import { RcIcon } from '@components/RcIcon';
 import { BOTTOM } from '@shell/utils/position';
-import { Position } from '@shell/types/window-manager';
+import { Position, Tab } from '@shell/types/window-manager';
 import TabBodyContainer from './TabBodyContainer.vue';
+import { tabBodyId, tabId } from './tab-body';
 import usePanelHandler from '../composables/usePanelHandler';
 
 const props = defineProps({
@@ -46,11 +49,14 @@ const {
     <div
       v-if="isTabsHeaderEnabled"
       :class="['tabs', { 'tab-bar-highlight': dragOverTabBarActive }]"
-      role="tablist"
       @dragover="onTabBarDragOver"
       @dragleave="onTabBarDragLeave"
       @drop="onTabBarDrop"
     >
+      <div
+        role="tablist"
+        :aria-owns="tabs.map((tab: Tab) => tabId(props.position, tab.id)).join(' ')"
+      />
       <div
         v-for="(tab, i) in tabs"
         :key="i"
@@ -60,38 +66,49 @@ const {
           'draggable': !lockedPosition,
         }"
         :draggable="tab.id === activeTab[props.position] && !lockedPosition"
-        role="tab"
-        :aria-selected="tab.id === activeTab[props.position]"
-        :aria-label="tab.label"
-        :aria-controls="`panel-${tab.id}`"
-        tabindex="0"
         @click="setTabActive({ position: props.position, id: tab.id })"
-        @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
         @dragstart="onDragPositionStart({ event: $event, tab })"
         @dragend="onDragPositionEnd({ event: $event, tab })"
       >
-        <i
-          v-if="tab.icon"
-          class="icon"
-          :class="{
-            ['icon-'+ tab.icon]: true,
-          }"
-          :alt="t('wm.tabIcon')"
-        />
-        <span
-          class="tab-label"
+        <div
+          :id="tabId(props.position, tab.id)"
+          class="tab-title"
+          role="tab"
+          :aria-selected="tab.id === activeTab[props.position]"
+          :aria-label="tab.label"
+          :aria-controls="tabBodyId(props.position, tab.id)"
+          tabindex="0"
+          @keyup.enter.space="setTabActive({ position: props.position, id: tab.id })"
         >
-          {{ tab.label }}
-        </span>
-        <i
+          <i
+            v-if="tab.icon"
+            class="icon"
+            :class="{
+              ['icon-'+ tab.icon]: true,
+            }"
+            :alt="t('wm.tabIcon')"
+          />
+          <span
+            class="tab-label"
+          >
+            {{ tab.label }}
+          </span>
+        </div>
+        <RcButton
           data-testid="wm-tab-close-button"
-          class="closer icon icon-x wm-closer-button"
-          :alt="t('wm.closeTab', { tabId: tab.label })"
+          variant="ghost"
+          size="small"
+          class="closer wm-closer-button"
           tabindex="0"
           :aria-label="t('wm.closeTab', { tabId: tab.id })"
           @click.stop="onTabClose(tab.id)"
           @keyup.enter.space.stop="onTabClose(tab.id)"
-        />
+        >
+          <RcIcon
+            type="close"
+            size="inherit"
+          />
+        </RcButton>
       </div>
       <div
         class="resizer resizer-y"
@@ -161,12 +178,23 @@ const {
         border-top: 1px solid var(--wm-border);
         border-right: 1px solid var(--wm-border);
         border-left: 1px solid var(--wm-border);
-        padding: 5px 10px;
+        padding: 0 10px 0 0;
         overflow: hidden;
         text-overflow: ellipsis;
         margin: 0;
         display: flex;
         min-width: 0;
+
+        .tab-title {
+          display: flex;
+          min-width: 0;
+          padding: 5px 5px 5px 10px;
+
+          &:focus-visible {
+            @include focus-outline;
+            outline-offset: -2px;
+          }
+        }
 
         .tab-label {
           overflow: hidden;
@@ -184,18 +212,17 @@ const {
           cursor: grab;
         }
 
-        &:focus-visible {
-          @include focus-outline;
-          outline-offset: -3px;
-        }
-
         .closer {
-          margin-left: 5px;
           border: 1px solid var(--body-text);
           border-radius: var(--border-radius);
           line-height: 12px;
           font-size: 10px;
           width: 14px;
+          min-width: 14px;
+          height: 14px;
+          min-height: 14px;
+          padding: 0;
+          color: var(--body-text);
           align-self: center;
           display: flex;
           justify-content: center;
@@ -209,6 +236,12 @@ const {
           &:focus-visible {
             @include focus-outline;
             outline-offset: 1px;
+          }
+
+          .icon,
+          .rc-icon {
+            font-size: 10px;
+            line-height: 1;
           }
         }
       }

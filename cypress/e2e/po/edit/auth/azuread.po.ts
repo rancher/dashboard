@@ -7,8 +7,10 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
 
 export default class AzureadPo extends PagePo {
+  // Adding a provider always creates a config of its own, so the form is reached
+  // through the create route rather than through an empty config's edit page.
   private static createPath(clusterId: string, id?: string ) {
-    return `/c/${ clusterId }/auth/config/azuread?mode=edit`;
+    return `/c/${ clusterId }/auth/config/create/azuread?mode=edit`;
   }
 
   static goTo(clusterId: string): Cypress.Chainable<Cypress.AUTWindow> {

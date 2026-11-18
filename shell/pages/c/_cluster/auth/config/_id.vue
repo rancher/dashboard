@@ -1,35 +1,44 @@
 <script>
 import ResourceDetail from '@shell/components/ResourceDetail';
+import Loading from '@shell/components/Loading';
 import { MANAGEMENT } from '@shell/config/types';
-import { authProvidersInfo } from '@shell/utils/auth';
+import { providerKey } from '@shell/models/management.cattle.io.authconfig';
 
 export default {
   name:       'AuthConfigDetail',
-  components: { ResourceDetail },
-  computed:   {
-    AUTH_CONFIG() {
-      return MANAGEMENT.AUTH_CONFIG;
+  components: { Loading, ResourceDetail },
+
+  async fetch() {
+    try {
+      const config = await this.$store.dispatch('management/find', {
+        type: MANAGEMENT.AUTH_CONFIG,
+        id:   this.$route.params.id,
+      });
+
+      this.provider = providerKey(config?._type);
+    } catch (e) {
+      // ResourceDetail reports missing or inaccessible resources in context.
     }
   },
-  async beforeRouteLeave(to, from, next) {
-    // The root auth/config page redirects to this page in some cases. Prevent that navigation if we're just going to end up here again
-    const sameRoute = from.name === 'c-cluster-auth-config-id' && to.name === 'c-cluster-auth-config';
 
-    if (sameRoute) {
-      // Ensure we re-evaluate the redirect in case this auth provider has been disabled
-      const authProvs = await authProvidersInfo(this.$store);
+  data() {
+    return { provider: null };
+  },
 
-      next(!authProvs.enabledLocation);
-    } else {
-      next();
+  computed: {
+    AUTH_CONFIG() {
+      return MANAGEMENT.AUTH_CONFIG;
     }
   },
 };
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <ResourceDetail
+    v-else
     :resource-override="AUTH_CONFIG"
+    :sub-type-override="provider"
     :flex-content="true"
   />
 </template>

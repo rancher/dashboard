@@ -3,12 +3,12 @@ import { generateRolesDataSmall, rolesNoData } from '@/cypress/e2e/blueprints/ex
 
 const rolesPage = new RolesPagePo();
 
-describe('Roles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Roles', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
@@ -60,11 +60,10 @@ describe('Roles', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, (
       cy.wait('@rolesDataSmall2');
 
       // group by namespace
-      rolesPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      rolesPage.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Created At'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Created At'];
 
       rolesPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

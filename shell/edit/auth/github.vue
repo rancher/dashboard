@@ -12,16 +12,20 @@ import { LabeledInput } from '@components/Form/LabeledInput';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import { MANAGEMENT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import GithubSteps from '@shell/edit/auth/github-steps.vue';
 import GithubAppSteps from '@shell/edit/auth/github-app-steps.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     RadioGroup,
@@ -29,9 +33,10 @@ export default {
     AllowedPrincipals,
     AuthBanner,
     AuthProviderWarningBanners,
-    FileSelector,
+    FileSelectorTextArea,
     GithubSteps,
     GithubAppSteps,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -44,18 +49,15 @@ export default {
     const isGithubAppRef = ref(false);
     const isPublicRef = ref(true);
 
-    const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
-    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
-    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
-    const optionalField = coerce(z.string());
+    const { field } = zodValidators(t);
 
     const validationSchema = computed(() => toTypedSchema(
       z.object({
-        clientId:     requiredField('authConfig.github.clientId.label'),
-        clientSecret: requiredField('authConfig.github.clientSecret.label'),
-        appId:        isGithubAppRef.value ? requiredField('authConfig.githubapp.githubAppId.label') : optionalField,
-        privateKey:   isGithubAppRef.value ? requiredField('authConfig.githubapp.privateKey.label') : optionalField,
-        targetUrl:    !isPublicRef.value ? requiredUrlField('authConfig.github.host.label') : optionalField,
+        clientId:     field('authConfig.github.clientId.label').required(),
+        clientSecret: field('authConfig.github.clientSecret.label').required(),
+        appId:        isGithubAppRef.value ? field('authConfig.githubapp.githubAppId.label').required() : field(),
+        privateKey:   isGithubAppRef.value ? field('authConfig.githubapp.privateKey.label').required() : field(),
+        targetUrl:    !isPublicRef.value ? field('authConfig.github.host.label').required().url() : field(),
       })
     ));
 
@@ -83,7 +85,11 @@ export default {
     await this.mixinFetch();
 
     this.targetType = (!this.model.hostname || this.model.hostname === 'github.com' ? 'public' : 'private');
-    this.targetUrl = (this.model.tls ? 'https://' : 'http://') + (this.model.hostname || 'github.com');
+    // A config that has never been saved carries no `tls`, and the target it
+    // defaults to - public GitHub - only answers over https. A saved config always
+    // has a hostname, and the server can leave `tls` out when it is false, so for
+    // one of those a missing `tls` means http.
+    this.targetUrl = (this.model.tls || !this.model.hostname ? 'https://' : 'http://') + (this.model.hostname || 'github.com');
   },
 
   data() {
@@ -121,10 +127,6 @@ export default {
       };
     },
 
-    NAME() {
-      return this.isGithubApp ? 'githubapp' : 'github';
-    },
-
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
     },
@@ -137,8 +139,9 @@ export default {
       };
     },
 
+    // A config's id is its own name, so which GitHub it is comes from its type
     isGithubApp() {
-      return this.model?.id === 'githubapp';
+      return this.NAME === 'githubapp';
     },
 
     steps() {
@@ -156,7 +159,7 @@ export default {
   },
 
   watch: {
-    'model.id': {
+    NAME: {
       handler(newVal) {
         this.isGithubAppRef = newVal === 'githubapp';
       },
@@ -188,10 +191,6 @@ export default {
         this.model.hostname = match[4] || 'github.com';
       }
     },
-
-    updatePrivateKey(content) {
-      this.model.privateKey = content;
-    },
   },
 };
 </script>
@@ -214,11 +213,20 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
+          :provider-id="model.id"
         >
           <template #rows>
             <tr><td>{{ t(`authConfig.${ NAME }.table.server`) }}: </td><td>{{ baseUrl }}</td></tr>
@@ -226,7 +234,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           provider="github"
@@ -327,20 +335,14 @@ export default {
             </div>
           </div>
           <div class="row mb-20">
-            <div class="col span-6">
-              <LabeledInput
+            <div class="col span-12">
+              <FileSelectorTextArea
                 v-model:value="model.privateKey"
                 name="privateKey"
                 required
                 data-testid="private-key"
-                type="multiline"
                 :label="t(`authConfig.${NAME}.privateKey.label`)"
                 :mode="mode"
-              />
-              <FileSelector
-                class="btn btn-sm role-secondary mt-10"
-                :label="t('generic.readFromFile')"
-                @selected="updatePrivateKey"
               />
             </div>
           </div>

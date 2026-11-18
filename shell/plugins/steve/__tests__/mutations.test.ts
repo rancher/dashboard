@@ -9,7 +9,8 @@ describe('steve-store: mutations', () => {
       const res = mutationHelpers.loadAll.createNewEntry();
       const pod = res.params[1].data[0];
 
-      res.params[0].podsByNamespace = {};
+      // `params[0]` is the store state; the steve mutation is what adds `podsByNamespace` to it
+      (res.params[0] as Record<string, any>).podsByNamespace = {};
       res.expected.podsByNamespace = {
         [pod.namespace]: {
           list: [new Resource(pod)],
@@ -34,7 +35,7 @@ describe('steve-store: mutations', () => {
     ])('%s', (_, run) => { // eslint-disable-line jest/no-identical-title
       mutations.loadAdd(...run.params);
       const { map: cacheMap, ...cacheState } = run.params[0].types?.[POD] ;
-      const cachePodsByNamespace = run.params[0].podsByNamespace ;
+      const cachePodsByNamespace = (run.params[0] as Record<string, any>).podsByNamespace;
       const { map: expectedMap, ...expected } = run.expected.types?.[POD];
       const expectedPodsByNamespace = run.expected.podsByNamespace ;
 

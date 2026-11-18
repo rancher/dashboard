@@ -1,15 +1,16 @@
 import { ContentsPagePo } from '@/cypress/e2e/po/pages/explorer/contents.po';
 import { fleetContentsNoData, generateFleetContentsDataSmall } from '@/cypress/e2e/blueprints/explorer/fleet/contents-get';
+import { qase } from '@/cypress/support/qase';
 
 const contentsPagePo = new ContentsPagePo();
 
-describe('Contents', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Contents', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
-    it('validate fleet contents table in empty state', () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
+    qase(4097, it('validate fleet contents table in empty state', () => {
       fleetContentsNoData();
       contentsPagePo.goTo();
       contentsPagePo.waitForPage();
@@ -24,9 +25,9 @@ describe('Contents', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
         });
 
       contentsPagePo.list().resourceTable().sortableTable().checkRowCount(true, 1);
-    });
+    }));
 
-    it('validate fleet contents table', () => {
+    qase(4098, it('validate fleet contents table', () => {
       generateFleetContentsDataSmall();
       contentsPagePo.goTo();
       contentsPagePo.waitForPage();
@@ -45,6 +46,6 @@ describe('Contents', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }
       contentsPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       contentsPagePo.list().resourceTable().sortableTable().noRowsShouldNotExist();
       contentsPagePo.list().resourceTable().sortableTable().checkRowCount(false, 2);
-    });
+    }));
   });
 });

@@ -9,6 +9,29 @@
  *   <p>Section content here</p>
  * </RcSection>
  *
+ * The default slot stacks whatever is written into it 16px apart, so form
+ * elements go straight in and no call site needs a wrapper div for the
+ * spacing.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <LabeledInput label="Name" />
+ *   <LabeledInput label="Description" />
+ * </RcSection>
+ *
+ * A section that needs several groups writes RcContentGroups into that same
+ * slot. The section spaces groups 24px apart, and each group stacks its own
+ * content 16px apart.
+ *
+ * <RcSection title="Section title" type="secondary" mode="with-header" background="secondary">
+ *   <RcContentGroup>
+ *     <LabeledInput label="Name" />
+ *     <LabeledInput label="Description" />
+ *   </RcContentGroup>
+ *   <RcContentGroup>
+ *     <LabeledInput label="Namespace" />
+ *   </RcContentGroup>
+ * </RcSection>
+ *
  * <RcSection title="Section title" type="secondary" mode="with-header" expandable v-model:expanded="expanded" background="secondary">
  *   <template #counter>
  *     <RcCounterBadge :count="99" type="inactive" />
@@ -32,18 +55,30 @@
  *   </template>
  *   <p>Section content here</p>
  * </RcSection>
+ *
+ * A collapsed section keeps its content mounted but hidden, so form fields inside it keep validating.
+ * Content that sizes itself from the DOM on mount measures zero while hidden, and should measure again
+ * once shown (see observeReveal in @components/utils/reveal). Content that can't do this can set
+ * `unmountOnHide` to be unmounted while collapsed instead.
+ *
+ * Form fields report whether they show an error to the section they are in (see useSectionValidity). A section with
+ * such fields, including ones in nested sections, shows an error icon in its #errors slot, expanded or not.
+ * Filling the slot replaces the icon, and the slot's `invalid` prop says whether it would be shown. The section's
+ * table of contents entry shows the same icon. Collapsing a section validates it: its fields show their errors
+ * from then on, without waiting to be touched.
  */
 import {
-  computed, inject, provide, useTemplateRef, type Ref
+  computed, inject, nextTick, provide, useTemplateRef, watch, type Ref
 } from 'vue';
 import RcButton from '@components/RcButton/RcButton.vue';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
 import { useInSummary } from '@shell/components/TableOfContents/composables';
 import type { RcSectionProps, SectionBackground } from './types';
+import { provideSectionValidity } from './useSectionValidity';
 
 const RC_SECTION_BG_KEY = 'rc-section-background';
 
-const props = withDefaults(defineProps<RcSectionProps>(), { title: '' });
+const props = withDefaults(defineProps<RcSectionProps>(), { title: '', unmountOnHide: false });
 
 const parentBackground = inject<Ref<SectionBackground> | null>(RC_SECTION_BG_KEY, null);
 
@@ -61,6 +96,14 @@ provide(RC_SECTION_BG_KEY, resolvedBackground);
 
 const expanded = defineModel<boolean>('expanded', { default: true });
 
+const { hasInvalid, validate } = provideSectionValidity();
+
+watch(expanded, (isExpanded) => {
+  if (!isExpanded) {
+    validate();
+  }
+});
+
 // Expose summary, name, and a display label on the component public instance so
 // TOC discovery can access component
 const displayTitle = computed(() => props.title);
@@ -69,10 +112,21 @@ const name = 'RcSection';
 
 // Register this section in form summary/table-of-contents context (if provided)
 const sectionRef = useTemplateRef<HTMLElement>('rc-section-summarized-container');
+
+// Navigating to a section from the table of contents opens it if it's collapsed, then scrolls to it
+function scrollTo() {
+  if (props.expandable) {
+    expanded.value = true;
+  }
+
+  nextTick(() => sectionRef.value?.scrollIntoView(true));
+}
+
 const { summary } = useInSummary({
   label:      displayTitle,
-  scrollTo:   () => sectionRef.value?.scrollIntoView(true),
+  scrollTo,
   elementRef: sectionRef,
+  invalid:    hasInvalid,
 });
 
 defineExpose({
@@ -133,8 +187,25 @@ function toggle() {
           <slot name="title">
             {{ props.title }}
           </slot>
-          <slot name="counter" />
-          <slot name="errors" />
+          <div
+            v-if="$slots.counter"
+            class="counter"
+          >
+            <slot name="counter" />
+          </div>
+          <slot
+            name="errors"
+            :invalid="hasInvalid"
+          >
+            <RcIcon
+              v-if="hasInvalid"
+              v-clean-tooltip="t('component.rcSection.invalidFields')"
+              type="error"
+              size="large"
+              status="error"
+              data-testid="rc-section-invalid-fields"
+            />
+          </slot>
         </div>
       </div>
       <div
@@ -156,8 +227,15 @@ function toggle() {
         </div>
       </div>
     </div>
+    <!--
+      v-show (not v-if) keeps collapsed content mounted, so form fields inside
+      it stay registered with their validation (e.g. vee-validate useField)
+      and keep reporting errors while the section is collapsed.
+      unmountOnHide opts back into unmounting collapsed content.
+    -->
     <div
-      v-if="expanded"
+      v-if="expanded || !props.unmountOnHide"
+      v-show="expanded"
       :class="contentClass"
     >
       <slot />
@@ -192,6 +270,11 @@ function toggle() {
 
   &.bg-secondary {
     background-color: var(--rc-section-background-secondary);
+
+    > .section-header .counter {
+      --rc-counter-badge-inactive-background: var(--rc-section-counter-background);
+      --rc-counter-badge-inactive-border: var(--rc-section-counter-border);
+    }
   }
 }
 
@@ -221,10 +304,16 @@ function toggle() {
 
 .title {
   display: inline-flex;
+  align-items: center;
   gap: 12px;
   font-size: 18px;
   line-height: 1.2;
   color: var(--body-text, inherit);
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
 }
 
 // TODO: Considering removing specificity override when RcButton sizes are refactored (#18062)
@@ -262,9 +351,13 @@ function toggle() {
 .section-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--gap-md, 16px);
   padding: 0 0 16px;
   color: var(--body-text);
+
+  &:has(> .rc-content-group) {
+    gap: var(--gap-lg, 24px);
+  }
 
   &.expandable-content {
     padding: 0 0 16px 24px;

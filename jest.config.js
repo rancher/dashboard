@@ -1,10 +1,17 @@
 process.env.TZ = 'UTC';
 
 module.exports = {
-  preset:             'ts-jest',
-  testEnvironment:    'jsdom',
-  setupFilesAfterEnv: ['./jest.setup.js'],
-  watchman:           false,
+  preset:                 'ts-jest',
+  testEnvironment:        'jsdom',
+  // Jest 28+ (jest-environment-jsdom) defaults package resolution to the "browser" export
+  // condition, which makes packages like @vue/test-utils resolve their browser (global-Vue)
+  // build and throw "Vue is not defined". Pin to node conditions to restore Jest 27 behaviour.
+  testEnvironmentOptions: { customExportConditions: ['node', 'node-addons'] },
+  setupFilesAfterEnv:     ['./jest.setup.js'],
+  watchman:               false,
+  // Workers are reused for the whole run and their heap keeps growing (to ~4GB each in CI),
+  // which runs the 16GB GitHub runner out of memory. Replace a worker once it passes 1GB.
+  workerIdleMemoryLimit:  '1GB',
 
   // tell Jest to handle `*.vue` files
   moduleFileExtensions: ['js', 'mjs', 'json', 'vue', 'ts'],
@@ -20,6 +27,10 @@ module.exports = {
     '@shell/(.*)':                                                                   '<rootDir>/shell/$1',
     '@pkg/(.*)':                                                                     '<rootDir>/pkg/$1',
     '@components/(.*)':                                                              '<rootDir>/pkg/rancher-components/src/components/$1',
+    // clipboard-polyfill's package `exports` only declares an `import` (ESM) condition, so Jest
+    // 28+'s exports-aware resolver can't resolve it for a CJS require. Map it to its concrete ESM
+    // build (transformed via transformIgnorePatterns below) to restore the Jest 27 `main` behaviour.
+    '^clipboard-polyfill$':                                                          '<rootDir>/node_modules/clipboard-polyfill/dist/es6/clipboard-polyfill.es6.js',
     '\\.(jpe?g|png|gif|webp|svg|mp4|webm|ogg|mp3|wav|flac|aac|woff2?|eot|ttf|otf)$': '<rootDir>/svgTransform.js',
   },
   modulePathIgnorePatterns: [
@@ -35,7 +46,10 @@ module.exports = {
     '<rootDir>(/.*)*/__tests__/utils/',
   ],
   transformIgnorePatterns: [
-    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate)/)',
+    // intl-messageformat (and its @formatjs/* deps) are ESM-only as of v11 ("type":"module"),
+    // so Jest must transpile them instead of ignoring them like the rest of node_modules. The same
+    // goes for @replit/codemirror-vim-core, which @replit/codemirror-vim's CJS build requires.
+    '/node_modules/(?!(color|color-string|color-convert|color-name|vee-validate|@vee-validate|clipboard-polyfill|intl-messageformat|@formatjs|@replit/codemirror-vim-core)/)',
   ],
 
   // Babel
@@ -58,6 +72,7 @@ module.exports = {
     '<rootDir>/shell/**/*.{vue,ts,js}',
     '<rootDir>/pkg/rancher-components/src/components/**/*.{vue,ts,js}',
     '!<rootDir>/shell/scripts/',
+    '!**/vendor/**',
   ],
   coveragePathIgnorePatterns: [
     '\\.d\\.ts'

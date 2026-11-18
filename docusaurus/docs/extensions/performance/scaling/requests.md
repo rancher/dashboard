@@ -93,4 +93,3 @@ The old `matching` function simply takes an array and applies the labelSelector.
    - With server-side pagination disabled requests continue as before and can use `findAll`
    - With server-side pagination enabled requests use the new `PaginationWrapper` wrapper to find a transient subset of resources
 1. Locations that previously used `findMatching` or local application of the `labelSelector` are updated to use `findLabelSelector` and the new `matching` helper
-1. Changes have been validated when Server-Side Pagination is enabled and disabled via the `ui-sql-cache` Feature Flag

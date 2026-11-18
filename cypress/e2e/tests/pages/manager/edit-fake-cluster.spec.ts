@@ -2,7 +2,7 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerEditGenericPagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/edit/cluster-edit-generic.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/support/utils/exception-utils';
-import { CURRENT_RANCHER_VERSION } from '@shell/config/version.js';
+import { CURRENT_RANCHER_VERSION } from '@/cypress/support/utils/version';
 import { generateFakeClusterDataAndIntercepts } from '@/cypress/e2e/blueprints/nav/fake-cluster';
 import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 
@@ -24,7 +24,7 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
 
       HomePagePo.goTo();
 
-      cy.wait('@mgmtClustersSideNav');
+      cy.wait('@mgmtClustersSideNavContext');
       cy.wait('@mgmtClustersLists');
       cy.wait('@provClusters');
 
@@ -40,7 +40,7 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
     });
 
     it('Clearing a registry auth item on the UI (Cluster Edit Config) should retain its authentication ID', () => {
-      editCluster.clickTab('#registry');
+      editCluster.clickTab('[data-testid="btn-registry"]');
       editCluster.registryAuthenticationItems().closeArrayListItem(0);
 
       // registries is populated in fake-cluster -> "generateProvClusterObj" -> "spec.rkeConfig.registries"
@@ -66,7 +66,7 @@ describe('Cluster Edit', { tags: ['@manager', '@adminUser'] }, () => {
         })
         .click();
 
-      cy.url().should('include', `https://ranchermanager.docs.rancher.com/v${ CURRENT_RANCHER_VERSION }/how-to-guides/new-user-guides/launch-kubernetes-with-rancher#launching-kubernetes-on-new-nodes-in-an-infrastructure-provider`);
+      cy.url().should('include', `https://ranchermanager.docs.rancher.com/${ CURRENT_RANCHER_VERSION }/how-to-guides/new-user-guides/launch-kubernetes-with-rancher/#launching-kubernetes-on-new-nodes-in-an-infrastructure-provider`);
     });
   });
 });

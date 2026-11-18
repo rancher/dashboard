@@ -1,5 +1,6 @@
 <script>
 import ConsumptionGauge from '@shell/components/ConsumptionGauge';
+import Card from '@shell/components/Resource/Detail/Card/index.vue';
 import Alert from '@shell/components/Alert';
 import ResourceTable from '@shell/components/ResourceTable';
 import Tab from '@shell/components/Tabbed/Tab';
@@ -13,7 +14,7 @@ import {
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import { METRIC, POD } from '@shell/config/types';
 import createEditView from '@shell/mixins/create-edit-view';
-import { formatSi, exponentNeeded, UNITS } from '@shell/utils/units';
+import { formatSi } from '@shell/utils/units';
 import DashboardMetrics from '@shell/components/DashboardMetrics';
 import { mapGetters } from 'vuex';
 import { allDashboardsExist } from '@shell/utils/grafana';
@@ -31,6 +32,7 @@ export default {
 
   components: {
     Alert,
+    Card,
     ConsumptionGauge,
     DashboardMetrics,
     Loading,
@@ -110,12 +112,6 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
-    memoryUnits() {
-      const exponent = exponentNeeded(this.value.ramReserved, 1024);
-
-      return `${ UNITS[exponent] }iB`;
-    },
-
     pidPressureStatus() {
       return this.mapToStatus(this.value.isPidPressureOk);
     },
@@ -161,9 +157,12 @@ export default {
 
   methods: {
     memoryFormatter(value) {
+      // Each value is scaled independently, so it has to carry its own unit -
+      // a node using 900MiB of 62GiB must not read "900 GiB of 62 GiB".
       const formatOptions = {
-        addSuffix: false,
-        increment: 1024,
+        increment:   1024,
+        suffix:      'iB',
+        firstSuffix: 'B',
       };
 
       return formatSi(value, formatOptions);
@@ -218,24 +217,32 @@ export default {
       />
     </div>
     <div class="mt-20 resources">
-      <ConsumptionGauge
-        :resource-name="t('node.detail.glance.consumptionGauge.cpu')"
-        :capacity="value.cpuCapacity"
-        :used="value.cpuUsage"
-      />
-      <ConsumptionGauge
-        :resource-name="t('node.detail.glance.consumptionGauge.memory')"
-        :capacity="value.ramReserved"
-        :used="value.ramUsage"
-        :units="memoryUnits"
-        :number-formatter="memoryFormatter"
-      />
-      <ConsumptionGauge
-        :resource-name="t('node.detail.glance.consumptionGauge.pods')"
-        :capacity="value.podCapacity"
-        :used="value.podConsumed"
-        :used-label="t('node.detail.glance.consumptionGauge.running')"
-      />
+      <Card :title="t('node.detail.glance.consumptionGauge.cpu')">
+        <ConsumptionGauge
+          class="mmb-1"
+          :capacity="value.cpuAllocatable"
+          :used="value.cpuUsage"
+          bar-size="small"
+        />
+      </Card>
+      <Card :title="t('node.detail.glance.consumptionGauge.memory')">
+        <ConsumptionGauge
+          class="mmb-1"
+          :capacity="value.ramAllocatable"
+          :used="value.ramUsage"
+          :number-formatter="memoryFormatter"
+          bar-size="small"
+        />
+      </Card>
+      <Card :title="t('node.detail.glance.consumptionGauge.pods')">
+        <ConsumptionGauge
+          class="mmb-1"
+          :capacity="value.podCapacity"
+          :used="value.podConsumed"
+          :used-label="t('node.detail.glance.consumptionGauge.running')"
+          bar-size="small"
+        />
+      </Card>
     </div>
     <div class="spacer" />
     <ResourceTabs
@@ -323,12 +330,8 @@ export default {
 
 <style lang="scss" scoped>
 .resources {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-
-  & > * {
-    width: 30%;
-  }
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap-md);
 }
 </style>

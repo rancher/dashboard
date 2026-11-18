@@ -7,11 +7,11 @@ export default class CertificatesPo extends ComponentPo {
   }
 
   expiredBanner() {
-    return new ComponentPo('#cluster-certs .banner.error');
+    return new ComponentPo('[data-testid="tab-panel-cluster-certs"] .banner.error');
   }
 
   expiringBanner() {
-    return new ComponentPo('#cluster-certs .banner.warning');
+    return new ComponentPo('[data-testid="tab-panel-cluster-certs"] .banner.warning');
   }
 
   list() {

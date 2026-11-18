@@ -14,6 +14,15 @@ export default function(plugin: IPlugin) {
 
   plugin.addProduct(require('./config/harvester-manager'));
 
+  if (plugin.environment.isPrime) {
+    plugin.register('l10n-global', 'Harvester', 'SUSE Virtualization');
+
+    const primeProductName = () => ({ product: { harvesterManager: 'SUSE Virtualization' } });
+
+    plugin.register('l10n', 'en-us', primeProductName);
+    plugin.register('l10n', 'zh-hans', primeProductName);
+  }
+
   plugin.addTab(
     TabLocation.RESOURCE_CREATE_PAGE,
     {

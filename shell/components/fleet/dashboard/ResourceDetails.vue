@@ -135,7 +135,9 @@ export default {
           name="clusters"
         >
           <DrawerCard>
+            <!-- One bundle's clusters, not the cluster list, so no saved view tabs -->
             <FleetClusters
+              :table-view-tabs="false"
               :schema="clusterSchema"
               :rows="value.targetClusters"
               :table-actions="false"
@@ -152,7 +154,10 @@ export default {
           name="resources"
         >
           <DrawerCard>
+            <!-- Statuses rather than a resource type, so the toolbar has to be asked for -->
             <FleetResources
+              :table-views="true"
+              :table-view-tabs="false"
               :rows="value.resourcesStatuses"
               :cluster-id="clusterId"
               :search="true"

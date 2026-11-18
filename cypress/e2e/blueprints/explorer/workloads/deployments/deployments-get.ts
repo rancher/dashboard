@@ -1,4 +1,5 @@
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+import { reply } from '../workload-reply';
 
 const deploymentsGetResponseSmallSet = {
   type:         'collection',
@@ -51,15 +52,6 @@ const deploymentsGetResponseSmallSet = {
     }
   }]
 };
-
-function reply(statusCode: number, body: any) {
-  return (req) => {
-    req.reply({
-      statusCode,
-      body
-    });
-  };
-}
 
 export function generateDeploymentsDataSmall(): Cypress.Chainable<Response> {
   return cy.intercept('GET', '/v1/apps.deployments?*', reply(200, deploymentsGetResponseSmallSet)).as('deploymentsDataSmall');

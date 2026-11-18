@@ -1,9 +1,28 @@
 import { mount } from '@vue/test-utils';
-import PolicyRuleTarget from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRuleTarget';
-import mock from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/mock.json';
-import { PolicyRuleTargetSelectors } from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/selectors.test.ts';
+import PolicyRuleTarget from '@shell/edit/networking.k8s.io.networkpolicy/PolicyRuleTarget.vue';
+import { PolicyRuleTargetSelectors } from '@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/selectors.test';
 import { nextTick } from 'vue';
 import { COUNT, NAMESPACE, POD } from '@shell/config/types';
+
+type LabelSelector = { matchLabels?: Record<string, string>, matchExpressions?: object[] };
+
+type NetworkPolicyMock = {
+  defaultNamespace: string;
+  selectors: {
+    ipBlock: { cidr: string };
+    namespace: LabelSelector;
+    pod: LabelSelector;
+    namespaceAndPod: { namespace: LabelSelector, pod: LabelSelector };
+  };
+  allNamespaces: object[];
+  allPods: object[];
+  counts: object[];
+};
+
+// `resolveJsonModule` is off repo-wide, so the fixture is pulled in with require(),
+// matching the require('./package.json') idiom used in pkg/*/index.ts. require() is
+// untyped, hence the annotation.
+const mock: NetworkPolicyMock = require('@shell/edit/networking.k8s.io.networkpolicy/__tests__/utils/mock.json');
 
 type MatchData = {
   matched: number;
@@ -13,6 +32,10 @@ type MatchData = {
   sample?: string;
 }
 
+// The component seeds `matchingNamespaces`/`matchingPods` with empty arrays, so vue-tsc
+// infers `matches: never[]` and cannot see what the fixture actually put in them.
+type MatchedResource = { metadata: { name: string, labels: Record<string, string> } };
+
 describe.each([
   'view',
   'edit',
@@ -20,9 +43,6 @@ describe.each([
   const mockExists = jest.fn().mockReturnValue(true);
 
   const wrapper = mount(PolicyRuleTarget, {
-    data() {
-      return { throttleTime: 0 };
-    },
     props: {
       namespace: mock.defaultNamespace,
       type:      'ingress',
@@ -138,9 +158,11 @@ describe.each([
       expect(wrapper.vm.$data.matchingNamespaces.matched).toBe(1);
 
       // Check if namespace's labels match
-      expect(wrapper.vm.$data.matchingNamespaces.matches).toHaveLength(1);
-      expect(wrapper.vm.$data.matchingNamespaces.matches[0].metadata.name).toBe('default');
-      expect(wrapper.vm.$data.matchingNamespaces.matches[0].metadata.labels['user']).toBe('alice');
+      const nsMatches = wrapper.vm.$data.matchingNamespaces.matches as MatchedResource[];
+
+      expect(nsMatches).toHaveLength(1);
+      expect(nsMatches[0].metadata.name).toBe('default');
+      expect(nsMatches[0].metadata.labels['user']).toBe('alice');
 
       expect(selectors.pod.exists()).toBe(false);
       expect(selectors.namespaceAndPod.namespaceRule.exists()).toBe(false);
@@ -162,10 +184,11 @@ describe.each([
 
       // Check if namespace's labels match
       expect(wrapper.vm.$data.matchingPods.matched).toBe(1);
-      expect(wrapper.vm.$data.matchingPods.matches).toHaveLength(1);
+      const podMatches = wrapper.vm.$data.matchingPods.matches as MatchedResource[];
 
-      expect(wrapper.vm.$data.matchingPods.matches[0].metadata.name).toBe('test-pod');
-      expect(wrapper.vm.$data.matchingPods.matches[0].metadata.labels['foo']).toBe('bar');
+      expect(podMatches).toHaveLength(1);
+      expect(podMatches[0].metadata.name).toBe('test-pod');
+      expect(podMatches[0].metadata.labels['foo']).toBe('bar');
 
       expect(selectors.namespace.exists()).toBe(false);
       expect(selectors.namespaceAndPod.namespaceRule.exists()).toBe(false);
@@ -194,12 +217,15 @@ describe.each([
       expect(wrapper.vm.$data.matchingPods.matched).toBe(1);
 
       // Check if namespace's labels match
-      expect(wrapper.vm.$data.matchingNamespaces.matches).toHaveLength(1);
-      expect(wrapper.vm.$data.matchingNamespaces.matches[0].metadata.name).toBe('default');
-      expect(wrapper.vm.$data.matchingNamespaces.matches[0].metadata.labels['user']).toBe('alice');
+      const nsMatches = wrapper.vm.$data.matchingNamespaces.matches as MatchedResource[];
+      const podMatches = wrapper.vm.$data.matchingPods.matches as MatchedResource[];
 
-      expect(wrapper.vm.$data.matchingPods.matches[0].metadata.name).toBe('test-pod');
-      expect(wrapper.vm.$data.matchingPods.matches[0].metadata.labels['foo']).toBe('bar');
+      expect(nsMatches).toHaveLength(1);
+      expect(nsMatches[0].metadata.name).toBe('default');
+      expect(nsMatches[0].metadata.labels['user']).toBe('alice');
+
+      expect(podMatches[0].metadata.name).toBe('test-pod');
+      expect(podMatches[0].metadata.labels['foo']).toBe('bar');
 
       expect(selectors.namespace.exists()).toBe(false);
       expect(selectors.pod.exists()).toBe(false);

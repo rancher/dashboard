@@ -6,10 +6,12 @@ import { useI18n } from '@shell/composables/useI18n';
 import { FLEET } from '@shell/config/types';
 import { SUB_TYPE } from '@shell/config/query-params';
 import { isRancherPrime } from '@shell/config/version';
+import { isSuseAppCollectionEnabled } from '@shell/utils/settings';
 import FleetUtils from '@shell/utils/fleet';
 import Masthead from '@shell/components/ResourceDetail/Masthead';
 import suseLogo from '@shell/assets/images/content/suse.svg';
 import suseLogoDark from '@shell/assets/images/content/dark/suse.svg';
+import { RcSeparator } from '@components/RcSeparator';
 
 interface Subtype {
   id: string;
@@ -44,6 +46,8 @@ const isDarkMode = computed(() => store.getters['prefs/theme'] === 'dark');
 
 const selectedSubtype = computed(() => route.query[SUB_TYPE] as string);
 
+const suseAppCollectionEnabled = computed(() => isSuseAppCollectionEnabled(store));
+
 const types = computed<Subtype[]>(() => {
   return [
     FLEET.GIT_REPO,
@@ -51,7 +55,7 @@ const types = computed<Subtype[]>(() => {
     FLEET.SUSE_APP_COLLECTION,
   ].reduce((acc: Subtype[], type: string) => {
     if (type === FLEET.SUSE_APP_COLLECTION) {
-      if (!isRancherPrime()) {
+      if (!isRancherPrime() || !suseAppCollectionEnabled.value) {
         return acc;
       }
 
@@ -219,7 +223,7 @@ const cancel = () => {
                 class="flex-right"
               >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
             </div>
-            <hr v-if="subtype.description">
+            <RcSeparator v-if="subtype.description" />
             <div
               v-if="subtype.description"
               class="description"

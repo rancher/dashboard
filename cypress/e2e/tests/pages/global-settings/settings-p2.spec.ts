@@ -19,7 +19,7 @@ const settingsOriginal = {};
 let removeServerUrl = false;
 const resetSettings = [];
 
-describe('Settings', { testIsolation: 'off' }, () => {
+describe('Settings', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -250,9 +250,23 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update ui-brand', { tags: ['@noPrime', '@globalSettings', '@adminUser'] }, () => {
-    // We probably want a better way to distinguish between rancher and suse logos. I'm doing this as part of the vue3 migration and trying to keep things as similar as possible.
-    const rancherLogoWidth = 167;
-    const suseRancherLogoWidth = 200;
+    // Rancher and SUSE logos share a file name and can render at the same size, so compare the served SVG with the source asset (light or dark theme)
+    const rancherLogoFiles = ['shell/assets/images/pl/rancher-logo.svg', 'shell/assets/images/pl/dark/rancher-logo.svg'];
+    const suseLogoFiles = ['shell/assets/brand/suse/rancher-logo.svg', 'shell/assets/brand/suse/dark/rancher-logo.svg'];
+
+    const checkLogo = (logo: Cypress.Chainable, [lightFile, darkFile]: string[]) => {
+      logo.should('be.visible')
+        .invoke('prop', 'src')
+        .then((src) => cy.request(src))
+        .its('body')
+        .then((body) => {
+          cy.readFile(lightFile).then((light) => {
+            cy.readFile(darkFile).then((dark) => {
+              expect(body === light || body === dark, `logo matches ${ lightFile } or ${ darkFile }`).to.eq(true);
+            });
+          });
+        });
+    };
 
     // Update setting
     SettingsPagePo.navTo();
@@ -269,17 +283,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     // Check logos in top-level navigation header for updated logo
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage()
-      .should('be.visible')
-      .invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', suseRancherLogoWidth);
+    checkLogo(burgerMenu.brandLogoImage(), suseLogoFiles);
     BurgerMenuPo.toggle();
 
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage()
-      .should('be.visible')
-      .invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', suseRancherLogoWidth);
+    checkLogo(burgerMenu.headerBrandLogoImage(), suseLogoFiles);
     BurgerMenuPo.toggle();
 
     // Reset
@@ -297,12 +305,10 @@ describe('Settings', { testIsolation: 'off' }, () => {
 
     // Check logos in top-level navigation header for updated logo
     HomePagePo.navTo();
-    burgerMenu.headerBrandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', rancherLogoWidth);
+    checkLogo(burgerMenu.headerBrandLogoImage(), rancherLogoFiles);
 
     BurgerMenuPo.toggle();
-    burgerMenu.brandLogoImage().should('be.visible').invoke('outerWidth').then((str) => parseInt(str))
-      .should('eq', rancherLogoWidth);
+    checkLogo(burgerMenu.brandLogoImage(), rancherLogoFiles);
 
     resetSettings.push('ui-brand');
   });
@@ -403,6 +409,11 @@ describe('Settings', { testIsolation: 'off' }, () => {
   });
 
   it('can update system-default-registry', { tags: ['@globalSettings', '@adminUser'] }, () => {
+    // Reset to a known page first. testIsolation is off and this test ends deep on the
+    // cluster-create page, so on a retry the burger-menu nav below would otherwise run
+    // against a page whose side-menu never renders.
+    HomePagePo.goTo();
+
     // Update setting
     SettingsPagePo.navTo();
     settingsPage.editSettingsByLabel('system-default-registry');

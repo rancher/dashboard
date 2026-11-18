@@ -1,6 +1,24 @@
 import { POD } from '@shell/config/types';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 
+type TestResource = Resource & { id: string; type: string };
+
+interface TestCache {
+  generation: number;
+  haveAll: boolean;
+  haveNamespace?: string;
+  havePage?: boolean;
+  haveSelector: Record<string, unknown>;
+  list: Resource[];
+  loadCounter: number;
+  revision: number;
+  map: Map<string, Resource>;
+}
+
+interface TestState {
+  types: Record<string, TestCache>;
+}
+
 const createCtx = () => ({
   rootGetters: { 'type-map/optionsFor': (type: string) => ({}) },
   getters:     {
@@ -10,21 +28,56 @@ const createCtx = () => ({
   }
 });
 
+type TestCtx = ReturnType<typeof createCtx>;
+
+/**
+ * A fixture for a mutation test. `params` is spread straight into the mutation,
+ * so it has to be a tuple rather than an array.
+ */
+export interface MutationFixture<Payload, Expected> {
+  params: [TestState, Payload];
+  expected: Expected;
+}
+
+/** `batchChanges` payload: a map of type to the resources changing within it. */
+export interface BatchPayload {
+  ctx: TestCtx;
+  batch: Record<string, Record<string, unknown>>;
+}
+
+interface LoadAddPayload {
+  ctx: TestCtx;
+  type: string;
+  data: (TestResource & { namespace: string })[];
+}
+
+interface ExpectedNoChange { state: TestState }
+
+/** The mutation is expected to leave a given cache behind for each type. */
+export interface ExpectedCaches {
+  types: Record<string, TestCache>;
+  podsByNamespace?: Record<string, { list: Resource[]; map: Map<string, Resource> }>;
+}
+
 const create = (type: string) => ({
   id: '1',
   type,
 });
 
-const createResource = (type: string, props = {}) => new Resource({
+/**
+ * The generic keeps whatever `props` adds on the returned type, so a caller
+ * asking for `{ namespace }` gets a resource that has one.
+ */
+const createResource = <T extends Record<string, unknown>>(type: string, props: T = {} as T): TestResource & T => new Resource({
   ...create(type),
   ...props
-});
+}) as TestResource & T;
 
 const createPod = () => create(POD);
 
-const createPodResource = (props = {}) => createResource(POD, props);
+const createPodResource = <T extends Record<string, unknown>>(props: T = {} as T): TestResource & T => createResource(POD, props);
 
-const createCache = (props: any) => ({
+const createCache = (props: Partial<TestCache>): TestCache => ({
   generation:    0,
   haveAll:       false,
   haveNamespace: undefined,
@@ -37,7 +90,7 @@ const createCache = (props: any) => ({
   ...props
 });
 
-const createNoOp = () => {
+const createNoOp = (): MutationFixture<BatchPayload, ExpectedNoChange> => {
   const emptyState = { types: {} };
 
   return {
@@ -49,7 +102,7 @@ const createNoOp = () => {
   };
 };
 
-const loadAllCreateNoOp = () => {
+const loadAllCreateNoOp = (): MutationFixture<LoadAddPayload, ExpectedNoChange> => {
   const emptyState = { types: {} };
 
   return {
@@ -64,7 +117,7 @@ const loadAllCreateNoOp = () => {
   };
 };
 
-const loadAllCreateNewEntry = () => {
+const loadAllCreateNewEntry = (): MutationFixture<LoadAddPayload, ExpectedCaches> => {
   const pod = createPodResource({ namespace: 'namespace' } );
 
   return {

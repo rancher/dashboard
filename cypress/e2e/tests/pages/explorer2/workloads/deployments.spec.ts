@@ -6,10 +6,11 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateDeploymentsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployments-get';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { qase } from '@/cypress/support/qase';
 
 const localCluster = 'local';
 
-describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -76,7 +77,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       });
     });
 
-    it('should show a translated field name in the required validation message when the name input is left empty', () => {
+    qase(50495, it('should show a translated field name in the required validation message when the name input is left empty', () => {
       deploymentsCreatePage.goTo();
       deploymentsCreatePage.waitForPage();
 
@@ -90,9 +91,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       nameInput.validationMessage()
         .should('contain', '"Name" is required')
         .and('not.contain', '"Value" is required');
-    });
+    }));
 
-    it('should be able to create a new deployment with basic options', () => {
+    qase(9130, it('should be able to create a new deployment with basic options', () => {
       cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       deploymentCreateRequest.metadata.name = deploymentId;
       const { namespace } = deploymentCreateRequest.metadata;
@@ -110,9 +111,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         expect(response.body.metadata.name).to.eq(deploymentId);
         expect(response.body.metadata.namespace).to.eq(namespace);
       });
-    });
+    }));
 
-    it('Should show configuration drawer with the labels/annotations tab open', () => {
+    qase(16278, it('Should show configuration drawer with the labels/annotations tab open', () => {
       cy.waitForResourceState('v1', 'apps.deployments', `${ scaleTestNamespace }/${ scaleTestDeploymentName }`);
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
 
@@ -121,9 +122,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
 
       workloadDetailsPage.openEmptyShowConfigurationLabelsLink();
       workloadDetailsPage.labelsAndAnnotationsTab().should('be.visible');
-    });
+    }));
 
-    it('Should be able to scale the number of pods', () => {
+    qase(9131, it('Should be able to scale the number of pods', () => {
       cy.waitForResourceState('v1', 'apps.deployments', `${ scaleTestNamespace }/${ scaleTestDeploymentName }`);
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
 
@@ -184,9 +185,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       workloadDetailsPage.waitForPendingOperationsToComplete();
 
       workloadDetailsPage.replicaCount().should('contain', '1', MEDIUM_TIMEOUT_OPT);
-    });
+    }));
 
-    it('Should be able to view and edit configuration of pod volumes with no custom component', () => {
+    qase(9132, it('Should be able to view and edit configuration of pod volumes with no custom component', () => {
       cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ volumeDeploymentId }`).as('editDeployment');
 
       deploymentsListPage.goTo();
@@ -194,10 +195,10 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       deploymentsListPage.goToEditConfigPage(volumeDeploymentId);
 
       // open the pod tab
-      deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
+      deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('[data-testid="btn-pod"]');
 
       // open the pod storage tab
-      deploymentEditConfigPage.podTabs().clickTabWithSelector('li#storage-pod');
+      deploymentEditConfigPage.podTabs().clickTabWithSelector('[data-testid="btn-storage-pod"]');
 
       // check that there is a component rendered for each workload volume and that that component has rendered some information about the volume
       deploymentEditConfigPage.podStorage().nthVolumeComponent(0).yamlEditor().value()
@@ -209,7 +210,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       deploymentEditConfigPage.podStorage().nthVolumeComponent(0).yamlEditor().set('name: test-vol-changed\nprojected:\n    defaultMode: 420');
 
       // verify that the list of volumes in the container tab has updated
-      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
+      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('[data-testid="btn-storage"]');
       deploymentEditConfigPage.containerStorage().addVolumeButton().toggle();
       deploymentEditConfigPage.containerStorage().addVolumeButton().getOptions().should('contain', 'test-vol-changed (projected)');
       deploymentEditConfigPage.containerStorage().addVolumeButton().getOptions().should('not.contain', 'test-vol (projected)');
@@ -221,15 +222,15 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         expect(request.body.spec.template.spec.volumes[0]).to.deep.eq({ name: 'test-vol-changed', projected: { defaultMode: 420 } });
         expect(response.body.spec.template.spec.volumes[0]).to.deep.eq({ name: 'test-vol-changed', projected: { defaultMode: 420, sources: null } });
       });
-    });
+    }));
 
-    it('should be able to add and remove container volume mounts', () => {
+    qase(9133, it('should be able to add and remove container volume mounts', () => {
       cy.intercept('PUT', `/v1/apps.deployments/${ namespace }/${ volumeDeploymentId }`).as('editDeployment');
 
       deploymentsListPage.goTo();
       deploymentsListPage.waitForPage();
       deploymentsListPage.goToEditConfigPage(volumeDeploymentId);
-      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
+      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('[data-testid="btn-storage"]');
 
       deploymentEditConfigPage.containerStorage().addVolume('test-vol1');
 
@@ -247,7 +248,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       deploymentsListPage.goTo();
       deploymentsListPage.waitForPage();
       deploymentsListPage.goToEditConfigPage(volumeDeploymentId);
-      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('li#storage');
+      deploymentEditConfigPage.nthContainerTabs(0).clickTabWithSelector('[data-testid="btn-storage"]');
       deploymentEditConfigPage.containerStorage().removeVolume(0);
       deploymentEditConfigPage.resourceDetail().cruResource().saveOrCreate().click();
 
@@ -255,16 +256,16 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         expect(request.body.spec.template.spec.containers[0].volumeMounts).to.deep.eq([]);
         expect(response.body.spec.template.spec.containers[0].volumeMounts).to.eq(undefined);
       });
-    });
+    }));
 
-    it('should be able to add and remove EnvVars', () => {
+    qase(9134, it('should be able to add and remove EnvVars', () => {
       // The viewport needs to be a little larger for cypress to consider the key value input components to be visible
       cy.viewport(1440, 900);
 
       deploymentsCreatePage.goTo();
       deploymentsCreatePage.waitForPage();
 
-      deploymentsCreatePage.horizontalTabs().clickTabWithSelector('li#container-0');
+      deploymentsCreatePage.horizontalTabs().clickTabWithSelector('[data-testid="btn-container-0"]');
 
       deploymentsCreatePage.addEnvironmentVariable();
       deploymentsCreatePage.addEnvironmentVariable();
@@ -284,17 +285,17 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       // Ensure when we remove the variable we remove the correct row
       deploymentsCreatePage.removeEnvironmentVariable(1);
       deploymentEditConfigPage.environmentVariableKeyInput(1).value().should('eq', 'c');
-    });
+    }));
 
-    it('should be able to select Pod CSI storage option', () => {
+    qase(9135, it('should be able to select Pod CSI storage option', () => {
       deploymentsCreatePage.goTo();
       deploymentsCreatePage.waitForPage();
 
       // open the pod tab
-      deploymentsCreatePage.horizontalTabs().clickTabWithSelector('li#pod');
+      deploymentsCreatePage.horizontalTabs().clickTabWithSelector('[data-testid="btn-pod"]');
 
       // open the pod storage tab
-      deploymentsCreatePage.podTabs().clickTabWithSelector('li#storage-pod');
+      deploymentsCreatePage.podTabs().clickTabWithSelector('[data-testid="btn-storage-pod"]');
 
       deploymentsCreatePage.podStorage().addVolumeButton().toggle();
       deploymentsCreatePage.podStorage().addVolumeButton().getOptions().should('contain', 'CSI');
@@ -307,15 +308,15 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
 
       // select the Longhorn option from the driver input
       deploymentsCreatePage.podStorage().driverInput().clickOptionWithLabel('Longhorn');
-    });
+    }));
 
-    it('Should be able to delete the workload', () => {
+    qase(9136, it('Should be able to delete the workload', () => {
       deploymentsListPage.goTo();
       deploymentsListPage.waitForPage();
       deploymentsListPage.listElementWithName(deploymentId).should('exist');
       deploymentsListPage.deleteAndWaitForRequest(deploymentId);
       deploymentsListPage.listElementWithName(deploymentId).should('not.exist');
-    });
+    }));
 
     after(() => {
       cy.deleteRancherResource('v1', 'apps.deployment', `${ namespace }/${ volumeDeploymentId }`, false);
@@ -327,7 +328,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
 
     let uniqueDeployment = SortableTablePo.firstByDefaultName('deployment');
@@ -385,19 +386,26 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         });
     });
 
-    it('pagination is visible and user is able to navigate through deployments data', () => {
+    qase(9158, it('pagination is visible and user is able to navigate through deployments data', () => {
       ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
 
       WorkloadsDeploymentsListPagePo.navTo();
       deploymentsListPage.waitForPage();
 
-      // check deployments count
-      const count = deploymentNamesList.length + 1;
+      // Ensure the separately-created extra deployment has propagated before deriving the count
+      // - otherwise the API snapshot is one short of what the list renders (e.g. 23 vs 24).
+      cy.waitForRancherResource('v1', 'apps.deployment', `${ nsName2 }/${ uniqueDeployment }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
-      cy.waitForRancherResources('v1', 'apps.deployment', count - 1, true).then((resp: Cypress.Response<any>) => {
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
+
       // pagination is visible
-        deploymentsListPage.sortableTable().pagination().checkVisible();
+      deploymentsListPage.sortableTable().pagination().checkVisible();
 
+      deploymentsListPage.sortableTable().pagination().paginationTotalCount().then((count: number) => {
         // basic checks on navigation buttons
         deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
@@ -405,17 +413,15 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         deploymentsListPage.sortableTable().pagination().endButton().isEnabled();
 
         // check text before navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Deployments`);
 
         // navigate to next page - right button
         deploymentsListPage.sortableTable().pagination().rightButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`11 - 20 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .checkPaginationTextEquals(`11 - 20 of ${ count } Deployments`);
         deploymentsListPage.sortableTable().pagination().beginningButton().isEnabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isEnabled();
 
@@ -423,9 +429,8 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         deploymentsListPage.sortableTable().pagination().leftButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Deployments`);
         deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
 
@@ -441,23 +446,21 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
         }
 
         // check text after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Deployments`);
 
         // navigate to first page - beginning button
         deploymentsListPage.sortableTable().pagination().beginningButton().click();
 
         // check text and buttons after navigation
-        deploymentsListPage.sortableTable().pagination().paginationText().then((el) => {
-          expect(el.trim()).to.eq(`1 - 10 of ${ count } Deployments`);
-        });
+        deploymentsListPage.sortableTable().pagination()
+          .checkPaginationTextEquals(`1 - 10 of ${ count } Deployments`);
         deploymentsListPage.sortableTable().pagination().beginningButton().isDisabled();
         deploymentsListPage.sortableTable().pagination().leftButton().isDisabled();
       });
-    });
+    }));
 
-    it('sorting changes the order of paginated deployments data', () => {
+    qase(9159, it('sorting changes the order of paginated deployments data', () => {
       WorkloadsDeploymentsListPagePo.navTo();
       deploymentsListPage.waitForPage();
       // use filter to only show test data
@@ -483,9 +486,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
 
       // deployment name should be visible on last page (sorted in DESC order)
       deploymentsListPage.sortableTable().rowElementWithName(deploymentNamesList[0]).scrollIntoView().should('be.visible');
-    });
+    }));
 
-    it('filter deployments', () => {
+    qase(9160, it('filter deployments', () => {
       WorkloadsDeploymentsListPagePo.navTo();
       deploymentsListPage.waitForPage();
 
@@ -502,9 +505,9 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       deploymentsListPage.sortableTable().filter(nsName2);
       deploymentsListPage.sortableTable().checkRowCount(false, 1);
       deploymentsListPage.sortableTable().rowElementWithName(uniqueDeployment).should('be.visible');
-    });
+    }));
 
-    it('pagination is hidden', () => {
+    qase(9161, it('pagination is hidden', () => {
       cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', '{"local":[]}');
 
       // generate small set of deployments data
@@ -518,7 +521,7 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       deploymentsListPage.sortableTable().checkLoadingIndicatorNotVisible();
       deploymentsListPage.sortableTable().checkRowCount(false, 1);
       deploymentsListPage.sortableTable().pagination().checkNotExists();
-    });
+    }));
 
     after('clean up', () => {
     // Ensure the default rows per page value is set after running the tests
@@ -565,27 +568,27 @@ describe('Deployments', { testIsolation: 'off', tags: ['@explorer2', '@adminUser
       });
     });
 
-    it('redeploys successfully after confirmation', () => {
+    qase(17821, it('redeploys successfully after confirmation', () => {
       const dialog = openRedeployDialog();
 
       dialog.confirmRedeploy(getRedeployEndpoint());
       dialog.shouldBeClosed();
-    });
+    }));
 
-    it('does not send a request when cancelled', () => {
+    qase(17822, it('does not send a request when cancelled', () => {
       cy.intercept('PUT', getRedeployEndpoint()).as('redeployCancelled');
 
       const dialog = openRedeployDialog();
 
       dialog.cancel().shouldBeClosed();
       cy.get('@redeployCancelled.all').should('have.length', 0);
-    });
+    }));
 
-    it('displays error banner on failure', () => {
+    qase(17823, it('displays error banner on failure', () => {
       const dialog = openRedeployDialog();
 
       dialog.simulateRedeployError(getRedeployEndpoint());
-    });
+    }));
 
     after(() => {
       cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`, false);

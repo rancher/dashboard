@@ -1,9 +1,10 @@
 <script>
-import { KUBERNETES, PROJECT } from '@shell/config/labels-annotations';
+import { KUBERNETES, PROJECT, FLEET as FLEET_LABELS } from '@shell/config/labels-annotations';
 import { FLEET, NAMESPACE, MANAGEMENT, HELM } from '@shell/config/types';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import { BadgeState } from '@components/BadgeState';
 import { Banner } from '@components/Banner';
+import FleetManagedBanner from '@shell/components/Resource/Detail/FleetManagedBanner.vue';
 import { get } from '@shell/utils/object';
 import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { HIDE_SENSITIVE } from '@shell/store/prefs';
@@ -32,6 +33,7 @@ export default {
     BadgeState,
     Banner,
     ButtonGroup,
+    FleetManagedBanner,
     ExtensionPanel,
     TabTitle,
     ActionMenu,
@@ -132,6 +134,10 @@ export default {
 
     isEdit() {
       return this.mode === _EDIT;
+    },
+
+    showFleetManagedBanner() {
+      return this.isView || this.isEdit;
     },
 
     isCreate() {
@@ -375,7 +381,7 @@ export default {
       const appName = labels[KUBERNETES.MANAGED_NAME] || labels[KUBERNETES.INSTANCE] || '';
 
       return {
-        show:    this.mode === _EDIT && !!managedBy,
+        show:    this.mode === _EDIT && !!managedBy && !labels[FLEET_LABELS.MANAGED_BY_KIND],
         type:    value?.kind || '',
         hasName: appName ? 'yes' : 'no',
         appName,
@@ -601,6 +607,11 @@ export default {
       color="warning"
       class="mb-20"
       :label="t('resourceDetail.masthead.managedWarning', managedWarning)"
+    />
+    <FleetManagedBanner
+      v-if="showFleetManagedBanner"
+      :resource="value"
+      class="mb-20"
     />
 
     <slot />

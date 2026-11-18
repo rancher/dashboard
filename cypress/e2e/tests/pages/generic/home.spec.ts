@@ -41,7 +41,7 @@ function assertHomeNotificationCount(nc: NotificationsCenterPo) {
   });
 }
 
-describe('Home Page', { testIsolation: 'off' }, () => {
+describe('Home Page', { testIsolation: false }, () => {
   before(() => {
     cy.login();
   });
@@ -172,7 +172,7 @@ describe('Home Page', { testIsolation: 'off' }, () => {
 
     cy.getRancherVersion().then((version) => {
       cy.window().then((win) => {
-        cy.stub(win, 'open', () => {}).as('openReleaseNotes');
+        cy.stub(win, 'open').callsFake(() => {}).as('openReleaseNotes');
       });
 
       item.primaryActionButton().click();

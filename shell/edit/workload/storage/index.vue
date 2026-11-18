@@ -69,6 +69,12 @@ export default {
       default: false,
       type:    Boolean
     },
+
+    // validators for required volume fields, keyed by field path within a volume
+    rules: {
+      type:    Object,
+      default: () => ({}),
+    },
   },
 
   data() {
@@ -269,6 +275,7 @@ export default {
             :register-before-hook="registerBeforeHook"
             :save-pvc-hook-name="savePvcHookName"
             :loading="loading"
+            :rules="rules"
             :data-testid="`volume-component-${props.i}`"
             @removePvcForm="removePvcForm"
           />
@@ -314,15 +321,6 @@ export default {
   padding: 20px;
   margin: 20px 0px 20px 0px;
   position: relative;
-
-  :deep() .code-mirror {
-    .CodeMirror {
-      background-color: var(--yaml-editor-bg);
-      & .CodeMirror-gutters {
-        background-color: var(--yaml-editor-bg);
-      }
-    }
-  }
 }
 
 .remove-vol {

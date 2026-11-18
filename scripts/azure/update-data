@@ -14,10 +14,13 @@ console.log('');
 
 const SCRIPT = process.argv[1];
 const DIR = path.resolve(SCRIPT, '../../..');
-const ENDPOINTS_URL = 'https://learn.microsoft.com/en-us/azure/reliability/regions-list';
+const ENDPOINTS_URLS = [
+  'https://learn.microsoft.com/en-us/azure/reliability/regions-list',
+  'https://learn.microsoft.com/en-us/azure/china/overview-regions',
+  'https://learn.microsoft.com/en-us/azure/azure-government/documentation-government-welcome',
+];
 const TS_FILE = path.resolve(DIR, 'pkg/aks/util/aks-regions.ts');
 const COLUMN_REGEX = /<td>(.*)<\/td>/;
-const US_GOV = 'usgov';
 
 function findRegions(body) {
   const regions = [];
@@ -51,7 +54,8 @@ function findRegions(body) {
         } else if (line.indexOf('</tr>') === 0) {
           inRow = false;
 
-          if (row.length === 5) {
+          // Column count varies by source page (5 or 6 columns), so only rely on the region name and AZ support columns
+          if (row.length >= 2) {
             if (!row[0].startsWith('<td><img') && !row[1].startsWith('<td></td>')) {
               const m = row[0].match(COLUMN_REGEX);
 
@@ -117,7 +121,10 @@ function readExisting() {
 }
 
 function writeNewFile(regions) {
-  let lines = ['export const regionsWithAvailabilityZones = {'];
+  let lines = [
+    '// Indexed by region name, which callers only have as a plain string, so the keys are not narrowed',
+    'export const regionsWithAvailabilityZones: Record<string, boolean> = {',
+  ];
 
   let maxLength = 1;
 
@@ -141,15 +148,25 @@ function writeNewFile(regions) {
 
 const existing = readExisting();
 
-axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
-  if (res.status !== 200 || !res.data) {
-    console.error(`Could not fetch Azure data - status ${ res.statusCode } ${ res.statusMessage }`);
+Promise.all(ENDPOINTS_URLS.map((url) => axios.get(url, { responseType: 'document' }))).then((responses) => {
+  const regions = [];
 
-    process.exit(1);
-  }
+  responses.forEach((res, i) => {
+    if (res.status !== 200 || !res.data) {
+      console.error(`Could not fetch Azure data from ${ ENDPOINTS_URLS[i] } - status ${ res.statusCode } ${ res.statusMessage }`);
 
-  const regions = findRegions(res.data);
-  const govRegions = existing.filter((r) => r.startsWith(US_GOV));
+      process.exit(1);
+    }
+
+    findRegions(res.data).forEach((r) => {
+      if (!regions.includes(r)) {
+        regions.push(r);
+      }
+    });
+  });
+
+  regions.sort();
+
   const existingCount = existing.length;
 
   if (regions.length === 0) {
@@ -157,7 +174,7 @@ axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
     process.exit(2);
   }
 
-  console.log(`Existing regions in our codebase: ${ existingCount - govRegions.length } (Excluding US Government regions)`);
+  console.log(`Existing regions in our codebase: ${ existingCount }`);
   console.log(existing);
   console.log('');
 
@@ -168,16 +185,10 @@ axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
   const removed = [];
 
   existing.forEach((r) => {
-    if (r.startsWith(US_GOV)) {
-      regions.push(r);
-    } else if (!regions.includes(r)) {
+    if (!regions.includes(r)) {
       removed.push(r);
     }
   });
-
-  console.log('');
-  console.log(`US Government regions to be retained: ${ govRegions.join(', ') }`);
-  console.log('');
 
   if (removed.length) {
     console.log(`These region(s) have been removed: ${ removed.join(', ') }`);
@@ -196,8 +207,7 @@ axios.get(ENDPOINTS_URL, { responseType: 'document' }).then((res) => {
   }
 
   if (added.length || removed.length) {
-    // Sort the regions (needs a resort if we added back in usgov regions)
-    writeNewFile(regions.sort());
+    writeNewFile(regions);
 
     console.log('');
     console.log(`Regions updated from ${ existingCount } to ${ regions.length }`);

@@ -9,7 +9,7 @@ import { VERY_LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { qase } from '@/cypress/support/qase';
 
 // will only run this in jenkins pipeline where cloud credentials are stored
-describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off', tags: ['@manager', '@adminUser', '@standardUser', '@jenkins', '@provisioning'] }, () => {
+describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: false, tags: ['@manager', '@adminUser', '@standardUser', '@jenkins', '@provisioning', '@azureRKE2'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   let removeCloudCred = false;
   let cloudcredentialId = '';
@@ -236,7 +236,7 @@ describe('Deploy RKE2 cluster using node driver on Azure', { testIsolation: 'off
     clusterDetails.waitForPage(null, 'machine-pools');
     clusterDetails.selectTab(tabbedPo, '[data-testid="btn-snapshots"]');
     clusterDetails.waitForPage(null, 'snapshots');
-    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2AzureClusterName }`);
+    clusterDetails.snapshotsList().checkSnapshotExist(`on-demand-${ this.rke2AzureClusterName }`, VERY_LONG_TIMEOUT_OPT);
   }));
 
   qase(5606, it('can delete an Azure RKE2 cluster', function() {

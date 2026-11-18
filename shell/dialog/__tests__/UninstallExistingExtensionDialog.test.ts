@@ -23,6 +23,7 @@ describe('component: UninstallExistingExtensionDialog', () => {
         ...propsData,
       },
       global: {
+        stubs: { RcHeading: false },
         mocks: {
           $store:  store,
           $router: { go: jest.fn() },
@@ -36,7 +37,7 @@ describe('component: UninstallExistingExtensionDialog', () => {
     it('should render the dialog title', () => {
       wrapper = mountComponent();
 
-      const title = wrapper.find('h4');
+      const title = wrapper.find('[data-modal-title]');
 
       expect(title.text()).toBe('plugins.install.alreadyInstalledTitle');
     });

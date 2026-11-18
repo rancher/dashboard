@@ -1,25 +1,27 @@
-import { mount, shallowMount } from '@vue/test-utils';
-import { SECRET } from '@shell/config/types';
-import { _CREATE, _EDIT } from '@shell/config/query-params';
+import { mount, shallowMount, VueWrapper } from '@vue/test-utils';
+import { NORMAN, SECRET } from '@shell/config/types';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import rke2 from '@shell/edit/provisioning.cattle.io.cluster/rke2.vue';
+import SelectCredential from '@shell/edit/provisioning.cattle.io.cluster/SelectCredential.vue';
 import { get } from '@shell/utils/object';
 import { rke2TestTable } from './utils/rke2-test-data';
 import {
-  RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, RKE2_TRAEFIK
+  RKE2_INGRESS_NGINX, INGRESS_CONTROLLER, INGRESS_NGINX, TRAEFIK, INGRESS_NONE, RKE2_TRAEFIK, mergeExtensionSectionProps
 } from '@shell/edit/provisioning.cattle.io.cluster/shared';
 
 jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
-  RETENTION_DEFAULT:         5,
-  RKE2_INGRESS_NGINX:        'rke2-ingress-nginx',
-  RKE2_TRAEFIK:              'rke2-traefik',
-  INGRESS_NGINX:             'ingress-nginx',
-  INGRESS_CONTROLLER:        'ingress-controller',
-  TRAEFIK:                   'traefik',
-  HARVESTER:                 'harvester',
-  INGRESS_DUAL:              'dual',
-  INGRESS_NONE:              'none',
-  INGRESS_OPTIONS:           [],
-  INGRESS_MIGRATION_KB_LINK: 'mock-link'
+  RETENTION_DEFAULT:           5,
+  RKE2_INGRESS_NGINX:          'rke2-ingress-nginx',
+  RKE2_TRAEFIK:                'rke2-traefik',
+  INGRESS_NGINX:               'ingress-nginx',
+  INGRESS_CONTROLLER:          'ingress-controller',
+  TRAEFIK:                     'traefik',
+  HARVESTER:                   'harvester',
+  INGRESS_DUAL:                'dual',
+  INGRESS_NONE:                'none',
+  INGRESS_OPTIONS:             [],
+  INGRESS_MIGRATION_DOCS_LINK: 'mock-link',
+  mergeExtensionSectionProps:  jest.fn((defaultProps) => defaultProps),
 }));
 
 /**
@@ -90,10 +92,25 @@ const defaultMocks = {
   },
 };
 
-const defaultSpec = {
+const defaultSpec: {
+  rkeConfig: { etcd: { disableSnapshots: boolean }, dataDirectories?: { k8sDistro: string } },
+  chartValues: Record<string, any>,
+} = {
   rkeConfig:   { etcd: { disableSnapshots: false } },
   chartValues: {},
 };
+
+// rke2.vue is a plain-JS SFC. The members below are its own, but vue-tsc resolves them
+// to `never` on the instance type, so they are reached through a typed view.
+type Rke2Vm = {
+  initSpecs: () => Promise<void>,
+  _doSaveOverride: (done: () => void) => Promise<void>,
+  chartVersionKey: (chart: string) => string,
+  applyChartValues: (rkeConfig: Record<string, any>) => void,
+  machinePools: { drainBeforeDelete: boolean }[],
+};
+
+const rke2Vm = (wrapper: VueWrapper<any>) => wrapper.vm as Rke2Vm;
 
 describe('component: rke2', () => {
   /**
@@ -199,9 +216,11 @@ describe('component: rke2', () => {
       },
     });
 
-    await wrapper.vm.initSpecs();
+    const rkeVm = rke2Vm(wrapper);
 
-    wrapper.vm.machinePools.forEach((p: any) => expect(p.drainBeforeDelete).toBe(true));
+    await rkeVm.initSpecs();
+
+    rkeVm.machinePools.forEach((p) => expect(p.drainBeforeDelete).toBe(true));
   });
 
   it('should set distro root directory from k8sDistro on a Harvester cluster creation on save override (_doSaveOverride)', async() => {
@@ -228,11 +247,10 @@ describe('component: rke2', () => {
         provider: 'custom'
       },
 
-      data: () => ({
+      data: (() => ({
         credentialId: 'I am authenticated',
         credential:   { decodedData: { clusterId: 'some-cluster-id' } },
-        machinePools: [],
-      }),
+      })) as any,
 
       global: {
         mocks: {
@@ -255,12 +273,16 @@ describe('component: rke2', () => {
       },
     });
 
+    (wrapper.vm as any).machinePools = [];
+
     // we need to mock the "save" method from the create-edit-view-mixin
     // otherwise we get console errors
     // jest.spyOn(wrapper.vm, 'save').mockImplementation();
 
-    await wrapper.vm._doSaveOverride(jest.fn());
-    const chartKey = wrapper.vm.chartVersionKey(HARVESTER_CLOUD_PROVIDER);
+    const rkeVm = rke2Vm(wrapper);
+
+    await rkeVm._doSaveOverride(jest.fn());
+    const chartKey = rkeVm.chartVersionKey(HARVESTER_CLOUD_PROVIDER);
 
     const cloudConfigPath = get(wrapper.vm.userChartValues, `${ chartKey }.cloudConfigPath`);
 
@@ -358,141 +380,16 @@ describe('component: rke2', () => {
     });
   });
 
-  it.each([
-    ['v1.25.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'azure', true],
-    ['v1.31.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'harvester', true],
-    ['v1.29.0+k3s1', [{ value: 'aws' }, { value: 'azure' }], 'harvester', false],
-    ['v1.31.0+k3s1', [{ value: 'aws' }], 'azure', false],
-  ])('should set isAzureProviderUnsupported', (k8s, providerOptions, cloudProvider, value) => {
+  it('should filter out the azure cloud provider option', () => {
     const wrapper = mount(rke2, {
-      propsData: {
+      props: {
         mode:  _CREATE,
         value: {
           spec: {
             ...defaultSpec,
-            kubernetesVersion: k8s
+            kubernetesVersion: 'v1.28.0+rke2r1'
           },
-          agentConfig: { 'cloud-provider-name': cloudProvider }
-        },
-        provider: 'custom'
-      },
-      data:     () => ({}),
-      computed: {
-        ...rke2.computed,
-        cloudProviderOptions() {
-          return providerOptions;
-        },
-      },
-      global: {
-        mocks: {
-          ...defaultMocks,
-          $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
-          $extension: { getDynamic: jest.fn(() => undefined ) },
-        },
-        stubs: defaultStubs
-      }
-    });
-
-    expect(wrapper.vm.isAzureProviderUnsupported).toBe(value);
-  });
-
-  it.each([
-    ['edit', 'v1.31.0+k3s1', 'azure', false],
-    ['edit', 'v1.26.0+k3s1', 'azure', false],
-    ['edit', 'v1.28.0+k3s1', 'harvester', false],
-    ['edit', 'v1.28.0+k3s1', 'azure', true],
-    ['create', 'v1.28.0+k3s1', 'azure', false],
-    ['view', 'v1.28.0+k3s1', 'azure', false],
-  ])('should set canAzureMigrateOnEdit', (mode, k8s, liveCloudProvider, value) => {
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode,
-        liveValue: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': liveCloudProvider }
-        },
-        value: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': liveCloudProvider }
-        },
-        provider: 'custom'
-      },
-      global: {
-        mocks: {
-          ...defaultMocks,
-          $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
-          $extension: { getDynamic: jest.fn(() => undefined ) },
-        },
-        stubs: defaultStubs
-      }
-    });
-
-    expect((wrapper.vm as any).canAzureMigrateOnEdit).toBe(value);
-  });
-
-  it.each([
-    ['', 'v1.32.0+rke2r1', 'amazon', 'v1.32.0+rke2r1'],
-    ['', 'v1.29.0+rke2r1', 'amazon', 'v1.29.0+rke2r1'],
-    ['', 'v1.29.0+rke2r1', 'azure', 'v1.29.0+rke2r1'],
-    ['not', 'v1.31.0+rke2r1', 'azure', undefined],
-  ])('should %p include version %p if Cloud Provider is %p', async(_, k8s, liveCloudProvider, value) => {
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'create',
-        value: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': liveCloudProvider }
-        },
-        provider: 'custom'
-      },
-      data:   () => ({}),
-      global: {
-        mocks: {
-          ...defaultMocks,
-          $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
-          $extension: { getDynamic: jest.fn(() => undefined ) },
-        },
-        stubs: defaultStubs
-      }
-    });
-
-    wrapper.setData({
-      rke2Versions: [{
-        id:         k8s,
-        version:    k8s,
-        serverArgs: true,
-        charts:     {
-          [RKE2_INGRESS_NGINX]: {},
-          [RKE2_TRAEFIK]:       {}
-        }
-      }]
-    });
-
-    expect((wrapper.vm as any).versionOptions[0]?.value).toBe(value);
-  });
-
-  it.each([
-    ['enable', 'v1.28.0+rke2r1', false],
-    ['disable', 'v1.32.0+rke2r1', true],
-  ])('should %p Azure provider option if version is %p', async(_, k8s, value) => {
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'create',
-        value: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': 'azure' }
+          agentConfig: { 'cloud-provider-name': 'amazon' }
         },
         provider: 'custom'
       },
@@ -517,56 +414,10 @@ describe('component: rke2', () => {
       }
     });
 
-    const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === 'azure');
+    const options = (wrapper.vm as any).cloudProviderOptions;
 
-    expect(azureOption.disabled).toBe(value);
-  });
-
-  it.each([
-    ['enable', 'azure', 'v1.28.0+rke2r1', false], // azure provider / current
-    ['enable', 'external', 'v1.28.0+rke2r1', false], // external provider
-    ['enable', 'azure', 'v1.26.0+rke2r1', false], // version mismatch
-    ['disable', 'amazon', 'v1.26.0+rke2r1', true],
-    ['enable', '', 'v1.28.0+rke2r1', true], // default provider
-  ])('should %p provider option %p in edit mode if live provider is Azure and 1.27 <= k8s < 1.30', async(_, cloudProvider, k8s, value) => {
-    const wrapper = mount(rke2, {
-      propsData: {
-        mode:  'edit',
-        value: {
-          spec: {
-            ...defaultSpec,
-            kubernetesVersion: k8s
-          },
-          agentConfig: { 'cloud-provider-name': 'azure' }
-        },
-        provider: 'custom'
-      },
-      computed: {
-        ...rke2.computed,
-        canAzureMigrateOnEdit: () => true,
-        agentArgs:             () => ({
-          'cloud-provider-name': {
-            options: [
-              'azure',
-              'amazon',
-              'external'
-            ]
-          }
-        })
-      },
-      global: {
-        mocks: {
-          ...defaultMocks,
-          $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
-          $extension: { getDynamic: jest.fn(() => undefined ) },
-        },
-        stubs: defaultStubs
-      }
-    });
-
-    const azureOption = (wrapper.vm as any).cloudProviderOptions.find((o: any) => o.value === cloudProvider);
-
-    expect(azureOption.disabled).toBe(value);
+    expect(options.find((o: any) => o.value === 'azure')).toBeUndefined();
+    expect(options.find((o: any) => o.value === 'amazon')).toBeDefined();
   });
 
   it.each(rke2TestTable)('should preserve valid user-supplied chart values', (chartValues, expected) => {
@@ -590,34 +441,10 @@ describe('component: rke2', () => {
         },
         provider: 'custom'
       },
-      data: () => ({
+      data: (() => ({
         credentialId:    'I am authenticated',
         userChartValues: chartValues,
-        rke2Versions:    [
-          {
-            id:                      'v1.32.3+rke2r1',
-            type:                    'release',
-            links:                   { self: 'https://127.0.0.1:8005/v1-rke2-release/releases/v1.32.3+rke2r1' },
-            version:                 'v1.32.3+rke2r1',
-            minChannelServerVersion: 'v2.11.0-alpha1',
-            maxChannelServerVersion: 'v2.11.99',
-            serverArgs:              {},
-            agentArgs:               {},
-            featureVersions:         { 'encryption-key-rotation': '2.0.0' },
-            charts:                  {
-              'rke2-ingress-nginx': {
-                repo:    'rancher-rke2-charts',
-                version: '4.12.100'
-              },
-              'rke2-metrics-server': {
-                repo:    'rancher-rke2-charts',
-                version: '3.12.200'
-              },
-              'rke2-traefik': {}
-            }
-          }
-        ]
-      }),
+      })) as any,
 
       global: {
         mocks: {
@@ -630,7 +457,35 @@ describe('component: rke2', () => {
       },
     });
 
-    wrapper.vm.applyChartValues(wrapper.vm.value.spec.rkeConfig);
+    // rke2Versions is owned by the useKubernetesVersions composable (exposed via setup()), not
+    // component data - the `data` mount option / wrapper.setData() only reach `$data`, so it has
+    // to be seeded directly through the instance proxy instead.
+    (wrapper.vm as any).rke2Versions = [
+      {
+        id:                      'v1.32.3+rke2r1',
+        type:                    'release',
+        links:                   { self: 'https://127.0.0.1:8005/v1-rke2-release/releases/v1.32.3+rke2r1' },
+        version:                 'v1.32.3+rke2r1',
+        minChannelServerVersion: 'v2.11.0-alpha1',
+        maxChannelServerVersion: 'v2.11.99',
+        serverArgs:              {},
+        agentArgs:               {},
+        featureVersions:         { 'encryption-key-rotation': '2.0.0' },
+        charts:                  {
+          'rke2-ingress-nginx': {
+            repo:    'rancher-rke2-charts',
+            version: '4.12.100'
+          },
+          'rke2-metrics-server': {
+            repo:    'rancher-rke2-charts',
+            version: '3.12.200'
+          },
+          'rke2-traefik': {}
+        }
+      }
+    ];
+
+    rke2Vm(wrapper).applyChartValues(wrapper.vm.value.spec.rkeConfig);
 
     expect(wrapper.vm.value.spec.rkeConfig.chartValues).toStrictEqual(expected);
   });
@@ -675,14 +530,16 @@ describe('component: rke2', () => {
     it('should set ingress-controller to traefik by default for new clusters', async() => {
       const wrapper = createWrapper(_CREATE);
 
-      await wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+        charts:     mockCharts
+      }];
+
+      // The traefik default is set by the `selectedVersion` watcher (via initServerAgentArgs), which
+      // Vue flushes on the next tick rather than synchronously.
+      await wrapper.vm.$nextTick();
 
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(TRAEFIK);
     });
@@ -691,20 +548,18 @@ describe('component: rke2', () => {
       const wrapper = createWrapper();
       const newVersion = 'v1.26.0+rke2r1';
 
-      await wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [] } },
-          charts:     mockCharts
-        },
-        {
-          id:         newVersion,
-          version:    newVersion,
-          serverArgs: { disable: { options: [] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [] } },
+        charts:     mockCharts
+      },
+      {
+        id:         newVersion,
+        version:    newVersion,
+        serverArgs: { disable: { options: [] } },
+        charts:     mockCharts
+      }];
       wrapper.vm.value.spec.kubernetesVersion = newVersion;
       (wrapper.vm as any).handleKubernetesChange(newVersion);
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NONE);
@@ -713,14 +568,12 @@ describe('component: rke2', () => {
     it('should set ingress-controller to ingress-nginx on change when nginx is supported and not disabled', () => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+        charts:     mockCharts
+      }];
 
       (wrapper.vm as any).handleEnabledSystemServicesChanged([]);
 
@@ -730,14 +583,12 @@ describe('component: rke2', () => {
     it('should set ingress-controller to None when nginx is supported but disabled', () => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+        charts:     mockCharts
+      }];
 
       (wrapper.vm as any).handleEnabledSystemServicesChanged([RKE2_INGRESS_NGINX]);
 
@@ -747,14 +598,12 @@ describe('component: rke2', () => {
     it('should set ingress-controller for existing cluster to None when nginx is not supported', () => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [] } },
+        charts:     mockCharts
+      }];
 
       (wrapper.vm as any).handleEnabledSystemServicesChanged([]);
 
@@ -764,14 +613,12 @@ describe('component: rke2', () => {
     it('should correctly update disable list in serverConfig', () => {
       const wrapper = createWrapper();
 
-      wrapper.setData({
-        rke2Versions: [{
-          id:         k8sVersion,
-          version:    k8sVersion,
-          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-          charts:     mockCharts
-        }]
-      });
+      (wrapper.vm as any).rke2Versions = [{
+        id:         k8sVersion,
+        version:    k8sVersion,
+        serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+        charts:     mockCharts
+      }];
       const disabledServices = ['other-service'];
 
       (wrapper.vm as any).handleEnabledSystemServicesChanged(disabledServices);
@@ -783,27 +630,66 @@ describe('component: rke2', () => {
       const wrapper = createWrapper();
       const newVersion = 'v1.26.0+rke2r1';
 
-      await wrapper.setData({
-        rke2Versions: [
-          {
-            id:         k8sVersion,
-            version:    k8sVersion,
-            serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-            charts:     mockCharts
-          },
-          {
-            id:         newVersion,
-            version:    newVersion,
-            serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
-            charts:     mockCharts
-          }
-        ]
-      });
+      (wrapper.vm as any).rke2Versions = [
+        {
+          id:         k8sVersion,
+          version:    k8sVersion,
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+          charts:     mockCharts
+        },
+        {
+          id:         newVersion,
+          version:    newVersion,
+          serverArgs: { disable: { options: [RKE2_INGRESS_NGINX] } },
+          charts:     mockCharts
+        }
+      ];
 
       wrapper.vm.value.spec.kubernetesVersion = newVersion;
       (wrapper.vm as any).handleKubernetesChange(newVersion);
 
       expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(INGRESS_NGINX);
+    });
+
+    it('should drop the rke2 ingress-controller setting when switching to a k3s version while creating', () => {
+      const wrapper = createWrapper(_CREATE);
+      const k3sVersion = 'v1.26.0+k3s1';
+
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = TRAEFIK;
+      wrapper.vm.value.isK3s = true;
+      wrapper.vm.value.spec.kubernetesVersion = k3sVersion;
+      (wrapper.vm as any).handleKubernetesChange(k3sVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBeUndefined();
+    });
+
+    it('should leave the ingress-controller setting of an existing k3s cluster alone', () => {
+      const wrapper = createWrapper(_EDIT);
+      const k3sVersion = 'v1.26.0+k3s1';
+
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = TRAEFIK;
+      wrapper.vm.value.isK3s = true;
+      wrapper.vm.value.spec.kubernetesVersion = k3sVersion;
+      (wrapper.vm as any).handleKubernetesChange(k3sVersion);
+
+      expect(wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER]).toBe(TRAEFIK);
+    });
+
+    it.each([
+      [_CREATE, 'v1.37.0+rke2r1', INGRESS_NGINX, true],
+      [_EDIT, 'v1.37.0+rke2r1', INGRESS_NGINX, true],
+      [_EDIT, 'v1.38.0+rke2r1', INGRESS_NGINX, true],
+      [_EDIT, 'v1.36.0+rke2r1', INGRESS_NGINX, false],
+      [_EDIT, 'v1.37.0+rke2r1', TRAEFIK, false],
+      [_EDIT, 'v1.37.0+rke2r1', [INGRESS_NGINX, TRAEFIK], false],
+      [_EDIT, 'v1.37.0+rke2r1', INGRESS_NONE, false],
+    ])('restricts standalone nginx for %s at %s with controller %p: %p', (mode, version, controller, expected) => {
+      const wrapper = createWrapper(mode as string);
+
+      wrapper.vm.value.spec.kubernetesVersion = version as string;
+      wrapper.vm.value.spec.rkeConfig.machineGlobalConfig[INGRESS_CONTROLLER] = controller;
+
+      expect((wrapper.vm as any).ingressNginxUnsupported).toBe(expected);
     });
   });
 
@@ -839,7 +725,7 @@ describe('component: rke2', () => {
       const dispatch = jest.fn();
       const wrapper = createWrapper({ mode: _EDIT, dispatch });
 
-      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+      (wrapper.vm as any).machinePools = [{ id: 'pool1' }];
 
       await (wrapper.vm as any).showIpv6Warning();
 
@@ -850,7 +736,7 @@ describe('component: rke2', () => {
       const dispatch = jest.fn();
       const wrapper = createWrapper({ dispatch });
 
-      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+      (wrapper.vm as any).machinePools = [{ id: 'pool1' }];
 
       Object.defineProperty(wrapper.vm, 'selectedVersion', { get: () => ({ label: 'v1.30.0+rke2r1' }) });
       Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
@@ -872,7 +758,7 @@ describe('component: rke2', () => {
       });
       const wrapper = createWrapper({ dispatch });
 
-      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+      (wrapper.vm as any).machinePools = [{ id: 'pool1' }];
 
       Object.defineProperty(wrapper.vm, 'selectedVersion', { get: () => ({ label: 'v1.30.0+k3s1' }) });
       Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
@@ -904,7 +790,7 @@ describe('component: rke2', () => {
       });
       const wrapper = createWrapper({ dispatch });
 
-      await wrapper.setData({ machinePools: [{ id: 'pool1' }] });
+      (wrapper.vm as any).machinePools = [{ id: 'pool1' }];
 
       Object.defineProperty(wrapper.vm, 'hasOnlyIpv6Pools', { get: () => true });
       Object.defineProperty(wrapper.vm, 'hasDualStackPools', { get: () => false });
@@ -933,6 +819,712 @@ describe('component: rke2', () => {
       const canEditAsYaml = rke2.computed!.canEditAsYaml.call(vm);
 
       expect(canEditAsYaml).toBe(true);
+    });
+  });
+  describe('computed: validationPassed (extension provisioning section)', () => {
+    const baseVm = {
+      hasMachinePools:            false,
+      provider:                   'custom',
+      machinePoolValidation:      {},
+      addonConfigValidation:      {},
+      isUpstreamCAPIProvider:     true,
+      infrastructureClusterValid: true,
+      provisioningClusterValid:   true,
+      stackPreferenceError:       false,
+    };
+
+    it('should return true when provisioningClusterValid is true', () => {
+      const vm = { ...baseVm } as any;
+
+      const validationPassed = rke2.computed!.validationPassed.call(vm);
+
+      expect(validationPassed).toBe(true);
+    });
+
+    it('should return false when provisioningClusterValid is false and isUpstreamCAPIProvider is true', () => {
+      const vm = { ...baseVm, provisioningClusterValid: false } as any;
+
+      const validationPassed = rke2.computed!.validationPassed.call(vm);
+
+      expect(validationPassed).toBe(false);
+    });
+
+    it('should ignore provisioningClusterValid when isUpstreamCAPIProvider is false', () => {
+      const vm = {
+        ...baseVm, provisioningClusterValid: false, isUpstreamCAPIProvider: false
+      } as any;
+
+      const validationPassed = rke2.computed!.validationPassed.call(vm);
+
+      expect(validationPassed).toBe(true);
+    });
+  });
+
+  describe('methods: updateExtensionProvisioningSection', () => {
+    it('should do nothing when the emitted value is not an object', () => {
+      const originalValue = { spec: { foo: 'bar' } };
+      const vm = { value: originalValue } as any;
+
+      (rke2.methods as any).updateExtensionProvisioningSection.call(vm, null);
+
+      expect(vm.value).toBe(originalValue);
+      expect(vm.value).toStrictEqual({ spec: { foo: 'bar' } });
+    });
+
+    it('should assign the emitted value directly when there is no existing value', () => {
+      const vm = { value: null } as any;
+      const neu = { spec: { kubernetesVersion: 'v1.31.0+rke2r1' } };
+
+      (rke2.methods as any).updateExtensionProvisioningSection.call(vm, neu);
+
+      expect(vm.value).toBe(neu);
+    });
+
+    it('should merge the emitted value into the existing value, preserving the original reference', () => {
+      const original = { spec: { kubernetesVersion: 'v1.30.0+rke2r1', existing: 'field' } };
+      const vm = { value: original } as any;
+      const neu = { spec: { kubernetesVersion: 'v1.31.0+rke2r1' } };
+
+      (rke2.methods as any).updateExtensionProvisioningSection.call(vm, neu);
+
+      expect(vm.value).toBe(original);
+      expect(vm.value.spec.kubernetesVersion).toBe('v1.31.0+rke2r1');
+      expect(vm.value.spec.existing).toBe('field');
+    });
+  });
+
+  // Characterization tests written ahead of extracting Kubernetes-version resolution
+  // (versionOptions/selectedVersion/chartVersions/defaultVersion/fetchK8sVersions/cloudProviderOptions)
+  // into a composable.
+  describe('kubernetes version resolution', () => {
+    const version = (id: string, overrides: Record<string, any> = {}) => ({
+      id, serverArgs: {}, agentArgs: {}, charts: {}, ...overrides
+    });
+
+    const baseVm = {
+      mode:                        _CREATE,
+      value:                       { spec: {} },
+      liveValue:                   { spec: {} },
+      agentConfig:                 {},
+      showDeprecatedPatchVersions: true,
+      rke2Versions:                [] as any[],
+      k3sVersions:                 [] as any[],
+      defaultRke2:                 '',
+      defaultK3s:                  '',
+      isHarvesterDriver:           false,
+      $store:                      { getters: { 'i18n/t': (key: string) => key } },
+      t:                           (key: string) => key,
+    };
+
+    describe('defaultVersion', () => {
+      it('prefers the version matching the defaultRke2 setting when present among version options', () => {
+        const vm = {
+          ...baseVm,
+          versionOptions: [{ value: 'v1.29.0+rke2r1' }, { value: 'v1.28.0+rke2r1' }],
+          defaultRke2:    'v1.28.0+rke2r1',
+          rke2Versions:   [],
+        };
+
+        expect((rke2.computed as any).defaultVersion.call(vm)).toBe('v1.28.0+rke2r1');
+      });
+
+      it('falls back to the first version option when defaultRke2 is not among the options', () => {
+        const vm = {
+          ...baseVm,
+          versionOptions: [{ value: 'v1.29.0+rke2r1' }, { value: 'v1.28.0+rke2r1' }],
+          defaultRke2:    'v1.99.0+rke2r1',
+          rke2Versions:   [],
+        };
+
+        expect((rke2.computed as any).defaultVersion.call(vm)).toBe('v1.29.0+rke2r1');
+      });
+
+      it('prefers the first Harvester-compatible rke2 version when on the Harvester driver', () => {
+        const vm = {
+          ...baseVm,
+          versionOptions:    [{ value: 'v1.29.0+rke2r1' }],
+          defaultRke2:       '',
+          isHarvesterDriver: true,
+          rke2Versions:      [version('v1.20.0+rke2r1'), version('v1.25.0+rke2r1')],
+        };
+
+        expect((rke2.computed as any).defaultVersion.call(vm)).toBe('v1.25.0+rke2r1');
+      });
+    });
+
+    describe('cloudProviderOptions', () => {
+      const cpBaseVm = () => ({
+        provider:                      'custom',
+        agentConfig:                   {},
+        isHarvesterExternalCredential: false,
+        isHarvesterIncompatible:       false,
+        $store:                        {
+          getters: {
+            'i18n/t':                         (key: string) => key,
+            'i18n/withFallback':              (_key: string, _fallback: any, opt: string) => opt,
+            'plugins/cloudProviderForDriver': () => undefined,
+          },
+        },
+      });
+
+      it('always excludes the azure option, even when the driver lists it', () => {
+        const vm = { ...cpBaseVm(), agentArgs: { 'cloud-provider-name': { options: ['azure', 'amazon'] } } };
+
+        const options = (rke2.computed as any).cloudProviderOptions.call(vm);
+
+        expect(options.find((o: any) => o.value === 'azure')).toBeUndefined();
+        expect(options.find((o: any) => o.value === 'amazon')).toBeDefined();
+      });
+
+      it('shows every non-azure option when there is no preferred provider', () => {
+        const vm = { ...cpBaseVm(), agentArgs: { 'cloud-provider-name': { options: ['amazon', 'external', 'vsphere'] } } };
+
+        const options = (rke2.computed as any).cloudProviderOptions.call(vm);
+
+        expect(options.map((o: any) => o.value)).toStrictEqual(['', 'amazon', 'external', 'vsphere']);
+      });
+
+      it('only shows the default, preferred and external options when a preferred provider exists', () => {
+        const base = cpBaseVm();
+        const vm = {
+          ...base,
+          $store:    { getters: { ...base.$store.getters, 'plugins/cloudProviderForDriver': () => 'vsphere' } },
+          agentArgs: { 'cloud-provider-name': { options: ['amazon', 'external', 'vsphere'] } },
+        };
+
+        const options = (rke2.computed as any).cloudProviderOptions.call(vm);
+
+        expect(options.map((o: any) => o.value)).toStrictEqual(['', 'external', 'vsphere']);
+      });
+
+      it('disables the preferred option when the Harvester credential is external or incompatible', () => {
+        const base = cpBaseVm();
+        const vm = {
+          ...base,
+          isHarvesterIncompatible: true,
+          $store:                  { getters: { ...base.$store.getters, 'plugins/cloudProviderForDriver': () => 'harvester' } },
+          agentArgs:               { 'cloud-provider-name': { options: ['harvester', 'external'] } },
+        };
+
+        const options = (rke2.computed as any).cloudProviderOptions.call(vm);
+
+        expect(options.find((o: any) => o.value === 'harvester').disabled).toBe(true);
+      });
+
+      it('prepends the current cloud provider as "(Current)" when it is not among the listed options', () => {
+        const vm = {
+          ...cpBaseVm(),
+          agentConfig: { 'cloud-provider-name': 'legacy-provider' },
+          agentArgs:   { 'cloud-provider-name': { options: ['amazon'] } },
+        };
+
+        const options = (rke2.computed as any).cloudProviderOptions.call(vm);
+
+        expect(options[0]).toStrictEqual({ label: 'legacy-provider (Current)', value: 'legacy-provider' });
+      });
+    });
+  });
+
+  // fetchRke2Versions now lives in shell/composables/useKubernetesVersions.ts - see useKubernetesVersions.test.ts.
+
+  // nodeTotals/hasRequiredNodes/unremovedMachinePools/hasOnlyIpv6Pools/hasDualStackPools/
+  // removeMachinePool/machinePoolValidationChanged now live in
+  // shell/composables/useMachinePools.ts - see useMachinePools.test.ts.
+
+  // initRegistry/setRegistryConfig/updateConfigs/toggleCustomRegistry/handleRegistryHostChanged/
+  // handleRegistrySecretChanged now live in shell/composables/useRegistryConfig.ts - see
+  // useRegistryConfig.test.ts.
+
+  // Characterization tests written ahead of extracting chart/addon value handling into a composable.
+  describe('methods: getChartValue', () => {
+    it('does nothing when there is no chart version entry for the chart', async() => {
+      const dispatch = jest.fn();
+      const vm: any = {
+        chartVersions: {}, versionInfo: {}, userChartValues: {}, $store: { dispatch }, chartVersionKey: (n: string) => n,
+      };
+
+      await (rke2.methods as any).getChartValue.call(vm, 'rke2-ingress-nginx');
+
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('fetches and stores version info, initializing empty user chart values', async() => {
+      const versionInfo = { questions: [] };
+      const dispatch = jest.fn().mockResolvedValue(versionInfo);
+      const vm: any = {
+        chartVersions:   { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
+        versionInfo:     {},
+        userChartValues: {},
+        $store:          { dispatch },
+        chartVersionKey: (n: string) => n,
+      };
+
+      await (rke2.methods as any).getChartValue.call(vm, 'rke2-ingress-nginx');
+
+      expect(dispatch).toHaveBeenCalledWith('catalog/getVersionInfo', {
+        repoType: 'cluster', repoName: 'rke2-charts', chartName: 'rke2-ingress-nginx', versionName: '1.0.0',
+      });
+      expect(vm.versionInfo['rke2-ingress-nginx']).toBe(versionInfo);
+      expect(vm.userChartValues['rke2-ingress-nginx']).toStrictEqual({});
+    });
+
+    it('does not overwrite existing user chart values', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const existing = { foo: 'bar' };
+      const vm: any = {
+        chartVersions:   { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
+        versionInfo:     {},
+        userChartValues: { 'rke2-ingress-nginx': existing },
+        $store:          { dispatch },
+        chartVersionKey: (n: string) => n,
+      };
+
+      await (rke2.methods as any).getChartValue.call(vm, 'rke2-ingress-nginx');
+
+      expect(vm.userChartValues['rke2-ingress-nginx']).toBe(existing);
+    });
+
+    it('swallows dispatch errors without throwing', async() => {
+      const dispatch = jest.fn().mockRejectedValue(new Error('network error'));
+      const vm: any = {
+        chartVersions:   { 'rke2-ingress-nginx': { repo: 'rke2-charts', version: '1.0.0' } },
+        versionInfo:     {},
+        userChartValues: {},
+        $store:          { dispatch },
+        chartVersionKey: (n: string) => n,
+      };
+
+      await expect((rke2.methods as any).getChartValue.call(vm, 'rke2-ingress-nginx')).resolves.toBeUndefined();
+    });
+  });
+
+  describe('methods: initAddons', () => {
+    it('skips charts that already have version info cached', async() => {
+      const getChartValue = jest.fn();
+      const vm: any = {
+        addonConfigValidation: { stale: true }, isK3s: true, addonNames: ['rke2-cilium'], versionInfo: { 'rke2-cilium': {} }, getChartValue,
+      };
+
+      await (rke2.methods as any).initAddons.call(vm);
+
+      expect(getChartValue).not.toHaveBeenCalled();
+      expect(vm.addonConfigValidation).toStrictEqual({});
+    });
+
+    it('skips the "none" CNI placeholder chart', async() => {
+      const getChartValue = jest.fn();
+      const vm: any = {
+        addonConfigValidation: {}, isK3s: true, addonNames: ['none'], versionInfo: {}, getChartValue,
+      };
+
+      await (rke2.methods as any).initAddons.call(vm);
+
+      expect(getChartValue).not.toHaveBeenCalled();
+    });
+
+    it('fetches remaining addon charts', async() => {
+      const getChartValue = jest.fn();
+      const vm: any = {
+        addonConfigValidation: {}, isK3s: true, addonNames: ['rke2-cilium'], versionInfo: {}, getChartValue,
+      };
+
+      await (rke2.methods as any).initAddons.call(vm);
+
+      expect(getChartValue).toHaveBeenCalledWith('rke2-cilium');
+    });
+
+    it('also fetches the ingress charts for RKE2 (not K3s) clusters', async() => {
+      const getChartValue = jest.fn();
+      const vm: any = {
+        addonConfigValidation: {}, isK3s: false, addonNames: [], versionInfo: {}, getChartValue,
+      };
+
+      await (rke2.methods as any).initAddons.call(vm);
+
+      expect(getChartValue).toHaveBeenCalledWith('rke2-ingress-nginx');
+      expect(getChartValue).toHaveBeenCalledWith('rke2-traefik');
+    });
+
+    it('does not fetch ingress charts for K3s clusters', async() => {
+      const getChartValue = jest.fn();
+      const vm: any = {
+        addonConfigValidation: {}, isK3s: true, addonNames: [], versionInfo: {}, getChartValue,
+      };
+
+      await (rke2.methods as any).initAddons.call(vm);
+
+      expect(getChartValue).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('methods: refreshYamls', () => {
+    it('calls refresh on yaml-prefixed refs, ignoring others', () => {
+      const yamlRef = { refresh: jest.fn() };
+      const otherRef = { refresh: jest.fn() };
+      const vm: any = {};
+
+      (rke2.methods as any).refreshYamls.call(vm, { yamlEditor: yamlRef, somethingElse: otherRef });
+
+      expect(yamlRef.refresh).toHaveBeenCalledWith();
+      expect(otherRef.refresh).not.toHaveBeenCalled();
+    });
+
+    it('refreshes every entry when the ref is an array', () => {
+      const first = { refresh: jest.fn() };
+      const second = { refresh: jest.fn() };
+      const vm: any = {};
+
+      (rke2.methods as any).refreshYamls.call(vm, { yamlEditor: [first, second] });
+
+      expect(first.refresh).toHaveBeenCalledWith();
+      expect(second.refresh).toHaveBeenCalledWith();
+    });
+
+    it('tolerates an undefined ref entry without throwing', () => {
+      const vm: any = {};
+
+      expect(() => (rke2.methods as any).refreshYamls.call(vm, { yamlEditor: undefined })).not.toThrow();
+    });
+  });
+
+  describe('methods: showAddonConfirmation', () => {
+    it('resolves with the value passed to the confirmation dialog callback', async() => {
+      const dispatch = jest.fn((_action: string, opts: any) => {
+        opts.resources[0](true);
+      });
+      const vm: any = { $store: { dispatch } };
+
+      const result = await (rke2.methods as any).showAddonConfirmation.call(vm, ['rke2-cilium'], 'v1.27.0', 'v1.28.0');
+
+      expect(result).toBe(true);
+      expect(dispatch).toHaveBeenCalledWith('cluster/promptModal', expect.objectContaining({
+        component:      'AddonConfigConfirmationDialog',
+        componentProps: {
+          addonNames: ['rke2-cilium'], previousKubeVersion: 'v1.27.0', newKubeVersion: 'v1.28.0'
+        },
+      }));
+    });
+  });
+
+  describe('methods: chartVersionKey', () => {
+    it('returns a version-qualified key when a matching addon version exists', () => {
+      const vm: any = { addonVersions: [{ name: 'rke2-cilium', version: '1.2.3' }] };
+
+      expect((rke2.methods as any).chartVersionKey.call(vm, 'rke2-cilium')).toBe('rke2-cilium-1.2.3');
+    });
+
+    it('returns the plain chart name when there is no matching addon version', () => {
+      const vm: any = { addonVersions: [] };
+
+      expect((rke2.methods as any).chartVersionKey.call(vm, 'rke2-cilium')).toBe('rke2-cilium');
+    });
+  });
+
+  // Characterization tests written ahead of extracting vSphere/Harvester cloud-provider wiring into a composable.
+  describe('computed: isHarvesterIncompatible', () => {
+    it('returns false when no Harvester version range info is present', () => {
+      const vm: any = { chartVersions: {}, harvesterVersionRange: {} };
+
+      expect((rke2.computed as any).isHarvesterIncompatible.call(vm)).toBe(false);
+    });
+
+    it('returns false when installed chart versions satisfy the Harvester version range', () => {
+      const vm: any = {
+        chartVersions: {
+          'harvester-cloud-provider': { version: '1.2.3' },
+          'harvester-csi-driver':     { version: '1.2.3' },
+        },
+        harvesterVersionRange: {
+          'harvester-cloud-provider': '>=1.0.0',
+          'harvester-csi-provider':   '>=1.0.0',
+        },
+      };
+
+      expect((rke2.computed as any).isHarvesterIncompatible.call(vm)).toBe(false);
+    });
+
+    it('returns true when installed chart versions do not satisfy the Harvester version range', () => {
+      const vm: any = {
+        chartVersions: {
+          'harvester-cloud-provider': { version: '0.5.0' },
+          'harvester-csi-driver':     { version: '0.5.0' },
+        },
+        harvesterVersionRange: {
+          'harvester-cloud-provider': '>=1.0.0',
+          'harvester-csi-provider':   '>=1.0.0',
+        },
+      };
+
+      expect((rke2.computed as any).isHarvesterIncompatible.call(vm)).toBe(true);
+    });
+
+    it('strips a trailing "00" patch suffix from the chart version before comparing', () => {
+      const vm: any = {
+        chartVersions: {
+          'harvester-cloud-provider': { version: '1.2.300' },
+          'harvester-csi-driver':     { version: '1.2.300' },
+        },
+        harvesterVersionRange: {
+          'harvester-cloud-provider': '1.2.3',
+          'harvester-csi-provider':   '1.2.3',
+        },
+      };
+
+      expect((rke2.computed as any).isHarvesterIncompatible.call(vm)).toBe(false);
+    });
+  });
+
+  describe('methods: setHarvesterDefaultCloudProvider', () => {
+    it('sets the cloud provider to harvester when on the Harvester driver, creating, with no existing provider and no incompatibility', () => {
+      const vm: any = {
+        isHarvesterDriver: true, mode: _CREATE, agentConfig: {}, isHarvesterExternalCredential: false, isHarvesterIncompatible: false,
+      };
+
+      (rke2.methods as any).setHarvesterDefaultCloudProvider.call(vm);
+
+      expect(vm.agentConfig['cloud-provider-name']).toBe('harvester');
+    });
+
+    it('clears the cloud provider when not on the Harvester driver', () => {
+      const vm: any = {
+        isHarvesterDriver: false, mode: _CREATE, agentConfig: {}, isHarvesterExternalCredential: false, isHarvesterIncompatible: false,
+      };
+
+      (rke2.methods as any).setHarvesterDefaultCloudProvider.call(vm);
+
+      expect(vm.agentConfig['cloud-provider-name']).toBe('');
+    });
+
+    it('clears the cloud provider when the installed charts are Harvester-incompatible', () => {
+      const vm: any = {
+        isHarvesterDriver: true, mode: _CREATE, agentConfig: {}, isHarvesterExternalCredential: false, isHarvesterIncompatible: true,
+      };
+
+      (rke2.methods as any).setHarvesterDefaultCloudProvider.call(vm);
+
+      expect(vm.agentConfig['cloud-provider-name']).toBe('');
+    });
+  });
+
+  describe('computed: needCredential (extension credential section)', () => {
+    const baseVm = {
+      provider:                   'testcredentials',
+      isElementalCluster:         false,
+      mode:                       _CREATE,
+      extensionCredentialSection: { name: 'CredentialSection' },
+      cloudCredentialsOverride:   false,
+      providerConfig:             undefined,
+    };
+
+    it('should return true when the provisioner has an extension credential section, even with cloud-credential registered as false', () => {
+      const vm = { ...baseVm } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(true);
+    });
+
+    it('should return false when cloud-credential is registered as false and there is no extension credential section', () => {
+      const vm = { ...baseVm, extensionCredentialSection: null } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(false);
+    });
+
+    it.each([
+      ['the custom provider', { provider: 'custom' }],
+      ['the import provider', { provider: 'import' }],
+      ['an elemental cluster', { isElementalCluster: true }],
+      ['view mode', { mode: _VIEW }],
+    ])('should return false for %s even with an extension credential section', (_, overrides) => {
+      const vm = { ...baseVm, ...overrides } as any;
+
+      expect(rke2.computed!.needCredential.call(vm)).toBe(false);
+    });
+  });
+
+  describe('watch: credentialId', () => {
+    const credentialId = 'cattle-global-data:cc-1';
+
+    const createVm = (extensionCredentialSection: any) => ({
+      extensionCredentialSection,
+      credentialId,
+      credential:        null,
+      isHarvesterDriver: false,
+      value:             { spec: {} as Record<string, any> },
+      $store:            { getters: { 'rancher/byId': jest.fn(() => ({ id: credentialId })) } },
+    });
+
+    const runWatch = (vm: ReturnType<typeof createVm>) => (rke2.watch as any).credentialId.call(vm, credentialId);
+
+    it('should not write spec.cloudCredentialSecretName when the provisioner has an extension credential section', () => {
+      const vm = createVm({ name: 'CredentialSection' });
+
+      runWatch(vm);
+
+      expect(vm.value.spec.cloudCredentialSecretName).toBeUndefined();
+    });
+
+    it('should not look up a cloud credential when the provisioner has an extension credential section', () => {
+      const vm = createVm({ name: 'CredentialSection' });
+
+      runWatch(vm);
+
+      expect(vm.$store.getters['rancher/byId']).not.toHaveBeenCalled();
+    });
+
+    it('should write spec.cloudCredentialSecretName when there is no extension credential section', () => {
+      const vm = createVm(null);
+
+      runWatch(vm);
+
+      expect(vm.value.spec.cloudCredentialSecretName).toBe(credentialId);
+    });
+
+    it('should look up the cloud credential when there is no extension credential section', () => {
+      const vm = createVm(null);
+
+      runWatch(vm);
+
+      expect(vm.$store.getters['rancher/byId']).toHaveBeenCalledWith(NORMAN.CLOUD_CREDENTIAL, credentialId);
+    });
+  });
+
+  describe('computed: extensionCredentialSectionProps', () => {
+    const cluster = { metadata: { name: 'test-cluster' } };
+    const infrastructureCluster = { kind: 'TestCredentialsCluster' };
+
+    const createVm = (extensionProvider: any, credentialId = 'ns/secret') => ({
+      extensionProvider,
+      extensionCredentialSection: extensionProvider?.extensionCredentialSection || null,
+      value:                      cluster,
+      infrastructureCluster,
+      credentialId,
+      mode:                       _CREATE,
+      provider:                   'testcredentials',
+    });
+
+    it('should return no props when there is no extension credential section', () => {
+      const vm = createVm(undefined) as any;
+
+      expect(rke2.computed!.extensionCredentialSectionProps.call(vm)).toStrictEqual({});
+    });
+
+    it('should merge the provisioner props over the provisioning and infrastructure clusters', () => {
+      const extensionProps = { namespace: 'merge-ns' };
+      const vm = createVm({ extensionCredentialSection: {}, extensionCredentialSectionProps: extensionProps }) as any;
+
+      rke2.computed!.extensionCredentialSectionProps.call(vm);
+
+      expect(mergeExtensionSectionProps).toHaveBeenCalledWith(
+        { provisioningCluster: cluster, infrastructureCluster },
+        extensionProps,
+        {
+          provisioningCluster: cluster, infrastructureCluster, value: 'ns/secret', mode: _CREATE, provider: 'testcredentials'
+        }
+      );
+    });
+
+    it('should pass null as the context value when there is no credential', () => {
+      const extensionProps = { namespace: 'null-value-ns' };
+      const vm = createVm({ extensionCredentialSection: {}, extensionCredentialSectionProps: extensionProps }, '') as any;
+
+      rke2.computed!.extensionCredentialSectionProps.call(vm);
+
+      expect(mergeExtensionSectionProps).toHaveBeenCalledWith(expect.any(Object), extensionProps, expect.objectContaining({ value: null }));
+    });
+
+    it('should return the merged props', () => {
+      const vm = createVm({ extensionCredentialSection: {} }) as any;
+
+      (mergeExtensionSectionProps as jest.Mock).mockReturnValueOnce({ merged: true });
+
+      expect(rke2.computed!.extensionCredentialSectionProps.call(vm)).toStrictEqual({ merged: true });
+    });
+  });
+
+  describe('template: credential step', () => {
+    const CredentialSection = { name: 'CredentialSection', template: '<div />' };
+
+    class CredentialProvisioner {
+      get extensionCredentialSection() {
+        return CredentialSection;
+      }
+
+      get extensionCredentialSectionProps() {
+        return { namespace: 'template-ns' };
+      }
+    }
+
+    const createWrapper = () => {
+      const $extension = { getDynamic: jest.fn((type: string) => (type === 'provisioner' ? CredentialProvisioner : undefined)) };
+
+      return mount(rke2, {
+        props: {
+          mode:  _CREATE,
+          value: {
+            spec:        { ...defaultSpec, kubernetesVersion: 'v1.25.0+rke2r1' },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          selectedVersion: { agentArgs: mockAgentArgs },
+          provider:        'testcredentials',
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: {
+              dispatch: () => jest.fn(), getters: defaultGetters, app: { $extension }
+            },
+            $extension,
+          },
+          stubs: defaultStubs,
+        },
+      });
+    };
+
+    it('should pass the provisioner extension credential section to SelectCredential', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.findComponent(SelectCredential).props('extensionComponent')).toStrictEqual(CredentialSection);
+    });
+
+    it('should pass the extension credential section props to SelectCredential', () => {
+      const wrapper = createWrapper();
+
+      expect(wrapper.findComponent(SelectCredential).props('extensionComponentProps')).toStrictEqual({
+        provisioningCluster:   expect.any(Object),
+        infrastructureCluster: null,
+      });
+    });
+  });
+
+  describe('etcd tab', () => {
+    it.each([
+      [false, true],
+      [true, false],
+    ])('should show an error on the etcd tab when etcdConfigValid is %p: %p', async(etcdConfigValid, error) => {
+      const wrapper = mount(rke2, {
+        props: {
+          mode:  _CREATE,
+          value: {
+            spec:        { ...defaultSpec, kubernetesVersion: 'v1.25.0+rke2r1' },
+            agentConfig: { 'cloud-provider-name': 'any' }
+          },
+          selectedVersion: { agentArgs: mockAgentArgs },
+          provider:        'custom',
+        },
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store:     { dispatch: () => jest.fn(), getters: defaultGetters },
+            $extension: { getDynamic: jest.fn(() => undefined ) },
+          },
+          stubs: { ...defaultStubs, Tabbed: { template: '<div><slot /></div>' } },
+        },
+      });
+
+      await wrapper.setData({ etcdConfigValid });
+
+      const etcdTab = wrapper.findAllComponents({ name: 'Tab' }).find((tab) => tab.props('name') === 'etcd');
+
+      expect(etcdTab?.props('error')).toStrictEqual(error);
     });
   });
 });

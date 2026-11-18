@@ -1,17 +1,20 @@
 import { IngressListPagePo, IngressCreateEditPo } from '@/cypress/e2e/po/pages/explorer/ingress.po';
 import { generateIngressesDataSmall, ingressesNoData } from '@/cypress/e2e/blueprints/explorer/workloads/service-discovery/ingresses-get';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { LONG_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 
 const cluster = 'local';
 const ingressListPagePo = new IngressListPagePo();
 let ingressName = '';
-let secretsNamesList = [];
-let servicesNamesList = [];
+let secretsNamesList: string[] = [];
+let servicesNamesList: string[] = [];
 const secretsCount = 4;
 const servicesCount = 4;
-let namespace;
+let namespace: string;
+// Matches the debounce RulePath.vue wraps its rule updates in, plus a small margin
+const RULE_UPDATE_DEBOUNCE = 750;
 
-describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -30,7 +33,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     cy.get('@consoleWarn').should('not.be.calledWith', warnMsg);
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Ingresses' : 'Rancher - local - Ingresses';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - Ingresses' : 'Rancher Community - local - Ingresses';
 
       cy.log(`Expected title is: ${ expectedTitle }`);
       cy.title().should('eq', expectedTitle);
@@ -47,7 +50,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     ingressCreatePagePo.resourceDetail().resourceYaml().codeMirror().checkExists();
   });
 
-  describe('Create/Edit', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('Create/Edit', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.createE2EResourceName('ingress').then((name) => {
         ingressName = name;
@@ -96,8 +99,10 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .toggle();
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .clickOptionWithLabel(namespace);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().description()
         .set(`${ ingressName } description`);
@@ -142,7 +147,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
           expect(response?.body.spec.tls[1]).to.have.property('secretName', secretsNamesList[1]);
         });
       ingressListPagePo.waitForPage();
-      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName, true)
         .checkVisible();
     });
 
@@ -153,9 +158,26 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
-      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+      // These ingresses live in a namespace created with the same generated name as the ingress
+      // itself, and grouping the list by namespace is a persisted user preference - so whether this
+      // list renders grouped depends on what ran before it. When it is grouped, the
+      // `Namespace: <name>` header row matches the plain row lookup before the ingress's own row
+      // does, and a group header has no action button, so opening the row's action menu can never
+      // succeed ([data-testid*="action-button"] never found). Scope the lookups to real resource
+      // rows so this test is unaffected by the grouping state.
+      // Wait for the ingress created by the previous test to render in the list before acting on it.
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName, true)
         .checkVisible();
-      ingressListPagePo.list().actionMenu(ingressName).getMenuItem('Edit Config').click();
+      // Confirm the list has finished loading before opening the row action menu: the row can
+      // render before its action button, so a still-loading list makes actionMenu miss it.
+      ingressListPagePo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+      // The row's per-resource action button hydrates after its cells (available actions load
+      // separately), so the table load-gate above is not always enough - wait for the button
+      // itself, with a longer timeout, before opening the menu.
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName, true)
+        .actionBtn(LONG_TIMEOUT_OPT)
+        .should('be.visible');
+      ingressListPagePo.list().actionMenu(ingressName, true).getMenuItem('Edit Config').click();
 
       const ingressEditPage = new IngressCreateEditPo('local', namespace, ingressName);
 
@@ -213,7 +235,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
           });
         });
       ingressListPagePo.waitForPage();
-      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName)
+      ingressListPagePo.list().resourceTable().sortableTable().rowWithName(ingressName, true)
         .checkVisible();
     });
 
@@ -233,6 +255,10 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
           type: 'ClusterIP'
         }
       });
+      // Ensure the service is queryable before the ingress form loads, so its target-service
+      // dropdown lists it. Otherwise the selection silently no-ops and the submitted rule comes
+      // back with no http backend/paths (spec.rules[0].http missing).
+      cy.waitForRancherResource('v1', 'services', `${ namespace }/${ headlessServiceName }`, (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
 
       ingressListPagePo.goTo();
       ingressListPagePo.waitForPage();
@@ -243,11 +269,30 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       const ingressCreatePagePo = new IngressCreateEditPo();
 
       ingressCreatePagePo.waitForPage(null, 'rules');
+      // Known issue rancher/dashboard#18845: the ingress create form's target-service dropdown is
+      // populated from the persisted services store rather than a fresh fetch on open, so a service
+      // created after the store was last populated is missing from the options - and selecting a
+      // missing option silently no-ops, producing a saved rule with no http backend. This e2e test
+      // depends on that fix; the reload below is the workaround until it lands.
+      //
+      // With testIsolation off, the target-service dropdown is populated from the persisted services
+      // store, which earlier Create/Edit tests filled before this test created its headless service.
+      // The list-page full visit + waitForRancherResource guard are NOT sufficient: the create form is
+      // reached by an in-app navigation (masthead().create()) that reuses the already-populated store,
+      // so the new headless service can be absent from the options and the selection silently no-ops -
+      // the submitted rule then comes back with no http backend ("{ host } to have property http").
+      // Reload the freshly-opened form (nothing entered yet) to force a fresh services fetch that
+      // includes the new service. (A prior commit removed this reload assuming goTo alone sufficed;
+      // that regressed this test, so it is restored.)
+      cy.reload();
+      ingressCreatePagePo.waitForPage(null, 'rules');
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().name()
         .set(ingressHeadlessName);
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .toggle();
       ingressCreatePagePo.resourceDetail().createEditView().nameNsDescription().namespace()
+        .select()
         .clickOptionWithLabel(namespace);
 
       ingressCreatePagePo.setRuleRequestHostValue(0, 'example-headless.com');
@@ -255,8 +300,19 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       ingressCreatePagePo.setTargetServiceValueByLabel(0, headlessServiceName);
       ingressCreatePagePo.setPortValueByLabel(0, '8080');
 
+      // RulePath.vue emits its rule updates behind a 500ms debounce (`debounce(this.update, 500)`), so
+      // saving straight after the last rule input races it and posts a rule whose path object is still
+      // untouched. Nothing in the dom marks the flush - the inputs render their own local state, so the
+      // page looks identical before and after, and further interaction only restarts the (trailing)
+      // debounce - so wait it out before saving.
+      cy.wait(RULE_UPDATE_DEBOUNCE); // eslint-disable-line cypress/no-unnecessary-waiting
+
       ingressCreatePagePo.resourceDetail().createEditView().saveAndWaitForRequests('POST', '/v1/networking.k8s.io.ingresses')
-        .then(({ response }) => {
+        .then(({ request, response }) => {
+          // Assert the payload too: if the debounce is ever raced again, this fails at the save with a
+          // rule that has no backend, instead of further down on the fetched object.
+          expect(request?.body?.spec?.rules?.[0], 'saved rule').to.have.property('http');
+
           expect(response?.statusCode).to.eq(201);
           expect(response?.body.metadata).to.have.property('name', ingressHeadlessName);
 
@@ -290,7 +346,7 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}');
     });
@@ -342,11 +398,24 @@ describe('Ingresses', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] 
       cy.wait('@ingressesDataSmall');
 
       // group by namespace
-      ingressListPagePo.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      ingressListPagePo.list().resourceTable().sortableTable().groupBy('Namespace');
+
+      // Grouping moves the Namespace column out of the header row and into the group headers, but
+      // the table only re-renders once the click has been applied. Reading the headers straight
+      // after the click can still see the flat set ("expected 'Namespace' to equal 'Target'"), so
+      // wait for a group row to appear first.
+      //
+      // The grouping is stored as a user preference and the table only regroups once that save has
+      // round-tripped, which under load outlasts the default timeout (the table still flat, the PUT to
+      // /v1/userpreferences arriving after the check gave up). Allow the long timeout. Waiting on the
+      // PUT itself would hang when the list is already grouped by an earlier test, since the grouping
+      // is persisted and an unchanged preference is not saved again.
+      ingressListPagePo.list().resourceTable().sortableTable().self()
+        .contains('tr.group-row', 'Namespace: cattle-system', LONG_TIMEOUT_OPT)
+        .should('exist');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Target', 'Default', 'Ingress Class', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Target', 'Default', 'Ingress Class', 'Age'];
 
       ingressListPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

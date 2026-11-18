@@ -4,12 +4,12 @@ import { qase } from '@/cypress/support/qase';
 
 const horizontalPodAutoscalersPage = new HorizontalPodAutoscalersPagePo();
 
-describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
+describe('HorizontalPodAutoscalers', { testIsolation: false, tags: ['@explorer', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
@@ -66,11 +66,10 @@ describe('HorizontalPodAutoscalers', { testIsolation: 'off', tags: ['@explorer',
       horizontalPodAutoscalersPage.header().selectNamespaceFilterOption('All Namespaces');
 
       // group by namespace
-      horizontalPodAutoscalersPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      horizontalPodAutoscalersPage.list().resourceTable().sortableTable().groupBy('Namespace');
 
-      //  check table headers are visible (minus namespace given we're now grouped by it)
-      const expectedHeaders = ['State', 'Name', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
+      //  check table headers are visible, namespace included: grouping never changes the columns
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Workload', 'Minimum Replicas', 'Maximum Replicas', 'Current Replicas', 'Age'];
 
       horizontalPodAutoscalersPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

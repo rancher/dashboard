@@ -1,5 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
+import { isReactive, markRaw, ref } from 'vue';
 import Header from '@shell/components/nav/Header.vue';
+import ClusterBadge from '@shell/components/ClusterBadge.vue';
+import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
+import * as releaseWelcome from '@shell/utils/release-welcome';
+import { setVersionData } from '@shell/config/version';
 
 describe('component: Header', () => {
   const defaultStoreMock = {
@@ -38,7 +43,7 @@ describe('component: Header', () => {
 
   const defaultConfigMock = { rancherEnv: 'web' };
 
-  function createWrapper(routeOverride = {}, storeOverride = {}) {
+  function createWrapper(routeOverride = {}, storeOverride = {}, extensionMock: any = { getDynamic: jest.fn() }, props = {}, stubsOverride: any = {}) {
     const routeMock = {
       ...defaultRouteMock,
       ...routeOverride,
@@ -55,12 +60,13 @@ describe('component: Header', () => {
     };
 
     return shallowMount(Header as any, {
+      props,
       global: {
         mocks: {
           $store:     storeMock,
           $route:     routeMock,
           $config:    defaultConfigMock,
-          $extension: { getDynamic: jest.fn() },
+          $extension: extensionMock,
         },
         stubs: {
           'router-link':        { template: '<a><slot /></a>' },
@@ -78,10 +84,31 @@ describe('component: Header', () => {
           RcDropdownItem:       { template: '<div><slot /></div>' },
           RcDropdownSeparator:  { template: '<hr />' },
           RcDropdownTrigger:    { template: '<button><slot /></button>' },
+          ...stubsOverride,
         },
       },
     });
   }
+
+  describe('a11y: brand logo', () => {
+    it('should label the logo with the product name, not just "Logo"', () => {
+      const wrapper = createWrapper(
+        {
+          name:   'home',
+          path:   '/home',
+          params: {},
+        },
+        { rootProduct: {} },
+        undefined,
+        { simple: true },
+      );
+
+      const brandImage = wrapper.find('[data-testid="header__brand-img"]');
+
+      expect(brandImage.exists()).toBe(true);
+      expect(brandImage.attributes('alt')).toBe('%branding.logos.logoLabel%');
+    });
+  });
 
   describe('disableWorkspaceSwitcher', () => {
     it('should return false on a list page', () => {
@@ -245,6 +272,283 @@ describe('component: Header', () => {
       );
 
       expect((wrapper.vm as any).showFilter).toBe(true);
+    });
+  });
+
+  describe('the cluster pin', () => {
+    const cluster = (over: any = {}) => ({
+      id: 'c-abc', nameDisplay: 'prod', isLocal: false, pinned: false, spec: { displayName: 'prod' }, pin: jest.fn(), unpin: jest.fn(), ...over
+    });
+    // The pin lives beside the cluster name, which only renders for a product that shows the switcher.
+    const withCluster = (currentCluster: any, stubs: any = {}) => createWrapper({}, {
+      currentCluster,
+      currentProduct: { showClusterSwitcher: true },
+      // Rendering the cluster area brings the header's action buttons with it, and those read the
+      // feature flags the default mock does not carry.
+      'features/get': () => false,
+    }, { getDynamic: jest.fn() }, {}, stubs);
+
+    it('hands the cluster being explored to the pin control', () => {
+      const currentCluster = cluster();
+
+      expect(withCluster(currentCluster).findComponent(ClusterPinControl).props('cluster')).toStrictEqual(currentCluster);
+    });
+
+    it('places the pin after the cluster badge', () => {
+      const wrapper = withCluster(cluster({
+        badge: {
+          text: 'live', color: '#fff', textColor: '#000'
+        }
+      }));
+      const children = Array.from(wrapper.find('.cluster').element.children);
+      const badge = children.indexOf(wrapper.findComponent(ClusterBadge).element);
+      const pin = children.indexOf(wrapper.findComponent(ClusterPinControl).element);
+
+      expect(badge).toBeGreaterThan(-1);
+      expect(pin).toBeGreaterThan(badge);
+    });
+  });
+
+  describe('navHeaderRight', () => {
+    it('should store the raw dynamic component from getDynamic without making it reactive', () => {
+      // getDynamic marks component definitions raw; the stored value must stay
+      // non-reactive so Vue does not warn / add overhead when rendering it.
+      const navHeaderRightComponent = markRaw({ name: 'NavHeaderRight', render: () => null });
+      const wrapper = createWrapper({}, {}, { getDynamic: jest.fn(() => navHeaderRightComponent) });
+
+      const stored = (wrapper.vm as any).navHeaderRight;
+
+      expect(stored).toBe(navHeaderRightComponent);
+      expect(isReactive(stored)).toBe(false);
+    });
+
+    it('should be null when no dynamic component is registered', () => {
+      const wrapper = createWrapper({}, {}, { getDynamic: jest.fn(() => undefined) });
+
+      expect((wrapper.vm as any).navHeaderRight).toBeNull();
+    });
+  });
+
+  describe('extensionHeaderActionsEnabled', () => {
+    it('follows a synchronous enabled as the state it reads changes', async() => {
+      const wrapper = createWrapper();
+      const locked = ref(false);
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Bar', invoke: jest.fn(), enabled: () => !locked.value
+      }];
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([true]);
+
+      locked.value = true;
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([false]);
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="extension-header-action-Bar"]').attributes('disabled')).toBeDefined();
+    });
+
+    it('leaves an async enabled to the check made on navigation', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Async', invoke: jest.fn(), enabled: () => Promise.resolve(true)
+      }];
+      (wrapper.vm as any).extensionActionsEnabled = { 0: false };
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([false]);
+    });
+
+    it('treats an action with no enabled as enabled once checked, and a boolean as given', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        { label: 'Plain', invoke: jest.fn() },
+        {
+          label: 'Off', invoke: jest.fn(), enabled: false
+        },
+      ];
+      (wrapper.vm as any).extensionActionsEnabled = { 0: true, 1: true };
+
+      expect((wrapper.vm as any).extensionHeaderActionsEnabled).toStrictEqual([true, false]);
+    });
+
+    it('says why a disabled action is disabled, when it gives a reason', () => {
+      const wrapper = createWrapper();
+      const action = {
+        label: 'Bar', invoke: jest.fn(), tooltip: 'Views bar', disabledTooltip: 'Not while editing'
+      };
+
+      expect((wrapper.vm as any).handleExtensionTooltip(action, false)).toBe('Not while editing');
+      expect((wrapper.vm as any).handleExtensionTooltip(action, true)).toBe('Views bar ');
+      expect((wrapper.vm as any).handleExtensionTooltip({ ...action, disabledTooltip: undefined }, false)).toBe('Views bar ');
+    });
+  });
+
+  describe('hidden extension header actions', () => {
+    it('draws no button for a hidden action, only its shortcut', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label: 'Switch', invoke: jest.fn(), hidden: true, shortcutKey: { windows: ['ctrl', 'shift', '>'], mac: ['meta', 'shift', '>'] }
+        },
+        { label: 'Bar', invoke: jest.fn() },
+      ];
+
+      await wrapper.vm.$nextTick();
+
+      expect(wrapper.find('[data-testid="extension-header-action-Switch"]').exists()).toBe(false);
+      expect(wrapper.find('[data-testid="extension-header-shortcut-Switch"]').exists()).toBe(true);
+      expect(wrapper.find('[data-testid="extension-header-action-Bar"]').exists()).toBe(true);
+    });
+
+    it('runs a hidden action from its shortcut', async() => {
+      const wrapper = createWrapper();
+      const invoke = jest.fn();
+
+      (wrapper.vm as any).extensionHeaderActions = [{
+        label: 'Switch', invoke, hidden: true
+      }];
+
+      await wrapper.vm.$nextTick();
+      await wrapper.find('[data-testid="extension-header-shortcut-Switch"]').trigger('shortkey');
+      await new Promise((resolve) => setTimeout(resolve));
+
+      expect(invoke).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('extensionHeaderActionsAriaExpanded', () => {
+    it('returns undefined for an action with no ariaExpanded', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{ label: 'Test', invoke: jest.fn() }];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([undefined]);
+    });
+
+    it('returns the boolean value when ariaExpanded is a boolean', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Open',
+          invoke:       jest.fn(),
+          ariaExpanded: true
+        },
+        {
+          label:        'Closed',
+          invoke:       jest.fn(),
+          ariaExpanded: false
+        },
+      ];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([true, false]);
+    });
+
+    it('calls ariaExpanded and returns its result when it is a function', () => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Dynamic',
+          invoke:       jest.fn(),
+          ariaExpanded: () => true
+        },
+      ];
+
+      expect((wrapper.vm as any).extensionHeaderActionsAriaExpanded).toStrictEqual([true]);
+    });
+
+    it('does not render aria-expanded attribute when value is undefined', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [{ label: 'Test', invoke: jest.fn() }];
+
+      await wrapper.vm.$nextTick();
+
+      const button = wrapper.find('[data-testid="extension-header-action-Test"]');
+
+      expect(button.attributes('aria-expanded')).toBeUndefined();
+    });
+
+    it('renders aria-expanded attribute when value is a boolean', async() => {
+      const wrapper = createWrapper();
+
+      (wrapper.vm as any).extensionHeaderActions = [
+        {
+          label:        'Open',
+          invoke:       jest.fn(),
+          ariaExpanded: true
+        },
+      ];
+
+      await wrapper.vm.$nextTick();
+
+      const button = wrapper.find('[data-testid="extension-header-action-Open"]');
+
+      expect(button.attributes('aria-expanded')).toBe('true');
+    });
+  });
+
+  describe('the what\'s new user menu item', () => {
+    beforeEach(() => {
+      setVersionData({
+        Version: 'v2.16.0', RancherPrime: 'false', GitCommit: ''
+      });
+    });
+
+    afterEach(() => {
+      setVersionData({
+        Version: '', RancherPrime: 'false', GitCommit: ''
+      });
+    });
+
+    it.each([
+      ['in Rancher', { isRancher: true, isSingleProduct: false }, true],
+      ['outside Rancher', { isRancher: false, isSingleProduct: false }, false],
+      ['in single product mode', { isRancher: true, isSingleProduct: { productNameKey: 'harvester', logoRoute: { name: 'c-cluster' } } }, false],
+    ])('should show the item %s: %p', (_, getters, expected) => {
+      const wrapper = createWrapper({}, getters);
+
+      expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(expected);
+    });
+
+    it('should not show the item when the version has no minor release, e.g. dev builds', () => {
+      setVersionData({
+        Version: 'dev', RancherPrime: 'false', GitCommit: ''
+      });
+      const wrapper = createWrapper({}, { isRancher: true });
+
+      expect(wrapper.find('[data-testid="user-menu-whats-new"]').exists()).toStrictEqual(false);
+    });
+
+    it.each([
+      ['every item', { isRancher: true, 'auth/enabled': true }, true, true, ['user-menu-whats-new', 'user-menu-separator-whats-new', 'user-menu-preferences', 'user-menu-account', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['no auth', { isRancher: true, 'auth/enabled': false }, true, true, ['user-menu-whats-new', 'user-menu-separator-whats-new', 'user-menu-preferences', 'user-menu-account']],
+      ['no preferences or account', { isRancher: true, 'auth/enabled': true }, false, false, ['user-menu-whats-new', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['no what\'s new', { isRancher: false, 'auth/enabled': true }, true, false, ['user-menu-preferences', 'user-menu-separator-log-out', 'user-menu-log-out']],
+      ['only log out', { isRancher: false, 'auth/enabled': true }, false, false, ['user-menu-log-out']],
+    ])('should group the user menu with separators, %s', (_, getters, preferences, tokens, expected) => {
+      const wrapper = createWrapper({}, {
+        'management/schemaFor': () => (preferences ? { resourceMethods: ['PUT'] } : null),
+        'rancher/schemaFor':    () => (tokens ? {} : null),
+        ...getters,
+      });
+
+      expect(wrapper.findAll('[data-testid^="user-menu-"]').map((el) => el.attributes('data-testid'))).toStrictEqual(expected);
+    });
+
+    it('should reopen the welcome modal', async() => {
+      const open = jest.spyOn(releaseWelcome, 'openReleaseWelcome').mockResolvedValue(undefined);
+      const wrapper = createWrapper({}, { isRancher: true });
+
+      await wrapper.find('[data-testid="user-menu-whats-new"]').trigger('click');
+
+      expect(open).toHaveBeenCalledWith(wrapper.vm.$store.commit);
+      open.mockRestore();
     });
   });
 });

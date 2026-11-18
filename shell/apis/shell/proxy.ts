@@ -46,8 +46,8 @@ export class ProxyApiImpl implements ProxyApi {
       redirectUnauthorized: false,
     } as any;
 
-    if (options.data) {
-      req.body = options.data;
+    if (options.data !== undefined) {
+      req.data = options.data;
     }
 
     const res = await this.store.dispatch('management/request', req, { root: true });

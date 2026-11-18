@@ -13,26 +13,53 @@ function replaceAll(str, find, replace) {
 
 // Injected at the top of every generated importTypes() function.
 // Ensures both $extension (newer Rancher) and $plugin (older Rancher) are available on
-// Vue globalProperties, regardless of which one the host injected. This makes all
-// extensions compatible across Rancher versions without any per-extension code changes.
+// Vue globalProperties *and* on the Vuex root state, regardless of which one the host
+// injected. This makes all extensions compatible across Rancher versions without any
+// per-extension code changes.
 const COMPAT_SHIM = `  if (typeof document !== 'undefined') {
     var patchGlobalProps = function() {
-      var __vueApp = document.getElementById('app').__vue_app__;
+      var __el = document.getElementById('app');
+      var __vueApp = __el && __el.__vue_app__;
 
-      if (!__vueApp) {
+      if (!__vueApp || !__vueApp.config || !__vueApp.config.globalProperties) {
         // no __vue_app__, vueApp.mount('#app') has not been called yet
         return false;
       }
 
-      if (__vueApp.config && __vueApp.config.globalProperties) {
-        var __gp = __vueApp.config.globalProperties;
-        if (!__gp.$extension && __gp.$plugin) { __gp.$extension = __gp.$plugin; }
-        else if (!__gp.$plugin && __gp.$extension) { __gp.$plugin = __gp.$extension; }
-        return true;
+      var __gp = __vueApp.config.globalProperties;
+
+      // Components reach the extension manager through globalProperties (this.$extension).
+      // Done first and unconditionally, so it still lands even if the store isn't ready yet.
+      if (!__gp.$extension && __gp.$plugin) { __gp.$extension = __gp.$plugin; }
+      else if (!__gp.$plugin && __gp.$extension) { __gp.$plugin = __gp.$extension; }
+
+      // Models reach it through the Vuex root state instead - either via the '$extension'
+      // accessor on the model base class, or directly as 'this.$rootState.$extension'.
+      // Rancher versions before the rename only ever set '$plugin' there, so without this
+      // an extension built against this shell resolves 'undefined' and either throws on
+      // first use or silently does nothing.
+      var __state = __gp.$store && __gp.$store.state;
+
+      if (!__state) {
+        return false;
       }
 
-      // Fallback to failure case
-      return false;
+      // Only alias once the manager is actually populated. The store seeds both keys with
+      // an empty object and swaps in the real manager later via the 'setPlugin' mutation,
+      // so aliasing too early would permanently bind to the throwaway object.
+      var __mgr = null;
+
+      if (__state.$extension && __state.$extension.getPlugins) { __mgr = __state.$extension; }
+      else if (__state.$plugin && __state.$plugin.getPlugins) { __mgr = __state.$plugin; }
+
+      if (!__mgr) {
+        return false;
+      }
+
+      __state.$extension = __mgr;
+      __state.$plugin = __mgr;
+
+      return true;
     };
 
     if (!patchGlobalProps()) {
@@ -155,5 +182,6 @@ module.exports = {
   contextFolders,
   contextMap,
   generateTypeImport,
-  generateDynamicTypeImport
+  generateDynamicTypeImport,
+  COMPAT_SHIM
 };

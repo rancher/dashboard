@@ -1,6 +1,8 @@
 import { createStore } from 'vuex';
 import { ensureSupportLink } from '@shell/config/home-links.js';
-import { getters, state, mutations } from '@shell/store/i18n.js';
+import {
+  getters, state, mutations, I18nState, I18nGetterRootState
+} from '@shell/store/i18n';
 
 jest.mock('@shell/assets/translations/en-us.yaml', () => ({
   locale: {
@@ -11,7 +13,7 @@ jest.mock('@shell/assets/translations/en-us.yaml', () => ({
 }));
 
 describe('fx: ensureSupportLink', () => {
-  const store = createStore({
+  const store = createStore<I18nState & I18nGetterRootState>({
     state,
     getters: {
       'i18n/selectedLocaleLabel': getters.selectedLocaleLabel,
@@ -31,14 +33,14 @@ describe('fx: ensureSupportLink', () => {
     }
   });
 
-  const testCases = [
+  const testCases: [string | null, boolean][] = [
     ['en-us', false],
     ['zh-hans', true],
     ['none', false],
     [null, false],
   ];
 
-  it.each(testCases)('should return cn forum link if the language is zh-hans', (language:String, value) => {
+  it.each(testCases)('should return cn forum link if the language is zh-hans', (language, value) => {
     store.commit('setSelected', language);
 
     const links = { defaults: [], custom: [] };
@@ -52,6 +54,6 @@ describe('fx: ensureSupportLink', () => {
 
     const result = ensureSupportLink(links, hasSupport, isSupportPage, localThis.t, store);
 
-    expect(!!result.defaults.find((link) => link.key === 'cnforums')).toBe(value);
+    expect(!!result.defaults.find((link: { key: string }) => link.key === 'cnforums')).toBe(value);
   });
 });

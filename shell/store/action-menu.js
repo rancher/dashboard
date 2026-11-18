@@ -7,11 +7,9 @@ export const state = function() {
     elem:                null,
     event:               null,
     showPromptRemove:    false,
-    showPromptRestore:   false,
     showModal:           false,
     performCallbackData: undefined,
     toRemove:            [],
-    toRestore:           [],
     modalData:           {},
   };
 };
@@ -82,19 +80,6 @@ export const mutations = {
       }
     }
     state.toRemove = resources;
-  },
-
-  togglePromptRestore(state, resources) {
-    if (!resources) {
-      state.showPromptRestore = false;
-      resources = [];
-    } else {
-      state.showPromptRestore = !state.showPromptRestore;
-      if (!isArray(resources)) {
-        resources = [resources];
-      }
-    }
-    state.toRestore = resources;
   },
 
   togglePromptModal(state, data) {

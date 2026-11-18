@@ -11,12 +11,15 @@ import {
   VIRTUAL_TYPES,
   CAPI,
   WORKLOAD_DASHBOARD,
+  CRD,
+  GATEWAY_API,
 } from '@shell/config/types';
 
 import {
   STATE, USER_STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
   INGRESS_DEFAULT_BACKEND, INGRESS_TARGET, INGRESS_CLASS,
-  SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES, POD_IMAGES,
+  HTTP_ROUTE_HOSTNAMES, HTTP_ROUTE_GATEWAYS,
+  SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, WORKLOAD_IMAGES, POD_IMAGES,
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, USER_LAST_LOGIN, USER_DISABLED_IN, USER_DELETED_IN, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
@@ -24,16 +27,16 @@ import {
   DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
   EVENT_LAST_SEEN_TIME,
   EVENT_FIRST_SEEN_TIME,
+  TYPE,
 } from '@shell/config/table-headers';
 
-import { DSL } from '@shell/store/type-map';
+import { DSL, IF_HAVE } from '@shell/store/type-map';
 import {
   STEVE_AGE_COL, STEVE_EVENT_FIRST_SEEN, STEVE_EVENT_LAST_SEEN, STEVE_EVENT_OBJECT, STEVE_EVENT_TYPE, STEVE_LIST_GROUPS, STEVE_NAMESPACE_COL, STEVE_NAME_COL, STEVE_STATE_COL,
   STEVE_WORKLOAD_HEALTH_SCALE
 } from '@shell/config/pagination-table-headers';
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
-import { STEVE_CACHE } from '@shell/store/features';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
 import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
 import { POD_LAST_RESTART_FIELD as POD_RESTARTS_LAST_FIELD, POD_RESTART_FIELD as POD_RESTARTS_COUNT_FIELD } from '@shell/types/resources/pod';
@@ -62,6 +65,7 @@ export function init(store) {
     showNamespaceFilter: true,
     icon:                'compass',
     extendable:          true,
+    navSearch:           true,
     typeStoreMap:        {
       [MANAGEMENT.PROJECT]:                       'management',
       [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: 'management',
@@ -93,6 +97,8 @@ export function init(store) {
   basicType([
     SERVICE,
     INGRESS,
+    GATEWAY_API.HTTP_ROUTE,
+    GATEWAY_API.GATEWAY,
     HPA,
   ], 'serviceDiscovery');
   basicType([
@@ -105,10 +111,10 @@ export function init(store) {
   ], 'storage');
   basicType([
     WORKLOAD_DASHBOARD,
-    WORKLOAD,
     WORKLOAD_TYPES.DEPLOYMENT,
     WORKLOAD_TYPES.DAEMON_SET,
     WORKLOAD_TYPES.STATEFUL_SET,
+    WORKLOAD_TYPES.REPLICA_SET,
     WORKLOAD_TYPES.JOB,
     WORKLOAD_TYPES.CRON_JOB,
     POD,
@@ -222,14 +228,6 @@ export function init(store) {
 
   setGroupDefaultType('serviceDiscovery', SERVICE);
 
-  configureType(WORKLOAD, {
-    displayName: store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 1 }).trim(),
-    location:    {
-      name:   'c-cluster-product-resource',
-      params: { resource: WORKLOAD },
-    },
-  });
-
   /** This CRD is installed on provisioned clusters because rancher webhook, used for both local and provisioned clusters, expects it to be there
    * Creating instances of this resource on downstream clusters wont do anything - Only show them for the local cluster
    */
@@ -290,6 +288,8 @@ export function init(store) {
     },
     STEVE_AGE_COL
   ]);
+
+  headers(GATEWAY_API.HTTP_ROUTE, [STATE, NAME_COL, NAMESPACE_COL, HTTP_ROUTE_HOSTNAMES, HTTP_ROUTE_GATEWAYS, AGE]);
 
   headers(INGRESS,
     [STATE, NAME_COL, NAMESPACE_COL, INGRESS_TARGET, INGRESS_DEFAULT_BACKEND, INGRESS_CLASS, AGE],
@@ -358,6 +358,7 @@ export function init(store) {
       STEVE_NAMESPACE_COL,
     ]
   );
+
   headers(HPA,
     [STATE, NAME_COL, NAMESPACE_COL, HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA, AGE],
     [
@@ -384,6 +385,7 @@ export function init(store) {
     search: `metadata.fields.${ resourceFieldPos }`,
   });
 
+  // Whilst we don't show a workloads view in the side bar... we still have a workloads list in namespace detail page
   headers(WORKLOAD, [STATE, NAME_COL, NAMESPACE_COL, TYPE, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE]);
   headers(WORKLOAD_TYPES.DEPLOYMENT,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Up-to-date', 'Available', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -395,7 +397,7 @@ export function init(store) {
   );
   headers(WORKLOAD_TYPES.REPLICA_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
-    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
+    [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL, STEVE_WORKLOAD_HEALTH_SCALE],
   );
   headers(WORKLOAD_TYPES.STATEFUL_SET,
     [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', POD_RESTARTS, AGE, WORKLOAD_HEALTH_SCALE],
@@ -420,8 +422,14 @@ export function init(store) {
     [STEVE_STATE_COL, STEVE_NAME_COL, STEVE_NAMESPACE_COL, createSteveWorkloadImageCol(6), STEVE_WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', STEVE_AGE_COL],
   );
 
+  // Pods link to their node with a popover showing the node's details. Other lists with a node column keep a plain link.
+  // The card is inside the cell, so clicking it mustn't select the row
+  const POD_NODE_COL = {
+    ...NODE_COL, formatter: 'LinkNamePopover', skipSelect: true
+  };
+
   headers(POD,
-    [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE],
+    [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', POD_NODE_COL, AGE],
     [
       STEVE_STATE_COL,
       STEVE_NAME_COL,
@@ -446,7 +454,7 @@ export function init(store) {
       },
       'IP',
       {
-        ...NODE_COL,
+        ...POD_NODE_COL,
         search: 'spec.nodeName'
       },
       STEVE_AGE_COL
@@ -573,6 +581,28 @@ export function init(store) {
     AGE_NORMAN
   ]);
 
+  const CRD_CR_COL = {
+    name:          'crd-cr',
+    labelKey:      'tableHeaders.customResources',
+    sort:          false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
+    search:        false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
+    value:         'resourceLink',
+    formatter:     'Link',
+    formatterOpts: { options: { internal: true } },
+  };
+
+  headers(CRD, [
+    STATE,
+    NAME_COL,
+    CRD_CR_COL,
+    AGE
+  ], [
+    STEVE_STATE_COL,
+    STEVE_NAME_COL,
+    CRD_CR_COL,
+    STEVE_AGE_COL
+  ]);
+
   virtualType({
     label:      store.getters['i18n/t']('clusterIndexPage.header'),
     group:      'Root',
@@ -593,7 +623,6 @@ export function init(store) {
     weight:         100,
     icon:           'folder',
     ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
-    ifFeature:      STEVE_CACHE,
     route:          { name: 'c-cluster-explorer-workload-dashboard' },
     exact:          true,
     overview:       true,
@@ -609,27 +638,10 @@ export function init(store) {
     route:        { name: 'c-cluster-product-members' },
     exact:        false,
     'exact-path': true,
-    ifHaveType:   {
-      type:  MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      store: 'management'
-    }
-  });
-
-  virtualType({
-    label:          store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 2 }),
-    group:          store.getters['i18n/t'](`typeLabel.${ WORKLOAD }`, { count: 2 }),
-    namespaced:     true,
-    name:           WORKLOAD,
-    weight:         99,
-    icon:           'folder',
-    // Workloads fetch ALL resources of ALL resource types... which scales badly. Until this is replaced by an overview page disable entirely
-    ifFeature:      `!${ STEVE_CACHE }`,
-    ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
-    route:          {
-      name:   'c-cluster-product-resource',
-      params: { resource: WORKLOAD }
-    },
-    overview: true,
+    navResources: [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING, MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING],
+    // Show if the user can access cluster OR project role bindings, so a user with only
+    // "Manage Project Members" can reach the Cluster and Project Members page.
+    ifHave:       IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS
   });
 
   virtualType({
@@ -642,6 +654,7 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-projectsnamespaces' },
     exact:            true,
+    navResources:     [MANAGEMENT.PROJECT, NAMESPACE],
   });
 
   virtualType({
@@ -666,6 +679,7 @@ export function init(store) {
     weight:           98,
     route:            { name: 'c-cluster-product-namespaces' },
     exact:            true,
+    navResources:     [NAMESPACE],
   });
 
   virtualType({

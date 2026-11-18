@@ -21,6 +21,7 @@ import { isLocalhost, isValidUrl } from '@shell/utils/validators/setting';
 import Loading from '@shell/components/Loading';
 import { getBrandMeta } from '@shell/utils/brand';
 import { findMe } from '@shell/utils/auth';
+import { RcSeparator } from '@components/RcSeparator';
 
 const calcIsFirstLogin = (store) => {
   const firstLoginSetting = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.FIRST_LOGIN);
@@ -104,7 +105,7 @@ export default {
   },
 
   components: {
-    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, BrandImage, Banner, Loading
+    AsyncButton, LabeledInput, CopyToClipboard, Checkbox, RadioGroup, Password, BrandImage, Banner, Loading, RcSeparator
   },
 
   async fetch() {
@@ -392,11 +393,10 @@ export default {
 
           <template v-if="isFirstLogin">
             <template v-if="mcmEnabled">
-              <hr
+              <RcSeparator
                 v-if="mustChangePassword"
                 class="mt-20 mb-20"
-                role="none"
-              >
+              />
               <p>
                 <t
                   k="setup.serverUrl.tip"
@@ -407,6 +407,7 @@ export default {
                 <Banner
                   v-if="showLocalhostWarning"
                   color="warning"
+                  role="status"
                   :label="t('validation.setting.serverUrl.localhost')"
                   data-testid="setup-serverurl-localhost-warning"
                 />
@@ -414,6 +415,7 @@ export default {
                   v-for="(err, i) in fvGetPathErrors(['serverUrl'])"
                   :key="i"
                   color="error"
+                  role="alert"
                   :label="err"
                   data-testid="setup-error-banner"
                 />

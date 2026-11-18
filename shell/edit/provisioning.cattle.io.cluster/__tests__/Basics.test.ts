@@ -1,8 +1,17 @@
 import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Basics from '@shell/edit/provisioning.cattle.io.cluster/tabs/Basics.vue';
+import Ingress from '@shell/edit/provisioning.cattle.io.cluster/ingress/index.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 // import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 import { RKE2_INGRESS_NGINX, RKE2_TRAEFIK } from '@shell/edit/provisioning.cattle.io.cluster/shared';
+
+// Payload of the component's `cilium-values-changed` event.
+type CiliumValues = { bandwidthManager: { enabled: boolean, test?: boolean } };
+
+const mockGetVersionData = jest.fn(() => ({ RancherPrime: 'false' }));
+
+jest.mock('@shell/config/version', () => ({ getVersionData: () => mockGetVersionData() }));
 
 const defaultStubs = {
   Banner:          true,
@@ -31,17 +40,17 @@ const mockAgentArgs = { 'cloud-provider-name': { options: [], profile: { options
 const mockServerArgs = { disable: { options: [] }, cni: { options: [] } };
 
 jest.mock('@shell/edit/provisioning.cattle.io.cluster/shared', () => ({
-  RETENTION_DEFAULT:         5,
-  RKE2_INGRESS_NGINX:        'rke2-ingress-nginx',
-  RKE2_TRAEFIK:              'rke2-traefik',
-  INGRESS_NGINX:             'ingress-nginx',
-  INGRESS_CONTROLLER:        'ingress-controller',
-  TRAEFIK:                   'traefik',
-  HARVESTER:                 'harvester',
-  INGRESS_DUAL:              'dual',
-  INGRESS_NONE:              'none',
-  INGRESS_OPTIONS:           [],
-  INGRESS_MIGRATION_KB_LINK: 'mock-link'
+  RETENTION_DEFAULT:           5,
+  RKE2_INGRESS_NGINX:          'rke2-ingress-nginx',
+  RKE2_TRAEFIK:                'rke2-traefik',
+  INGRESS_NGINX:               'ingress-nginx',
+  INGRESS_CONTROLLER:          'ingress-controller',
+  TRAEFIK:                     'traefik',
+  HARVESTER:                   'harvester',
+  INGRESS_DUAL:                'dual',
+  INGRESS_NONE:                'none',
+  INGRESS_OPTIONS:             [],
+  INGRESS_MIGRATION_DOCS_LINK: 'mock-link'
 }));
 const mockRke2Charts = {
   [RKE2_INGRESS_NGINX]: {},
@@ -160,6 +169,9 @@ function createBasicsTab(version : string, userChartValues: any, options = {}) {
       showCloudProvider:           false,
       unsupportedCloudProvider:    false,
       cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+      isAzureProviderUnsupported:  false,
+      canAzureMigrateOnEdit:       false,
+      complianceOverride:          false,
       ...options
     },
 
@@ -218,6 +230,9 @@ describe('component: Basics', () => {
         showCloudProvider:           true,
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+        isAzureProviderUnsupported:  false,
+        canAzureMigrateOnEdit:       false,
+        complianceOverride:          false,
       },
 
       global: {
@@ -272,6 +287,9 @@ describe('component: Basics', () => {
         showCloudProvider:           true,
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+        isAzureProviderUnsupported:  false,
+        canAzureMigrateOnEdit:       false,
+        complianceOverride:          false,
       },
 
       global: {
@@ -328,6 +346,9 @@ describe('component: Basics', () => {
         showCloudProvider:           true,
         unsupportedCloudProvider:    false,
         cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+        isAzureProviderUnsupported:  false,
+        canAzureMigrateOnEdit:       false,
+        complianceOverride:          false,
       },
 
       global: {
@@ -340,7 +361,7 @@ describe('component: Basics', () => {
       },
     });
 
-    const select = wrapper.getComponent('[data-testid="rke2-custom-edit-psa"]');
+    const select = wrapper.getComponent<typeof LabeledSelect>('[data-testid="rke2-custom-edit-psa"]');
 
     expect(select.props().disabled).toBe(disabled);
   });
@@ -359,7 +380,8 @@ describe('component: Basics', () => {
       await nextTick();
 
       // Check and update user values with the emitted value
-      let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
+      const emitted = wrapper.emitted('cilium-values-changed') as [CiliumValues][];
+      let latest = emitted[0][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOnValue));
 
@@ -371,7 +393,9 @@ describe('component: Basics', () => {
       await nextTick();
 
       // Update from the emitted value
-      latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
+      const emittedAgain = wrapper.emitted('cilium-values-changed') as [CiliumValues][];
+
+      latest = emittedAgain[1][0];
 
       expect(JSON.stringify(latest)).toStrictEqual(JSON.stringify(bmOffValue));
     });
@@ -385,7 +409,8 @@ describe('component: Basics', () => {
       await nextTick();
       await nextTick();
 
-      let latest = (wrapper.emitted()['cilium-values-changed'] || [])[0][0];
+      const emitted = wrapper.emitted('cilium-values-changed') as [CiliumValues][];
+      let latest = emitted[0][0];
 
       await wrapper.setProps({ userChartValues: { 'rke2-cilium': latest } });
 
@@ -409,76 +434,224 @@ describe('component: Basics', () => {
       await nextTick();
       await nextTick();
 
-      latest = (wrapper.emitted()['cilium-values-changed'] || [])[1][0];
+      const emittedAgain = wrapper.emitted('cilium-values-changed') as [CiliumValues][];
+
+      latest = emittedAgain[1][0];
 
       const expected = '{"bandwidthManager":{"test":true,"enabled":true}}';
 
       expect(JSON.stringify(latest)).toStrictEqual(expected);
     });
+  });
 
-    it.each([
-      ['create', true, true, '%cluster.banner.cloudProviderUnsupportedAzure%'],
-      ['create', false, true, undefined],
-      ['create', true, false, undefined],
-      ['edit', true, true, undefined],
-      ['view', true, true, undefined],
-    ])('should display Unsupported Azure provider warning message', (mode, showCloudProvider, isAzureProviderUnsupported, warningMessage) => {
-      const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
-        mode,
-        showCloudProvider,
-        isAzureProviderUnsupported,
-        canAzureMigrateOnEdit: true
+  describe('ingress', () => {
+    function mountBasics(ingressController: string | string[], kubernetesVersion = 'v1.35.0+rke2r1') {
+      const versionOptions = [
+        {
+          id: kubernetesVersion, value: kubernetesVersion, label: kubernetesVersion, serverArgs: mockServerArgs
+        },
+        { kind: 'group', label: 'RKE2' }
+      ];
+
+      return mount(Basics, {
+        props: {
+          mode:  'create',
+          value: {
+            spec: {
+              ...defaultSpec,
+              rkeConfig: { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', 'ingress-controller': ingressController } },
+              kubernetesVersion
+            },
+            agentConfig: { 'cloud-provider-name': '' },
+          },
+          provider:                    'custom',
+          userChartValues:             {},
+          addonVersions:               [],
+          versionInfo:                 {},
+          cisOverride:                 false,
+          cisPsaChangeBanner:          true,
+          allPsas:                     [],
+          selectedVersion:             versionOptions[0],
+          versionOptions,
+          isHarvesterDriver:           false,
+          isHarvesterIncompatible:     false,
+          showDeprecatedPatchVersions: false,
+          isElementalCluster:          false,
+          hasPsaTemplates:             false,
+          haveArgInfo:                 false,
+          showCni:                     true,
+          showCloudProvider:           false,
+          unsupportedCloudProvider:    false,
+          cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+          isAzureProviderUnsupported:  false,
+          canAzureMigrateOnEdit:       false,
+          complianceOverride:          false,
+        },
+
+        global: {
+          mocks: {
+            ...defaultMocks,
+            $store: { getters: defaultGetters },
+          },
+          stubs: defaultStubs,
+        },
       });
+    }
 
-      let cloudProviderUnsupportedAzureWarningMessage;
-      const warningElement = wrapper.find('[data-testid="clusterBasics__showCloudProviderUnsupportedAzureWarning"]');
+    it('forwards the selected kubernetes version to the Ingress component', () => {
+      const wrapper = mountBasics('traefik', 'v1.37.0+rke2r1');
+      const ingress = wrapper.findComponent(Ingress);
 
-      if (warningElement.exists()) {
-        cloudProviderUnsupportedAzureWarningMessage = warningElement.element.textContent;
-      }
-
-      expect(cloudProviderUnsupportedAzureWarningMessage).toBe(warningMessage);
+      expect(ingress.exists()).toBe(true);
+      expect(ingress.props('kubernetesVersion')).toBe('v1.37.0+rke2r1');
     });
 
-    it.each([
-      ['edit', true, true, '%cluster.banner.cloudProviderMigrateAzure%'],
-      ['edit', false, true, undefined],
-      ['edit', true, false, undefined],
-      ['create', true, true, undefined],
-      ['view', true, true, undefined],
-    ])('should display Azure Migration warning message', (mode, showCloudProvider, canAzureMigrateOnEdit, warningMessage) => {
-      const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
-        mode,
-        showCloudProvider,
-        canAzureMigrateOnEdit,
-        isAzureProviderUnsupported: true,
-      });
+    describe('rke2', () => {
+      const rke2ServerArgs = { disable: { options: ['rke2-coredns', RKE2_INGRESS_NGINX, RKE2_TRAEFIK] }, cni: { options: [] } };
 
-      let cloudProviderMigrateAzureWarningMessage;
-      const warningElement = wrapper.find('[data-testid="clusterBasics__showCloudProviderMigrateAzureWarning"]');
+      function mountRke2Basics() {
+        const version = {
+          id: 'v1.35.0+rke2r1', value: 'v1.35.0+rke2r1', label: 'v1.35.0+rke2r1', serverArgs: rke2ServerArgs
+        };
 
-      if (warningElement.exists()) {
-        cloudProviderMigrateAzureWarningMessage = warningElement.element.textContent;
+        return mount(Basics, {
+          props: {
+            ...requiredProps(version),
+            value: {
+              isK3s: false,
+              spec:  {
+                ...defaultSpec,
+                rkeConfig:         { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', 'ingress-controller': 'traefik' } },
+                kubernetesVersion: version.value
+              },
+              agentConfig: { 'cloud-provider-name': '' },
+            },
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store: { getters: defaultGetters },
+            },
+            stubs: defaultStubs,
+          },
+        });
       }
 
-      expect(cloudProviderMigrateAzureWarningMessage).toBe(warningMessage);
-    });
+      it('should not offer the ingress charts as system services', () => {
+        const wrapper = mountRke2Basics();
 
-    it.each([
-      ['create', true, false],
-      ['edit', false, true],
-      ['edit', true, false],
-      ['view', true, false],
-    ])('should disable Cloud Provider', (mode, canAzureMigrateOnEdit, disabled) => {
-      const wrapper = createBasicsTab('v1.31.0+rke2r1', {}, {
-        mode,
-        showCloudProvider: true,
-        canAzureMigrateOnEdit,
+        expect((wrapper.vm as any).disableOptions.map((o: any) => o.value)).toStrictEqual(['rke2-coredns']);
       });
 
-      const cloudProvider = wrapper.find('[data-testid="clusterBasics__cloudProvider"]');
+      it('should show the Ingress section', () => {
+        const wrapper = mountRke2Basics();
+        const ingress = wrapper.findComponent(Ingress);
 
-      expect(cloudProvider.attributes().disabled).toBe(disabled.toString());
+        expect(ingress.exists()).toBe(true);
+        expect(ingress.props('nginxSupported')).toBe(true);
+        expect(ingress.props('value')).toBe('traefik');
+      });
+
+      it('should set the ingress-controller config when the ingress selection changes', () => {
+        const wrapper = mountRke2Basics();
+
+        (wrapper.vm as any).ingressController = 'ingress-nginx';
+
+        expect((wrapper.vm as any).serverConfig['ingress-controller']).toBe('ingress-nginx');
+        expect(wrapper.emitted('enabled-system-services-changed')).toBeUndefined();
+      });
+    });
+
+    describe('k3s', () => {
+      const k3sServerArgs = { disable: { options: ['coredns', 'servicelb', 'traefik', 'local-storage', 'metrics-server'] }, cni: { options: [] } };
+
+      function mountK3sBasics(disable?: string[], serverArgs: any = k3sServerArgs) {
+        const version = {
+          id: 'v1.35.0+k3s1', value: 'v1.35.0+k3s1', label: 'v1.35.0+k3s1', serverArgs
+        };
+
+        return mount(Basics, {
+          props: {
+            ...requiredProps(version),
+            value: {
+              isK3s: true,
+              spec:  {
+                ...defaultSpec,
+                rkeConfig:         { ...defaultSpec.rkeConfig, machineGlobalConfig: { cni: 'calico', ...(disable ? { disable } : {}) } },
+                kubernetesVersion: version.value
+              },
+              agentConfig: { 'cloud-provider-name': '' },
+            },
+          },
+          global: {
+            mocks: {
+              ...defaultMocks,
+              $store: { getters: defaultGetters },
+            },
+            stubs: defaultStubs,
+          },
+        });
+      }
+
+      it('should offer traefik as a system service', () => {
+        const wrapper = mountK3sBasics();
+
+        expect((wrapper.vm as any).disableOptions.map((o: any) => o.value)).toStrictEqual(['coredns', 'servicelb', 'traefik', 'local-storage', 'metrics-server']);
+      });
+
+      it('should not show the Ingress section', () => {
+        const wrapper = mountK3sBasics();
+
+        expect(wrapper.findComponent(Ingress).exists()).toBe(false);
+      });
+
+      it.each([
+        [undefined, true],
+        [['coredns'], true],
+        [['traefik'], false],
+      ])('given disable list %p, should report traefik enabled %p', (disable, expected) => {
+        const wrapper = mountK3sBasics(disable);
+
+        expect((wrapper.vm as any).enabledSystemServices.includes('traefik')).toBe(expected);
+      });
+
+      it('should add traefik to the disable list when its system service is unchecked', () => {
+        const wrapper = mountK3sBasics();
+
+        (wrapper.vm as any).enabledSystemServices = ['coredns', 'servicelb', 'local-storage', 'metrics-server'];
+
+        expect(wrapper.emitted('enabled-system-services-changed')).toStrictEqual([[['traefik']]]);
+      });
+
+      it('should remove traefik from the disable list when its system service is checked', () => {
+        const wrapper = mountK3sBasics(['traefik']);
+
+        (wrapper.vm as any).enabledSystemServices = ['coredns', 'servicelb', 'traefik', 'local-storage', 'metrics-server'];
+
+        expect(wrapper.emitted('enabled-system-services-changed')).toStrictEqual([[[]]]);
+      });
     });
   });
 });
+
+function requiredProps(version: any) {
+  return {
+    mode:                        'create',
+    provider:                    'custom',
+    userChartValues:             {},
+    addonVersions:               [],
+    versionInfo:                 {},
+    allPsas:                     [],
+    selectedVersion:             version,
+    versionOptions:              [version],
+    isHarvesterDriver:           false,
+    isHarvesterIncompatible:     false,
+    showDeprecatedPatchVersions: false,
+    isElementalCluster:          false,
+    haveArgInfo:                 true,
+    showCni:                     true,
+    showCloudProvider:           false,
+    cloudProviderOptions:        [{ label: 'Default - RKE2 Embedded', value: '' }],
+    complianceOverride:          false,
+  };
+}

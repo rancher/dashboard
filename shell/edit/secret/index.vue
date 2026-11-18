@@ -13,6 +13,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import { Banner } from '@components/Banner';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import CruResource from '@shell/components/CruResource';
 import Loading from '@shell/components/Loading';
@@ -39,6 +40,7 @@ export default {
   emits: ['set-subtype', 'input'],
 
   components: {
+    Banner,
     LabeledInput,
     LabeledSelect,
     Loading,
@@ -62,12 +64,18 @@ export default {
       [
         {
           path:           'metadata.name',
+          rules:          ['required', 'subDomain'],
+          translationKey: 'nameNsDescription.name.label',
+        },
+        {
+          // Cloud credential names are not Kubernetes names
+          path:           'cloudCredentialName',
           rules:          ['required'],
           translationKey: 'nameNsDescription.name.label',
         },
         {
           path:           'metadata.namespace',
-          rules:          ['required'],
+          rules:          ['required', 'dnsLabel', 'noUpperCase'],
           translationKey: 'nameNsDescription.namespace.label',
         },
         {
@@ -188,6 +196,10 @@ export default {
 
       return out;
     },
+    // The API doesn't return the data of helm release secrets, so only their metadata can be edited
+    isHelmRelease() {
+      return !this.isCreate && this.value.isHelmRelease;
+    },
     isCustomSecretCreate() {
       return this.mode === _CREATE && this.$route.query.type === 'custom';
     },
@@ -290,6 +302,10 @@ export default {
 
     hideSensitiveData() {
       return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
+    },
+
+    nameRules() {
+      return this.getRules(this.isCloud ? 'cloudCredentialName' : 'metadata.name');
     },
 
     dataTabHasError() {
@@ -450,6 +466,7 @@ export default {
       :errors="errors"
       :subtypes="secretSubTypes"
       :cancel-event="true"
+      :can-yaml="!isHelmRelease"
       :done-route="doneLocationOverride"
       @finish="saveSecret"
       @select-type="selectType"
@@ -463,7 +480,7 @@ export default {
         :namespaced="!isCloud"
         :name-field-name="'metadata.name'"
         :namespace-field-name="'metadata.namespace'"
-        :rules="{ name: getRules('metadata.name'), namespace: getRules('metadata.namespace'), description: [] }"
+        :rules="{ name: nameRules, namespace: getRules('metadata.namespace'), description: [] }"
         @update:value="$emit('input', $event)"
       />
       <NameNsDescription
@@ -472,7 +489,7 @@ export default {
         :namespaced="false"
         :mode="mode"
         :name-field-name="'metadata.name'"
-        :rules="{ name: getRules('metadata.name'), namespace: [], description: [] }"
+        :rules="{ name: nameRules, namespace: [], description: [] }"
       >
         <template #project-selector>
           <LabeledSelect
@@ -544,8 +561,15 @@ export default {
           :weight="99"
           :error="dataTabHasError"
         >
+          <Banner
+            v-if="isHelmRelease"
+            color="info"
+            label-key="secret.helmRelease.dataNotEditable"
+            data-testid="secret-helm-release-banner"
+          />
           <component
             :is="dataComponent"
+            v-else
             :value="value"
             :mode="mode"
             :hide-sensitive-data="hideSensitiveData"

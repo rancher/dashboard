@@ -42,6 +42,11 @@ export default {
     project: {
       type:    Boolean,
       default: false
+    },
+
+    appendToBody: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -203,10 +208,11 @@ export default {
     :label="label"
     :placeholder="placeholder"
     :options="options"
+    :append-to-body="appendToBody"
     :searchable="true"
     :filterable="false"
     class="select-principal"
-    :class="{'retain-selection': retainSelection}"
+    :class="{'retain-selection': retainSelection, 'results-in-place': !appendToBody}"
     @update:value="add"
     @search="onSearch"
     @on-open="resetTooltipContent()"
@@ -256,6 +262,17 @@ export default {
   }
 
   .select-principal {
+    &.results-in-place {
+      :deep(.v-select) {
+        display: block !important;
+      }
+
+      :deep(.vs__dropdown-menu) {
+        left: calc(-1 * var(--border-width));
+        width: calc(100% + 2 * var(--border-width));
+      }
+    }
+
     &.retain-selection {
       min-height: 91px;
       &.focused {
@@ -267,8 +284,14 @@ export default {
   }
 </style>
 <style lang="scss">
-  .vs__dropdown-menu {
+  // Results put on the body have nothing to take their width from, so they are
+  // left to the positioner that places them. Results left in place keep the
+  // width vue-select gives them, which is the width of the search.
+  body > .vs__dropdown-menu {
     width: 0%;
+  }
+
+  .vs__dropdown-menu {
     * {
       overflow-x: hidden;
       text-overflow: ellipsis;

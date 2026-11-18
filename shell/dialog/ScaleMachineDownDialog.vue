@@ -114,6 +114,39 @@ export default {
       return [ignoredType, safeMachinesToDelete];
     },
 
+    async markMachineForDeletion(machine) {
+      machine.setAnnotation(CAPI_LABELS.DELETE_MACHINE, 'true');
+
+      await machine.save();
+
+      let liveMachine;
+
+      try {
+        liveMachine = await this.$store.dispatch('management/find', {
+          type: CAPI.MACHINE,
+          id:   machine.id,
+          opt:  {
+            force: true,
+            watch: false
+          }
+        });
+      } catch (e) {
+        if (e?._status === 404 || e?.status === 404) {
+          throw new Error(this.t('promptScaleMachineDown.machineAlreadyDeleted', { name: machine.nameDisplay }));
+        }
+
+        throw e;
+      }
+
+      if (!liveMachine || liveMachine.metadata?.deletionTimestamp) {
+        throw new Error(this.t('promptScaleMachineDown.machineAlreadyDeleted', { name: machine.nameDisplay }));
+      }
+
+      if (!liveMachine.metadata?.annotations?.[CAPI_LABELS.DELETE_MACHINE]) {
+        throw new Error(this.t('promptScaleMachineDown.machineDeleteAnnotationMissing', { name: machine.nameDisplay }));
+      }
+    },
+
     async remove() {
       if (!this.isRke2) {
         await Promise.all(this.safeMachinesToDelete.map((node) => {
@@ -134,15 +167,10 @@ export default {
       // Mark all machines for deletion and then scale down their pool to the new size
       const flatArray = Array.from(poolInfo.entries());
 
-      await Promise.all(flatArray.map(([pool, machines]) => {
-        return Promise
-          .all(machines.map((m) => {
-            m.setAnnotation(CAPI_LABELS.DELETE_MACHINE, 'true');
-
-            return m.save();
-          }))
-          .then(() => pool.scalePool(-machines.length, false));
-      }));
+      for (const [pool, machines] of flatArray) {
+        await Promise.all(machines.map((m) => this.markMachineForDeletion(m)));
+        pool.scalePool(-machines.length, false);
+      }
 
       // Pool scale info is kept in the cluster itself, so now we've made the changes we can save them
       await this.cluster.save();

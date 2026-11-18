@@ -8,17 +8,18 @@ import { generatePodsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloa
 import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import { qase } from '@/cypress/support/qase';
 
 const localCluster = 'local';
 
-describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('Pods', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   const workloadsPodPage = new WorkloadsPodsListPagePo(localCluster);
 
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     let uniquePod = SortableTablePo.firstByDefaultName('pod');
     let podNamesList = [];
     let nsName1: string;
@@ -59,118 +60,111 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         });
     });
 
-    it('pagination is visible and user is able to navigate through pods data', () => {
+    qase(4009, it('pagination is visible and user is able to navigate through pods data', () => {
       ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
 
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
-      // check pods count
-      const count = podNamesList.length + 1;
+      // Wait for the created pods to be registered, then derive the actual number of
+      // pods in the two filtered namespaces. A hardcoded `podNamesList.length + 1` can
+      // disagree with the list total when the cluster briefly holds an extra pod.
+      // Wait for the list to finish loading, then read the expected total from the pager itself
+      // rather than a separate API snapshot: the server-side (VAI) list count and a client-side
+      // data.filter disagree by one during the eventual-consistency window after creation (the
+      // persistent "24 vs 23" flake). See PaginationPo.paginationTotalCount.
+      workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-      cy.waitForRancherResources('v1', 'pods', count - 1, true).then((resp: Cypress.Response<any>) => {
-        // pagination is visible
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .checkVisible();
+      // pagination is visible
+      workloadsPodPage.list().resourceTable().sortableTable().pagination()
+        .checkVisible();
 
+      workloadsPodPage.list().resourceTable().sortableTable().pagination()
+        .paginationTotalCount()
+        .then((count: number) => {
         // basic checks on navigation buttons
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .isEnabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .isEnabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .isEnabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .isEnabled();
 
-        // check text before navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
+          // check text before navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
 
-        // navigate to next page - right button
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .rightButton()
-          .click();
+          // navigate to next page - right button
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .rightButton()
+            .click();
 
-        // check text and buttons after navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`11 - 20 of ${ count } Pods`);
-          });
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isEnabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isEnabled();
+          // check text and buttons after navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`11 - 20 of ${ count } Pods`);
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isEnabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isEnabled();
 
-        // navigate to first page - left button
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .click();
+          // navigate to first page - left button
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .click();
 
-        // check text and buttons after navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
+          // check text and buttons after navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
 
-        // navigate to last page - end button
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .endButton()
-          .scrollIntoView()
-          .click();
+          // navigate to last page - end button
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .endButton()
+            .scrollIntoView()
+            .click();
 
-        // row count on last page
-        let lastPageCount = count % 10;
+          // row count on last page
+          let lastPageCount = count % 10;
 
-        if (lastPageCount === 0) {
-          lastPageCount = 10;
-        }
+          if (lastPageCount === 0) {
+            lastPageCount = 10;
+          }
 
-        // check text after navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
-          });
+          // check text after navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`${ count - (lastPageCount) + 1 } - ${ count } of ${ count } Pods`);
 
-        // navigate to first page - beginning button
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .click();
+          // navigate to first page - beginning button
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .click();
 
-        // check text and buttons after navigation
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .paginationText()
-          .then((el) => {
-            expect(el.trim()).to.eq(`1 - 10 of ${ count } Pods`);
-          });
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .beginningButton()
-          .isDisabled();
-        workloadsPodPage.list().resourceTable().sortableTable().pagination()
-          .leftButton()
-          .isDisabled();
-      });
-    });
+          // check text and buttons after navigation
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .checkPaginationTextEquals(`1 - 10 of ${ count } Pods`);
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .beginningButton()
+            .isDisabled();
+          workloadsPodPage.list().resourceTable().sortableTable().pagination()
+            .leftButton()
+            .isDisabled();
+        });
+    }));
 
-    it('sorting changes the order of paginated pods data', () => {
+    qase(3957, it('sorting changes the order of paginated pods data', () => {
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
       // use filter to only show test data
@@ -208,9 +202,9 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(podNamesList[0])
         .scrollIntoView()
         .should('be.visible');
-    });
+    }));
 
-    it('filter pods', () => {
+    qase(3956, it('filter pods', () => {
       WorkloadsPodsListPagePo.navTo();
       workloadsPodPage.waitForPage();
 
@@ -229,15 +223,17 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
       workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(uniquePod)
         .should('be.visible');
-    });
+    }));
 
-    it('pagination is hidden', () => {
+    qase(3954, it('pagination is hidden', () => {
       cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', '{"local":[]}');
 
       // generate small set of pods data
       generatePodsDataSmall();
       HomePagePo.goTo(); // this is needed here for the intercept to work
-      WorkloadsPodsListPagePo.navTo();
+      // navTo is hardened against the workload-overview redirect to Deployments (it waits for
+      // the overview's summary fetch to settle and reloads/retries if it redirected).
+      WorkloadsPodsListPagePo.navTo(localCluster);
       cy.wait('@podsDataSmall');
       workloadsPodPage.waitForPage();
 
@@ -246,6 +242,25 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().checkRowCount(false, 3);
       workloadsPodPage.list().resourceTable().sortableTable().pagination()
         .checkNotExists();
+    }));
+
+    it('should count the All tab again as a pod is created and deleted', () => {
+      const sortableTable = workloadsPodPage.list().resourceTable().sortableTable();
+
+      WorkloadsPodsListPagePo.navTo();
+      workloadsPodPage.waitForPage();
+      sortableTable.checkLoadingIndicatorNotVisible();
+
+      sortableTable.allViewTab().should('contain.text', '(').invoke('text').then((text) => {
+        const before = Number(/\((\d+)\)/.exec(text)?.[1]);
+
+        cy.createPod(nsName2, 'tab-count', SMALL_CONTAINER.image).then(({ body }) => {
+          sortableTable.allViewTab({ timeout: 30000 }).should('contain.text', `(${ before + 1 })`);
+
+          cy.deleteRancherResource('v1', 'pods', `${ nsName2 }/${ body.metadata.name }`);
+          sortableTable.allViewTab({ timeout: 60000 }).should('contain.text', `(${ before })`);
+        });
+      });
     });
 
     after('clean up', () => {
@@ -262,11 +277,11 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.goTo();
     });
 
-    it('should open a pod shell', () => {
+    qase(3967, it('should open a pod shell', () => {
       const shellPodPo = new PodPo();
 
       shellPodPo.openPodShell();
-    });
+    }));
   });
 
   describe('When cloning a pod', () => {
@@ -277,6 +292,12 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       cy.intercept('GET', `/v1/pods/${ namespace }/${ origPodName }?*`).as('origPod');
       cy.intercept('GET', `/v1/pods/${ namespace }/${ clonePodName }?*`).as('clonedPod');
 
+      // Idempotent across Cypress retries (testIsolation is off): the clone is created by the UI save
+      // in the test and isn't cleaned up between attempts, so a retry's create can collide with the
+      // leftover. Remove any leftover clone before we start (prior attempts failed differently each
+      // time - a symptom of leaked state).
+      cy.deleteRancherResource('v1', 'pods', `${ namespace }/${ clonePodName }`, false);
+
       workloadsPodPage.goTo();
 
       const createPodPo = new PodPo();
@@ -284,7 +305,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       createPodPo.createPodViaKubectl(createPodBlueprint);
     });
 
-    it(`Should have same spec as the original pod`, () => {
+    qase(3968, it(`Should have same spec as the original pod`, () => {
       const cloneCreatePodPage = new WorkLoadsPodDetailsPagePo(origPodName, { mode: 'clone' });
 
       cloneCreatePodPage.goTo();
@@ -304,8 +325,16 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       createClonePo.nameNsDescription().name().set(clonePodName);
       createClonePo.save();
 
+      // The save creates the cloned pod, but the list and the detail page can lag it (indexing),
+      // which showed up as the cloned row never appearing and the detail-page GET never firing.
+      // Wait for the pod to be queryable via the API before asserting on the UI below.
+      cy.waitForRancherResource('v1', 'pods', `${ namespace }/${ clonePodName }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+
       workloadsPodPage.waitForPage();
       workloadsPodPage.list().checkVisible();
+      // Let the list finish loading before filtering, otherwise the sortable-table container/row can
+      // be missing mid-render (seen as "sortable-table-list-container"/"group-row" not found).
+      workloadsPodPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       workloadsPodPage.list().resourceTable().sortableTable().filter(clonePodName);
       workloadsPodPage.list().resourceTable().sortableTable().rowWithName(clonePodName)
         .checkExists();
@@ -323,22 +352,16 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
 
           const clonedSpec = response?.body?.spec;
 
-          // In Dashboard adds empty affinity object by default
-          // Remove this to compare
-          if (!Object.keys(clonedSpec.affinity).length) {
-            delete clonedSpec.affinity;
-          }
-
           expect(clonedSpec).to.deep.eq(origPodSpec);
           expect(clonedSpec.containers[0].resources).to.deep.eq(createPodBlueprint.spec.containers[0].resources);
         });
-    });
+    }));
   });
 
   describe('When creating a pod using the web Form', () => {
     const singlePodName = Cypress._.uniqueId(Date.now().toString());
 
-    it(`should have the default input units displayed`, () => {
+    qase(6557, it(`should have the default input units displayed`, () => {
       workloadsPodPage.goTo();
       workloadsPodPage.createPod();
 
@@ -369,9 +392,9 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
       workloadsPodPage.list().resourceTable().sortableTable().rowElementWithName(singlePodName)
         .scrollIntoView()
         .should('be.visible');
-    });
+    }));
 
-    it('Footer controls should stick to bottom in YAML Editor', () => {
+    qase(6558, it('Footer controls should stick to bottom in YAML Editor', () => {
       // testing https://github.com/rancher/dashboard/issues/10880
       const workloadsPodEditPage = new WorkLoadsPodEditPagePo(singlePodName);
 
@@ -398,9 +421,9 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         expect(elementRect.bottom).to.be.closeTo(pageHeight, 0.1);
         expect(elementRect.bottom).to.be.closeTo(viewportHeight, 0.1);
       });
-    });
+    }));
 
-    it(`should properly add container tabs to the tablist`, () => {
+    qase(7832, it(`should properly add container tabs to the tablist`, () => {
       workloadsPodPage.goTo();
       workloadsPodPage.createPod();
 
@@ -415,10 +438,10 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         cy.get('[data-testid="btn-container-1"]').should('contain.text', 'container-1');
         cy.get('[data-testid="workload-button-add-container"]').should('contain.text', 'Add Container');
       });
-    });
+    }));
 
     // testing https://github.com/rancher/dashboard/issues/14071
-    it('should remove the correct environment variable from the workload form', () => {
+    qase(8562, it('should remove the correct environment variable from the workload form', () => {
       cy.viewport(1280, 720);
       const podDetails = new PodPo();
 
@@ -458,7 +481,7 @@ describe('Pods', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, (
         podDetails.environmentVariables().getVariableAtIndex(index).find('.name input').should('have.value', key);
       });
       podDetails.environmentVariables().getVariableByName('SECOND_VAR').should('not.exist');
-    });
+    }));
   });
 
   // describe.skip('[Vue3 Skip]: should delete pod', () => {

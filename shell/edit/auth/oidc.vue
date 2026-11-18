@@ -6,10 +6,11 @@ import { toTypedSchema } from '@vee-validate/zod';
 import * as z from 'zod';
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
 import CruResource from '@shell/components/CruResource';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import { Banner } from '@components/Banner';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
@@ -21,16 +22,19 @@ import { Checkbox } from '@components/Form/Checkbox';
 import { BASE_SCOPES } from '@shell/store/auth';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 const PKCE_S256 = 'S256';
 
 export default {
   components: {
+    AuthConfigIdentity,
     Banner,
     Loading,
     CruResource,
     AllowedPrincipals,
-    FileSelector,
+    FileSelectorTextArea,
     AuthBanner,
     AuthProviderWarningBanners,
     AdvancedSection,
@@ -39,6 +43,7 @@ export default {
     RadioGroup,
     Checkbox,
     CopyToClipboardText,
+    RcSeparator,
   },
 
   emits: ['validationChanged'],
@@ -68,40 +73,34 @@ export default {
     const requiresAuthEndpoint = computed(() => ['genericoidc', 'keycloakoidc'].includes(modelId.value));
     const sloEndSessionEndpointUiEnabled = computed(() => [SLO_OPTION_VALUES.all, SLO_OPTION_VALUES.both].includes(sloTypeRef.value));
 
-    // z.preprocess coerces null/undefined to '' before validation. This
-    // prevents the raw "Expected string, received null" zod message.
-    const coerce = (schema) => z.preprocess((v) => v ?? '', schema);
-    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
-    const requiredUrlField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })).url(t('validation.genericUrl')));
-    const optionalField = coerce(z.string());
+    const { field } = zodValidators(t);
 
     // Reactive schema uses computed to reshape when provider or endpoint mode
     // changes.
     const validationSchema = computed(() => toTypedSchema(
       z.object({
-        clientId:     requiredField('authConfig.oidc.clientId'),
-        clientSecret: requiredField('authConfig.oidc.clientSecret'),
+        clientId:     field('authConfig.oidc.clientId').required(),
+        clientSecret: field('authConfig.oidc.clientSecret').required(),
 
-        url:   !customEndpointEnabled.value && !isAmazonCognito.value ? requiredUrlField('authConfig.oidc.url') : optionalField,
-        realm: !customEndpointEnabled.value && !isAmazonCognito.value ? requiredField('authConfig.oidc.realm') : optionalField,
+        url:   !customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.url').required().url() : field(),
+        realm: !customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.realm').required() : field(),
 
-        rancherUrl: customEndpointEnabled.value && !isAmazonCognito.value ? requiredField('authConfig.oidc.rancherUrl') : optionalField,
-        issuer:     customEndpointEnabled.value || isAmazonCognito.value ? requiredField('authConfig.oidc.issuer') : optionalField,
+        rancherUrl: customEndpointEnabled.value && !isAmazonCognito.value ? field('authConfig.oidc.rancherUrl').required() : field(),
+        issuer:     customEndpointEnabled.value || isAmazonCognito.value ? field('authConfig.oidc.issuer').required() : field(),
 
-        authEndpoint: requiresAuthEndpoint.value ? requiredUrlField('authConfig.oidc.authEndpoint') : optionalField,
+        authEndpoint: requiresAuthEndpoint.value ? field('authConfig.oidc.authEndpoint').required().url() : field(),
 
-        endSessionEndpoint: sloEndSessionEndpointUiEnabled.value ? requiredUrlField('authConfig.oidc.endSessionEndpoint.title') : optionalField,
+        endSessionEndpoint: sloEndSessionEndpointUiEnabled.value ? field('authConfig.oidc.endSessionEndpoint.title').required().url() : field(),
 
         scope: z.preprocess(
           (v) => (Array.isArray(v) ? v : []),
-          z.array(z.string()).refine(
-            (arr) => requiredScopes.value?.every((s) => arr.includes(s)),
-            (arr) => {
-              const missing = requiredScopes.value?.filter((s) => !arr.includes(s));
+          z.array(z.string()).superRefine((arr, ctx) => {
+            const missing = requiredScopes.value?.filter((s) => !arr.includes(s)) ?? [];
 
-              return { message: t('authConfig.oidc.scope.missingRequired', { scopes: missing?.join(', '), count: missing?.length }) };
+            if (missing.length) {
+              ctx.addIssue({ code: 'custom', message: t('authConfig.oidc.scope.missingRequired', { scopes: missing.join(', '), count: missing.length }) });
             }
-          )
+          })
         ),
       })
     ));
@@ -133,6 +132,7 @@ export default {
       requiresCert,
       requiresAuthEndpoint,
       sloEndSessionEndpointUiEnabled,
+      requiredScopes,
     };
   },
 
@@ -215,7 +215,9 @@ export default {
       this.$emit('validationChanged', !!newValue);
     },
 
-    'model.id': {
+    // A config's id is its own name (`cognito-2`), and a new one has none yet, so
+    // which OIDC provider the form is for comes from the mixin's provider key
+    NAME: {
       handler(newVal) {
         this.modelId = newVal;
       },
@@ -292,7 +294,7 @@ export default {
 
   methods: {
     updateEndpoints() {
-      const isKeycloak = this.model.id === 'keycloakoidc';
+      const isKeycloak = this.NAME === 'keycloakoidc';
 
       if (!this.oidcUrls.url) {
         this.model.issuer = '';
@@ -346,11 +348,20 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
+          :provider-id="model.id"
         >
           <template #rows>
             <tr><td>{{ t('authConfig.oidc.rancherUrl') }}: </td><td>{{ model.rancherUrl }}</td></tr>
@@ -373,7 +384,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           :provider="NAME"
@@ -438,34 +449,19 @@ export default {
           v-if="requiresCert"
           class="row mb-20"
         >
-          <div class="col span-6">
-            <LabeledInput
+          <div class="col span-12">
+            <FileSelectorTextArea
               v-model:value="model.privateKey"
+              class="mb-20"
               :label="t(`authConfig.oidc.key.label`)"
               :placeholder="t(`authConfig.oidc.key.placeholder`)"
               :mode="mode"
-              type="multiline"
             />
-            <FileSelector
-              class="role-tertiary add mt-5"
-              :label="t('generic.readFromFile')"
-              :mode="mode"
-              @selected="model.privateKey = $event"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledInput
+            <FileSelectorTextArea
               v-model:value="model.certificate"
               :label="t(`authConfig.oidc.cert.label`)"
               :placeholder="t(`authConfig.oidc.cert.placeholder`)"
               :mode="mode"
-              type="multiline"
-            />
-            <FileSelector
-              class="role-tertiary add mt-5"
-              :label="t('generic.readFromFile')"
-              :mode="mode"
-              @selected="model.certificate = $event"
             />
           </div>
         </div>
@@ -697,6 +693,7 @@ export default {
               :title="t('authConfig.oidc.scope.label')"
               :value-placeholder="t('authConfig.oidc.scope.placeholder')"
               :protip="t('authConfig.oidc.scope.protip', {}, true)"
+              :disabled-list="requiredScopes"
               @update:value="updateScope"
             />
           </div>

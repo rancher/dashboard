@@ -39,17 +39,18 @@ export default {
       default: 'image/*'
     },
 
-    class: {
-      type:    [String, Array],
-      default: 'role-primary',
+    /**
+     * The RcButton variant used for the upload button.
+     * @values primary, secondary, tertiary, link, ghost
+     */
+    variant: {
+      type:    String,
+      default: 'primary',
     },
   },
   computed: {
     isView() {
       return this.mode === _VIEW;
-    },
-    customClass() {
-      return [...(Array.isArray(this.class) ? this.class : [this.class])];
     },
   },
   methods: {
@@ -71,7 +72,7 @@ export default {
   <FileSelector
     v-if="!value && !isView"
     :value="value"
-    :class="customClass"
+    :variant="variant"
     :mode="mode"
     :read-as-data-url="true"
     :byte-limit="byteLimit"

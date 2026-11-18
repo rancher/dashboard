@@ -4,7 +4,7 @@ import WorkloadPagePo from '@/cypress/e2e/po/pages/explorer/workloads.po';
 
 const workloadsPage = new WorkloadPagePo('local');
 
-describe('Can describe resource', { testIsolation: 'off', tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
+describe('Can describe resource', { testIsolation: false, tags: ['@explorer2', '@adminUser', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });

@@ -10,6 +10,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { Checkbox } from '@components/Form/Checkbox';
 import AuthBanner from '@shell/components/auth/AuthBanner';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import AuthConfig, { SLO_OPTION_VALUES } from '@shell/mixins/auth-config';
@@ -19,6 +20,7 @@ import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBann
 import formRulesGenerator from '@shell/utils/validators/formRules/index';
 import { useFormValidation } from '@shell/composables/useFormValidation';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
 
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
@@ -59,6 +61,7 @@ const ENDPOINT_MAPPING = {
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     InfoBox,
@@ -68,7 +71,8 @@ export default {
     CopyToClipboardText,
     AllowedPrincipals,
     AuthBanner,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -401,11 +405,20 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="editMemberConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
+          :provider-id="model.id"
         >
           <template #rows>
             <tr>
@@ -455,7 +468,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           provider="azuread"

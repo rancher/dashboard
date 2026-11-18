@@ -1,12 +1,16 @@
 import ChartMixin from '@shell/mixins/chart';
 import { OPA_GATE_KEEPER_ID } from '@shell/pages/c/_cluster/gatekeeper/index.vue';
 import { mount } from '@vue/test-utils';
+import { defineComponent } from 'vue';
 import { APP_UPGRADE_STATUS } from '@shell/store/catalog';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
 
 describe('chartMixin', () => {
-  const testCases = {
+  const testCases: {
+    opa: [string | null, number][],
+    managedApps: [boolean, string, number][],
+  } = {
     opa: [
       [null, 0],
       [OPA_GATE_KEEPER_ID, 1],
@@ -25,9 +29,10 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -40,10 +45,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const instance = mount(
         DummyComponent,
@@ -72,9 +77,10 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -84,10 +90,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const instance = mount(
         DummyComponent,
@@ -112,9 +118,10 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -128,10 +135,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -164,9 +171,10 @@ describe('chartMixin', () => {
           return Promise.resolve();
         }),
         getters: {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -186,10 +194,10 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -230,9 +238,10 @@ describe('chartMixin', () => {
           return Promise.resolve();
         }),
         getters: {
-          currentCluster: () => {},
-          isRancher:      () => true,
-          'catalog/repo': () => {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => {
             return () => 'repo';
           },
           'catalog/chart': () => {
@@ -254,10 +263,15 @@ describe('chartMixin', () => {
         }
       };
 
-      const DummyComponent = {
+      // `mode` is owned by the component hosting the mixin (see `shell/pages/c/_cluster/apps/charts/install.vue`),
+      // the mixin's `fetchChart` only sets it
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+        data(): { mode: string | null } {
+          return { mode: null };
+        },
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -280,13 +294,88 @@ describe('chartMixin', () => {
       expect(wrapper.vm.existing).toStrictEqual(installedApp);
       expect(wrapper.vm.mode).toStrictEqual('edit');
     });
+
+    describe('when the chart of an installed app cannot be found', () => {
+      const installedApp = { id: 'app-ns/app-name', fetchValues: jest.fn() };
+
+      const mountWithMissingChart = () => {
+        const mockStore = {
+          dispatch: jest.fn((action) => {
+            if (action === 'cluster/find') {
+              return Promise.resolve(installedApp);
+            }
+
+            return Promise.resolve();
+          }),
+          getters: {
+            currentCluster:    () => {},
+            isRancher:         () => true,
+            'cluster/canList': () => true,
+            'catalog/repo':    () => {
+              return () => 'repo';
+            },
+            'catalog/chart':   () => undefined,
+            'catalog/version': jest.fn(),
+            'prefs/get':       () => {},
+            'i18n/t':          () => jest.fn()
+          }
+        };
+
+        const DummyComponent = defineComponent({
+          mixins:   [ChartMixin],
+          template: '<div></div>',
+          data(): { mode: string | null } {
+            return { mode: null };
+          },
+        });
+
+        const wrapper = mount(
+          DummyComponent,
+          {
+            global: {
+              mocks: {
+                $store: mockStore,
+                $route: {
+                  query: {
+                    chart:     'missing-chart',
+                    namespace: 'app-ns',
+                    name:      'app-name'
+                  }
+                }
+              }
+            }
+          });
+
+        return { wrapper, mockStore };
+      };
+
+      it('should still find the existing app from the query', async() => {
+        const { wrapper, mockStore } = mountWithMissingChart();
+
+        await wrapper.vm.fetchChart();
+
+        expect(mockStore.dispatch).toHaveBeenCalledWith('cluster/find', {
+          type: CATALOG.APP,
+          id:   'app-ns/app-name'
+        });
+        expect(wrapper.vm.existing).toStrictEqual(installedApp);
+      });
+
+      it('should set the mode to edit', async() => {
+        const { wrapper } = mountWithMissingChart();
+
+        await wrapper.vm.fetchChart();
+
+        expect(wrapper.vm.mode).toStrictEqual('edit');
+      });
+    });
   });
 
   describe('action', () => {
-    const DummyComponent = {
+    const DummyComponent = defineComponent({
       mixins:   [ChartMixin],
       template: '<div></div>',
-    };
+    });
 
     const mockStore = {
       dispatch: jest.fn(() => Promise.resolve()),
@@ -433,10 +522,10 @@ describe('chartMixin', () => {
   });
 
   describe('isChartTargeted', () => {
-    const DummyComponent = {
+    const DummyComponent = defineComponent({
       mixins:   [ChartMixin],
       template: '<div></div>',
-    };
+    });
 
     const mockStore = {
       dispatch: jest.fn(() => Promise.resolve()),
@@ -516,19 +605,20 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster:  () => {},
-          isRancher:       () => true,
-          'catalog/repo':  () => () => 'repo',
-          'catalog/chart': () => ({ versions }),
-          'prefs/get':     () => (key: string) => true,
-          'i18n/t':        () => jest.fn()
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => () => 'repo',
+          'catalog/chart':   () => ({ versions }),
+          'prefs/get':       () => (key: string) => true,
+          'i18n/t':          () => jest.fn()
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -594,19 +684,20 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster:  () => ({ workerOSs: ['linux'] }),
-          isRancher:       () => true,
-          'catalog/repo':  () => () => 'repo',
-          'catalog/chart': () => ({ versions }),
-          'prefs/get':     () => () => true,
-          'i18n/t':        () => jest.fn()
+          currentCluster:    () => ({ workerOSs: ['linux'] }),
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => () => 'repo',
+          'catalog/chart':   () => ({ versions }),
+          'prefs/get':       () => () => true,
+          'i18n/t':          () => jest.fn()
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -624,7 +715,7 @@ describe('chartMixin', () => {
           }
         });
 
-      const result = (wrapper.vm as any).mappedVersions;
+      const result = wrapper.vm.mappedVersions;
 
       expect(result[0].label).toBe('1.0.0 (Current, Linux-only)');
     });
@@ -641,19 +732,20 @@ describe('chartMixin', () => {
       const mockStore = {
         dispatch: jest.fn(() => Promise.resolve()),
         getters:  {
-          currentCluster:  () => ({ workerOSs: ['linux'] }),
-          isRancher:       () => true,
-          'catalog/repo':  () => () => 'repo',
-          'catalog/chart': () => ({ versions }),
-          'prefs/get':     () => () => true,
-          'i18n/t':        () => jest.fn()
+          currentCluster:    () => ({ workerOSs: ['linux'] }),
+          isRancher:         () => true,
+          'cluster/canList': () => true,
+          'catalog/repo':    () => () => 'repo',
+          'catalog/chart':   () => ({ versions }),
+          'prefs/get':       () => () => true,
+          'i18n/t':          () => jest.fn()
         }
       };
 
-      const DummyComponent = {
+      const DummyComponent = defineComponent({
         mixins:   [ChartMixin],
         template: '<div></div>',
-      };
+      });
 
       const wrapper = mount(
         DummyComponent,
@@ -671,9 +763,201 @@ describe('chartMixin', () => {
           }
         });
 
-      const result = (wrapper.vm as any).mappedVersions;
+      const result = wrapper.vm.mappedVersions;
 
       expect(result[0].label).toBe('1.0.0 (Current)');
+    });
+  });
+
+  describe('when the user cannot list apps', () => {
+    const mountWithCanList = (canList: boolean) => {
+      const canListMock = jest.fn(() => canList);
+      const mockStore = {
+        dispatch: jest.fn(() => Promise.resolve()),
+        getters:  {
+          currentCluster:    () => {},
+          isRancher:         () => true,
+          'cluster/canList': canListMock,
+          'catalog/repo':    () => 'repo',
+          'catalog/chart':   () => ({ versions: [] }),
+          'prefs/get':       () => false,
+        }
+      };
+
+      const DummyComponent = defineComponent({
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+      });
+
+      const wrapper = mount(DummyComponent, {
+        global: {
+          mocks: {
+            $store: mockStore,
+            $route: { query: { chart: 'chart_name', repo: 'repo' } },
+            t:      (key: string) => key,
+          }
+        }
+      });
+
+      return {
+        wrapper, mockStore, canListMock
+      };
+    };
+
+    it('should check the list permission of apps', () => {
+      const { wrapper, canListMock } = mountWithCanList(false);
+
+      expect(wrapper.vm.canListApps).toStrictEqual(false);
+      expect(canListMock).toHaveBeenCalledWith(CATALOG.APP);
+    });
+
+    it('should return an error to show instead of the page', () => {
+      const { wrapper } = mountWithCanList(false);
+
+      expect(wrapper.vm.cannotListAppsError).toStrictEqual(new Error('catalog.charts.cannotListApps'));
+    });
+
+    it('should not return an error when the user can list apps', () => {
+      const { wrapper } = mountWithCanList(true);
+
+      expect(wrapper.vm.cannotListAppsError).toBeNull();
+    });
+
+    it('should not fetch apps or the chart', async() => {
+      const { wrapper, mockStore } = mountWithCanList(false);
+
+      await wrapper.vm.fetchChart();
+
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith('cluster/findAll', { type: CATALOG.APP });
+      expect(mockStore.dispatch).not.toHaveBeenCalledWith('catalog/load');
+      expect(wrapper.vm.chart).toBeNull();
+    });
+  });
+
+  describe('fetchAutoInstallInfo', () => {
+    const crdProvider = {
+      name:     'rancher-gatekeeper-crd',
+      version:  '102.1.0+up3.12.0',
+      repoType: 'cluster',
+      repoName: 'rancher-charts'
+    };
+
+    const mountWithCrd = ({ mode, targetCrdValues, existingCrdApp }: { mode: string, targetCrdValues: object, existingCrdApp?: object }) => {
+      const mockStore = {
+        dispatch: jest.fn((action: string) => {
+          if (action === 'catalog/getVersionInfo') {
+            return Promise.resolve({
+              chart: {
+                name:        crdProvider.name,
+                annotations: {
+                  [CATALOG_ANNOTATIONS.NAMESPACE]:    'cattle-gatekeeper-system',
+                  [CATALOG_ANNOTATIONS.RELEASE_NAME]: 'rancher-gatekeeper-crd'
+                }
+              },
+              values: targetCrdValues
+            });
+          }
+
+          if (action === 'cluster/find') {
+            return Promise.resolve(existingCrdApp);
+          }
+
+          return Promise.resolve();
+        }),
+        getters: {
+          currentCluster:              () => {},
+          isRancher:                   () => true,
+          'cluster/canList':           () => true,
+          'catalog/repo':              () => 'repo',
+          'catalog/chart':             () => null,
+          'catalog/versionSatisfying': () => crdProvider,
+          'prefs/get':                 () => false,
+          'i18n/t':                    () => jest.fn()
+        }
+      };
+
+      const DummyComponent = defineComponent({
+        mixins:   [ChartMixin],
+        template: '<div></div>',
+        // `autoInstallInfo` is owned by the component hosting the mixin (see `shell/pages/c/_cluster/apps/charts/install.vue`)
+        data(): { mode: string, chart: any, version: any, autoInstallInfo: { allValues: object }[] } {
+          return {
+            mode,
+            chart:   { repoName: 'rancher-charts', repoType: 'cluster' },
+            version: {
+              version:     '102.1.0+up3.12.0',
+              annotations: { [CATALOG_ANNOTATIONS.AUTO_INSTALL]: 'rancher-gatekeeper-crd=match' }
+            },
+            autoInstallInfo: []
+          };
+        },
+      });
+
+      return mount(DummyComponent, {
+        global: {
+          mocks: {
+            $store: mockStore,
+            $route: { query: { chart: 'chart_name' } }
+          }
+        }
+      });
+    };
+
+    it('should use the target crd chart defaults when installing', async() => {
+      const targetCrdValues = { enableRuntimeDefaultSeccompProfile: true };
+      const wrapper = mountWithCrd({ mode: 'create', targetCrdValues });
+
+      await wrapper.vm.fetchAutoInstallInfo();
+
+      expect(wrapper.vm.autoInstallInfo[0].allValues).toStrictEqual({ enableRuntimeDefaultSeccompProfile: true });
+    });
+
+    it('should include new defaults from the target crd chart when upgrading', async() => {
+      const targetCrdValues = { image: { tag: 'v2' }, enableRuntimeDefaultSeccompProfile: true };
+      const existingCrdApp = {
+        values:      { image: { tag: 'custom' } },
+        chartValues: { image: { tag: 'v1' } },
+        fetchValues: jest.fn()
+      };
+      const wrapper = mountWithCrd({
+        mode: 'edit', targetCrdValues, existingCrdApp
+      });
+
+      await wrapper.vm.fetchAutoInstallInfo();
+
+      expect(wrapper.vm.autoInstallInfo[0].allValues).toStrictEqual({ image: { tag: 'custom' }, enableRuntimeDefaultSeccompProfile: true });
+    });
+
+    it('should not include defaults that only exist in the installed crd chart when upgrading', async() => {
+      const targetCrdValues = { enableRuntimeDefaultSeccompProfile: true };
+      const existingCrdApp = {
+        values:      {},
+        chartValues: { removedOption: 'old-default' },
+        fetchValues: jest.fn()
+      };
+      const wrapper = mountWithCrd({
+        mode: 'edit', targetCrdValues, existingCrdApp
+      });
+
+      await wrapper.vm.fetchAutoInstallInfo();
+
+      expect(wrapper.vm.autoInstallInfo[0].allValues).toStrictEqual({ enableRuntimeDefaultSeccompProfile: true });
+    });
+
+    it('should not mutate the target crd chart values when upgrading', async() => {
+      const targetCrdValues = { image: { tag: 'v2' } };
+      const existingCrdApp = {
+        values:      { image: { tag: 'custom' } },
+        chartValues: {},
+        fetchValues: jest.fn()
+      };
+      const wrapper = mountWithCrd({
+        mode: 'edit', targetCrdValues, existingCrdApp
+      });
+
+      await wrapper.vm.fetchAutoInstallInfo();
+
+      expect(targetCrdValues).toStrictEqual({ image: { tag: 'v2' } });
     });
   });
 });

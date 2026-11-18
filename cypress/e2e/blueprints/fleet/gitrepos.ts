@@ -1,3 +1,12 @@
+// Shared constants for the Fleet GitRepo e2e specs.
+export const FLEET_DEFAULT_WORKSPACE = 'fleet-default';
+
+export const gitRepoInfo = {
+  repoUrl: 'https://github.com/rancher/fleet-examples.git',
+  branch:  'master',
+  paths:   'simple',
+};
+
 export const gitRepoCreateRequest = {
   type:     'fleet.cattle.io.gitrepo',
   metadata: {

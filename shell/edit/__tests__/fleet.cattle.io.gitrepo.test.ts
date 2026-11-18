@@ -4,6 +4,11 @@ import { AUTH_TYPE } from '@shell/config/types';
 import { base64Encode } from '@shell/utils/crypto';
 import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
 import GitRepoComponent from '@shell/edit/fleet.cattle.io.gitrepo.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
+import { getFleetPolicyDefaults } from '@shell/utils/fleet-policy';
+
+jest.mock('@shell/utils/fleet-policy', () => ({ getFleetPolicyDefaults: jest.fn() }));
+const mockPolicyDefaults = getFleetPolicyDefaults as jest.Mock;
 
 const mockStore = {
   dispatch: jest.fn(),
@@ -127,15 +132,17 @@ describe.each([
   });
 
   it('enable drift if self-healing is checked', async() => {
-    const correctDriftCheckbox = wrapper.findComponent('[data-testid="gitRepo-correctDrift-checkbox"]') as any;
+    const correctDriftCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="gitRepo-correctDrift-checkbox"]');
     const correctDriftContainer = wrapper.find('[data-testid="gitRepo-correctDrift-checkbox"] .checkbox-container');
 
     expect(correctDriftContainer.exists()).toBeTruthy();
 
     await correctDriftContainer.trigger('click');
 
-    expect(correctDriftCheckbox.emitted('update:value')).toHaveLength(1);
-    expect(correctDriftCheckbox.emitted('update:value')![0][0]).toBe(true);
+    const correctDriftEmits = correctDriftCheckbox.emitted('update:value') as [boolean][];
+
+    expect(correctDriftEmits).toHaveLength(1);
+    expect(correctDriftEmits[0][0]).toBe(true);
     expect(correctDriftCheckbox.props().value).toBeTruthy();
   });
 
@@ -157,7 +164,7 @@ describe.each([
       status: { webhookCommit: 'sha' },
     }));
 
-    const pollingCheckbox = wrapper.findComponent('[data-testid="gitRepo-enablePolling-checkbox"]') as any;
+    const pollingCheckbox = wrapper.findComponent<typeof Checkbox>('[data-testid="gitRepo-enablePolling-checkbox"]');
     const pollingIntervalInput = wrapper.find('[data-testid="gitRepo-pollingInterval-input"]');
     const pollingIntervalMinimumValueWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-minimumValueWarning"]');
     const pollingIntervalWebhookWarning = wrapper.find('[data-testid="gitRepo-pollingInterval-webhookWarning"]');
@@ -417,5 +424,42 @@ describe('view: fleet.cattle.io.gitrepo, beforeNext dryRun validation', () => {
     vm.value.dryRunCreate = jest.fn().mockRejectedValue(apiError);
 
     await expect(vm.beforeNext({ name: 'stepMetadata' })).rejects.toStrictEqual(apiError);
+  });
+});
+
+describe('view: fleet.cattle.io.gitrepo, the credential a policy defaults to - should', () => {
+  beforeEach(() => mockPolicyDefaults.mockReset());
+
+  const applyDefaults = async(mode: string, spec = {}) => {
+    mockPolicyDefaults.mockResolvedValue({ clientSecretName: 'tenant-1-git-credentials', helmSecretName: '' });
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode }, { spec: { ...spec } }));
+
+    await wrapper.vm.applyPolicyDefaults();
+
+    return wrapper.vm.value.spec.clientSecretName;
+  };
+
+  it('fill an empty field while creating', async() => {
+    expect(await applyDefaults(_CREATE)).toBe('tenant-1-git-credentials');
+  });
+
+  it('leave a credential the user already named alone', async() => {
+    expect(await applyDefaults(_CREATE, { clientSecretName: 'chosen-by-hand' })).toBe('chosen-by-hand');
+  });
+
+  it('leave an existing repo alone', async() => {
+    expect(await applyDefaults(_EDIT)).toBeUndefined();
+    expect(mockPolicyDefaults).not.toHaveBeenCalled();
+  });
+
+  it('leave the field empty where no policy names one', async() => {
+    mockPolicyDefaults.mockResolvedValue({ clientSecretName: '', helmSecretName: '' });
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }, { spec: {} }));
+
+    await wrapper.vm.applyPolicyDefaults();
+
+    expect(wrapper.vm.value.spec.clientSecretName).toBeFalsy();
   });
 });

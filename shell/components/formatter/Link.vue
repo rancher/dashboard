@@ -176,7 +176,6 @@ export default {
 <style lang="scss" scoped>
 .link-text-icon {
   display: flex;
-  align-items: top;
 
   .prefix {
     margin: 2px 2px 0 0;

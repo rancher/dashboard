@@ -708,7 +708,7 @@ export default {
               </div>
             </template>
             <template #columns="props">
-              <div class="columns row mr-20">
+              <div class="columns row">
                 <div :class="ruleClass">
                   <!-- Select verbs -->
                   <Select
@@ -825,7 +825,6 @@ export default {
 
   :deep() {
     .column-headers {
-      margin-right: 75px;
       margin-bottom: 5px;
     }
 

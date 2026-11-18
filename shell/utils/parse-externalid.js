@@ -10,11 +10,26 @@ const EXTERNAL_ID = {
   CATALOG_DEFAULT_GROUP: 'library',
 };
 
-// Parses externalIds on services into
-// {
-//  kind: what kind of id this is supposed to be
-//  group: for catalog, what group it's in
-//  id: the actual external id
+/**
+ * @typedef {object} ParsedExternalId
+ * @property {string | null | undefined} kind - What kind of id this is supposed to be. `undefined`
+ * on the old-style branch, which assigns `EXTERNAL_ID.KIND_CATALOG`, and `KIND_CATALOG` is not a key
+ * of `EXTERNAL_ID`.
+ * @property {string | null} group - For catalog, what group it's in.
+ * @property {string | null} base - The part of the name before the base separator, when there is one.
+ * @property {string | null} id - The actual external id.
+ * @property {string | null} name - The chart name.
+ * @property {string | null} version - The chart version, when the id carries one.
+ * @property {string} [templateId] - `group:name`, only present when a name could be parsed out.
+ */
+
+/**
+ * Parses externalIds on services.
+ *
+ * @param {string | null | undefined} externalId - The external id to parse.
+ * @returns {ParsedExternalId} The parsed id. When `externalId` is falsy every field is null and
+ * `templateId` is absent.
+ */
 export function parseExternalId(externalId) {
   let nameVersion;
   const out = {
@@ -93,6 +108,28 @@ export function parseExternalId(externalId) {
   return out;
 }
 
+/**
+ * @typedef {object} ParsedHelmExternalId
+ * @property {string | null} kind - What kind of id this is supposed to be.
+ * @property {string | null} group - For catalog, what group it's in.
+ * @property {string | null} base - Unused by this format, kept so both parsers return the same fields.
+ * @property {string | null} id - The external id, unchanged.
+ * @property {string | null} name - Unused by this format, kept so both parsers return the same fields.
+ * @property {string | null} version - The chart version, from the `version` pair of the id.
+ * @property {string} [catalog] - The catalog, from the `catalog` pair of the id.
+ * @property {string} [template] - The chart, from the `template` pair of the id.
+ * @property {string} [templateId] - `catalog-template`, with the catalog namespaced.
+ * @property {string} [templateVersionId] - `catalog-template-version`, with the catalog namespaced.
+ */
+
+/**
+ * Parses the helm form of an externalId, `kind:///catalog=x&template=y&version=z`.
+ *
+ * @param {string | null | undefined} externalId - The external id to parse.
+ * @returns {ParsedHelmExternalId} The parsed id. When `externalId` is falsy every field is null and
+ * `catalog`, `template`, `templateId` and `templateVersionId` are absent. Note that a truthy id
+ * without a `://` never assigns `out.catalog`, and the `catalog.includes('/')` below then throws.
+ */
 export function parseHelmExternalId(externalId) {
   const out = {
     kind:    null,

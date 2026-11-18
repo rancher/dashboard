@@ -14,6 +14,11 @@ const MockComponent = {
   props:    ['someProp', 'resources', 'registerBackgroundClosing']
 };
 
+const OwnModalComponent = {
+  template: '<div data-testid="own-modal-component">Own Modal</div>',
+  props:    ['modal', 'someProp', 'resources']
+};
+
 describe('modalManager.vue with Teleport', () => {
   let store: Store<any>;
   let getters: Record<string, () => any>;
@@ -172,5 +177,60 @@ describe('modalManager.vue with Teleport', () => {
 
     expect(spy).toHaveBeenCalledWith();
     expect(closeModalMutation).not.toHaveBeenCalled();
+  });
+
+  describe('a component that takes a modal prop', () => {
+    const closeModalMutation = jest.fn();
+
+    const ownModalFactory = (component: any = OwnModalComponent) => {
+      getters['modal/component'] = () => component;
+      store = createStore({
+        getters,
+        mutations: { 'modal/closeModal': closeModalMutation }
+      });
+
+      return factory().findComponent(component);
+    };
+
+    beforeEach(() => {
+      closeModalMutation.mockClear();
+    });
+
+    it.each([
+      ['an array', ['modal']],
+      ['an object', { modal: { type: Object, required: true } }],
+    ])('is not wrapped in the AppModal when its props are %s', async(_desc, props) => {
+      const component = ownModalFactory({ ...OwnModalComponent, props });
+
+      await nextTick();
+
+      expect(component.exists()).toBe(true);
+      expect(document.querySelector('[data-testid="app-modal"]')).toBeNull();
+    });
+
+    it('is told the modal is showing', async() => {
+      const component = ownModalFactory();
+
+      await nextTick();
+
+      expect(component.props('modal').show).toBe(true);
+    });
+
+    it('is given its props', async() => {
+      const component = ownModalFactory();
+
+      await nextTick();
+
+      expect(component.props('someProp')).toBe('testValue');
+    });
+
+    it('closes the modal in the store when it asks to close', async() => {
+      const component = ownModalFactory();
+
+      await nextTick();
+      component.props('modal').onClose();
+
+      expect(closeModalMutation).toHaveBeenCalledWith({}, undefined);
+    });
   });
 });

@@ -54,7 +54,7 @@ export default class ServicesCreateEditPo extends PagePo {
   }
 
   externalNameInput() {
-    return new LabeledInputPo('#define-external-name .labeled-input input');
+    return new LabeledInputPo('[data-testid="tab-panel-define-external-name"] .labeled-input input');
   }
 
   ipAddressesTab() {
@@ -62,7 +62,7 @@ export default class ServicesCreateEditPo extends PagePo {
   }
 
   ipAddressList() {
-    return new ArrayListPo('section#ips');
+    return new ArrayListPo('[data-testid="tab-panel-ips"]');
   }
 
   lablesAnnotationsTab() {
@@ -70,7 +70,7 @@ export default class ServicesCreateEditPo extends PagePo {
   }
 
   lablesAnnotationsKeyValue() {
-    return new KeyValuePo('section#labels-and-annotations');
+    return new KeyValuePo('[data-testid="tab-panel-labels-and-annotations"]');
   }
 
   errorBanner() {

@@ -34,6 +34,16 @@ const OBSCURE_NAMESPACE_PREFIX = [
   'local', // local namespace
 ];
 
+function parseResourceQuota(annotation) {
+  try {
+    const parsed = JSON.parse(annotation);
+
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export default class Namespace extends SteveModel {
   applyDefaults() {
     set(this, 'disableOpenApiValidation', false);
@@ -230,7 +240,16 @@ export default class Namespace extends SteveModel {
   }
 
   get resourceQuota() {
-    return JSON.parse(this.metadata.annotations[RESOURCE_QUOTA] || `{"limit":{}}`);
+    return parseResourceQuota(this.metadata.annotations?.[RESOURCE_QUOTA]) || { limit: {} };
+  }
+
+  /**
+   * True when the resource quota annotation is present but is not a JSON object, so `resourceQuota` falls back to an empty limit
+   */
+  get hasInvalidResourceQuota() {
+    const annotation = this.metadata.annotations?.[RESOURCE_QUOTA];
+
+    return !!annotation && !parseResourceQuota(annotation);
   }
 
   set resourceQuota(value) {
@@ -306,8 +325,9 @@ export default class Namespace extends SteveModel {
     const productId = this.$rootGetters['productId'];
 
     if (productId === MANAGER) {
-      const hasLocalCluster = sideNavService.helper.clustersPinned.some((c) => c.id === LOCAL_CLUSTER) ||
-        sideNavService.helper.clustersOthers.some((c) => c.id === LOCAL_CLUSTER);
+      // `local` lives in its own fixed `clustersLocal` slice — excluded from the pinned/recent/others
+      // groups — so that slice is the single source of truth for local access.
+      const hasLocalCluster = sideNavService.helper.clustersLocal.some((c) => c.id === LOCAL_CLUSTER);
       const typeIndex = glance.findIndex((item) => item.name === 'type');
 
       if (!hasLocalCluster && typeIndex > -1) {

@@ -29,13 +29,13 @@ describe('Charts', { tags: ['@charts', '@adminUser'] }, () => {
       });
 
       afterEach(() => {
-        cy.deleteRancherResource('v1', STORAGE_CLASS_RESOURCE, 'test-default-storage-class');
-        cy.deleteRancherResource('v1', STORAGE_CLASS_RESOURCE, 'test-no-annotations');
+        cy.deleteRancherResource('v1', STORAGE_CLASS_RESOURCE, defaultStorageClass.metadata.name);
+        cy.deleteRancherResource('v1', STORAGE_CLASS_RESOURCE, exampleStorageClass.metadata.name);
       });
 
       it('Should auto-select default storage class', function() {
         runTestWhenChartAvailable('rancher-charts', 'rancher-backup', this, () => {
-          ChartPage.navTo(null, 'Rancher Backups');
+          ChartPage.navTo(undefined, 'Rancher Backups');
           chartPage.waitForPage('repo-type=cluster&repo=rancher-charts&chart=rancher-backup');
 
           const installPage = new InstallChartPage();

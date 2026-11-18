@@ -1,5 +1,6 @@
 <script>
 import Loading from '@shell/components/Loading';
+import FailWhale from '@shell/components/FailWhale';
 import ChartMixin from '@shell/mixins/chart';
 import { Banner } from '@components/Banner';
 import ChartReadme from '@shell/components/ChartReadme';
@@ -21,11 +22,13 @@ import day from 'dayjs';
 import { RcButton } from '@components/RcButton';
 import { RcButtonSplit } from '@components/RcButtonSplit';
 import { RcDropdownItem } from '@components/RcDropdown';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   components: {
     Banner,
     ChartReadme,
+    FailWhale,
     LazyImage,
     Loading,
     LabeledSelect,
@@ -33,7 +36,8 @@ export default {
     AppChartCardFooter,
     RcButton,
     RcButtonSplit,
-    RcDropdownItem
+    RcDropdownItem,
+    RcHeading,
   },
 
   mixins: [
@@ -386,7 +390,11 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <main v-else>
+  <FailWhale
+    v-else-if="cannotListAppsError"
+    :error="cannotListAppsError"
+  />
+  <div v-else>
     <div
       v-if="chart"
       class="chart-header"
@@ -396,7 +404,7 @@ export default {
           <LazyImage
             :src="chart.icon"
             class="logo"
-            :alt="t('catalog.charts.iconAlt', { app: chart.chartNameDisplay })"
+            alt=""
           />
         </div>
         <div
@@ -582,7 +590,12 @@ export default {
         class="chart-body__info"
       >
         <div class="chart-body__info-section">
-          <h4>{{ t('catalog.chart.info.chartVersions.label') }}</h4>
+          <RcHeading
+            :size="4"
+            class="info-section-title"
+          >
+            {{ t('catalog.chart.info.chartVersions.label') }}
+          </RcHeading>
           <div
             v-for="vers of versions"
             :key="vers.id"
@@ -645,14 +658,24 @@ export default {
           v-if="appVersion"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.appVersion') }}</h4>
+          <RcHeading
+            :size="4"
+            class="info-section-title"
+          >
+            {{ t('catalog.chart.info.appVersion') }}
+          </RcHeading>
           {{ appVersion }}
         </div>
         <div
           v-if="repo"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.repository') }}</h4>
+          <RcHeading
+            :size="4"
+            class="info-section-title"
+          >
+            {{ t('catalog.chart.info.repository') }}
+          </RcHeading>
           <router-link
             :to="repo.detailLocation"
             data-testid="chart-repo-link"
@@ -664,7 +687,12 @@ export default {
           v-if="home"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.home') }}</h4>
+          <RcHeading
+            :size="4"
+            class="info-section-title"
+          >
+            {{ t('catalog.chart.info.home') }}
+          </RcHeading>
           <a
             :href="home"
             rel="nofollow noopener noreferrer"
@@ -673,7 +701,12 @@ export default {
           >{{ home }}<i class="icon icon-external-link" /><span class="sr-only">{{ t('generic.opensInNewTab') }}</span></a>
         </div>
         <div class="chart-body__info-section">
-          <h4>{{ t('catalog.chart.info.maintainers') }}</h4>
+          <RcHeading
+            :size="4"
+            class="info-section-title"
+          >
+            {{ t('catalog.chart.info.maintainers') }}
+          </RcHeading>
           <template v-if="maintainers.length">
             <div
               v-for="m of maintainers"
@@ -697,7 +730,12 @@ export default {
           v-if="version.sources"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.related') }}</h4>
+          <RcHeading
+            :size="4"
+            class="info-section-title"
+          >
+            {{ t('catalog.chart.info.related') }}
+          </RcHeading>
           <a
             v-for="s of version.sources"
             :key="s"
@@ -710,7 +748,12 @@ export default {
           v-if="version.urls"
           class="chart-body__info-section"
         >
-          <h4>{{ t('catalog.chart.info.chartUrls') }}</h4>
+          <RcHeading
+            :size="4"
+            class="info-section-title"
+          >
+            {{ t('catalog.chart.info.chartUrls') }}
+          </RcHeading>
           <a
             v-for="url of version.urls"
             :key="url"
@@ -723,7 +766,12 @@ export default {
           v-if="version.keywords"
           class="chart-body__info-section chart-body__info-section--keywords"
         >
-          <h4>{{ t('catalog.chart.info.keywords') }}</h4>
+          <RcHeading
+            :size="4"
+            class="info-section-title"
+          >
+            {{ t('catalog.chart.info.keywords') }}
+          </RcHeading>
           <div class="keyword-links">
             <span
               v-for="(keyword, i) in version.keywords"
@@ -743,7 +791,7 @@ export default {
         </div>
       </aside>
     </div>
-  </main>
+  </div>
 </template>
 
 <style lang="scss" scoped>
@@ -901,7 +949,7 @@ export default {
         word-break: break-all;
         line-height: 21px;
 
-        h4 {
+        .info-section-title {
           font-weight: bold;
         }
 

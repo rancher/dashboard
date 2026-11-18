@@ -8,31 +8,6 @@ export const FLEET_APPCO_AUTH_GENERATE_NAME = 'fleet-appco-auth-';
 export const IMAGE_PULL_SECRET_SUFFIX = '-image-pull-secret';
 export const SUSE_APPCO_DISPLAY_NAME = 'SUSE AppCo';
 
-// Used when the Rancher version can't be parsed (e.g. dev builds), so we point
-// at the latest, unversioned Fleet docs.
-export const FLEET_DOWNSTREAM_RESOURCES_DOCS_FALLBACK_URL = 'https://fleet.rancher.io/next/downstream-resources';
-
-/**
- * Build the URL to the Fleet "downstream resources" docs for the running Rancher version.
- *
- * Rancher `2.X.0` (for X >= 15) ships with Fleet `0.(X+1)`, whose docs are published at
- * `https://fleet.rancher.io/0.<minor + 1>/downstream-resources`. For anything older or
- * unparseable we fall back to the unversioned `next` docs.
- */
-export function getDownstreamResourcesDocsUrl(rancherVersion?: string): string {
-  // Harcoded to 2.X.0, it is fragile because if the version changes it will break.
-  // Ideally it would require a correlation between versions, but we have the fallback in place.
-  const match = /^v?2\.(\d+)/.exec(rancherVersion || '');
-  const minor = match ? parseInt(match[1], 10) : NaN;
-
-  // It should only exists after version 0.15.0, which will be fleet 0.16.0.
-  if (!isNaN(minor) && minor >= 15) {
-    return `https://fleet.rancher.io/0.${ minor + 1 }/downstream-resources`;
-  }
-
-  return FLEET_DOWNSTREAM_RESOURCES_DOCS_FALLBACK_URL;
-}
-
 interface AuthCredentials {
   publicKey: string;
   privateKey: string;

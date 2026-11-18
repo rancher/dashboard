@@ -10,16 +10,20 @@ import CruResource from '@shell/components/CruResource';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
 import config from '@shell/edit/auth/ldap/config';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig from '@shell/mixins/auth-config';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import Password from '@shell/components/form/Password';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
 import { useI18n } from '@shell/composables/useI18n';
+import { RcSeparator } from '@components/RcSeparator';
+import { zodValidators } from '@shell/utils/validators/zod-helpers';
 
 const AUTH_TYPE = 'ldap';
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     LabeledInput,
@@ -27,7 +31,8 @@ export default {
     config,
     AuthBanner,
     Password,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -35,26 +40,23 @@ export default {
   setup() {
     const store = useStore();
     const { t } = useI18n(store);
-
-    const coerce = (schema) => z.preprocess((v) => (v === null || v === undefined) ? '' : String(v), schema);
-    const requiredField = (key) => coerce(z.string().min(1, t('validation.required', { key: t(key) })));
-    const optionalField = coerce(z.string());
+    const { field } = zodValidators(t);
 
     const tlsEnabledRef = ref(false);
     const isActiveDirectoryRef = ref(false);
 
     const validationSchema = computed(() => toTypedSchema(
       z.object({
-        hostname:                        requiredField('authConfig.ldap.hostname.label'),
-        port:                            requiredField('authConfig.ldap.port'),
-        certificate:                     tlsEnabledRef.value ? requiredField('authConfig.ldap.cert') : optionalField,
-        connectionTimeout:               requiredField('authConfig.ldap.serverConnectionTimeout'),
-        serviceAccountUsername:          isActiveDirectoryRef.value ? requiredField('authConfig.ldap.serviceAccountDN') : optionalField,
-        serviceAccountDistinguishedName: !isActiveDirectoryRef.value ? requiredField('authConfig.ldap.serviceAccountDN') : optionalField,
-        serviceAccountPassword:          requiredField('authConfig.ldap.serviceAccountPassword'),
-        userSearchBase:                  requiredField('authConfig.ldap.userSearchBase.label'),
-        username:                        requiredField(`authConfig.${ AUTH_TYPE }.username`),
-        password:                        requiredField(`authConfig.${ AUTH_TYPE }.password`),
+        hostname:                        field('authConfig.ldap.hostname.label').required(),
+        port:                            field('authConfig.ldap.port').required(),
+        certificate:                     tlsEnabledRef.value ? field('authConfig.ldap.cert').required() : field(),
+        connectionTimeout:               field('authConfig.ldap.serverConnectionTimeout').required(),
+        serviceAccountUsername:          isActiveDirectoryRef.value ? field('authConfig.ldap.serviceAccountDN').required() : field(),
+        serviceAccountDistinguishedName: !isActiveDirectoryRef.value ? field('authConfig.ldap.serviceAccountDN').required() : field(),
+        serviceAccountPassword:          field('authConfig.ldap.serviceAccountPassword').required(),
+        userSearchBase:                  field('authConfig.ldap.userSearchBase.label').required(),
+        username:                        field(`authConfig.${ AUTH_TYPE }.username`).required(),
+        password:                        field(`authConfig.${ AUTH_TYPE }.password`).required(),
       })
     ));
 
@@ -84,7 +86,6 @@ export default {
 
   created() {
     this.tlsEnabledRef = !!(this.model?.tls || this.model?.starttls);
-    this.isActiveDirectoryRef = this.NAME === 'activedirectory';
     this.registerBeforeHook(this.validateAllFields, 'willSave');
   },
 
@@ -130,6 +131,12 @@ export default {
   },
 
   watch: {
+    NAME: {
+      handler(neu) {
+        this.isActiveDirectoryRef = neu === 'activedirectory';
+      },
+      immediate: true,
+    },
     'model.tls'(neu) {
       this.tlsEnabledRef = !!(neu || this.model?.starttls);
     },
@@ -159,19 +166,34 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
+          :provider-id="model.id"
         >
           <template #rows>
             <tr><td>{{ t(`authConfig.ldap.table.server`) }}: </td><td>{{ serverUrl }}</td></tr>
             <tr><td>{{ t(`authConfig.ldap.table.clientId`) }}: </td><td>{{ model.serviceAccountDistinguishedName || model.serviceAccountUsername }}</td></tr>
+            <tr v-if="model.userIDAttribute">
+              <td>{{ t('authConfig.ldap.userIDAttribute') }}: </td><td>{{ model.userIDAttribute }}</td>
+            </tr>
+            <tr v-if="model.groupIDAttribute">
+              <td>{{ t('authConfig.ldap.groupIDAttribute') }}: </td><td>{{ model.groupIDAttribute }}</td>
+            </tr>
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           :provider="NAME"
@@ -191,6 +213,7 @@ export default {
           v-model:value="model"
           :type="NAME"
           :mode="mode"
+          :is-create="!model.enabled"
         />
 
         <h4>{{ t('authConfig.testAndEnable') }}</h4>
@@ -199,6 +222,7 @@ export default {
             <LabeledInput
               v-model:value="username"
               name="username"
+              data-testid="ldap-test-username"
               :label="t(`authConfig.${AUTH_TYPE}.username`)"
               :mode="mode"
               required
@@ -208,6 +232,7 @@ export default {
             <Password
               v-model:value="password"
               name="password"
+              data-testid="ldap-test-password"
               :label="t(`authConfig.${AUTH_TYPE}.password`)"
               :mode="mode"
               required

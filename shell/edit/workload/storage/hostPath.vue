@@ -28,7 +28,10 @@ export default {
         return {};
       }
     },
-
+    rules: {
+      type:    Object,
+      default: () => ({})
+    },
   },
 
   computed: {
@@ -86,6 +89,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value="value.name"
+            :rules="rules.name"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.volumeName')"
@@ -96,6 +100,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model:value="value.hostPath.path"
+            :rules="rules['hostPath.path']"
             :required="true"
             :mode="mode"
             :label="t('workload.storage.nodePath')"

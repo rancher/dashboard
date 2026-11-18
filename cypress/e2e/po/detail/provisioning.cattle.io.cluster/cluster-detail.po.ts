@@ -38,8 +38,8 @@ export default abstract class ClusterManagerDetailPagePo extends BaseDetailPageP
     return new DetailDrawer();
   }
 
-  logsContainer() {
-    return new ClusterProvisioningLogPo(this.self()).logsContainer();
+  logsContainer(options?: any) {
+    return new ClusterProvisioningLogPo(this.self()).logsContainer(options);
   }
 
   kubectlCommandForImported() {
@@ -47,7 +47,7 @@ export default abstract class ClusterManagerDetailPagePo extends BaseDetailPageP
   }
 
   poolsList(tabId: 'machine' | 'node') {
-    return new MachinePoolsListPo(this.self().find(`#${ tabId }-pools [data-testid="sortable-table-list-container"]`));
+    return new MachinePoolsListPo(this.self().find(`[data-testid="tab-panel-${ tabId }-pools"] [data-testid="sortable-table-list-container"]`));
   }
 
   conditionsList() {

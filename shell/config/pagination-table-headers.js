@@ -1,4 +1,4 @@
-import { UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import { DESCRIPTION, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, OBJECT,
   EVENT_LAST_SEEN_TIME,
@@ -8,6 +8,11 @@ import {
   WORKLOAD_HEALTH_SCALE,
   MGMT_CLUSTER_PROVIDER,
   MGMT_CLUSTER_KUBE_VERSION,
+  MGMT_CLUSTER_CPU,
+  MGMT_CLUSTER_MACHINES,
+  DESCRIPTION_ANNOTATION_COL,
+  MGMT_CLUSTER_MEMORY,
+  MGMT_CLUSTER_PODS,
   AUTOSCALER_ENABLED
 } from '@shell/config/table-headers';
 
@@ -95,9 +100,17 @@ export const STEVE_LIST_GROUPS = [{
 
 export const STEVE_SECRET_ORIGIN = {
   ...SECRET_ORIGIN,
-  // We can't sort by the 'UI_PROJECT_SECRET' label (management.cattle.io/project-scoped-secret) due to backend limitations.
-  // So we sort by the 'UI_PROJECT_SECRET_COPY' annotation (management.cattle.io/project-scoped-secret-copy) which at least groups the copies.
-  sort: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`,
+  // We would like to sort on
+  // 1. if this is a project scoped secret copy
+  // 2. if this is a project scoped secret on it's clusters mgmt id
+  //   - field not shown in response but allowed to sort/filter via vai
+  // 3. if this is a project scoped secret on it's project's human name
+  //   - field not shown in response but allowed to sort/filter via vai
+  sort: [
+    `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]:desc`,
+    `spec.clusterName:desc`,
+    `spec.displayName`,
+  ],
 };
 
 export const STEVE_WORKLOAD_HEALTH_SCALE = {
@@ -113,6 +126,20 @@ export const STEVE_MGMT_CLUSTER_KUBE_VERSION = {
   sort:   'status.info.kubernetesVersion',
   search: 'status.info.kubernetesVersion',
 };
+
+export const STEVE_MGMT_CLUSTER_CPU = { ...MGMT_CLUSTER_CPU };
+
+export const STEVE_MGMT_CLUSTER_MACHINES = { ...MGMT_CLUSTER_MACHINES, sort: 'status.info.nodeCount' };
+
+export const STEVE_DESCRIPTION_ANNOTATION_COL = {
+  ...DESCRIPTION_ANNOTATION_COL,
+  sort:   `metadata.annotations[${ DESCRIPTION }]`,
+  search: `metadata.annotations[${ DESCRIPTION }]`,
+};
+
+export const STEVE_MGMT_CLUSTER_MEMORY = { ...MGMT_CLUSTER_MEMORY };
+
+export const STEVE_MGMT_CLUSTER_PODS = { ...MGMT_CLUSTER_PODS };
 
 export const STEVE_AUTOSCALER_ENABLED = {
   ...AUTOSCALER_ENABLED,

@@ -67,7 +67,8 @@ const toggleLabel = computed(() => {
 
 const age = computed(() => {
   const created = day(props.item?.created);
-  const diff = created.diff(day(), 'day');
+  // Compare calendar days, not elapsed 24h periods
+  const diff = day().startOf('day').diff(created.startOf('day'), 'day');
   let date = created.format(dateFormat);
 
   if (diff === 0 ) {
@@ -345,7 +346,7 @@ const findNewIndex = (shouldAdvance: boolean, activeIndex: number, itemsArr: Ele
       background-color: var(--notification-unread-bg);
     }
 
-    &:focus-visible, &:focus {
+    &:focus-visible {
       @include focus-outline;
       outline-offset: 0;
     }

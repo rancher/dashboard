@@ -4,7 +4,7 @@ import {
   mapFeature,
   create,
   MULTI_CLUSTER,
-  LEGACY,
+  UNSUPPORTED_STORAGE_DRIVERS,
   RKE2,
 } from '@shell/store/features';
 import { MANAGEMENT } from '@shell/config/types';
@@ -62,8 +62,8 @@ describe('features store', () => {
           expected: true,
         },
         {
-          desc:     'legacy (default false)',
-          feature:  LEGACY,
+          desc:     'unsupported-storage-drivers (default false)',
+          feature:  UNSUPPORTED_STORAGE_DRIVERS,
           expected: false,
         },
         {

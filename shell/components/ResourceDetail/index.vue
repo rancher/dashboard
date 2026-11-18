@@ -14,6 +14,7 @@ import { clone, diff } from '@shell/utils/object';
 import IconMessage from '@shell/components/IconMessage';
 import { stringify } from '@shell/utils/error';
 import { Banner } from '@components/Banner';
+import FailWhale from '@shell/components/FailWhale';
 import { useResourceDetailPageProvider } from '@shell/composables/resourceDetail';
 
 function modeFor(route) {
@@ -28,7 +29,7 @@ function modeFor(route) {
   }
 }
 
-async function getYaml(store, model) {
+async function getYaml(store, model, editing = false) {
   let yaml;
   const opt = { headers: { accept: 'application/yaml' } };
 
@@ -36,7 +37,7 @@ async function getYaml(store, model) {
     yaml = (await model.followLink('view', opt)).data;
   }
 
-  return model.cleanForDownload(yaml);
+  return model.cleanForDownload(yaml, { editing });
 }
 
 export default {
@@ -48,7 +49,8 @@ export default {
     ResourceYaml,
     Masthead,
     IconMessage,
-    Banner
+    Banner,
+    FailWhale,
   },
 
   mixins: [CreateEditView],
@@ -60,6 +62,12 @@ export default {
     },
 
     resourceOverride: {
+      type:    String,
+      default: null,
+    },
+
+    // Resolve components by subtype when the resource id is an instance name.
+    subTypeOverride: {
       type:    String,
       default: null,
     },
@@ -105,8 +113,9 @@ export default {
     // know about:  view, edit, create (stage, import and clone become "create")
     const mode = ([_CLONE, _IMPORT, _STAGE].includes(realMode) ? _CREATE : realMode);
 
-    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resourceType, id);
-    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resourceType, id);
+    const subType = this.subTypeOverride || id;
+    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resourceType, subType);
+    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resourceType, subType);
 
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
@@ -129,7 +138,7 @@ export default {
     const options = store.getters[`type-map/optionsFor`](resourceType);
 
     this.showMasthead = [_CREATE, _EDIT].includes(mode) ? options.resourceEditMasthead : true;
-    const canViewYaml = options.canYaml;
+    let canViewYaml = options.canYaml;
 
     if ( options.resource ) {
       resourceType = options.resource;
@@ -137,6 +146,15 @@ export default {
 
     const schema = store.getters[`${ inStore }/schemaFor`](resourceType);
     let model, initialModel, liveModel, yaml;
+
+    // If the resource type (e.g. CRD) is gone, render the error in-context (in
+    // place of the details) rather than redirecting to the global fail-whale
+    // page, so the side menu and cluster context are retained.
+    if ( !schema && realMode !== _CREATE && realMode !== _IMPORT ) {
+      this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceNotFound', { resource: resourceType }, true));
+
+      return;
+    }
 
     if ( realMode === _CREATE || realMode === _IMPORT ) {
       if ( !namespace ) {
@@ -181,11 +199,34 @@ export default {
         });
       } catch (e) {
         if (e.status === 404 || e.status === 403) {
-          store.dispatch('loadingError', new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true)));
+          // Render the error in-context (in place of the details) rather than
+          // redirecting to the global fail-whale page, so the side menu and
+          // cluster context are retained (e.g. after the resource has been
+          // deleted but the user still has a preference/URL pointing at it).
+          this.resourceNotFoundError = new Error(this.t('nav.failWhale.resourceIdNotFound', { resource: resourceType, fqid }, true));
+
+          return;
         }
-        console.debug(`Could not find '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
+        console.info(`Could not find '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
         liveModel = {};
         notFound = fqid;
+      }
+
+      // options.canYaml is a static per-type default and can't know whether the API family
+      // backing this resource can actually produce YAML (e.g. Norman resources never expose
+      // a `view` link, unlike Steve). Fall back to the live resource's own instance-level
+      // canYaml (hasLink('view')) so a type that forgets to opt out via configureType still
+      // doesn't offer a YAML toggle that can only ever render blank. Only narrows an already
+      // allowed default to false - never overrides an explicit opt-out or offers something
+      // new. Not applied during create/import: a brand new, unsaved resource never has any
+      // links yet regardless of API family, so this check would incorrectly disable YAML
+      // for every type while creating.
+      try {
+        if ( canViewYaml && liveModel?.canYaml === false ) {
+          canViewYaml = false;
+        }
+      } catch (e) {
+        canViewYaml = false;
       }
 
       try {
@@ -197,28 +238,29 @@ export default {
         initialModel = await store.dispatch(`${ inStore }/clone`, { resource: liveModel });
 
         if ( as === _YAML ) {
-          yaml = await getYaml(this.$store, liveModel);
+          yaml = await getYaml(this.$store, liveModel, realMode !== _VIEW);
         }
       } catch (e) {
+        console.warn(`Could not set 'model' for '${ resourceType }' with id '${ id }''`, e); // eslint-disable-line no-console
         this.errors.push(e);
       }
       if ( as === _YAML ) {
         try {
-          yaml = await getYaml(this.$store, liveModel);
+          yaml = await getYaml(this.$store, liveModel, realMode !== _VIEW);
         } catch (e) {
           this.errors.push(e);
         }
       }
 
       if ( [_CLONE, _IMPORT, _STAGE].includes(realMode) ) {
-        model.cleanForNew();
-        yaml = model.cleanYaml(yaml, realMode);
+        model?.cleanForNew();
+        yaml = model?.cleanYaml(yaml, realMode);
       }
     }
 
     // Ensure common properties exists
     try {
-      model = await store.dispatch(`${ inStore }/cleanForDetail`, model);
+      model = await store.dispatch(`${ inStore }/cleanForDetail`, model || {});
     } catch (e) {
       this.errors.push(e);
     }
@@ -242,7 +284,7 @@ export default {
     }
 
     if ( this.mode === _CREATE ) {
-      this.value.applyDefaults(this, realMode);
+      this.value?.applyDefaults(this, realMode);
     }
   },
   data() {
@@ -250,20 +292,24 @@ export default {
       resourceSubtype: null,
 
       // Set by fetch
-      hasCustomDetail: null,
-      hasCustomEdit:   null,
-      resourceType:    null,
-      asYaml:          null,
-      yaml:            null,
-      liveModel:       null,
-      initialModel:    null,
-      mode:            null,
-      as:              null,
-      value:           null,
-      model:           null,
-      notFound:        null,
-      canViewYaml:     null,
-      errors:          []
+      hasCustomDetail:       null,
+      hasCustomEdit:         null,
+      resourceType:          null,
+      asYaml:                null,
+      yaml:                  null,
+      liveModel:             null,
+      initialModel:          null,
+      mode:                  null,
+      as:                    null,
+      value:                 null,
+      model:                 null,
+      notFound:              null,
+      canViewYaml:           null,
+      errors:                [],
+      // When set, the resource type or the specific resource could not be
+      // found. The error is rendered in-context (in place of the details)
+      // instead of redirecting to the fail-whale page.
+      resourceNotFoundError: null,
     };
   },
 
@@ -312,7 +358,7 @@ export default {
       }), {});
     },
     isFullPageOverride() {
-      return this.isView && this.value.fullDetailPageOverride && !this.isYaml;
+      return this.isView && this.isDetail && this.value?.fullDetailPageOverride;
     }
   },
 
@@ -392,17 +438,15 @@ export default {
      * the route parameters or the instance's resourceOverride property.
      */
     configureResource(userId = '', resourceOverride = null) {
-      const id = userId || this.$route.params.id;
+      const subType = userId || this.subTypeOverride || this.$route.params.id;
       const resource = resourceOverride || this.resourceOverride || this.$route.params.resource;
       const options = this.$store.getters[`type-map/optionsFor`](resource);
 
       const detailResource = options.resourceDetail || options.resource || resource;
       const editResource = options.resourceEdit || options.resource || resource;
 
-      // FIXME: These aren't right... signature is (rawType, subType).. not (rawType, resourceId)
-      // Remove id? How does subtype get in (cluster/node)
-      this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, id);
-      this.editComponent = this.$store.getters['type-map/importEdit'](editResource, id);
+      this.detailComponent = this.$store.getters['type-map/importDetail'](detailResource, subType);
+      this.editComponent = this.$store.getters['type-map/importEdit'](editResource, subType);
     }
   }
 };
@@ -410,6 +454,10 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending || notFound" />
+  <FailWhale
+    v-else-if="resourceNotFoundError"
+    :error="resourceNotFoundError"
+  />
   <component
     :is="showComponent"
     v-else-if="isFullPageOverride"
@@ -448,10 +496,14 @@ export default {
         :value="liveModel"
       />
     </Masthead>
+
     <div
       v-if="hasErrors"
       id="cru-errors"
       class="cru__errors"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
     >
       <Banner
         v-for="(err, i) in errors"

@@ -1,6 +1,7 @@
 <script>
 import Loading from '@shell/components/Loading';
 import CreateEditView from '@shell/mixins/create-edit-view';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 import AuthConfig from '@shell/mixins/auth-config';
 
 import CruResource from '@shell/components/CruResource';
@@ -8,25 +9,28 @@ import InfoBox from '@shell/components/InfoBox';
 import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AllowedPrincipals from '@shell/components/auth/AllowedPrincipals';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import AuthBanner from '@shell/components/auth/AuthBanner';
 import CopyToClipboardText from '@shell/components/CopyToClipboardText';
 import AuthProviderWarningBanners from '@shell/edit/auth/AuthProviderWarningBanners';
+import { RcSeparator } from '@components/RcSeparator';
 
 const NAME = 'googleoauth';
 
 export default {
   components: {
+    AuthConfigIdentity,
     Loading,
     CruResource,
     InfoBox,
     LabeledInput,
     Checkbox,
     AllowedPrincipals,
-    FileSelector,
+    FileSelectorTextArea,
     AuthBanner,
     CopyToClipboardText,
-    AuthProviderWarningBanners
+    AuthProviderWarningBanners,
+    RcSeparator,
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -76,11 +80,20 @@ export default {
       @finish="save"
       @cancel="cancel"
     >
+      <AuthConfigIdentity
+        v-model:name="configName"
+        v-model:description="configDescription"
+        :name-fixed="configNameFixed"
+        :name-error="configNameError"
+      />
+
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <AuthBanner
           :t-args="tArgs"
+          :name="authConfigDisplayName"
           :disable="disable"
           :edit="goToEdit"
+          :provider-id="model.id"
         >
           <template #rows>
             <tr><td>{{ t(`authConfig.${NAME}.adminEmail`) }}: </td><td>{{ model.adminEmail }}</td></tr>
@@ -90,7 +103,7 @@ export default {
           </template>
         </AuthBanner>
 
-        <hr role="none">
+        <RcSeparator />
 
         <AllowedPrincipals
           provider="googleoauth"
@@ -165,7 +178,7 @@ export default {
             <h3 v-clean-html="t('authConfig.googleoauth.steps.2.title', tArgs, true)" />
           </div>
           <div class="row">
-            <div class="col span-6">
+            <div class="col span-12">
               <ul class="mt-0 step-list">
                 <li>{{ t('authConfig.googleoauth.steps.2.body.1', {}, true) }} </li>
                 <li>
@@ -186,21 +199,17 @@ export default {
                 <li>{{ t('authConfig.googleoauth.steps.2.body.5', {}, true) }} </li>
               </ul>
             </div>
-            <div class="col span-6">
-              <LabeledInput
+          </div>
+          <div class="row mt-20">
+            <div class="col span-12">
+              <FileSelectorTextArea
                 v-model:value="model.oauthCredential"
+                type="multiline-password"
                 :label="t(`authConfig.googleoauth.oauthCredentials.label`)"
                 :mode="mode"
                 required
-                type="multiline-password"
                 :tooltip="t(`authConfig.googleoauth.oauthCredentials.tip`)"
                 :hover-tooltip="true"
-              />
-              <FileSelector
-                class="role-tertiary add mt-5"
-                :label="t('generic.readFromFile')"
-                :mode="mode"
-                @selected="model.oauthCredential = $event"
               />
             </div>
           </div>
@@ -213,7 +222,7 @@ export default {
             <h3 v-clean-html="t('authConfig.googleoauth.steps.3.title', tArgs, true)" />
           </div>
           <div class="row">
-            <div class="col span-6">
+            <div class="col span-12">
               <div v-clean-html="t('authConfig.googleoauth.steps.3.introduction', tArgs, true)" />
               <ul class="mt-10 step-list">
                 <li>{{ t('authConfig.googleoauth.steps.3.body.1', {}, true) }} </li>
@@ -221,21 +230,17 @@ export default {
                 <li>{{ t('authConfig.googleoauth.steps.3.body.3', {}, true) }} </li>
               </ul>
             </div>
-            <div class="col span-6">
-              <LabeledInput
+          </div>
+          <div class="row mt-20">
+            <div class="col span-12">
+              <FileSelectorTextArea
                 v-model:value="model.serviceAccountCredential"
+                type="multiline-password"
                 :label="t(`authConfig.googleoauth.serviceAccountCredentials.label`)"
                 :mode="mode"
                 required
-                type="multiline-password"
                 :tooltip="t(`authConfig.googleoauth.serviceAccountCredentials.tip`)"
                 :hover-tooltip="true"
-              />
-              <FileSelector
-                class="role-tertiary add mt-5"
-                :label="t('generic.readFromFile')"
-                :mode="mode"
-                @selected="model.serviceAccountCredential = $event"
               />
             </div>
           </div>

@@ -1,6 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import AzureadPo from '@/cypress/e2e/po/edit/auth/azuread.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
+import { interceptAuthConfigCreate } from '@/cypress/e2e/blueprints/users/auth-config-stubs';
 
 const authClusterId = '_';
 const authProviderPo = new AuthProviderPo(authClusterId);
@@ -33,7 +34,7 @@ describe('Microsoft Entra ID', { tags: ['@adminUser', '@usersAndAuths'] }, () =>
   });
 
   it('can navigate Auth Provider and select Microsoft Entra ID', () => {
-    azureadPo.mastheadTitle().should('include', `Microsoft Entra ID`);
+    authProviderPo.createTitle().should('contain', 'Microsoft Entra ID');
   });
 
   // it.skip('[Vue3 Skip]: sends correct request to create standard Azure AD', () => {
@@ -61,6 +62,9 @@ describe('Microsoft Entra ID', { tags: ['@adminUser', '@usersAndAuths'] }, () =>
   // });
 
   it('sends correct request to create custom Microsoft Entra ID', () => {
+    interceptAuthConfigCreate({
+      name: 'azuread', normanType: 'azureADConfig', collection: 'azureADConfigs', actions: ['configureTest', 'testAndApply', 'disable', 'upgrade']
+    });
     cy.intercept('POST', 'v3/azureADConfigs/azuread?action=configureTest', (req) => {
       expect(req.body.tenantId).to.equal(tenantId);
       expect(req.body.applicationId).to.equal(applicationId);

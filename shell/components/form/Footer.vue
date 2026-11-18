@@ -61,6 +61,7 @@ export default defineComponent({
     >
       <Banner
         color="error"
+        role="alert"
         :label="err"
         :closable="true"
         @close="closeError(idx)"
@@ -99,7 +100,6 @@ export default defineComponent({
   .buttons {
     display: grid;
     grid-template-areas:  "left right";
-    grid-template-columns: "min-content auto";
 
     .left {
       grid-area: left;

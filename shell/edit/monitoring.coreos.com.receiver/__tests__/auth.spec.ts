@@ -1,7 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import Auth from '@shell/edit/monitoring.coreos.com.receiver/auth.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import LabeledSelect from '@shell/components/form/LabeledSelect';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 
 describe('component: Auth', () => {
   const defaultProps = {

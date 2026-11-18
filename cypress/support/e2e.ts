@@ -5,11 +5,15 @@ import './commands/chainable';
 import './commands/rancher-api-commands';
 import './commands/accessiblity';
 
-import registerCypressGrep from '@cypress/grep/src/support';
+import { CypressFailedAttempt } from './utils/retry-logging';
 import 'cypress-mochawesome-reporter/register';
 import '@percy/cypress';
 import 'cypress-axe';
 const { addCustomCommand } = require('cypress-delete-downloads-folder');
+// @cypress/grep v6 renamed the support export to `register` and is exports-only, which this
+// project's classic TS module resolution can't follow, so require it (resolved correctly at
+// runtime by Node/webpack). Its `tags` types are declared in cypress/globals.d.ts.
+const { register: registerCypressGrep } = require('@cypress/grep');
 
 registerCypressGrep();
 addCustomCommand();
@@ -21,7 +25,50 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   if (err.message.includes('navigation guard')) {
     return false;
   }
+  // Lazy-loaded webpack chunks intermittently fail to fetch while the app is starting up
+  // (ChunkLoadError). It is a transient FRONTEND fetch failure - the chunk loads on the next
+  // attempt - that the backend readiness probe in e2e-k3s-start.sh cannot prevent. Left
+  // unhandled it aborts the first-login setup mid-flow, after the bootstrap login has already
+  // changed the admin password, so every retry then 401s on the bootstrap login. Ignore it.
+  if (err.message.includes('ChunkLoadError') || err.message.includes('Loading chunk')) {
+    return false;
+  }
 });
+
+const minorOf = (version?: string): number[] | undefined => version?.match(/^"?v?(\d+)\.(\d+)/)?.slice(1, 3).map(Number);
+
+/**
+ * The welcome modal opens after login on a new version and would cover the page under test.
+ * Report it as already read, unless a spec opts in with `Cypress.env('showReleaseWelcome', true)`.
+ * Intercepts are cleared before every test, so register it for specs that log in within `before` too
+ */
+const hideReleaseWelcome = () => {
+  cy.getRancherVersion().then(({ Version }) => {
+    cy.intercept('GET', '/v1/userpreferences*', (req) => {
+      if (Cypress.env('showReleaseWelcome')) {
+        return;
+      }
+
+      req.continue((res) => {
+        const prefs = res.body?.data?.[0]?.data;
+        const running = minorOf(Version);
+
+        if (!prefs || !running) {
+          return;
+        }
+
+        const read = minorOf(prefs['read-whatsnew']);
+
+        if (!read || read[0] < running[0] || (read[0] === running[0] && read[1] < running[1])) {
+          prefs['read-whatsnew'] = `"${ running[0] }.${ running[1] }"`;
+        }
+      });
+    });
+  });
+};
+
+before(hideReleaseWelcome);
+beforeEach(hideReleaseWelcome);
 
 require('cypress-terminal-report/src/installLogsCollector')({
   collectTypes:            ['cons:log', 'cons:info', 'cons:warn', 'cons:error', 'cy:log', 'cy:request', 'cy:xhr'],
@@ -34,7 +81,7 @@ require('cypress-terminal-report/src/installLogsCollector')({
  */
 afterEach(function() {
   // We use a regular function to have access to `this.currentTest`.
-  if (this.currentTest.state === 'failed') {
+  if (this.currentTest?.state === 'failed' && Cypress.env('hasHostStats')) {
     cy.task<{ processCpu: string; memory: string }>('getHostStats').then((stats) => {
       cy.log('**Host Stats on Failure**');
       cy.log(`Process CPU: ${ stats.processCpu }`);
@@ -43,4 +90,55 @@ afterEach(function() {
       cy.wait(2000); // eslint-disable-line cypress/no-unnecessary-waiting
     });
   }
+});
+
+/**
+ * The parts of the running mocha test that we need. `currentRetry` and `retries` are typed as
+ * protected on mocha's `Runnable`, so they aren't reachable via `this.currentTest`
+ */
+interface RetryableTest {
+  titlePath(): string[];
+  currentRetry(): number;
+  retries(): number;
+  err?: Error;
+}
+
+/**
+ * Cypress retries failed tests, but the terminal reporter only shows the error from the last
+ * attempt. Send every failed attempt to the node process so they all appear in the terminal.
+ *
+ * See `support/utils/retry-logging.ts`
+ */
+afterEach(function() {
+  // We use a regular function to have access to `this.currentTest`.
+  if (this.currentTest?.state !== 'failed' || !Cypress.env('hasRetryLogging')) {
+    return;
+  }
+
+  let failure: CypressFailedAttempt;
+
+  try {
+    const test = this.currentTest as unknown as RetryableTest;
+    const totalAttempts = test.retries() + 1;
+
+    if (totalAttempts <= 1) {
+      // Retries are disabled, so the reporter's output is already complete
+      return;
+    }
+
+    failure = {
+      spec:    Cypress.spec.relative,
+      title:   test.titlePath().join(' > '),
+      attempt: test.currentRetry() + 1,
+      totalAttempts,
+      name:    test.err?.name,
+      message: test.err?.message,
+      stack:   test.err?.stack,
+    };
+  } catch (e) {
+    // Never fail this hook, doing so would skip all remaining tests in the spec
+    return;
+  }
+
+  cy.task('logFailedAttempt', failure, { log: false });
 });

@@ -24,11 +24,14 @@ import LoadingPo from '@/cypress/e2e/po/components/loading.po';
 import {
   VERY_LONG_TIMEOUT_OPT,
   EXTRA_LONG_TIMEOUT_OPT,
+  LONG_TIMEOUT_OPT,
   MEDIUM_TIMEOUT_OPT,
-  RESTART_TIMEOUT_OPT
+  RESTART_TIMEOUT_OPT,
+  GROWL_DISMISS_TIMEOUT_OPT
 } from '@/cypress/support/utils/timeouts';
 import HostedProvidersPagePo from '@/cypress/e2e/po/pages/cluster-manager/hosted-providers.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 // At some point these will come from somewhere central, then we can make tools to remove resources from this or all runs
 const createClusterTestName = (suffix: string) => `e2e-test-${ +new Date() }-create-${ suffix }`;
@@ -44,7 +47,7 @@ let originalSettings = '[{"name":"aks","active":true},{"name":"alibaba","active"
 
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Cluster Manager', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const clusterList = new ClusterManagerListPagePo();
   const loadingPo = new LoadingPo('.loading-indicator');
 
@@ -175,14 +178,23 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createRKE2ClusterPage.create();
 
-        cy.wait('@createRequest').then((intercept) => {
+        cy.wait('@createRequest', { requestTimeout: LONG_TIMEOUT_OPT.timeout }).then((intercept) => {
           // Issue with linter https://github.com/cypress-io/eslint-plugin-cypress/issues/3
+          // Fail fast with a clear error if the backend rejects the create,
+          // instead of waiting 60s for a redirect that never comes.
+          expect(intercept.response?.statusCode, 'Cluster create POST status').to.be.oneOf([200, 201]);
           expect(isMatch(intercept.request.body, request)).to.equal(true);
           expect(['ingress-nginx', 'traefik']).to.include(intercept.request.body.spec?.rkeConfig?.machineGlobalConfig?.['ingress-controller']);
         });
 
-        detailRKE2ClusterPage().waitForPage(undefined, 'registration');
+        // After cluster create, the dashboard redirects from the create form to the
+        // detail page (#registration fragment). waitForPage defaults to a 4s timeout
+        // which can race the redirect under load. Pass LONG_TIMEOUT_OPT (60s).
+        detailRKE2ClusterPage().waitForPage(undefined, 'registration', LONG_TIMEOUT_OPT);
 
+        // The Insecure checkbox only renders once the async cluster registration
+        // token arrives from the backend; the LONG_TIMEOUT_OPT on the .contains()
+        // selector in activateInsecureRegistrationCommandFromUI() handles the wait.
         createRKE2ClusterPage.activateInsecureRegistrationCommandFromUI().click();
         createRKE2ClusterPage.commandFromCustomClusterUI().then(($value) => {
           const registrationCommand = $value.text();
@@ -195,23 +207,23 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           cy.exec('chmod 600 custom_node.key').then((result) => {
             cy.log(result.stderr);
             cy.log(result.stdout);
-            expect(result.code).to.eq(0);
+            expect(result.exitCode).to.eq(0);
           });
           cy.exec(`head custom_node.key`).then((result) => {
             cy.log(result.stdout);
             cy.log(result.stderr);
-            expect(result.code).to.eq(0);
+            expect(result.exitCode).to.eq(0);
           });
-          cy.exec(createRKE2ClusterPage.customClusterRegistrationCmd(registrationCommand)).then((result) => {
+          cy.exec(createRKE2ClusterPage.customClusterRegistrationCmd(registrationCommand), { timeout: RESTART_TIMEOUT_OPT.timeout }).then((result) => {
             cy.log(result.stderr);
             cy.log(result.stdout);
-            expect(result.code).to.eq(0);
+            expect(result.exitCode).to.eq(0);
           });
         });
         ClusterManagerListPagePo.navTo();
         clusterList.waitForPage();
         clusterList.list().state(rke2CustomName).should('contain.text', 'Updating');
-        clusterList.list().state(rke2CustomName).contains('Active', VERY_LONG_TIMEOUT_OPT); // super long timeout needed for cluster provisioning to complete
+        clusterList.list().state(rke2CustomName).contains('Active', VERY_LONG_TIMEOUT_OPT); // 700s: EC2 RKE2 provisioning can be slow; matches the EC2 RKE2 test pattern
       }));
 
       qase(2053, it('can copy config to clipboard', () => {
@@ -226,11 +238,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('copyKubeConfig');
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Copy KubeConfig to Clipboard').click();
-        cy.wait('@copyKubeConfig');
+        cy.wait('@copyKubeConfig', { requestTimeout: LONG_TIMEOUT_OPT.timeout });
 
-        // Verify confirmation message displays and is hidden after ~3 sec
-        cy.get('.growl-text').contains('Copied KubeConfig to Clipboard').should('be.visible');
-        cy.get('.growl-text', { timeout: 4000 }).should('not.exist');
+        // Growl auto-dismiss: 5s lifetime (growl.js DEFAULT_TIMEOUT) + 1s sweep + margin
+        cy.get('.growl-text', { timeout: MEDIUM_TIMEOUT_OPT.timeout }).contains('Copied KubeConfig to Clipboard').should('be.visible');
+        cy.get('.growl-text', { timeout: GROWL_DISMISS_TIMEOUT_OPT.timeout }).should('not.exist');
 
         // Skipping following assertion for now as it is failing due to Cypress' limitations with accessing the clipboard in Chrome browser and headless mode. Works in Electron browser
         // see https://github.com/cypress-io/cypress/issues/2752
@@ -241,19 +253,26 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
       }));
 
       qase(1437, it('can edit cluster and see changes afterwards', () => {
-        clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        // navTo + waitForPage + row visible before touching the action menu,
+        // matching the delete test pattern: clicking the action menu on a
+        // still-rendering list is a known flake source.
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
         editCreatedClusterPage().nameNsDescription().description().set(rke2CustomName);
         editCreatedClusterPage().save();
 
-        // We should be taken back to the list page if the save was successful
-        clusterList.waitForPage();
+        // We should be taken back to the list page if the save was successful.
+        // The save PUT + redirect can exceed the 10s default under load.
+        clusterList.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
 
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
         editCreatedClusterPage().nameNsDescription().description().self()
           .should('have.value', rke2CustomName);
       }));
@@ -270,7 +289,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
         createRKE2ClusterPage.nameNsDescription().name().set('abc');
 
-        createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        createRKE2ClusterPage.clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
 
         createRKE2ClusterPage.resourceDetail().createEditView().saveButtonPo().expectToBeEnabled();
 
@@ -296,6 +315,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download KubeConfig').click();
         cy.wait('@generateKubeconfig').its('response.statusCode').should('be.oneOf', [200, 201]);
 
+        // A single click must only ever generate one kubeconfig. Each request mints at least one token, and for ACE
+        // clusters the legacy default entry used to mint a second. See https://github.com/rancher/rancher/issues/55672
+        cy.get('@generateKubeconfig.all').should('have.length', 1);
+
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
         cy.readFile(downloadedFilename).then((buffer) => {
@@ -306,6 +329,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           expect(obj.clusters.some((cluster: { name: string }) => cluster.name === rke2CustomName)).to.equal(true);
           expect(obj.apiVersion).to.equal('v1');
           expect(obj.kind).to.equal('Config');
+
+          // The legacy `rancher` entry pointing at the Rancher server root is excluded
+          expect(obj.clusters.map((cluster: { name: string }) => cluster.name)).to.not.include('rancher');
+          expect(obj.contexts.map((context: { name: string }) => context.name)).to.not.include('rancher');
         });
       }));
 
@@ -314,7 +341,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         cy.deleteDownloadsFolder();
 
         ClusterManagerListPagePo.navTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Download YAML').click();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Export As...').click();
+        new ExportModalPo().download();
 
         const downloadedFilename = path.join(downloadsFolder, `${ rke2CustomName }.yaml`);
 
@@ -332,59 +360,121 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         const customAddonConfig = `goodvalue: yay\nnested:\n  enabled: true`;
         const updatedDescription = `${ rke2CustomName }-addon-persist-check`;
 
-        clusterList.goTo();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        // navTo + waitForPage + row visible before touching the action menu,
+        // matching the delete test pattern.
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
-        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        // waitForPage defaults to 4s which can race the edit page load under load
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
         editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
           .set(customAddonConfig);
         editCreatedClusterPage().save();
 
-        clusterList.waitForPage();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        // The save PUT + redirect can exceed the 10s default under load.
+        clusterList.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
         editCreatedClusterPage().nameNsDescription().description().set(updatedDescription);
         editCreatedClusterPage().save();
 
-        clusterList.waitForPage();
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click();
+        clusterList.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Edit Config').click({ force: true });
 
-        editCreatedClusterPage().waitForPage('mode=edit', 'basic');
-        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('#rke2-calico');
+        editCreatedClusterPage().waitForPage('mode=edit', 'basic', LONG_TIMEOUT_OPT);
+        editCreatedClusterPage().clusterConfigurationTabs().clickTabWithSelector('[data-testid="btn-rke2-calico"]');
         editCreatedClusterPage().calicoAddonConfig().yamlEditor().input()
           .value()
           .should('include', customAddonConfig);
       }));
 
-      it('can navigate to Cluster Provisioning Log tab in the detail page', () => {
+      qase(3227, it('can navigate to Cluster Provisioning Log tab in the detail page', () => {
+        // Note: this test depends on the create test succeeding. If the cluster
+        // never reaches Active, the log tab won't render and this test will fail.
         const detailPage = detailRKE2ClusterPage();
 
+        detailPage.goTo();
+        // The tabbed-block container may take a moment to render on the detail page;
+        // waitForPage checks the URL but not the DOM. The selectTab call below
+        // queries [data-testid="tabbed-block"] which defaults to a 4s timeout.
+        detailPage.waitForPage(undefined, undefined, LONG_TIMEOUT_OPT);
         detailPage.selectTab(tabbedPo, '[data-testid="btn-log"]');
 
         detailPage.waitForPage(undefined, 'log');
-        detailPage.logsContainer().should('be.visible');
-      });
+        detailPage.logsContainer(MEDIUM_TIMEOUT_OPT).should('be.visible');
+      }));
 
       qase(1434, it('can delete cluster', () => {
-        clusterList.goTo();
-        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('exist', MEDIUM_TIMEOUT_OPT);
-        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click();
+        ClusterManagerListPagePo.navTo();
+        clusterList.waitForPage();
+        clusterList.sortableTable().rowElementWithName(rke2CustomName, MEDIUM_TIMEOUT_OPT).should('be.visible').scrollIntoView();
+
+        cy.intercept('DELETE', `/v1/provisioning.cattle.io.clusters/fleet-default/${ rke2CustomName }`).as('deleteRke2Cluster');
+        clusterList.list().actionMenu(rke2CustomName).getMenuItem('Delete').click({ force: true });
 
         const promptRemove = new PromptRemove();
 
         promptRemove.confirm(rke2CustomName);
         promptRemove.remove();
+        cy.wait('@deleteRke2Cluster', { requestTimeout: LONG_TIMEOUT_OPT.timeout }).its('response.statusCode').should('be.oneOf', [200, 204]);
 
         clusterList.waitForPage();
-        clusterList.sortableTable().rowElementWithName(rke2CustomName).should('not.exist');
+        clusterList.sortableTable().rowElements(LONG_TIMEOUT_OPT).should(($rows) => {
+          const tableText = Cypress.$.makeArray<any>($rows).map((row) => row.innerText).join(' ');
+
+          expect(tableText).to.not.contain(rke2CustomName);
+        });
       }));
     });
   });
 
   describe('Imported', { tags: ['@jenkins', '@importedCluster', '@provisioning'] }, () => {
     const importClusterPage = new ClusterManagerImportGenericPagePo();
+    const DAY_2_OPS_FEATURE = 'imported-day-2-ops';
+
+    /**
+     * Report the imported day 2 ops feature as enabled to the UI, without changing it on the backend (enabling it for real
+     * installs the day 2 ops system agent on imported clusters). Must be called before the page is (re)loaded.
+     */
+    const enableDayTwoOpsFeatureInUi = () => {
+      const patch = (feature: any) => (feature?.id === DAY_2_OPS_FEATURE ? {
+        ...feature, spec: { ...feature.spec, value: true }, status: { ...feature.status, lockedValue: null }
+      } : feature);
+
+      cy.intercept('GET', '/v1/management.cattle.io.features?*', (req) => {
+        req.continue((res) => {
+          res.body.data = (res.body.data || []).map(patch);
+        });
+      });
+      cy.intercept('GET', `/v1/management.cattle.io.features/${ DAY_2_OPS_FEATURE }*`, (req) => {
+        req.continue((res) => {
+          res.body = patch(res.body);
+        });
+      });
+    };
+
+    /**
+     * The text of the banner shown on import, which says how the version management and day 2 ops global settings will
+     * apply to the cluster
+     */
+    const expectedConfigureAfterImportText = () => {
+      const state = (resp: Cypress.Response<any>) => (resp.body.value === 'true' ? 'enabled' : 'disabled');
+
+      return cy.getRancherResource('v1', 'management.cattle.io.settings', 'imported-cluster-version-management').then((versionManagementResp: Cypress.Response<any>) => {
+        return cy.getRancherResource('v1', 'management.cattle.io.settings', 'imported-cluster-day2-ops-enabled').then((dayTwoOpsResp: Cypress.Response<any>) => {
+          const versionManagement = state(versionManagementResp);
+          const dayTwoOps = state(dayTwoOpsResp);
+
+          return versionManagement === dayTwoOps ? `For RKE2 and K3s clusters, K8s Version Management and Day 2 Operations will be automatically ${ versionManagement } based on the corresponding global settings.` : `For RKE2 and K3s clusters, K8s Version Management will be automatically ${ versionManagement } and Day 2 Operations will be automatically ${ dayTwoOps } based on the corresponding global setting.`;
+        });
+      });
+    };
     const fqdn = 'fqdn';
     const cacert = 'cacert';
     const privateRegistry = 'registry.io';
@@ -394,6 +484,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importGenericName = createClusterTestName('import-generic');
         cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
         cy.intercept('POST', `/v3/${ importType }s`).as('importRequest');
+        enableDayTwoOpsFeatureInUi();
 
         clusterList.goTo();
         clusterList.checkIsCurrentPage();
@@ -406,18 +497,27 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importClusterPage.waitForPage('mode=import&type=import&rkeType=rke2');
         cy.wait('@getUsers');
 
-        // check accordions are displayed or not
-        importClusterPage.accordion(2, 'Basics').should('be.visible');
-        importClusterPage.accordion(3, 'Member Roles').should('be.visible');
-        importClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-        importClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
-        importClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
-        importClusterPage.networkingAccordion().should('not.exist');
+        // check sections are displayed or not, and in the right order
+        // K8s version management and Day 2 Operations can only be configured once the cluster has been imported
+        const importSections = ['Member Roles', 'Labels & Annotations', 'Advanced'];
+
+        importClusterPage.sectionTitles().should('deep.equal', importSections);
+        importSections.forEach((title) => importClusterPage.section(title).self().scrollIntoView().should('be.visible'));
+        importClusterPage.section('Networking').self().should('not.exist');
+        importClusterPage.section('K8s version management').self().should('not.exist');
+        importClusterPage.section('Day 2 Operations').self().should('not.exist');
+
+        // Issue #17682: Registries and the Cluster/Fleet Agent configuration live in the Advanced section
+        importClusterPage.section('Advanced').expand();
+        ['Registries', 'Agent Environment Variables', 'Cluster Agent', 'Fleet Agent'].forEach((title) => importClusterPage.section(title).self().should('exist'));
 
         importClusterPage.nameNsDescription().name().checkVisible();
         importClusterPage.nameNsDescription().name().set(importGenericName);
-        // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
-        importClusterPage.versionManagementBanner().should('exist').and('be.visible');
+        // Version management and day 2 ops follow the global settings until the cluster has been imported
+        importClusterPage.versionManagementBanner().should('not.exist');
+        expectedConfigureAfterImportText().then((text) => {
+          importClusterPage.configureAfterImportBanner().should('be.visible').and('contain.text', text);
+        });
 
         importClusterPage.create();
 
@@ -445,7 +545,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
             cy.exec(kubectlCommand, { failOnNonZeroExit: false, timeout: RESTART_TIMEOUT_OPT.timeout }).then((result) => {
               cy.log(result.stderr);
               cy.log(result.stdout);
-              expect(result.code).to.eq(0);
+              expect(result.exitCode).to.eq(0);
             });
           });
         });
@@ -464,7 +564,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         clusterList.list().providerSubType(importGenericName).should('contain.text', 'K3s');
       }));
 
-      it('creation page should include a table of contents containing an entry for each Accordion on the page', () => {
+      it('creation page should include a table of contents containing an entry for each section on the page', () => {
         cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('getUsers');
 
         clusterList.goTo();
@@ -475,22 +575,21 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
         importClusterPage.selectGeneric(0);
         importClusterPage.waitForPage('mode=import&type=import&rkeType=rke2');
         cy.wait('@getUsers');
-        // verify that the table of contents is shown and contains the same number of entries as there are accordions on the page
-        cy.get('[data-testid="accordion-header"]')
-          .its('length')
-          .then((accordionHeaderCount) => {
-            cy.get('[data-testid^="toc-list-item-"]')
-              .should('have.length', accordionHeaderCount);
-          });
+        // verify that the table of contents is shown and has a top-level entry for each top-level section on the page
+        // (nested entries are `toc-list-item-<i>-<j>`, so only count `toc-list-item-<i>`)
+        importClusterPage.sectionTitles().then((titles) => {
+          cy.get('[data-testid^="toc-list-item-"]')
+            .filter((_, el) => /^toc-list-item-\d+$/.test(el.getAttribute('data-testid') || ''))
+            .should('have.length', titles.length);
+        });
 
-        // verify that clicking an accordion label in the table of contents scrolls the page to the associated accordion and opens it
-        cy.get('[data-testid="toc-list-item-3"] button').click();
+        // verify that clicking a section title in the table of contents scrolls the page to the associated section and opens it
+        cy.contains('[data-testid^="toc-list-item-"] button', 'Advanced').click();
 
         cy.window().its('scrollY').should('be.greaterThan', 0);
 
-        cy.get('[data-testid="registries-accordion"]')
-          .find('[data-testid="accordion-body"]')
-          .should('be.visible');
+        importClusterPage.section('Advanced').checkExpanded();
+        importClusterPage.section('Advanced').content().should('be.visible');
       });
 
       qase(6978, it('can edit imported cluster and see changes afterwards', () => {
@@ -498,6 +597,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           const editImportedClusterPage = new ClusterManagerEditImportedPagePo(undefined, 'fleet-default', clusterId);
 
           cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
+          enableDayTwoOpsFeatureInUi();
           clusterList.goTo();
           clusterList.list().actionMenu(importGenericName).getMenuItem('Edit Config').click();
 
@@ -506,13 +606,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           editImportedClusterPage.nameNsDescription().name().value().should('eq', importGenericName);
           cy.wait('@pageLoad');
 
-          // check accordions are properly displayed
-          editImportedClusterPage.accordion(2, 'K3S Options').should('be.visible');
-          editImportedClusterPage.accordion(3, 'Member Roles').should('be.visible');
-          editImportedClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(5, 'Networking').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(6, 'Registries').scrollIntoView().should('be.visible');
-          editImportedClusterPage.accordion(7, 'Advanced').scrollIntoView().should('be.visible');
+          // check sections are properly displayed, and in the right order
+          // the imported K3s cluster has registered (so has a k3sConfig), and day 2 ops are enabled, so both are shown
+          const editSections = ['K8s version management', 'Day 2 Operations', 'Member Roles', 'Labels & Annotations', 'Networking', 'Advanced'];
+
+          editImportedClusterPage.sectionTitles().should('deep.equal', editSections);
+          editSections.forEach((title) => editImportedClusterPage.section(title).self().scrollIntoView().should('be.visible'));
+          editImportedClusterPage.etcdAutomaticBackups().should('be.visible');
 
           // Issue #10432: Edit Cluster screen falsely gives impression imported cluster's name and description can be edited
           editImportedClusterPage.nameNsDescription().name().expectToBeDisabled();
@@ -524,12 +624,13 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           editImportedClusterPage.versionManagementBanner().should('exist').and('be.visible');
           editImportedClusterPage.defaultVersionManagement();
 
-          editImportedClusterPage.toggleAccordion(5, 'Networking');
+          editImportedClusterPage.section('Networking').expand();
           editImportedClusterPage.ace().enable();
           editImportedClusterPage.ace().enterFdqn(fqdn);
           editImportedClusterPage.ace().enterCaCerts(cacert);
 
-          editImportedClusterPage.toggleAccordion(6, 'Registries');
+          editImportedClusterPage.section('Advanced').expand();
+          editImportedClusterPage.section('Registries').expand();
           editImportedClusterPage.enablePrivateRegistryCheckbox();
           editImportedClusterPage.privateRegistry().set(privateRegistry);
 
@@ -545,6 +646,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
           editImportedClusterPage.ace().caCerts().value().should('eq', cacert );
 
           // Verify the private registry values
+          editImportedClusterPage.section('Advanced').expand();
+          editImportedClusterPage.section('Registries').expand();
           editImportedClusterPage.privateRegistryCheckbox().isChecked();
           editImportedClusterPage.privateRegistry().value().should('eq', privateRegistry);
         });
@@ -593,8 +696,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       clusterList.waitForPage();
       clusterList.list().resourceTable().sortableTable().filter('local', 100);
-      clusterList.waitForPage('q=local');
-      clusterList.goToDetailsPage('local', '.cluster-link a');
+      clusterList.goToDetailsPage('local', '.cluster-link a', true);
       clusterDetail.waitForPage();
     });
 
@@ -617,7 +719,8 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       clusterDetail.waitForPage(undefined, 'node-pools');
       clusterDetail.poolsList('node').details('machine-', 2).should('be.visible');
-      clusterDetail.poolsList('node').downloadYamlButton().should('be.disabled');
+      // Nothing is selected, so there are no bulk actions to take
+      clusterDetail.poolsList('node').resourceTable().sortableTable().checkNoSelectionActions();
     }));
 
     qase(12219, it(`Show Configuration allows to edit config and view yaml for local cluster`, () => {
@@ -654,18 +757,24 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       cy.intercept('GET', `${ USERS_BASE_URL }?*`).as('pageLoad');
       clusterList.goTo();
-      clusterList.list().actionMenu('local').getMenuItem('Edit Config').click();
+      clusterList.list().actionMenu('local', true).getMenuItem('Edit Config').click();
       editLocalClusterPage.waitForPage('mode=edit');
       cy.wait('@pageLoad');
       editLocalClusterPage.nameNsDescription().name().value().should('eq', 'local' );
 
-      // check accordions are properly displayed
-      editLocalClusterPage.accordion(2, 'K3S Options').should('be.visible'); // for K3S local cluster its K3S Options
-      editLocalClusterPage.accordion(3, 'Member Roles').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(4, 'Labels and Annotations').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(5, 'Networking').should('not.exist');
-      editLocalClusterPage.accordion(5, 'Registries').scrollIntoView().should('be.visible');
-      editLocalClusterPage.accordion(6, 'Advanced').scrollIntoView().should('be.visible');
+      // check sections are properly displayed, and in the right order
+      // for K3S local cluster its K8s version management
+      const localSections = ['K8s version management', 'Member Roles', 'Labels & Annotations', 'Advanced'];
+
+      editLocalClusterPage.sectionTitles().should('deep.equal', localSections);
+      localSections.forEach((title) => editLocalClusterPage.section(title).self().scrollIntoView().should('be.visible'));
+      editLocalClusterPage.section('Networking').self().should('not.exist');
+
+      // Issue #17682: the local cluster's agent is embedded in the Rancher pods, so it has no agent configuration
+      editLocalClusterPage.section('Advanced').expand();
+      editLocalClusterPage.section('Registries').self().should('exist');
+      editLocalClusterPage.section('Cluster Agent').self().should('not.exist');
+      editLocalClusterPage.section('Fleet Agent').self().should('not.exist');
 
       // Issue #13614: Imported Cluster Version Mgmt: Conditionally show warning message
       editLocalClusterPage.versionManagementBanner().should('not.exist');
@@ -696,10 +805,11 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     cy.deleteDownloadsFolder();
 
     ClusterManagerListPagePo.navTo();
-    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
+    clusterList.list().resourceTable().sortableTable().rowElementWithName('local', undefined, true)
       .click();
     clusterList.list().openBulkActionDropdown();
-    clusterList.list().bulkActionButton('Download YAML').click({ force: true });
+    clusterList.list().bulkActionButton('Export As...').click({ force: true });
+    new ExportModalPo().download();
     const downloadedFilename = path.join(downloadsFolder, `local.yaml`);
 
     cy.readFile(downloadedFilename).then((buffer) => {
@@ -716,12 +826,34 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 
+    // Bulk actions that don't fit the action bar are collapsed into the overflow dropdown by
+    // SortableTable (they get an inline display:none). At the default 1000px viewport that is
+    // borderline for the first action, so give the bar room to keep this button inline.
+    cy.viewport(1440, 900);
+
     ClusterManagerListPagePo.navTo();
-    clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
-      .click();
+    clusterList.waitForPage();
+    // Wait for the list to finish loading before selecting the row: a click on a still-loading
+    // list can fail to register the selection, leaving the bulk-action button hidden
+    // (display:none) - which then wedges every retry since testIsolation is off.
+    clusterList.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    // Select via the row checkbox instead of clicking the row: testIsolation is off, so on a
+    // retry the row can already be selected and a row click would toggle the selection off.
+    clusterList.list().resourceTable().sortableTable().rowSelectCtlWithName('local', true)
+      .check();
+    // The bulk action bar only lays its buttons out once the selection has registered
+    clusterList.list().resourceTable().sortableTable().selectedCountText()
+      .should('be.visible')
+      .and(($el) => expect($el.text().toLowerCase()).to.contain('1 selected'));
     cy.intercept('POST', '/v1/ext.cattle.io.kubeconfigs').as('generateKubeConfig');
-    clusterList.list().downloadKubeConfig().click();
+    clusterList.list().downloadKubeConfig().should('be.visible')
+      .and('not.be.disabled')
+      .click();
     cy.wait('@generateKubeConfig').its('response.statusCode').should('eq', 201);
+
+    // A single bulk action must only ever generate one kubeconfig, no matter how many clusters are selected
+    cy.get('@generateKubeConfig.all').should('have.length', 1);
+
     const downloadedFilename = path.join(downloadsFolder, 'local.yaml');
 
     cy.readFile(downloadedFilename).then((buffer) => {
@@ -729,14 +861,18 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
 
       // Basic checks on the downloaded YAML
       expect(obj.apiVersion).to.equal('v1');
-      expect(obj.clusters[1].name).to.equal('local');
       expect(obj.kind).to.equal('Config');
+
+      // Only the selected cluster is present. The legacy `rancher` entry used to occupy index 0
+      expect(obj.clusters).to.have.length(1);
+      expect(obj.clusters[0].name).to.equal('local');
+      expect(obj.contexts.map((context: { name: string }) => context.name)).to.not.include('rancher');
     });
   }));
 
   qase(1975, it('can connect to kubectl shell', () => {
     ClusterManagerListPagePo.navTo();
-    clusterList.list().actionMenu('local').getMenuItem('Kubectl Shell').click();
+    clusterList.list().actionMenu('local', true).getMenuItem('Kubectl Shell').click();
 
     const shellPo = new Shell();
 
@@ -831,7 +967,7 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
   });
 });
 
-describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@manager', '@standardUser'] }, () => {
+describe('Cluster Manager as standard user', { testIsolation: false, tags: ['@manager', '@standardUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -857,7 +993,7 @@ describe('Cluster Manager as standard user', { testIsolation: 'off', tags: ['@ma
       const clusterList = new ClusterManagerListPagePo('_');
 
       clusterList.waitForPage();
-      clusterList.goToDetailsPage('local', '.cluster-link a');
+      clusterList.goToDetailsPage('local', '.cluster-link a', true);
     });
 
     qase(12222, it(`Show Configuration allows to view but not edit config and yaml for local cluster`, () => {

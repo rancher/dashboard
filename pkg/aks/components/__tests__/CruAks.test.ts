@@ -1,8 +1,9 @@
 import flushPromises from 'flush-promises';
-import { shallowMount, Wrapper, mount } from '@vue/test-utils';
+import { shallowMount, VueWrapper, mount } from '@vue/test-utils';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import CruAks from '@pkg/aks/components/CruAks.vue';
 // eslint-disable-next-line jest/no-mocks-import
-import { mockRegions } from '../../util/__mocks__/aks';
+import { mockRegions } from '@pkg/aks/util/__mocks__/aks';
 import { _CREATE } from '@shell/config/query-params';
 
 const mockedStore = (versionSetting: any) => {
@@ -19,7 +20,7 @@ const mockedStore = (versionSetting: any) => {
       'management/schemaFor': jest.fn(),
       'rancher/create':       () => {}
     },
-    dispatch: (cmd, args) => {
+    dispatch: (cmd: string, args?: { resource?: unknown }) => {
       return cmd === 'rancher/clone' ? args?.resource : null;
     }
   };
@@ -42,7 +43,7 @@ const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
 
 jest.mock('@pkg/aks/util/aks');
 
-const setCredential = async(wrapper :Wrapper<any>, config = {} as any) => {
+const setCredential = async(wrapper: VueWrapper<any>, config = {} as any) => {
   config.azureCredentialSecret = 'foo';
   wrapper.setData({ config });
   await flushPromises();
@@ -51,7 +52,7 @@ const setCredential = async(wrapper :Wrapper<any>, config = {} as any) => {
 describe('aks provisioning form', () => {
   it('should hide the form if no credential has been selected', () => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: _CREATE },
+      props: { value: {}, mode: _CREATE },
       ...requiredSetup()
     });
 
@@ -80,12 +81,14 @@ describe('aks provisioning form', () => {
 
   it('should auto-select a region when a credential is selected', async() => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: _CREATE },
+      props: { value: {}, mode: _CREATE },
       ...requiredSetup()
     });
 
     await setCredential(wrapper);
-    const regionDropdown = wrapper.getComponent('[data-testid="cruaks-resourcelocation"]');
+    // findComponent, not getComponent: the presence of the dropdown is what this test asserts,
+    // and getComponent's return type deliberately omits `exists`
+    const regionDropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="cruaks-resourcelocation"]');
 
     expect(regionDropdown.exists()).toBe(true);
     expect(regionDropdown.props().value).toBe(mockRegions[0].name);
@@ -103,7 +106,7 @@ describe('aks provisioning form', () => {
       }
     };
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: _CREATE },
+      props: { value: {}, mode: _CREATE },
       ...setup
     });
 
@@ -116,7 +119,7 @@ describe('aks provisioning form', () => {
   // https://github.com/rancher/dashboard/issues/13647
   it('should not render the import cluster dropdown nor run its validation when the mode is not import', async() => {
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: {}, mode: _CREATE },
+      props: { value: {}, mode: _CREATE },
       ...requiredSetup()
     });
 
@@ -144,7 +147,7 @@ describe('aks provisioning form', () => {
     };
 
     const wrapper = shallowMount(CruAks, {
-      propsData: { value: mockValue, mode: 'edit' },
+      props: { value: mockValue, mode: 'edit' },
       ...requiredSetup()
     });
 

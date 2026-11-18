@@ -49,7 +49,7 @@ export default class ResourceDetailPo extends ComponentPo {
    * @returns the list of the tab
    */
   tabbedList(tabId: string, index?: number) {
-    const baseSelector = `#${ tabId } [data-testid="sortable-table-list-container"]`;
+    const baseSelector = `[data-testid="tab-panel-${ tabId }"] [data-testid="sortable-table-list-container"]`;
     const selector = tabId === 'related' ? `${ baseSelector }:nth-of-type(${ index })` : baseSelector;
 
     return new ResourceTablePo(selector);

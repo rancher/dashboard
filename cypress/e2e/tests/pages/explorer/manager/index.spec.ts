@@ -1,6 +1,6 @@
 import PagePo from '@/cypress/e2e/po/pages/page.po';
 
-describe('Manager Index', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Manager Index', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });

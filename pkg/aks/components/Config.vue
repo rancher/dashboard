@@ -17,7 +17,7 @@ import FormValidation from '@shell/mixins/form-validation';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
-import FileSelector from '@shell/components/form/FileSelector.vue';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import ArrayList from '@shell/components/form/ArrayList.vue';
 import Tab from '@shell/components/Tabbed/Tab.vue';
@@ -32,6 +32,7 @@ import {
   getAKSVirtualNetworks, getAKSVMSizes, getAKSKubernetesVersions
   , regionsWithAvailabilityZones
 } from '../util/aks';
+import { DEFAULT_AVAILABILITY_ZONES } from '../util/aks-regions';
 import { parseTaint } from '../util/taints';
 import { NETWORKING_AUTH_MODES, defaultNodePool } from './CruAks.vue';
 import {
@@ -61,7 +62,7 @@ export default defineComponent({
     AksNodePool,
     LabeledInput,
     Checkbox,
-    FileSelector,
+    FileSelectorTextArea,
     KeyValue,
     ArrayList,
     Tabbed,
@@ -133,12 +134,22 @@ export default defineComponent({
       touchedVmSize:         false,
       touchedVirtualNetwork: false,
 
+      // false until the first successful versions fetch completes - used to tell an initial load (where an
+      // already-set but not-yet-valid version, eg on edit, should be left alone) apart from a later refetch
+      // (triggered by a credential or region change) where a now-invalid version should be reconciled
+      hasFetchedVersionsBefore: false,
+
       loadingVersions:        false,
       loadingVmSizes:         false,
       loadingVirtualNetworks: false,
-      setAuthorizedIPRanges:  false,
-      networkingAuthMode:     NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
-      fvFormRuleSets:         [
+
+      // guard against out-of-order responses when a credential or region change triggers overlapping requests
+      versionsRequestId:        0,
+      vmSizesRequestId:         0,
+      virtualNetworksRequestId: 0,
+      setAuthorizedIPRanges:    false,
+      networkingAuthMode:       NETWORKING_AUTH_MODES.SERVICE_PRINCIPAL,
+      fvFormRuleSets:           [
 
         {
           path:  'resourceGroup',
@@ -338,23 +349,25 @@ export default defineComponent({
           return allValid ? undefined : this.t('aks.errors.poolMinMax');
         },
 
-        availabilityZoneSupport: (zones: string[]) => {
-          if (this.canUseAvailabilityZones) {
-            return undefined;
-          }
-          let isUsingAvailabilityZones = false;
+        availabilityZoneSupport: (zones?: string[] | null) => {
+          const error = this.t('aks.errors.availabilityZones');
 
-          if (zones && zones.length) {
-            isUsingAvailabilityZones = true;
-          } else {
-            this.nodePools.forEach((pool: AKSNodePool) => {
-              if (pool.availabilityZones && pool.availabilityZones.length) {
-                isUsingAvailabilityZones = true;
-              }
-            });
+          // a single pool's input passes that pool's zones
+          if (zones !== undefined) {
+            return !this.canUseAvailabilityZones && zones?.length ? error : undefined;
           }
 
-          return this.canUseAvailabilityZones || !isUsingAvailabilityZones ? undefined : this.t('aks.errors.availabilityZones');
+          // form-level validation passes no value: check every pool
+          let allValid = true;
+
+          this.nodePools.forEach((pool: AKSNodePool) => {
+            const valid = this.canUseAvailabilityZones || !pool.availabilityZones?.length;
+
+            pool._validation['_validAZ'] = valid;
+            allValid = allValid && valid;
+          });
+
+          return allValid ? undefined : error;
         },
 
         poolMin: (min?:number) => {
@@ -399,7 +412,8 @@ export default defineComponent({
           }
         },
 
-        poolTaints: (taint: string) => {
+        // If no taint is provided, taints on all pools will be validated
+        poolTaints: (taint?: string) => {
           if (taint && taint !== '') {
             const { key, value } = parseTaint(taint);
 
@@ -602,19 +616,21 @@ export default defineComponent({
       return this.isNewOrUnprovisioned && !this.setAuthorizedIPRanges;
     },
 
-    clusterId(): String | null {
+    clusterId(): string | null {
       return this.value?.id || null;
     },
 
-    canUseAvailabilityZones(): Boolean {
-      return regionsWithAvailabilityZones[this.config.resourceLocation] || !this.config.resourceLocation;
+    canUseAvailabilityZones(): boolean {
+      const resourceLocation = this.config.resourceLocation;
+
+      return !resourceLocation || !!regionsWithAvailabilityZones[resourceLocation];
     },
 
     canEnableNetworkPolicy(): Boolean {
       return this.networkPolicy !== 'none';
     },
 
-    isUserDefinedRouting(): Boolean {
+    isUserDefinedRouting(): boolean {
       return this.config?.outboundType === 'UserDefinedRouting';
     },
 
@@ -683,7 +699,12 @@ export default defineComponent({
     'config.azureCredentialSecret'(neu) {
       if (neu) {
         this.resetCredentialDependentProperties();
-        // this.getLocations();
+
+        if (this.config.resourceLocation) {
+          this.getAksVersions();
+          this.getVmSizes();
+          this.getVirtualNetworks();
+        }
       }
     },
 
@@ -735,12 +756,12 @@ export default defineComponent({
         this.config.networkPlugin = 'azure';
         // add a required fv rule to the existing virtual network validators
 
-        const rule = this.fvFormRuleSets.find((r: {path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] };
+        const rule = this.fvFormRuleSets.find((r: {path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] as string[] };
 
         rule.rules.push('virtualNetworkRequired');
       } else {
         // remove required fv rule
-        const rule = this.fvFormRuleSets.find((r:{path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] };
+        const rule = this.fvFormRuleSets.find((r:{path: string, rules: string[]}) => r.path === 'networkPolicy') || { rules: [] as string[] };
 
         rule.rules.splice(rule.rules.indexOf('virtualNetworkRequired'), 1);
       }
@@ -748,9 +769,8 @@ export default defineComponent({
   },
 
   methods: {
-    // reset properties dependent on AKS queries so if they're lodaded with a valid credential then an invalid credential is selected, they're cleared
+    // reset properties dependent on AKS queries so if they're loaded with a valid credential then an invalid credential is selected, they're cleared
     resetCredentialDependentProperties(): void {
-    //   this.locationOptions = [];
       this.allAksVersions = [];
       this.vmSizeOptions = [];
       this.allVirtualNetworks = [];
@@ -761,6 +781,8 @@ export default defineComponent({
     },
 
     async getAksVersions(): Promise<void> {
+      const requestId = ++this.versionsRequestId;
+
       this.loadingVersions = true;
       this.allAksVersions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -768,10 +790,26 @@ export default defineComponent({
       try {
         const res = await getAKSKubernetesVersions(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
+        if (requestId !== this.versionsRequestId) {
+          return;
+        }
+
+        const isRefetch = this.hasFetchedVersionsBefore;
+
         // the default version is set once these are filtered and sorted in computed prop
         this.allAksVersions = res;
         this.loadingVersions = false;
+        this.hasFetchedVersionsBefore = true;
+
+        if (isRefetch && !this.touchedVersion && !this.aksVersionOptions.find((v) => v.value === this.config.kubernetesVersion)) {
+          const firstValid = this.aksVersionOptions.find((v) => !v.disabled);
+
+          this.config.kubernetesVersion = firstValid?.value;
+        }
       } catch (err:any) {
+        if (requestId !== this.versionsRequestId) {
+          return;
+        }
         this.loadingVersions = false;
 
         const parsedError = parseAzureError(err.error || '');
@@ -782,12 +820,18 @@ export default defineComponent({
     },
 
     async getVmSizes(): Promise<void> {
+      const requestId = ++this.vmSizesRequestId;
+
       this.loadingVmSizes = true;
       this.vmSizeOptions = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
 
       try {
         const res = await getAKSVMSizes(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
+
+        if (requestId !== this.vmSizesRequestId) {
+          return;
+        }
 
         if (isArray(res)) {
           this.vmSizeOptions = res.sort();
@@ -799,6 +843,9 @@ export default defineComponent({
 
         this.loadingVmSizes = false;
       } catch (err: any) {
+        if (requestId !== this.vmSizesRequestId) {
+          return;
+        }
         this.loadingVmSizes = false;
 
         const parsedError = parseAzureError(err.error || '');
@@ -809,6 +856,8 @@ export default defineComponent({
     },
 
     async getVirtualNetworks(): Promise<void> {
+      const requestId = ++this.virtualNetworksRequestId;
+
       this.loadingVirtualNetworks = true;
       this.allVirtualNetworks = [];
       const { azureCredentialSecret, resourceLocation } = this.config;
@@ -816,12 +865,17 @@ export default defineComponent({
       try {
         const res = await getAKSVirtualNetworks(this.$store, azureCredentialSecret, resourceLocation, this.clusterId);
 
-        if (res && isArray(res)) {
-          this.allVirtualNetworks.push(...res);
+        if (requestId !== this.virtualNetworksRequestId) {
+          return;
         }
+
+        this.allVirtualNetworks = (res && isArray(res)) ? res : [];
 
         this.loadingVirtualNetworks = false;
       } catch (err:any) {
+        if (requestId !== this.virtualNetworksRequestId) {
+          return;
+        }
         const parsedError = parseAzureError(err.error || '');
         const errors = this.errors as Array<string>;
 
@@ -842,12 +896,14 @@ export default defineComponent({
       }
 
       this.nodePools.push({
-        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? ['1', '2', '3'] : [], orchestratorVersion: this.config.kubernetesVersion
+        ...defaultNodePool, name: poolName, _id, mode, vmSize: this.defaultVmSize, availabilityZones: this.canUseAvailabilityZones ? [...DEFAULT_AVAILABILITY_ZONES] : [], orchestratorVersion: this.config.kubernetesVersion, _validation: {}
       });
 
       this.$nextTick(() => {
-        if ( this.$refs.pools?.select ) {
-          this.$refs.pools.select(poolName);
+        const pools = this.$refs.pools as { select?: (name: string) => void } | undefined;
+
+        if ( pools?.select ) {
+          pools.select(poolName);
         }
       });
     },
@@ -897,9 +953,9 @@ export default defineComponent({
       >
         <Tab
           v-for="(pool, i) in nodePools"
-          :key="i"
+          :key="pool._id"
           :weight="-1 * i"
-          :name="pool._id || pool.name"
+          :name="pool._id || pool.name || ''"
           :label="pool.name || t('aks.nodePools.notNamed')"
           :error="!poolIsValid(pool)"
         >
@@ -921,7 +977,7 @@ export default defineComponent({
             }"
             :original-cluster-version="originalVersion"
             :cluster-version="config.kubernetesVersion"
-            @remove="removePool(pool)"
+            @remove="removePool(i)"
             @vmSizeSet="touchedVmSize = true"
           />
         </Tab>
@@ -1018,22 +1074,15 @@ export default defineComponent({
         </div>
         <div class="row mb-10">
           <div class="col span-6">
-            <div class="ssh-key">
-              <LabeledInput
-                v-model:value="config.sshPublicKey"
-                :mode="mode"
-                label-key="aks.sshPublicKey.label"
-                type="multiline"
-                placeholder-key="aks.sshPublicKey.placeholder"
-              />
-              <FileSelector
-                :mode="mode"
-                :label="t('aks.sshPublicKey.readFromFile')"
-                class="role-tertiary mt-10"
-                @selected="e => config.sshPublicKey = e"
-              />
-            </div>
+            <FileSelectorTextArea
+              v-model:value="config.sshPublicKey"
+              :mode="mode"
+              label-key="aks.sshPublicKey.label"
+              placeholder-key="aks.sshPublicKey.placeholder"
+            />
           </div>
+        </div>
+        <div class="row mb-10">
           <div class="col span-6">
             <KeyValue
               v-model:value="config.tags"

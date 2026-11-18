@@ -15,9 +15,12 @@ import {
   INGRESS,
   WORKLOAD_TYPES,
   HPA,
-  SECRET
+  SECRET,
+  CRD
 } from '@shell/config/types';
-import { CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, STORAGE, UI_PROJECT_SECRET_COPY } from '@shell/config/labels-annotations';
+import {
+  CAPI as CAPI_LAB_AND_ANO, CATTLE_PUBLIC_ENDPOINTS, DESCRIPTION, STORAGE, UI_PROJECT_SECRET_COPY
+} from '@shell/config/labels-annotations';
 import { Schema } from '@shell/plugins/steve/schema';
 import { PaginationSettingsStores } from '@shell/types/resources/settings';
 import paginationUtils from '@shell/utils/pagination-utils';
@@ -231,6 +234,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: 'metadata.state.name' },
       { field: 'metadata.creationTimestamp' },
       { field: 'metadata.labels', startsWith: true },
+      { field: `metadata.annotations[${ DESCRIPTION }]` },
     ],
     [NODE]: [
       { field: 'status.nodeInfo.kubeletVersion' },
@@ -263,9 +267,17 @@ class StevePaginationUtils extends NamespaceProjectFilters {
       { field: `status.provider` },
       { field: `status.info.kubernetesVersion` },
       { field: `spec.fleetWorkspaceName` },
+      { field: 'status.allocatable.cpuRaw' },
+      { field: 'status.allocatable.memoryRaw' },
+      { field: 'status.allocatable.pods' },
+      { field: 'status.requested.pods' },
     ],
     [SECRET]: [
       { field: `metadata.annotations[${ UI_PROJECT_SECRET_COPY }]` },
+      // the BE connects secret's `'management.cattle.io/project-scoped-secret'` label to a project's id... and exposes project human name via spec.displayName
+      { field: 'spec.displayName' },
+      // the BE connects secret's `'management.cattle.io/project-scoped-secret'` label to a project's id... and exposes project's cluster id via spec.clusterName
+      { field: 'spec.clusterName' }
     ],
     [NAMESPACE]: [
     ],
@@ -351,7 +363,11 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: [
       { field: 'spec.template.spec.containers.image' },
     ],
-  }
+    [CRD]: [
+      // { field: 'spec.group' }, // blocked on https://github.com/rancher/rancher/issues/55811
+      // { field: 'spec.names.singular' }, // blocked on https://github.com/rancher/rancher/issues/55811
+    ]
+  };
 
   private convertArrayPath(path: string): string {
     if (path.startsWith('metadata.fields.')) {
@@ -768,6 +784,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
           HPA, INGRESS, SERVICE,
           PV, CONFIG_MAP, STORAGE_CLASS, PVC, SECRET,
           WORKLOAD_TYPES.REPLICA_SET, WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+          CRD
         ],
         generic: true,
       }
@@ -779,7 +796,7 @@ export const PAGINATION_SETTINGS_STORE_DEFAULTS: PaginationSettingsStores = {
       enableSome: {
         enabled: [
           { resource: CAPI.RANCHER_CLUSTER, context: ['side-bar', 'home', 'cluster-management'] },
-          { resource: MANAGEMENT.CLUSTER, context: ['side-bar', 'home', 'cluster-management'] },
+          { resource: MANAGEMENT.CLUSTER, context: ['side-bar', 'home', 'cluster-management', 'token'] },
           { resource: CATALOG.APP, context: ['branding'] },
           SECRET
         ],

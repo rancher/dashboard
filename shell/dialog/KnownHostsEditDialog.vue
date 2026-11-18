@@ -34,15 +34,9 @@ export default {
 
   data() {
     const codeMirrorOptions = {
-      readOnly:        this.isView,
-      gutters:         ['CodeMirror-foldgutter'],
-      mode:            'text/x-properties',
-      lint:            false,
-      lineNumbers:     !this.isView,
-      styleActiveLine: false,
-      tabSize:         2,
-      indentWithTabs:  false,
-      cursorBlinkRate: 530,
+      readOnly:    this.isView,
+      mode:        null,
+      lineNumbers: !this.isView,
     };
 
     return {
@@ -82,7 +76,10 @@ export default {
     ref="sshKnownHostsDialog"
     class="ssh-known-hosts-dialog"
   >
-    <h4 class="mt-10">
+    <h4
+      class="mt-10"
+      data-modal-title
+    >
       {{ t('secret.ssh.editKnownHosts.title') }}
     </h4>
     <div class="custom mt-10">
@@ -98,7 +95,7 @@ export default {
       <div class="dialog-actions">
         <div class="action-pannel file-selector">
           <FileSelector
-            class="btn role-secondary"
+            variant="secondary"
             data-testid="ssh-known-hosts-dialog_file-selector"
             :label="t('generic.readFromFile')"
             @selected="onTextChange"
@@ -148,19 +145,9 @@ export default {
           border: 1px solid var(--border);
         }
 
-        .CodeMirror,
-        .CodeMirror-gutters {
+        .cm-editor {
           min-height: 400px;
           max-height: 400px;
-          background-color: var(--yaml-editor-bg);
-        }
-
-        .CodeMirror-gutters {
-          width: 25px;
-        }
-
-        .CodeMirror-linenumber {
-          padding-left: 0;
         }
       }
     }

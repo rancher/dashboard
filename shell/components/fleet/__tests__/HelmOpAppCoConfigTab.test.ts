@@ -22,14 +22,54 @@ describe('component: HelmOpAppCoConfigTab', () => {
       },
       global: {
         stubs: {
-          RcSection: { template: '<div><slot /></div>' },
-          RcIcon:    true,
-          Tab:       { template: '<div><slot /></div>' },
-          Tabbed:    { template: '<div><slot /></div>' },
+          RcSection:      { template: '<div><slot /></div>' },
+          RcIcon:         true,
+          Tab:            { template: '<div><slot /></div>' },
+          Tabbed:         { template: '<div><slot /></div>' },
+          RcContentGroup: false,
         }
       }
     });
   };
+
+  describe('deprecated badge', () => {
+    const DEPRECATED_BADGE = '[data-testid="appco-config-deprecated-badge"]';
+
+    const mountWithDeprecation = (appCoChartDeprecated: boolean) => {
+      return shallowMount(HelmOpAppCoConfigTab, {
+        props: {
+          ...defaultProps,
+          value: {
+            metadata: { namespace: 'fleet-default' },
+            spec:     { helm: { chart: 'apache-apisix-dashboard', valuesFrom: [] } },
+          },
+          appCoChartEntries: { 'apache-apisix-dashboard': [{ version: '0.8.3' }] },
+          appCoChartDeprecated,
+        },
+        global: {
+          stubs: {
+            RcSection:      { template: '<div><slot /></div>' },
+            RcIcon:         true,
+            Tab:            { template: '<div><slot /></div>' },
+            Tabbed:         { template: '<div><slot /></div>' },
+            RcContentGroup: false,
+          }
+        }
+      });
+    };
+
+    it('should render the deprecated badge when the selected chart is deprecated', () => {
+      const wrapper = mountWithDeprecation(true);
+
+      expect(wrapper.find(DEPRECATED_BADGE).exists()).toBe(true);
+    });
+
+    it('should not render the deprecated badge when the selected chart is not deprecated', () => {
+      const wrapper = mountWithDeprecation(false);
+
+      expect(wrapper.find(DEPRECATED_BADGE).exists()).toBe(false);
+    });
+  });
 
   describe('appCoLockedSecrets', () => {
     it('should only lock image pull secrets, not auth secrets', () => {

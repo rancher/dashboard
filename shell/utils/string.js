@@ -185,6 +185,16 @@ export function resourceNames(names, plusMore, t, endString) {
   }, '');
 }
 
+/**
+ * Indents every line of the given input.
+ *
+ * @param {string | string[] | null | undefined} lines - The line, or lines, to indent.
+ * @param {number} [count] - How many copies of `token` to indent by.
+ * @param {string} [token] - The string one level of indent is made of.
+ * @param {RegExp | null} [afterRegex] - When given, the indent goes after whatever each line matches
+ * instead of at the start of the line.
+ * @returns {string} The indented lines, joined by newlines.
+ */
 export function indent(lines, count = 2, token = ' ', afterRegex = null) {
   if (typeof lines === 'string') {
     lines = lines.split(/\n/);

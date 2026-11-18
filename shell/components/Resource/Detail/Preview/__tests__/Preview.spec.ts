@@ -93,7 +93,7 @@ describe('component: Resource Detail Preview', () => {
     const previewDiv = wrapper.find('.preview');
 
     // Spy on blur to see if it's called
-    const blurSpy = jest.spyOn(previewDiv.element, 'blur');
+    const blurSpy = jest.spyOn(previewDiv.element as HTMLElement, 'blur');
 
     await previewDiv.trigger('keydown.Escape');
 

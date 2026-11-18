@@ -607,7 +607,10 @@ export default {
             />
           </template>
         </Select>
-        <div class="log-action log-action-group ml-5">
+        <div
+          class="log-action log-action-group ml-5"
+          data-testid="log-action-buttons"
+        >
           <button
             class="btn role-primary wm-btn"
             role="button"
@@ -741,7 +744,6 @@ export default {
             v-model="search"
             class="input-sm"
             type="search"
-            role="textbox"
             :aria-label="t('wm.containerLogs.searchLogs')"
             :placeholder="t('wm.containerLogs.search')"
           >

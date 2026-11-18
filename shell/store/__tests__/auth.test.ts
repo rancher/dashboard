@@ -1,4 +1,5 @@
 import { actions } from '@shell/store/auth';
+import { openAuthPopup } from '@shell/utils/auth';
 import { createStore } from 'vuex';
 
 // jest.mock('@shell/utils/url', () => ({
@@ -28,6 +29,42 @@ describe('action: redirectTo', () => {
     const url = await actions.redirectTo(store as any, options);
 
     expect(url).toStrictEqual(expectation);
+  });
+
+  it('should apply the azure specific parameters to a renamed azure config', async() => {
+    jest.spyOn(window, 'window', 'get');
+    const store = {
+      dispatch: jest.fn((x) => {
+        if (x === 'getAuthProvider') return { type: 'azureADProvider', scopes: '' };
+      })
+    };
+    const options = {
+      provider:    'entra-prod',
+      redirect:    false,
+      redirectUrl: '?client_id=123',
+    };
+
+    const url = await actions.redirectTo(store as any, options);
+
+    expect(url).toContain('response_mode=query');
+  });
+
+  it('should apply the base scopes of a renamed config', async() => {
+    jest.spyOn(window, 'window', 'get');
+    const store = {
+      dispatch: jest.fn((x) => {
+        if (x === 'getAuthProvider') return { type: 'githubProvider', scopes: '' };
+      })
+    };
+    const options = {
+      provider:    'github-two',
+      redirect:    false,
+      redirectUrl: '?client_id=123',
+    };
+
+    const url = await actions.redirectTo(store as any, options);
+
+    expect(url).toContain('scope=read%3Aorg');
   });
 
   it.each([
@@ -122,16 +159,111 @@ describe('action: test', () => {
       const body = { scope: ['any scope'] };
       const options = {
         provider,
+        providerType: 'any',
         redirectUrl,
-        scopes:   body.scope,
-        test:     true,
-        redirect: false
+        scopes:       body.scope,
+        test:         true,
+        redirect:     false
       };
 
       await actions.test(store, { provider, body });
 
       expect(dispatchSpy.mock.calls[0][1]).toStrictEqual(options);
     });
+
+    it('should derive the provider type from the config rather than its name', async() => {
+      const dispatchSpy = jest.fn().mockReturnValue('anyURL');
+      const store = createStore({
+        actions: {
+          getAuthConfig: () => ({ _type: 'githubConfig', doAction: () => 'no action' }),
+          redirectTo:    dispatchSpy,
+        }
+      });
+
+      await actions.test(store, { provider: 'github-two', body: {} });
+
+      expect(dispatchSpy.mock.calls[0][1]).toStrictEqual(expect.objectContaining({
+        provider:     'github-two',
+        providerType: 'github',
+      }));
+    });
+  });
+
+  describe('given saml providers', () => {
+    it('should tell testAndEnable which of the provider\'s configs is being enabled', async() => {
+      const doAction = jest.fn().mockResolvedValue({ idpRedirectUrl: 'anyURL' });
+      const store = createStore({
+        actions: {
+          getAuthConfig: () => ({
+            id: 'okta-two', _type: 'oktaConfig', actions: { testAndEnable: 'anyLink' }, doAction
+          }),
+        }
+      });
+
+      await actions.test(store, { provider: 'okta-two', body: {} });
+
+      expect(doAction).toHaveBeenCalledWith('testAndEnable', {
+        finalRedirectUrl: undefined,
+        configName:       'okta-two',
+      });
+    });
+
+    it('should open the popup against the kind of provider rather than the config name', async() => {
+      const store = createStore({
+        actions: {
+          getAuthConfig: () => ({
+            id:       'okta-two',
+            _type:    'oktaConfig',
+            actions:  { testAndEnable: 'anyLink' },
+            doAction: () => ({ idpRedirectUrl: 'anyURL' }),
+          }),
+        }
+      });
+
+      await actions.test(store, { provider: 'okta-two', body: {} });
+
+      expect(openAuthPopup).toHaveBeenCalledWith('anyURL', 'okta');
+    });
+  });
+});
+
+describe('action: login', () => {
+  it('should send both the config name and the type of the auth config to log in against', async() => {
+    const dispatch = jest.fn((action) => {
+      if (action === 'getAuthProvider') {
+        return { id: 'github-two', type: 'githubProvider' };
+      }
+    });
+
+    await actions.login({ dispatch } as any, { provider: 'github-two', body: { code: 'anyCode' } });
+
+    expect(dispatch).toHaveBeenCalledWith(
+      'management/request',
+      expect.objectContaining({
+        data: {
+          configName:   'github-two',
+          type:         'githubProvider',
+          description:  'UI session',
+          responseType: 'cookie',
+          code:         'anyCode',
+        }
+      }),
+      { root: true }
+    );
+  });
+});
+
+describe('action: getAuthProviderTypes', () => {
+  // Nothing is pre-created any more, so the catalogue of what can be added has
+  // to come from the server rather than from the configs that already exist.
+  it('should ask the server what it can be configured with', async() => {
+    const types = { githubProvider: { Description: 'GitHub authentication OAuth provider', Type: 'oauth' } };
+    const dispatch = jest.fn().mockResolvedValue(types);
+
+    const result = await actions.getAuthProviderTypes({ dispatch } as any);
+
+    expect(dispatch).toHaveBeenCalledWith('rancher/request', { url: '/v1-public/authprovider-types' }, { root: true });
+    expect(result).toStrictEqual(types);
   });
 });
 

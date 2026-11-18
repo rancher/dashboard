@@ -1,0 +1,85 @@
+<script setup lang="ts">
+/**
+ * An item for a dropdown menu that is one choice of several, marked with a checkmark when it is the
+ * chosen one. It stays open, so the menu shows the choice made. Used in conjunction with RcDropdown.
+ */
+import { useDropdownItem } from '@components/RcDropdown/useDropdownItem';
+import { RcIcon } from '@components/RcIcon';
+
+const props = defineProps({ checked: Boolean, disabled: Boolean });
+const emits = defineEmits(['click']);
+
+const {
+  handleKeydown, handleActivate, scrollIntoView, handleMouseenter
+} = useDropdownItem();
+
+const handleClick = (e: MouseEvent) => {
+  if (!props.disabled) {
+    emits('click', e);
+  }
+};
+</script>
+
+<template>
+  <div
+    dropdown-menu-item
+    tabindex="-1"
+    role="menuitemradio"
+    :aria-checked="checked"
+    :disabled="disabled || null"
+    :aria-disabled="disabled || false"
+    @click.stop="handleClick"
+    @keydown.enter.space="handleActivate"
+    @keydown.up.down.prevent.stop="handleKeydown"
+    @mousedown.prevent="() => {/* As RcDropdownItem: a click doesn't take the focus */}"
+    @focusin="scrollIntoView"
+    @mouseenter="handleMouseenter"
+  >
+    <slot name="before">
+      <!--Empty slot content-->
+    </slot>
+    <slot name="default">
+      <!--Empty slot content-->
+    </slot>
+    <span class="dropdown-item-after">
+      <RcIcon
+        v-if="checked"
+        type="checkmark"
+        size="inherit"
+      />
+    </span>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+  [dropdown-menu-item] {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 9px 8px;
+    margin: 0 9px;
+    border-radius: 4px;
+
+    &:hover {
+      cursor: pointer;
+      background-color: var(--dropdown-hover-bg);
+    }
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 0;
+    }
+    &[disabled] {
+      color: var(--disabled-text);
+      &:hover {
+        cursor: not-allowed;
+      }
+    }
+
+    .dropdown-item-after {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      padding-left: 16px;
+    }
+  }
+</style>

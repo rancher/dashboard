@@ -155,7 +155,6 @@ export default {
         />
       </div>
     </div>
-    <hr class="mt-20 mb-20">
     <h3>
       {{ t('prometheusRule.labels.title') }}
       <i

@@ -5,7 +5,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const configMapListPage = new ConfigMapListPagePo('local');
 const localCluster = 'local';
 
-describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer2', '@adminUser'] }, () => {
+describe('ConfigMap', { testIsolation: false, tags: ['@explorer2', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
@@ -15,7 +15,7 @@ describe('ConfigMap', { testIsolation: 'off', tags: ['@explorer2', '@adminUser']
     configMapListPage.baseResourceList().masthead().title().should('include', `ConfigMaps`);
 
     cy.getRancherVersion().then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - ConfigMaps' : 'Rancher - local - ConfigMaps';
+      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - local - ConfigMaps' : 'Rancher Community - local - ConfigMaps';
 
       cy.title().should('eq', expectedTitle);
     });
@@ -104,7 +104,7 @@ skipGeometric=true`;
       .and('be.visible');
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     const uniqueConfigMap = SortableTablePo.firstByDefaultName('cm');
     let cmNamesList = [];
     let nsName1: string;
@@ -124,6 +124,34 @@ skipGeometric=true`;
         };
       };
 
+      // The namespace filter silently DROPS - and persists back to user preferences - any `ns://`
+      // entry it cannot resolve against the namespaces collection. If a just-created namespace is
+      // not listed yet when the page first loads, the filter is rewritten (to the remaining ns, or
+      // back to the "user namespaces" default) and every test below then reads the wrong list.
+      // The collection is indexed separately from single-resource GETs, so poll the collection.
+      const waitForNamespacesListed = (namespaces: string[], retries = 30): void => {
+        cy.getRancherResource('v1', 'namespaces').then((resp: any) => {
+          const listed = (resp.body?.data || []).map((ns: any) => ns.metadata?.name);
+
+          if (namespaces.every((ns) => listed.includes(ns))) {
+            return;
+          }
+
+          // Give up quietly rather than asserting: this runs in a `before` hook and Cypress does not
+          // retry hook failures, so failing here would take down every test in the describe.
+          if (retries === 0) {
+            cy.log(`waitForNamespacesListed: gave up waiting for ${ namespaces } in /v1/namespaces`);
+
+            return;
+          }
+
+
+          cy.wait(1000); // eslint-disable-line cypress/no-unnecessary-waiting
+
+          waitForNamespacesListed(namespaces, retries - 1);
+        });
+      };
+
       cy.createManyNamespacedResources({
         context:        'configmaps1',
         createResource: createConfigMap(),
@@ -140,6 +168,13 @@ skipGeometric=true`;
         .then(({ ns, workloadNames }) => {
           cmNamesList.push(workloadNames[0]);
           nsName2 = ns;
+        })
+        .then(() => {
+          waitForNamespacesListed([nsName1, nsName2]);
+
+          // Ensure the configmaps the tests look up by name are queryable, so the list's fetch includes them
+          cy.waitForRancherResource('v1', 'configmaps', `${ nsName1 }/${ cmNamesList[0] }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
+          cy.waitForRancherResource('v1', 'configmaps', `${ nsName2 }/${ uniqueConfigMap }`, (resp: any) => resp?.status === 200, 30, { failOnStatusCode: false });
 
           cy.tableRowsPerPageAndNamespaceFilter(10, localCluster, 'none', `{\"local\":[\"ns://${ nsName1 }\",\"ns://${ nsName2 }\"]}`, { delay: true });
         });
@@ -148,14 +183,21 @@ skipGeometric=true`;
     it('pagination is visible and user is able to navigate through configmaps data', () => {
       ClusterDashboardPagePo.goToAndConfirmNsValues(localCluster, { nsProject: { values: [nsName1, nsName2] } });
 
+      // Derive the count from the list's OWN namespace-filtered request, matching exactly what
+      // the UI renders. The global /v1/configmaps count is dominated by per-namespace system
+      // configmaps and its returned data page can be truncated/raced, so client-side filtering
+      // under-counts (seen as "of 25" vs the UI's "of 30").
+      cy.intercept('GET', '/v1/configmaps?*').as('cmList');
       configMapListPage.goTo();
       configMapListPage.waitForPage();
 
-      // check configmaps count
-      // A kube-root-ca.crt configmap per namespace in the formula has to be included
-      const count = cmNamesList.length + 2;
+      cy.wait('@cmList').then((interception: any) => {
+        const count = interception.response.body.count;
 
-      cy.waitForRancherResources('v1', 'configmaps', count - 1, true).then((resp: Cypress.Response<any>) => {
+        // Wait for the list to finish loading so the total is settled before the single
+        // (non-retrying) pagination-text assertions below.
+        configMapListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+
         // pagination is visible
         configMapListPage.list().resourceTable().sortableTable().pagination()
           .checkVisible();
@@ -311,9 +353,15 @@ skipGeometric=true`;
       configMapListPage.list().resourceTable().sortableTable().rowElementWithName(cmNamesList[0])
         .should('be.visible');
 
-      // filter by namespace
+      // filter by namespace. Not a count: kube-root-ca.crt turns up in every namespace, soon after it's made
       configMapListPage.list().resourceTable().sortableTable().filter(nsName2);
-      configMapListPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
+      configMapListPage.list().resourceTable().sortableTable().rowElements()
+        .should(($rows) => {
+          expect($rows.length).to.be.greaterThan(0);
+          $rows.each((_, row) => {
+            expect(row.innerText).to.contain(nsName2);
+          });
+        });
       configMapListPage.list().resourceTable().sortableTable().rowElementWithName(uniqueConfigMap)
         .should('be.visible');
     });

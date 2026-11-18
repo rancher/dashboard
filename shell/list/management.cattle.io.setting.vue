@@ -6,10 +6,11 @@ import Loading from '@shell/components/Loading';
 import { VIEW_IN_API } from '@shell/store/prefs';
 import Setting from '@shell/components/Setting';
 import { mapGetters } from 'vuex';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   components: {
-    Banner, Loading, Setting
+    Banner, Loading, Setting, RcHeading
   },
 
   async fetch() {
@@ -50,8 +51,10 @@ export default {
         s.json = JSON.stringify(JSON.parse(s.data.value || s.data.default), null, 2);
       } else if (s.kind === 'enum') {
         const v = s.data.value || s.data.default;
+        // An empty option is translated by its `none` key
+        const key = !v && s.options.includes('') ? 'none' : v;
 
-        s.enum = `advancedSettings.enum.${ id }.${ v }`;
+        s.enum = `advancedSettings.enum.${ id }.${ key }`;
       }
       // There are only 2 actions that can be enabled - Edit Setting or View in API
       // If neither is available for this setting then we hide the action menu button
@@ -108,9 +111,9 @@ export default {
       />
     </div>
 
-    <h2>
+    <RcHeading :size="2">
       {{ t('advancedSettings.provisioning.header') }}
-    </h2>
+    </RcHeading>
     <div
       v-for="(setting) in provisioningSettings"
       :id="setting.id"

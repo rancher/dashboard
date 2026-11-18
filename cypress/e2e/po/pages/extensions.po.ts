@@ -15,7 +15,7 @@ import TooltipPo from '@/cypress/e2e/po/components/tooltip.po';
 import InstallExtensionDialog from '@/cypress/e2e/po/prompts/installExtensionDialog.po';
 
 export default class ExtensionsPagePo extends PagePo {
-  static url = '/c/local/uiplugins'
+  static url = '/c/local/uiplugins';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(ExtensionsPagePo.url);
   }
@@ -47,8 +47,15 @@ export default class ExtensionsPagePo extends PagePo {
     return this.self().get('.data-loading');
   }
 
-  waitForTabs() {
-    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT);
+  /**
+   * Wait for the extension tabs, which only render once the page has finished loading.
+   *
+   * The tab bar is at the top of the page, so assert it without scrolling: checkVisible() scrolls by
+   * default, and the page re-renders the tabs while it finishes loading, which detaches the element
+   * mid-scroll ("the page updated as a result of this command").
+   */
+  waitForTabs(): Cypress.Chainable<boolean> {
+    return this.extensionTabs.checkVisible(LONG_TIMEOUT_OPT, { scrollIntoView: false });
   }
 
   /**
@@ -140,6 +147,15 @@ export default class ExtensionsPagePo extends PagePo {
     appRepoList.waitForPage();
     cy.waitForRepositoryDownload('v1', 'catalog.cattle.io.clusterrepos', name);
     cy.waitForResourceState('v1', 'catalog.cattle.io.clusterrepos', name);
+    // Known issue rancher/dashboard#17554: a clusterrepo can report Active before its Download has
+    // actually completed, and the repo list's state badge then lags the (already-Active) API state
+    // under CI load, only rendering 'Active' after a delayed re-fetch. kubewarden calls this from a
+    // before-all hook, which Cypress does NOT retry, so a badge that outruns the default window fails
+    // the whole suite. Reload once to force a fresh list render off the now-Active API state before
+    // asserting the badge.
+    cy.reload();
+    appRepoList.waitForPage();
+    appRepoList.list().checkVisible();
     appRepoList.list().state(name).should('contain', 'Active');
 
     return cy.wrap(appRepoList.list());
@@ -179,9 +195,62 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   private clickAction(extensionTitle: string, actionLabel: string) {
-    const actionMenu = this.extensionCard(extensionTitle).openActionMenu();
+    // The card list renders asynchronously (chart-repo fetch then render), so wait
+    // for loading to finish and the target card to be visible before opening its
+    // action menu. Otherwise the lookup outruns the default retry window under CI
+    // load, which is the main source of flakiness on these tests.
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
 
-    return actionMenu.getMenuItem(actionLabel).click();
+    card.self().should('be.visible');
+
+    // The Upgrade/Downgrade items appear only once the extension's available versions have loaded
+    // from the (sometimes slow) chart repo. The menu re-renders reactively when they arrive, so give
+    // the item lookup a long window instead of the default - otherwise it outruns a slow repo fetch
+    // and the action is reported missing even though it shows up moments later.
+    return card.openActionMenu().getMenuItem(actionLabel, LONG_TIMEOUT_OPT).click();
+  }
+
+  /**
+   * Open the card action menu and click `actionLabel` only if it is offered; resolves to whether it
+   * was clicked. Used to keep the upgrade/downgrade tests idempotent across retries: a prior attempt
+   * may already have moved the extension to the target version (e.g. upgraded to latest), which
+   * removes that action - so a plain retry, which re-runs the whole test, would otherwise hard-fail on
+   * the now-missing menu item. Waits for the version-dependent actions to load first (Upgrade and/or
+   * Downgrade appear only once the chart repo versions are fetched) so a slow menu is not misread as
+   * "action absent".
+   */
+  clickActionIfPresent(extensionTitle: string, actionLabel: string): Cypress.Chainable<boolean> {
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
+
+    card.self().should('be.visible');
+    const menu = card.openActionMenu();
+
+    // Wait for the version-dependent actions to load before deciding: Upgrade and/or Downgrade appear
+    // only once the chart repo versions are fetched, so their absence earlier is a slow menu, not a
+    // genuinely missing action.
+    menu.menuItems(LONG_TIMEOUT_OPT).should(($items) => {
+      const text = $items.toArray().map((el) => el.textContent || '').join('|');
+
+      expect(text).to.match(/Upgrade|Downgrade/);
+    });
+
+    return menu.clickMenuItemIfPresent(actionLabel);
+  }
+
+  /**
+   * Check the card's action menu offers `actionLabel`, then close the menu again. Waits for the
+   * version-dependent actions (Upgrade, Downgrade), which appear once the chart repo versions load.
+   */
+  checkActionOffered(extensionTitle: string, actionLabel: string): void {
+    this.loading().should('not.exist');
+    const card = this.extensionCard(extensionTitle, LONG_TIMEOUT_OPT);
+
+    card.self().should('be.visible');
+    card.openActionMenu().getMenuItem(actionLabel, LONG_TIMEOUT_OPT).should('exist');
+    cy.get('body').type('{esc}');
+    ActionMenuPo.checkNoActionMenuIsVisible();
   }
 
   extensionCardVersion(extensionTitle: string): Cypress.Chainable<string> {
@@ -189,8 +258,8 @@ export default class ExtensionsPagePo extends PagePo {
       .invoke('text');
   }
 
-  extensionCardClick(extensionTitle: string): void {
-    this.extensionCard(extensionTitle).click();
+  extensionCardClick(extensionTitle: string, options?: Partial<Cypress.Timeoutable>): void {
+    this.extensionCard(extensionTitle, options).click();
   }
 
   extensionCardInstallClick(extensionTitle: string): Cypress.Chainable {
@@ -258,10 +327,23 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension tabs ------------------
   extensionTabInstalledClick(): Cypress.Chainable {
+    // Wait for the tab to render before clicking it. The tabs load asynchronously,
+    // and unlike the 'Available' tab this one had no guard, so it would flake when
+    // the tab button hadn't rendered within the default retry window.
+    //
+    // The timeout on .contains() below only covers that query: allTabs() first looks up the tabs
+    // container with the default timeout, and fails there ("extension-tabs" never found) when the
+    // page is still mounting after a fresh load. Wait for the container itself first.
+    this.waitForTabs();
+    this.extensionTabs.allTabs().contains('Installed', MEDIUM_TIMEOUT_OPT).should('be.visible');
+
     return this.extensionTabs.clickTabWithName('installed');
   }
 
   extensionTabAvailableClick(): Cypress.Chainable {
+    // As above: wait for the tabs container, which allTabs() would otherwise look up with the default
+    // timeout before the longer one on .contains() ever applies.
+    this.waitForTabs();
     this.extensionTabs.allTabs().contains('Available', MEDIUM_TIMEOUT_OPT).should('be.visible');
 
     return this.extensionTabs.clickTabWithName('available');
@@ -281,7 +363,10 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionReloadClick(): Cypress.Chainable {
-    return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click();
+    // Force the click: a transient growl toast can overlay the reload button, which makes Cypress
+    // error with "being covered by another element". The button itself is interactable - the growl
+    // is an incidental, self-dismissing overlay - so the covered-element check is a false negative.
+    return this.extensionReloadBanner().getId('extension-reload-banner-reload-btn').click({ force: true });
   }
 
   // ------------------ new repos banner ------------------
@@ -316,10 +401,15 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   addReposModalAddClick(): Cypress.Chainable {
-    return this.addReposModal().get('.dialog-buttons button:last-child').click();
+    return this.addReposModal().get('.dialog-buttons button:last-child').should('be.visible').click();
   }
 
   // ------------------ Import Extension Catalog modal ------------------
+  /** The catalogs page's own button, above its table: not one of the table's bulk actions */
+  importExtensionCatalogClick(): Cypress.Chainable {
+    return cy.getId('extensions-catalog-load-dialog').click();
+  }
+
   importExtensionCatalogModal(): Cypress.Chainable {
     return this.self().get('.plugin-install-dialog');
   }

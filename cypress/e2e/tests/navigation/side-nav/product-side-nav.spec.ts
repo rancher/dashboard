@@ -38,43 +38,69 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
   it('Can open second menu groups on click', () => {
     const productNavPo = new ProductNavPo();
 
+    // `type: 'static'` is required, not optional. A default alias is re-queried on every
+    // `cy.get('@closedGroup')`, and the group we click becomes `.expanded` - so the
+    // re-run of `.not('.expanded').eq(0)` would then resolve to a *different* group than
+    // the one we clicked, which has no `ul`/`li.nav-type>a` because it isn't expanded.
     productNavPo.groups().not('.expanded').eq(0)
-      .as('closedGroup');
+      .as('closedGroup', { type: 'static' });
     cy.get('@closedGroup').should('be.visible').click();
     cy.get('@closedGroup').find('ul').should('have.length.gt', 0);
-    productNavPo.groups().get('expanded').should('not.be.instanceOf', Array);
+    productNavPo.expandedGroup().should('have.length.gte', 1);
   });
 
-  it('Can close first menu groups on click', () => {
+  it('Opening another menu group keeps already-open groups expanded', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
-    productNavPo.groups().not('.expanded').eq(0).should('be.visible')
-      .click();
+    productNavPo.groups().filter('.expanded').its('length').then((expandedCount) => {
+      // Opening a different, collapsed group must not collapse the open one(s)
+      productNavPo.groups().not('.expanded').eq(0).should('be.visible')
+        .click();
+      productNavPo.groups().filter('.expanded').should('have.length', expandedCount + 1);
+    });
+  });
+
+  it('Can collapse an expanded menu group via its chevron', () => {
+    const productNavPo = new ProductNavPo();
+
+    // `type: 'static'` is required: collapsing the group removes it from
+    // `.expanded`, so a default alias would re-run `.filter('.expanded').first()`
+    // against an empty set once no group is left open.
+    productNavPo.groups().filter('.expanded').first()
+      .as('openGroup', { type: 'static' });
+    cy.get('@openGroup').find('i.toggle-accordion').first().click();
     cy.get('@openGroup').find('ul').should('have.length', 0);
   });
 
   it('Should flag second menu group as active on navigation', () => {
     const productNavPo = new ProductNavPo();
 
+    // `type: 'static'` is required, not optional. A default alias is re-queried on every
+    // `cy.get('@closedGroup')`, and the group we click becomes `.expanded` - so the
+    // re-run of `.not('.expanded').eq(0)` would then resolve to a *different* group than
+    // the one we clicked, which has no `ul`/`li.nav-type>a` because it isn't expanded.
     productNavPo.groups().not('.expanded').eq(0)
-      .as('closedGroup');
+      .as('closedGroup', { type: 'static' });
     cy.get('@closedGroup').should('be.visible').click();
+    // Wait for the group to expand and then click the first visible link
+    cy.get('@closedGroup').find('li.nav-type>a').should('have.length.gt', 0).first()
+      .click();
+    // Now verify the clicked link is active
     cy.get('@closedGroup').find('.router-link-active').should('have.length.gt', 0);
   });
 
   it('Going into resource detail should keep relevant group active', () => {
     const productNavPo = new ProductNavPo();
 
-    productNavPo.groups().get('.expanded').as('openGroup');
-
     productNavPo.visibleNavTypes().eq(1).should('be.visible').click(); // Go into Workloads
 
     deploymentsListPage.goTo();
     deploymentsListPage.waitForPage();
     deploymentsListPage.goToDetailsPage(workloadName);
-    cy.get('@openGroup').should('be.visible');
-    cy.get('@openGroup').find('.router-link-active').should('have.length.gt', 0);
+
+    // Other groups may stay expanded now, so assert on the expanded group that
+    // owns the current resource rather than on whichever expands first.
+    productNavPo.groups().filter('.expanded').find('.router-link-active').should('have.length.gt', 0);
   });
 
   it('Should access to every navigation provided from the server link, including nested cases, without errors', () => {
@@ -87,13 +113,21 @@ describe('Side navigation: Cluster ', { tags: ['@navigation', '@adminUser'] }, (
       // Select and expand current top-level group
       group.click();
       // check if it has sub-groups and expand them
-      productNavPo.groups().eq(index).then((group) => {
-        // FIXME: #5966: This may lead to flaky tests and should be replace after ensuring the navigation to be stable
-        if (group.find('.accordion').length) {
-          cy.wrap(group).get('.accordion .accordion').should('be.visible').click({ multiple: true });
+      productNavPo.groups().eq(index).then(($group) => {
+        // Expand any nested sub-groups within THIS group so their links render for the navigation
+        // check below. Scope with `.find` rather than `cy.get`, which ignores the wrapped group and
+        // would grab every nested accordion on the page. Scroll each header into view before clicking
+        // it: a lower sub-group can sit below the nav's scroll fold and would otherwise be reported as
+        // clipped by the scroll container. Clicking a group header only ever expands it (never
+        // collapses), so this is safe to run over every nested sub-group.
+        if ($group.find('.accordion.has-children').length) {
+          cy.wrap($group).find('.accordion.has-children > .accordion-item > .header').each(($header) => {
+            cy.wrap($header).scrollIntoView().should('be.visible')
+              .click();
+          });
         }
         // ensure group is expanded
-        cy.wrap(group).find('ul').should('have.length.gt', 0);
+        cy.wrap($group).find('ul').should('have.length.gt', 0);
       });
 
       // Visit each link and confirm the app has navigated to that location

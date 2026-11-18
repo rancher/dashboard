@@ -1,19 +1,39 @@
 import { useIsNewDetailPageEnabled } from '@shell/composables/useIsNewDetailPageEnabled';
 
-const mockStore: any = { getters: {} };
-const mockRoute: any = { query: {} };
+import { reactive } from 'vue';
 
-jest.mock('vuex', () => ({ useStore: () => mockStore }));
+const mockStore: any = { getters: {} };
+const mockRoute: any = reactive({ query: {} });
+const mockUseStore = jest.fn(() => mockStore);
+
+jest.mock('vuex', () => ({ useStore: () => mockUseStore() }));
 jest.mock('vue-router', () => ({ useRoute: () => mockRoute }));
 
-const mockGetVersionInfo = jest.fn(() => ({ fullVersion: '2.12.0' }));
+const mockGetVersionInfo = jest.fn<{ fullVersion: string | null | undefined }, [unknown]>(() => ({ fullVersion: '2.12.0' }));
 
-jest.mock('@shell/utils/version', () => ({ getVersionInfo: (...args: any[]) => mockGetVersionInfo(...args) }));
+jest.mock('@shell/utils/version', () => ({ getVersionInfo: (store: unknown) => mockGetVersionInfo(store) }));
 
 describe('useIsNewDetailPageEnabled', () => {
   beforeEach(() => {
     mockRoute.query = {};
+    mockUseStore.mockImplementation(() => mockStore);
     mockGetVersionInfo.mockReturnValue({ fullVersion: '2.12.0' });
+  });
+
+  describe('store resolution', () => {
+    it('should keep using the store resolved at setup when re-evaluated outside of a component setup', () => {
+      const result = useIsNewDetailPageEnabled();
+
+      expect(result.value).toBe(true);
+
+      // Outside of setup/render (e.g. a scheduler flush) `useStore` has no instance to inject from
+      mockUseStore.mockImplementation(() => undefined as any);
+      mockGetVersionInfo.mockClear();
+      mockRoute.query = { legacy: 'true' };
+
+      expect(result.value).toBe(false);
+      expect(mockGetVersionInfo).toHaveBeenCalledWith(mockStore);
+    });
   });
 
   describe('version gating', () => {

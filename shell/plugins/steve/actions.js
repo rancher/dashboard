@@ -89,7 +89,7 @@ export default {
     }
 
     let paginatedResult;
-    const isSteveCacheUrl = getters.isSteveCacheUrl(opt.url);
+    const isSteveUrl = getters.isSteveUrl(opt.url);
 
     while (true) {
       try {
@@ -100,7 +100,7 @@ export default {
         }
 
         if (!paginatedResult) {
-          const pageByNumber = isSteveCacheUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
+          const pageByNumber = isSteveUrl && opt.url.includes(`pagesize=${ paginationUtils.defaultPageSize }`) ? {
             total: out.count,
             page:  1,
             url:   opt.url,
@@ -224,19 +224,23 @@ export default {
 
   /**
    * Fetch aggregated state counts for a resource type via the Steve summary API.
-   * Requires VAI (ui-sql-cache) to be enabled; returns undefined otherwise.
    *
    * Uses `summaryonly` by default so no resource data is returned.
    *
-   * @param {string} type - Resource type (e.g. 'pod', 'service')
-   * @param {object} [opt] - Options object
-   *   @param {string} opt.summaryField - Field to aggregate counts by.
-   *     Must be a field indexed by the VAI cache (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
-   *   @param {string} [opt.namespace] - Namespace to scope the request to (only applies to namespaced resource types)
-   *   @param {boolean} [opt.summaryOnly=true] - Omit resource data from the response (set to false to include data)
-   *   @param {boolean} [opt.namespaceCounts] - Include per-namespace breakdowns in counts
-   *   @param {PaginationParamFilter[]} [opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
-   *   @param {KubeLabelSelector} [opt.labelSelector] - Kube label selector to filter by (converted via convertLabelSelectorPaginationParams)
+   * @param {object} ctx - Vuex action context
+   *   @param {object} ctx.getters
+   *   @param {Function} ctx.dispatch
+   * @param {object} payload
+   *   @param {string} payload.type - Resource type (e.g. 'pod', 'service')
+   *   @param {object} [payload.opt={}] - Options object
+   *     @param {string} [payload.opt.summaryField] - Field to aggregate counts by. Omitting it makes the action
+   *       warn and return `undefined`. Must be a field indexed by the VAI cache
+   *       (see StevePaginationUtils.VALID_FIELDS in steve-pagination-utils.ts)
+   *     @param {string} [payload.opt.namespace] - Namespace to scope the request to (only applies to namespaced resource types)
+   *     @param {boolean} [payload.opt.summaryOnly=true] - Omit resource data from the response (set to false to include data)
+   *     @param {boolean} [payload.opt.namespaceCounts] - Include per-namespace breakdowns in counts
+   *     @param {PaginationParamFilter[]} [payload.opt.filters] - Pre-built filters from PaginationParamFilter.createSingleField()
+   *     @param {KubeLabelSelector} [payload.opt.labelSelector] - Kube label selector to filter by (converted via convertLabelSelectorPaginationParams)
    * @returns {Promise<{ count: number, summary: { property: string, counts: Record<string, { total: number, namespace?: Record<string, number> }> }[] | null } | undefined>}
    *
    * @example
@@ -253,18 +257,12 @@ export default {
    * });
    * // result.summary[0].counts => { running: { total: 3, namespace: { default: 2, 'kube-system': 1 } } }
    */
-  async fetchResourceSummary({ getters, dispatch, rootGetters }, { type, opt = {} }) {
+  async fetchResourceSummary({ getters, dispatch }, { type, opt = {} }) {
     type = getters.normalizeType(type);
     const schema = getters.schemaFor(type);
 
     if (!schema) {
       console.warn(`fetchResourceSummary: no schema found for type "${ type }"`); // eslint-disable-line no-console
-
-      return undefined;
-    }
-
-    if (!paginationUtils.isSteveCacheEnabled({ rootGetters })) {
-      console.warn(`fetchResourceSummary: VAI is not enabled, summary API unavailable for type "${ type }"`); // eslint-disable-line no-console
 
       return undefined;
     }
@@ -317,8 +315,12 @@ export default {
     }
   },
 
-  promptRestore({ commit, state }, resources ) {
-    commit('action-menu/togglePromptRestore', resources, { root: true });
+  promptRestore({ dispatch }, resources ) {
+    return dispatch('promptModal', {
+      component: 'PromptRestore',
+      ownsModal: true,
+      resources,
+    });
   },
 
   async resourceAction({ getters, dispatch }, {
@@ -436,9 +438,15 @@ export default {
     return resource;
   },
 
-  // remove fields added by steve before showing/downloading yamls
-  cleanForDownload(ctx, yaml) {
-    return steveCleanForDownload(yaml);
+  // remove fields added by steve before showing/downloading yamls.
+  // When editing, also hide server-managed metadata fields not suitable for editing.
+  cleanForDownload(ctx, payload) {
+    // Backwards compatibility: older callers (e.g. extensions built against a
+    // previous shell) dispatch the yaml string directly rather than a
+    // { yaml, opt } payload. Accept either shape.
+    const { yaml, opt } = typeof payload === 'string' ? { yaml: payload } : (payload || {});
+
+    return steveCleanForDownload(yaml, opt);
   }
 };
 

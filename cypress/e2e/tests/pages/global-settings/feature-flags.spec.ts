@@ -6,7 +6,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const featureFlagsPage = new FeatureFlagsPagePo();
 const burgerMenu = new BurgerMenuPo();
 
-describe('Feature Flags', { testIsolation: 'off' }, () => {
+describe('Feature Flags', { testIsolation: false }, () => {
   before(() => {
     cy.login();
     HomePagePo.goTo();
@@ -86,26 +86,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
 
     // Check Updated State: should be active
     featureFlagsPage.list().details('istio-virtual-service-ui', 0).should('include.text', 'Active');
-  });
-
-  it('can toggle rke1-custom-node-cleanup feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
-    // Check Current State: should be active by default
-    FeatureFlagsPagePo.navTo();
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
-
-    // Deactivate
-    featureFlagsPage.list().clickRowActionMenuItem('rke1-custom-node-cleanup', 'Deactivate');
-    featureFlagsPage.clickCardActionButtonAndWait('Deactivate', 'rke1-custom-node-cleanup', false);
-
-    // Check Updated State: should be disabled
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Disabled');
-
-    // Activate
-    featureFlagsPage.list().clickRowActionMenuItem('rke1-custom-node-cleanup', 'Activate');
-    featureFlagsPage.clickCardActionButtonAndWait('Activate', 'rke1-custom-node-cleanup', true);
-
-    // Check Updated State: should be active
-    featureFlagsPage.list().details('rke1-custom-node-cleanup', 0).should('include.text', 'Active');
   });
 
   it('can toggle token-hashing feature flag', { tags: ['@globalSettings', '@adminUser'] }, () => {
@@ -199,7 +179,6 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
       'istio-virtual-service-ui',
       'legacy',
       'multi-cluster-management',
-      'rke1-custom-node-cleanup',
       'rke2',
       'token-hashing',
       'unsupported-storage-drivers'
@@ -212,11 +191,11 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
     });
   });
 
-  describe('List', { tags: ['@noVai', '@globalSettings', '@adminUser', '@standardUser'] }, () => {
+  describe('List', { tags: ['@globalSettings', '@adminUser', '@standardUser'] }, () => {
     it('validate feature flags table header content', () => {
       FeatureFlagsPagePo.navTo();
       // check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Description', 'Restart Rancher'];
+      const expectedHeaders = ['State', 'Name', 'Description', 'Restart Rancher Community'];
 
       featureFlagsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')
@@ -228,8 +207,12 @@ describe('Feature Flags', { testIsolation: 'off' }, () => {
       featureFlagsPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       featureFlagsPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       cy.getRancherResource('v1', 'management.cattle.io.features').then((resp: Cypress.Response<any>) => {
-        // We filter out fleet and ui-sql-cache feature flags
-        const featureCount = resp.body.count - 2;
+        // The list view hides flags by name (see shell/list/management.cattle.io.feature.vue), so
+        // derive the expected visible-row count by applying the SAME filter to the API response rather
+        // than subtracting a fixed number. ('ui-sql-cache' has now been removed from the backend -
+        // rancher/rancher#53996 - so it no longer appears and no longer needs filtering here.)
+        const hideFeatureFlags = ['fleet', 'ui-configurable-dashboards', 'hide-local-auth-provider'];
+        const featureCount = resp.body.data.filter((f: any) => !hideFeatureFlags.includes(f.metadata.name)).length;
 
         featureFlagsPage.list().resourceTable().sortableTable().checkRowCount(false, featureCount);
       });

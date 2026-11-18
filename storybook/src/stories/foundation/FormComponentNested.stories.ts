@@ -99,9 +99,9 @@ export const Template: Story = {
             </Tab>
           </FieldArray>
             <template #tab-row-extras>
-              <li class="tablist-controls">
+              <div class="tablist-controls">
                 <button @click="push({ name: '', image: '' })">Add container</button>
-              </li>
+              </div>
             </template>
         </Tabbed>
         <br />

@@ -102,6 +102,37 @@ const createFindWatchArg = ({
   return watchMsg;
 };
 
+/**
+ * The latest page request per type and requester, so a slow, superseded response can't overwrite a
+ * newer one. Kept in store state so it is cleared on log out
+ */
+function pageRequestKey(type, opt) {
+  return `${ type }/${ opt?.requesterId || 'default' }`;
+}
+
+function pageRequests(ctx) {
+  // A store registered before this state existed
+  if (!ctx.state.latestPageRequests) {
+    ctx.state.latestPageRequests = {};
+  }
+
+  return ctx.state.latestPageRequests;
+}
+
+function markPageRequest(ctx, type, opt) {
+  const key = pageRequestKey(type, opt);
+  const latest = pageRequests(ctx);
+  const id = (latest[key] || 0) + 1;
+
+  latest[key] = id;
+
+  return { key, id };
+}
+
+function isCurrentPageRequest(ctx, { key, id }) {
+  return pageRequests(ctx)[key] === id;
+}
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -267,7 +298,7 @@ export default {
         dispatch('resource-fetch/updateManualRefreshIsLoading', true, { root: true });
       }
 
-      if (opt.incremental.pageByNumber && getters.isSteveCacheUrl(parse(opt.url).path)) {
+      if (opt.incremental.pageByNumber && getters.isSteveUrl(parse(opt.url).path)) {
         // Set the configuration for the rest of the incremental requests
         pageByNumber = {
           url:      opt.url,
@@ -476,6 +507,8 @@ export default {
     opt.url = getters.urlFor(type, null, opt);
 
     let out;
+    // A transient request writes nothing, so it must not supersede the page the user is waiting for
+    const pageRequest = opt.transient ? null : markPageRequest(ctx, type, opt);
 
     try {
       if (opt.hasManualRefresh) {
@@ -490,6 +523,8 @@ export default {
 
       return Promise.reject(e);
     }
+
+    const superseded = !!pageRequest && !isCurrentPageRequest(ctx, pageRequest);
 
     // Of type @StorePaginationResult
     const pagination = opt.pagination ? {
@@ -506,7 +541,7 @@ export default {
       }
     } : undefined;
 
-    if (!opt.transient) {
+    if (!opt.transient && !superseded) {
       commit('loadPage', {
         ctx,
         type,
@@ -516,7 +551,7 @@ export default {
       });
     }
 
-    if (opt.saveCountAs) {
+    if (opt.saveCountAs && !superseded) {
       commit('setSavedCount', {
         name:  opt.saveCountAs,
         count: out.count,
@@ -905,8 +940,13 @@ export default {
     return resource;
   },
 
-  cleanForDownload(ctx, resource) {
-    return resource;
+  cleanForDownload(ctx, payload) {
+    // Backwards compatibility: older callers (e.g. extensions built against a
+    // previous shell) dispatch the yaml string directly rather than a
+    // { yaml, opt } payload. Accept either shape.
+    const { yaml } = typeof payload === 'string' ? { yaml: payload } : (payload || {});
+
+    return yaml;
   },
 
   // Wait for a schema that is expected to exist that may not have been loaded yet (for instance when loadCluster is still running).

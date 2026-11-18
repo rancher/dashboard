@@ -14,13 +14,14 @@ import { useLabeledFormElement, labeledFormElementProps } from '@shell/composabl
 import { useLabeledSelect } from '@shell/composables/useLabeledSelect';
 import { ref, toRef } from 'vue';
 import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
+import { RcSeparator } from '@components/RcSeparator';
 
 export default {
   name: 'LabeledSelect',
 
   inheritAttrs: false,
 
-  components: { LabeledTooltip },
+  components: { LabeledTooltip, RcSeparator },
   mixins:     [
     CompactInput,
     VueSelectOverrides,
@@ -93,6 +94,14 @@ export default {
       default: null,
       type:    String
     },
+    /**
+     * Show the selected value in the muted colour, for a value the form keeps but does not treat
+     * as one the user can rely on.
+     */
+    mutedValue: {
+      default: false,
+      type:    Boolean
+    },
     tooltip: {
       default: null,
       type:    [String, Object]
@@ -113,6 +122,15 @@ export default {
       type:    Boolean,
       default: true
     },
+    /**
+     * Keep the typed search when the dropdown closes without a selection. It is shown in place of
+     * the placeholder until the input is focused again, which searches it again, so it is meant for
+     * selects that do not show a selected value, such as a search box.
+     */
+    keepSearchOnBlur: {
+      type:    Boolean,
+      default: false
+    },
     noOptionsLabelKey: {
       type:    String,
       default: 'labelSelect.noOptions.empty'
@@ -121,10 +139,35 @@ export default {
       type:    Array,
       default: () => []
     },
+    size: {
+      type:      String,
+      default:   'large',
+      validator: (value) => ['small', 'medium', 'large'].includes(value)
+    },
 
     name: {
       type:    String,
       default: null
+    },
+
+    /**
+     * Number of options to show before the dropdown scrolls. Fractional
+     * values (e.g. 7.5) partially reveal the next row as a scroll affordance.
+     * Requires appendToBody to be false to take effect.
+     */
+    visibleRows: {
+      type:    Number,
+      default: undefined
+    },
+
+    /**
+     * Height in px of a single option row, used only when visibleRows is
+     * set. Defaults to a plain text row's height; override when options
+     * render taller custom content.
+     */
+    visibleRowHeight: {
+      type:    Number,
+      default: 18
     }
   },
 
@@ -212,6 +255,7 @@ export default {
     return {
       selectedVisibility:   'visible',
       shouldOpen:           true,
+      keptSearch:           '',
       labeledSelectLabelId: `ls-label-id-${ generateRandomAlphaString(12) }`,
       generatedUid:         `ls-uid-${ generateRandomAlphaString(12) }`
     };
@@ -237,10 +281,45 @@ export default {
       return rest;
     },
 
+    dropdownStyle() {
+      if (!this.visibleRows) {
+        return undefined;
+      }
+
+      // Matches $input-padding-sm in _variables.scss.
+      const menuPadding = 10 * 2;
+
+      return { '--vs-dropdown-max-height': `${ this.visibleRows * this.visibleRowHeight + menuPadding }px` };
+    },
+
     // update placeholder text to inform user they can add their own opts when none are found
     showTagPrompts() {
       return !this.options.length && this.$attrs.taggable && this.isSearchable;
     },
+  },
+
+  watch: {
+    isOpen(open) {
+      if (!open) {
+        this.keepSearch();
+      }
+    },
+
+    // vue-select only refreshes the selected option on options change when the value is truthy,
+    // so a selected option with a falsy value ('', 0, false) would keep showing its old label.
+    // Refresh it once per options change rather than looking it up on every label render.
+    _options: {
+      handler() {
+        const select = this.$refs['select-input'];
+
+        if (!select?.isTrackingValues || select.modelValue || select.modelValue === undefined) {
+          return;
+        }
+
+        select.setInternalValueFromOptions(select.modelValue);
+      },
+      flush: 'post'
+    }
   },
 
   methods: {
@@ -251,6 +330,11 @@ export default {
 
       // Ensure we don't toggle when clicking the clear button on multi-select
       if (this.$attrs.multiple && event?.target.className === 'vs__deselect') {
+        return;
+      }
+
+      // Clicking into the search input of an open dropdown shouldn't close it
+      if (this.isOpen && this.isSearchable && event?.target === this.$refs['select-input']?.searchEl) {
         return;
       }
 
@@ -282,6 +366,11 @@ export default {
     },
 
     onFocus() {
+      if (this.keptSearch) {
+        this.$refs['select-input'].search = this.keptSearch;
+        this.keptSearch = '';
+      }
+
       this.$emit('on-focus');
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
@@ -302,16 +391,130 @@ export default {
     },
 
     closeOnSelecting(e) {
-      if (e.value === this.value) {
+      if (e && e.value === this.value) {
         this.close();
       }
 
       this.$emit('selecting', e);
     },
 
+    /**
+     * Filters options client-side during active search.
+     * To provide a superior UX with grouped options:
+     * - Decorative layout elements (group/title headers, dividers) are hidden when empty.
+     * - Group headers are dynamically retained if they contain at least one matching child option.
+     * - Dividers reset the active group header context to prevent incorrect nesting.
+     * - Standard disabled actual options remain searchable and visible (greyed out).
+     */
+    filterOptions(options, search) {
+      if (!search) {
+        return options;
+      }
+
+      const lowerSearch = search.toLowerCase();
+      const filtered = [];
+      let currentGroup = null;
+
+      options.forEach((option) => {
+        if (!option) {
+          return;
+        }
+
+        const isObject = typeof option === 'object';
+
+        // Keep track of the current group/title header but do not add it yet.
+        // It will only be added if at least one option under it matches the search.
+        if (isObject && ['group', 'title'].includes(option.kind)) {
+          currentGroup = option;
+
+          return;
+        }
+
+        // Dividers represent a hard section break; reset the group header context.
+        if (isObject && option.kind === 'divider') {
+          currentGroup = null;
+
+          return;
+        }
+
+        // Get the textual label for either object-based or primitive options.
+        let label = isObject ? this.getOptionLabel(option) : option;
+
+        if (typeof label === 'number') {
+          label = label.toString();
+        }
+
+        const matches = (label || '').toLowerCase().includes(lowerSearch);
+
+        if (matches) {
+          // If this is the first matching option in the current group, prepend its group header.
+          if (currentGroup) {
+            filtered.push(currentGroup);
+            currentGroup = null;
+          }
+          filtered.push(option);
+        }
+      });
+
+      return filtered;
+    },
+
     close() {
       this.isOpen = false;
       this.onClose();
+    },
+
+    clearKeptSearch(event) {
+      if (this.keptSearch) {
+        event.stopPropagation();
+        this.keptSearch = '';
+      }
+    },
+
+    keepSearch() {
+      const select = this.$refs['select-input'];
+
+      if (!this.keepSearchOnBlur || !select?.search || document.activeElement === select.searchEl) {
+        return;
+      }
+
+      this.keptSearch = select.search;
+      select.search = '';
+    },
+
+    /**
+     * Force the dropdown shut and clear its search text, including
+     * vue-select's own internal state - unlike `close()`, which only
+     * updates this component's own `isOpen`/aria state. Needed when the
+     * dropdown was reopened via direct `$refs['select-input']` access (e.g.
+     * after a blur caused by opening a nested popover) and won't receive a
+     * normal close-triggering event. With `keepSearchOnBlur` the search
+     * text is kept instead.
+     */
+    forceClose() {
+      this.isOpen = false;
+
+      if (this.$refs['select-input']) {
+        this.$refs['select-input'].open = false;
+
+        if (!this.keepSearchOnBlur) {
+          this.$refs['select-input'].search = '';
+        }
+      }
+    },
+
+    /**
+     * Force the dropdown open, keeping its search text, including
+     * vue-select's own internal open state. Needed to restore the dropdown
+     * after a blur caused by opening a nested popover (e.g. an action menu)
+     * triggers vue-select's own blur handling to close it.
+     */
+    forceOpen() {
+      this.isOpen = true;
+
+      if (this.$refs['select-input']) {
+        this.$refs['select-input'].open = true;
+      }
     },
 
     onClose() {
@@ -416,16 +619,20 @@ export default {
         taggable: $attrs.taggable,
         taggable: $attrs.multiple,
         hoverable: hoverTooltip,
+        'muted-value': mutedValue,
         'compact-input': isCompact,
-        'no-label': !hasLabel
+        'no-label': !hasLabel,
+        [`ls-${size}`]: true
       }
     ]"
     :tabindex="isView || disabled ? -1 : 0"
     role="combobox"
     :aria-expanded="isOpen"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
+    :aria-description="keptSearch ? t('labeledSelect.keptSearch', { search: keptSearch }) : undefined"
     :aria-required="requiredField"
     @click="clickSelect"
+    @keydown.self.esc="clearKeptSearch"
     @keydown.self.enter="clickSelect"
     @keydown.self.down.prevent="clickSelect"
     @keydown.self.space.prevent="clickSelect"
@@ -453,12 +660,14 @@ export default {
     </div>
     <v-select
       ref="select-input"
+      :clear-search-on-blur="keepSearchOnBlur ? () => false : undefined"
       v-bind="filteredAttrs"
       class="inline"
       :close-on-select="false"
       :append-to-body="appendToBody"
       :calculate-position="positionDropdown"
       :class="{ 'no-label': !(label || '').length}"
+      :style="dropdownStyle"
       :clearable="clearable"
       :disabled="isView || disabled || loading"
       :get-option-key="getOptionKey"
@@ -466,9 +675,10 @@ export default {
       :label="optionLabel"
       :options="_options"
       :map-keydown="mappedKeys"
-      :placeholder="placeholder"
+      :placeholder="keptSearch || placeholder"
       :reduce="(x) => reduce(x)"
       :filterable="isFilterable"
+      :filter="filterOptions"
       :searchable="isSearchable"
       :selectable="selectable"
       :modelValue="value != null && !loading ? value : ''"
@@ -481,7 +691,7 @@ export default {
       @search:focus="onFocus"
       @search="onSearch"
       @open="onOpen"
-      @close="onClose"
+      @close="onClose(); keepSearch()"
       @option:selecting="closeOnSelecting"
       @option:selected="close"
       @option:deselecting="$emit('deselecting', $event)"
@@ -507,7 +717,7 @@ export default {
           </div>
         </template>
         <template v-else-if="option.kind === 'divider'">
-          <hr role="none">
+          <RcSeparator />
         </template>
         <template v-else-if="option.kind === 'highlighted'">
           <div class="option-kind-highlighted">
@@ -636,6 +846,48 @@ export default {
     }
   }
 
+  &.no-label.ls-medium {
+    height: $labeled-select-height-medium;
+    padding: 0;
+
+    .labeled-container {
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    :deep(.vs__dropdown-toggle) {
+      height: 100%;
+      box-sizing: border-box;
+      border: none;
+      padding: 0 $input-padding-sm;
+      align-items: center;
+    }
+
+    :deep(.vs__actions) {
+      &:after {
+        // reset large-mode sizing hacks (height, padding-top, top:-10px) so flexbox centers the icon
+        height: auto;
+        padding-top: 0;
+        line-height: 1;
+        top: 0;
+      }
+    }
+
+    :deep(.vs__selected-options) {
+      margin-top: 0; // reset global -5px
+    }
+
+    :deep(.vs__selected) {
+      margin-top: 0;
+      margin-left: 0;
+    }
+
+    :deep(.vs__search) {
+      margin-left: 0; // prevent text shift on open
+    }
+  }
+
   .icon-spinner {
     position: absolute;
     left: calc(50% - .5em);
@@ -663,6 +915,10 @@ export default {
         padding: 0;
       }
     }
+  }
+
+  &.muted-value :deep(.vs__selected) {
+    color: var(--muted);
   }
 
   &.taggable.compact-input {

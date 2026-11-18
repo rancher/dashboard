@@ -7,6 +7,11 @@ const meta: Meta<typeof Banner> = {
     label:    { control: 'text' },
     closable: { control: 'boolean' },
     color:    { control: 'text' },
+    role:     {
+      control:     'select',
+      options:     [null, 'alert', 'status'],
+      description: 'ARIA live-region role. Assistive technology announces the banner when it is inserted into the page. Use "alert" for errors (assertive) and "status" for informational messages (polite). Omit for decorative or purely visual banners.',
+    },
   },
 };
 
@@ -93,5 +98,23 @@ export const Error: Story = {
   args: {
     label: 'The connection has been lost. Check your connection and refresh this page.',
     color: 'error',
+  },
+};
+
+export const LiveRegionAlert: Story = {
+  ...Default,
+  args: {
+    label: 'An error has occurred. The resource could not be saved.',
+    color: 'error',
+    role:  'alert',
+  },
+};
+
+export const LiveRegionStatus: Story = {
+  ...Default,
+  args: {
+    label: 'Cluster is provisioning, this may take a few minutes.',
+    color: 'info',
+    role:  'status',
   },
 };

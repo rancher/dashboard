@@ -216,7 +216,7 @@ class BackOff {
     // Iteration: 1,     2,   3,     4,    5,      6,    7,       8,    9
     // Delay:     0.25s, 1s,  2.25s, 4s,   6.25s,  9s,   12.25s,  16s,  20.25s
     return iteration === 0 ? 1 : Math.pow(iteration, 2) * 250;
-  }
+  };
 
   private canRecurse = async(backOffEntry: BackOffEntry, {
     id, description, metadata, canFn = async() => true

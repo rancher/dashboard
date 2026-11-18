@@ -9,6 +9,8 @@ import {
   routeMatched,
   routeRequiresAuthentication,
   routeRequiresInstallRedirect,
+  navItemClaimsRoute,
+  isNavItemActive,
 } from '@shell/utils/router';
 
 describe('findRouteDefinitionByName', () => {
@@ -487,5 +489,138 @@ describe('routeRequiresInstallRedirect', () => {
     },
   ])('$desc', ({ to, expected }) => {
     expect(routeRequiresInstallRedirect(to)).toStrictEqual(expected);
+  });
+});
+
+describe('navItemClaimsRoute', () => {
+  const navItem = { name: 'projects-namespaces', navResources: ['management.cattle.io.project', 'namespace'] };
+
+  it.each([
+    {
+      desc:     'returns true when the route resource param is claimed by the nav item',
+      navItem,
+      to:       { params: { resource: 'management.cattle.io.project' } },
+      expected: true,
+    },
+    {
+      desc:     'returns true when the claimed resource comes from route meta rather than params',
+      navItem,
+      to:       { params: {}, meta: { resource: 'namespace' } },
+      expected: true,
+    },
+    {
+      desc:     'returns false when the route resource is not claimed by the nav item',
+      navItem,
+      to:       { params: { resource: 'apps.deployment' } },
+      expected: false,
+    },
+    {
+      desc:     'returns false when the route has no resource',
+      navItem,
+      to:       { params: {} },
+      expected: false,
+    },
+    {
+      desc:     'returns false when the nav item claims no resources',
+      navItem:  { name: 'namespaces' },
+      to:       { params: { resource: 'namespace' } },
+      expected: false,
+    },
+    {
+      desc:     'returns false when there is no nav item',
+      navItem:  undefined,
+      to:       { params: { resource: 'namespace' } },
+      expected: false,
+    },
+    {
+      desc:     'returns false when there is no route',
+      navItem,
+      to:       undefined,
+      expected: false,
+    },
+  ])('$desc', ({ navItem, to, expected }) => {
+    expect(navItemClaimsRoute(navItem, to)).toStrictEqual(expected);
+  });
+});
+
+describe('isNavItemActive', () => {
+  // Nav items resolve to their own path, mirroring how the type-map builds them
+  const router = {
+    getRoutes: () => [],
+    resolve:   (route) => ({ path: route?.path || route })
+  };
+
+  const clusterDrivers = { name: 'rke-kontainer-providers', route: { path: '/c/_/manager/kontainerDriver' } };
+  const clusterDashboard = {
+    name: 'cluster-dashboard', route: { path: '/c/local/explorer' }, exact: true
+  };
+
+  it.each([
+    {
+      desc:     'is active on its own route',
+      navItem:  clusterDrivers,
+      to:       { path: '/c/_/manager/kontainerDriver' },
+      expected: true,
+    },
+    {
+      desc:     'stays active on a page nested under its route',
+      navItem:  clusterDrivers,
+      to:       { path: '/c/_/manager/kontainerDriver/create' },
+      expected: true,
+    },
+    {
+      desc:     'stays active on a detail page nested under its route',
+      navItem:  clusterDrivers,
+      to:       { path: '/c/_/manager/kontainerDriver/linode-lke' },
+      expected: true,
+    },
+    {
+      desc:     'is not active on a sibling route',
+      navItem:  clusterDrivers,
+      to:       { path: '/c/_/manager/nodeDriver/create' },
+      expected: false,
+    },
+    {
+      desc:     'is not active on a route that only shares a partial path segment',
+      navItem:  clusterDrivers,
+      to:       { path: '/c/_/manager/kontainerDriverExtra' },
+      expected: false,
+    },
+    {
+      desc:     'an exact item is active on its own route',
+      navItem:  clusterDashboard,
+      to:       { path: '/c/local/explorer' },
+      expected: true,
+    },
+    {
+      desc:     'an exact item is not active on a nested route',
+      navItem:  clusterDashboard,
+      to:       { path: '/c/local/explorer/apps.deployment' },
+      expected: false,
+    },
+    {
+      desc:    'is active when the route claims it through meta.nav, ignoring case',
+      navItem: clusterDrivers,
+      to:      {
+        path: '/c/_/manager/somewhere-else', params: { cluster: '_' }, meta: { nav: '/c/:cluster/manager/kontainerDriver' }
+      },
+      expected: true,
+    },
+    {
+      desc:    'is active when it claims the route resource through navResources',
+      navItem: {
+        name: 'projects-namespaces', route: { path: '/c/local/explorer/projectsnamespaces' }, exact: true, navResources: ['management.cattle.io.project']
+      },
+      to:       { path: '/c/local/explorer/management.cattle.io.project/create', params: { resource: 'management.cattle.io.project' } },
+      expected: true,
+    },
+    {
+      desc:     'is not active when the item has no route',
+      navItem:  { name: 'no-route' },
+      to:       { path: '/c/_/manager/kontainerDriver' },
+      expected: false,
+    },
+  ])('$desc', ({ navItem, to, expected }) => {
+    expect(isNavItemActive(router, to, navItem)).toStrictEqual(expected);
   });
 });

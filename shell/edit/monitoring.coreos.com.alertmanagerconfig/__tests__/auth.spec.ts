@@ -1,7 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import Auth from '@shell/edit/monitoring.coreos.com.alertmanagerconfig/auth.vue';
 import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
-import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector';
+import SimpleSecretSelector from '@shell/components/form/SimpleSecretSelector.vue';
 
 describe('component: Auth.vue', () => {
   const defaultProps = {

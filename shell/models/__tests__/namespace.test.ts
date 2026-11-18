@@ -1,5 +1,5 @@
 import Namespace from '@shell/models/namespace';
-import { SYSTEM_NAMESPACE } from '@shell/config/labels-annotations';
+import { RESOURCE_QUOTA, SYSTEM_NAMESPACE } from '@shell/config/labels-annotations';
 import SYSTEM_NAMESPACES from '@shell/config/system-namespaces';
 import { LOCAL_CLUSTER } from '@shell/config/types';
 import { NAME as MANAGER } from '@shell/config/product/manager';
@@ -8,12 +8,7 @@ import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 
 jest.mock('@shell/components/nav/TopLevelMenu.helper', () => ({
   __esModule: true,
-  default:    {
-    helper: {
-      clustersPinned: [],
-      clustersOthers: [],
-    },
-  },
+  default:    { helper: { clustersLocal: [] } },
 }));
 
 describe('class Namespace', () => {
@@ -25,11 +20,13 @@ describe('class Namespace', () => {
     ])('should return true if it has the correct annotation', (name, annotation, expectation) => {
       const namespace = new Namespace({});
 
-      namespace.metadata = { ...namespace.metadata, name };
+      const metadata: { name: string, annotations?: Record<string, string> } = { ...namespace.metadata, name };
 
       if (annotation) {
-        namespace.metadata.annotations = { [annotation]: 'true' };
+        metadata.annotations = { [annotation]: 'true' };
       }
+
+      namespace.metadata = metadata;
 
       expect(namespace.isSystem).toBe(expectation);
     });
@@ -42,6 +39,7 @@ describe('class Namespace', () => {
 
     assertionsArr.push(['c-whatever-system', false]);
     assertionsArr.push(['cattle-whatever', false]);
+    assertionsArr.push(['k3k-system', true]);
     assertionsArr.push(['', false]);
 
     it.each(assertionsArr)('should return true if it belongs to the curated list of namespaces', (name, expectation) => {
@@ -76,11 +74,13 @@ describe('class Namespace', () => {
     ])('should return a value if is system AND has the correct prefix', (name, annotation, expectation) => {
       const namespace = new Namespace({});
 
-      namespace.metadata = { ...namespace.metadata, name };
+      const metadata: { name: string, annotations?: Record<string, string> } = { ...namespace.metadata, name };
 
       if (annotation) {
-        namespace.metadata.annotations = { [annotation]: 'true' };
+        metadata.annotations = { [annotation]: 'true' };
       }
+
+      namespace.metadata = metadata;
 
       expect(namespace.isObscure).toBe(expectation);
     });
@@ -188,7 +188,7 @@ describe('class Namespace', () => {
       const moveAction = namespace.availableActions.find((a: any) => a.action === 'move');
 
       expect(moveAction).toBeDefined();
-      expect(moveAction.enabled).toBe(true);
+      expect(moveAction?.enabled).toBe(true);
     });
 
     it('should exclude the move action when user cannot update the namespace', () => {
@@ -273,7 +273,41 @@ describe('class Namespace', () => {
       expect(loc.params.product).toBe(EXPLORER);
     });
   });
-  it.todo('should return the resourceQuota');
+  describe('resourceQuota', () => {
+    it('should return the parsed resourceQuota annotation', () => {
+      const namespace = new Namespace({ metadata: { annotations: { [RESOURCE_QUOTA]: '{"limit":{"limitsCpu":"500m"}}' } } });
+
+      expect(namespace.resourceQuota).toStrictEqual({ limit: { limitsCpu: '500m' } });
+    });
+
+    it.each([
+      ['there are no annotations', undefined],
+      ['the annotation is missing', {}],
+      ['the annotation is malformed JSON', { [RESOURCE_QUOTA]: '{"limit":{"limitsCpu":"500m"\'' }],
+      ['the annotation is JSON null', { [RESOURCE_QUOTA]: 'null' }],
+      ['the annotation is a JSON array', { [RESOURCE_QUOTA]: '[]' }],
+    ])('should return an empty limit when %s', (_, annotations) => {
+      const namespace = new Namespace({ metadata: { annotations } });
+
+      expect(namespace.resourceQuota).toStrictEqual({ limit: {} });
+    });
+  });
+
+  describe('hasInvalidResourceQuota', () => {
+    it.each([
+      [false, 'there are no annotations', undefined],
+      [false, 'the annotation is missing', {}],
+      [false, 'the annotation is valid', { [RESOURCE_QUOTA]: '{"limit":{"limitsCpu":"500m"}}' }],
+      [true, 'the annotation is malformed JSON', { [RESOURCE_QUOTA]: '{"limit":{"limitsCpu":"500m"\'' }],
+      [true, 'the annotation is JSON null', { [RESOURCE_QUOTA]: 'null' }],
+      [true, 'the annotation is a JSON array', { [RESOURCE_QUOTA]: '[]' }],
+    ])('should return %p when %s', (expected, _, annotations) => {
+      const namespace = new Namespace({ metadata: { annotations } });
+
+      expect(namespace.hasInvalidResourceQuota).toBe(expected);
+    });
+  });
+
   it.todo('should set the resourceQuota as reactive Vue property');
   it.todo('should reset project with cleanForNew');
 
@@ -329,8 +363,7 @@ describe('class Namespace', () => {
     it('should remove type Link formatter when in manager product without local cluster access', () => {
       const namespace = new Namespace({});
 
-      sideNavService.helper.clustersPinned.length = 0;
-      sideNavService.helper.clustersOthers.length = 0;
+      sideNavService.helper.clustersLocal.length = 0;
 
       jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: MANAGER });
@@ -346,16 +379,16 @@ describe('class Namespace', () => {
       const result = namespace.glance;
       const typeItem = result.find((item: any) => item.name === 'type');
 
-      expect(typeItem.formatter).toBeUndefined();
-      expect(typeItem.formatterOpts).toBeUndefined();
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBeUndefined();
+      expect(typeItem?.formatterOpts).toBeUndefined();
     });
 
     it('should keep type Link formatter when in manager product with local cluster access', () => {
       const namespace = new Namespace({});
 
-      sideNavService.helper.clustersPinned.length = 0;
-      sideNavService.helper.clustersPinned.push({ id: LOCAL_CLUSTER } as any);
-      sideNavService.helper.clustersOthers.length = 0;
+      sideNavService.helper.clustersLocal.length = 0;
+      sideNavService.helper.clustersLocal.push({ id: LOCAL_CLUSTER } as any);
 
       jest.spyOn(namespace, 'project', 'get').mockReturnValue(null);
       jest.spyOn(namespace, '$rootGetters', 'get').mockReturnValue({ productId: MANAGER });
@@ -371,8 +404,9 @@ describe('class Namespace', () => {
       const result = namespace.glance;
       const typeItem = result.find((item: any) => item.name === 'type');
 
-      expect(typeItem.formatter).toBe('Link');
-      expect(typeItem.formatterOpts).toBeDefined();
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBe('Link');
+      expect(typeItem?.formatterOpts).toBeDefined();
     });
 
     it('should keep type Link formatter when not in manager product', () => {
@@ -392,8 +426,9 @@ describe('class Namespace', () => {
       const result = namespace.glance;
       const typeItem = result.find((item: any) => item.name === 'type');
 
-      expect(typeItem.formatter).toBe('Link');
-      expect(typeItem.formatterOpts).toBeDefined();
+      expect(typeItem).toBeDefined();
+      expect(typeItem?.formatter).toBe('Link');
+      expect(typeItem?.formatterOpts).toBeDefined();
     });
   });
 

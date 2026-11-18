@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import GitRepo from '@shell/models/fleet.cattle.io.gitrepo';
 import FleetSummary from '@shell/components/fleet/FleetSummary.vue';
+import { STATES_ENUM } from '@shell/plugins/dashboard-store/resource-class';
 
 const REPO_NAME = 'testrepo';
 
@@ -210,6 +211,40 @@ const mockedBundlesOutOfRepo = [{
   }
 }];
 
+const mockedWaitingForDependencyBundle = [{
+  id:            `fleet-default/${ REPO_NAME }-${ CLUSTER_NAME }-9012`,
+  type:          'fleet.cattle.io.bundle',
+  apiVersion:    'fleet.cattle.io/v1alpha1',
+  kind:          'Bundle',
+  appSourceName: REPO_NAME,
+  namespace:     'fleet-default',
+  metadata:      {
+    name:      `${ REPO_NAME }-${ CLUSTER_NAME }-9012`,
+    namespace: 'fleet-default',
+    state:     {
+      error:         true,
+      message:       'waiting for dependent bundle(s) to reach an accepted state: zz-dep-broken (state: ErrApplied, accepted: Ready)',
+      name:          'waitingfordependency',
+      transitioning: true
+    },
+  },
+  status: {
+    conditions: [
+      {
+        error:         true,
+        message:       'WaitingForDependency(1) [Cluster fleet-local/local: waiting for dependent bundle(s) to reach an accepted state: zz-dep-broken (state: ErrApplied, accepted: Ready)]',
+        status:        'False',
+        transitioning: true,
+        type:          'Ready'
+      }
+    ],
+    summary: {
+      desiredReady: 1,
+      ready:        0
+    }
+  }
+}];
+
 const mockRepo = {
   id:         `fleet-default/${ REPO_NAME }`,
   type:       'fleet.cattle.io.gitrepo',
@@ -328,7 +363,7 @@ const mockRepo = {
   }
 };
 
-const mockStore = { getters: { 'i18n/withFallback': (key, opt, fallback) => fallback } };
+const mockStore = { getters: { 'i18n/withFallback': (key: string, opt: unknown, fallback: string) => fallback } };
 
 describe('component: FleetSummary', () => {
   it.each([
@@ -358,5 +393,16 @@ describe('component: FleetSummary', () => {
     const bundleCountEl = wrapper.find('[data-testid="resource-deployment-summary"] .count');
 
     expect(bundleCountEl.text()).toBe(bundleCount);
+  });
+
+  it('counts a bundle held back by a dependency as waiting, not as an error', () => {
+    const wrapper = mount(FleetSummary, {
+      props:  { bundles: mockedWaitingForDependencyBundle, value: new GitRepo(mockRepo) },
+      global: { mocks: { $store: mockStore }, directives: { 'trim-whitespace': (id: any) => id } },
+    });
+
+    const counted = (wrapper.vm as any).bundleCounts.filter((c: any) => c.count > 0).map((c: any) => c.status);
+
+    expect(counted).toStrictEqual([STATES_ENUM.WAITING_FOR_DEPENDENCY]);
   });
 });

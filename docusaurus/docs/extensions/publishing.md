@@ -88,6 +88,18 @@ When creating a Tagged Release, the tag name **_MUST_** match the proper Extensi
 
   If the extension folder in named **my-awesome-extension** and the `version` property value in `./pkg/<-YOUR-EXT-DIR->/package.json` is **1.2.3**, then a correct tag to build the Extension Helm Chart would be: `my-awesome-extension-1.2.3`
 
+#### Proper Tagged Release naming scheme to build an Extension Bundle (requires Shell X.X.X or greater)
+
+A [bundle](./advanced/bundling-extensions.md) ships several extensions as a single
+installable unit. Its tag is prefixed with `bundle-`, followed by the bundle name and
+version as declared in `rancher.bundles[]` in the **root** `package.json`:
+
+  If the bundle is named **my-awesome-suite** at version **1.0.0**, the tag is:
+  `bundle-my-awesome-suite-1.0.0`
+
+  The same workflow handles all three tag shapes — the prefix is what tells it which
+  kind of release this is, so no extra configuration is needed.
+
 ---
 
 

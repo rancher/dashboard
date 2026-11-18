@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RcDropdown, RcDropdownTrigger, RcDropdownItem } from '@components/RcDropdown';
-import { ButtonSize } from '@components/RcButton';
+import { RcButtonSize } from '@components/RcButton';
 type HiddenAction = {
   action: string;
   enabled: boolean;
@@ -16,7 +16,7 @@ withDefaults(defineProps<{
   disabled: boolean,
   hiddenActions: HiddenAction[],
   actionTooltip: unknown,
-  size?: ButtonSize,
+  size?: RcButtonSize,
 }>(), { size: 'large' });
 
 const emit = defineEmits(['click', 'mouseover', 'mouseleave']);

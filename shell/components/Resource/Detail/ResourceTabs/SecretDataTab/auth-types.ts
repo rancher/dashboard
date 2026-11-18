@@ -32,13 +32,42 @@ export const useSecretRows = (resource: any) => {
   });
 };
 
+/**
+ * Extract username/password from a single docker `auths` entry.
+ *
+ * Rancher writes entries as separate `username`/`password` fields, but secrets created from a
+ * `docker login` config (`~/.docker/config.json`) store credentials in a single base64-encoded
+ * `auth` field (`username:password`). Prefer the explicit fields, fall back to decoding `auth`.
+ */
+export const decodeDockerAuthEntry = (entry: any = {}): { username: string; password: string } => {
+  if (entry.username || entry.password) {
+    return { username: entry.username || '', password: entry.password || '' };
+  }
+
+  if (entry.auth) {
+    const decoded = base64Decode(entry.auth) || '';
+    // The password may itself contain a colon, so only split on the first one.
+    const idx = decoded.indexOf(':');
+
+    if (idx !== -1) {
+      return { username: decoded.slice(0, idx), password: decoded.slice(idx + 1) };
+    }
+  }
+
+  return { username: '', password: '' };
+};
+
 export const useDockerAuths = (resource: any) => {
   const secretInfo = useSecretInfo(resource);
 
   return computed(() => {
     const json = base64Decode(secretInfo.value.secretData['.dockerconfigjson']);
 
-    return JSON.parse(json).auths;
+    try {
+      return JSON.parse(json)?.auths || {};
+    } catch {
+      return {};
+    }
   });
 };
 
@@ -55,10 +84,9 @@ export const useDockerBasic = (resource: any) => {
   const dockerRegistry = useDockerRegistry(resource);
 
   return computed(() => {
-    return {
-      username: dockerAuths.value[dockerRegistry.value.registryUrl].username,
-      password: dockerAuths.value[dockerRegistry.value.registryUrl].password,
-    };
+    const entry = dockerAuths.value[dockerRegistry.value.registryUrl] || {};
+
+    return decodeDockerAuthEntry(entry);
   });
 };
 

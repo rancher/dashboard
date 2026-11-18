@@ -13,10 +13,10 @@ describe('growl store', () => {
 
   describe('getters', () => {
     const item1 = {
-      id: 1, color: 'success', title: 'item 1'
+      id: 1, started: 1000, color: 'success', title: 'item 1'
     };
     const item2 = {
-      id: 2, color: 'error', title: 'item 2'
+      id: 2, started: 2000, color: 'error', title: 'item 2'
     };
     let mockState: ReturnType<typeof state>;
 
@@ -220,6 +220,20 @@ describe('growl store', () => {
           title:        'Done',
           message:      'ok',
         });
+      });
+
+      it('keeps an action on the growl but does not send it to the notification centre', async() => {
+        // The notification is encrypted into local storage, which a callback cannot survive
+        const action = { label: 'Undo', run: jest.fn() };
+
+        dispatch.mockResolvedValue('notif-undo');
+
+        await actions.success({ commit, dispatch } as unknown as Parameters<typeof actions.success>[0], {
+          title: 'Done', message: 'ok', action
+        });
+
+        expect(dispatch.mock.calls[0][1]).not.toHaveProperty('action');
+        expect(commit.mock.calls[0][1]).toMatchObject({ action });
       });
     });
 

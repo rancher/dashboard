@@ -4,6 +4,8 @@ import { StorePagination } from '@shell/types/store/pagination.types';
 import { VuexStore } from '@shell/types/store/vuex';
 import Pod from '@shell/models/pod';
 
+type TestPod = Pod & { prop: string, metadata: Record<string, string> };
+
 describe('mutations', () => {
   jest.mock('vue', () => ({ reactive: jest.fn((arr) => arr) }));
 
@@ -23,13 +25,13 @@ describe('mutations', () => {
     ctx = {
       getters: {
         keyFieldForType: jest.fn(() => 'id'),
-        cleanResource:   getters.cleanResource()
+        cleanResource:   getters.cleanResource(),
+        classify:        () => Pod
       }
     };
     resourceType = 'pod';
     pagination = { request: undefined, result: undefined };
     revision = 'abc-123';
-    ctx.getters.classify = () => Pod;
   });
 
   describe('loadPage', () => {
@@ -67,7 +69,7 @@ describe('mutations', () => {
     });
 
     it('should update existing resources in-place (tests "replaceResource" effect)', () => {
-      const v1Resource = new Pod({ id: 'a', metadata: { a: 'v1-a' } }, ctx);
+      const v1Resource = new Pod({ id: 'a', metadata: { a: 'v1-a' } }, ctx) as TestPod;
 
       state.types[resourceType] = {
         list:       [v1Resource],
@@ -137,7 +139,7 @@ describe('mutations', () => {
     it('should handle partial overlaps (update, remove stale, add new)', () => {
       // 1. Pre-load cache
       const staleResource = new Pod({ id: 'a', prop: 'stale-pod' }, ctx);
-      const v1Resource = new Pod({ id: 'b', prop: 'v1-pod-b' }, ctx);
+      const v1Resource = new Pod({ id: 'b', prop: 'v1-pod-b' }, ctx) as TestPod;
 
       state.types[resourceType] = {
         list:       [staleResource, v1Resource],

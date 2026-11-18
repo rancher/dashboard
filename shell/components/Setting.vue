@@ -1,9 +1,10 @@
 <script>
 import ActionMenu from '@shell/components/ActionMenuShell.vue';
+import { RcHeading } from '@components/RcHeading';
 import { mapGetters } from 'vuex';
 export default {
   name:       'Setting',
-  components: { ActionMenu },
+  components: { ActionMenu, RcHeading },
   props:      {
     value: {
       type:     Object,
@@ -13,6 +14,11 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
     ...mapGetters({ options: 'action-menu/optionsArray' }),
+    ...mapGetters({ i18nExists: 'i18n/exists' }),
+
+    descriptionKey() {
+      return `advancedSettings.descriptions.${ this.value.id }`;
+    },
   },
 };
 </script>
@@ -24,7 +30,10 @@ export default {
   >
     <div class="header">
       <div class="title">
-        <h1>
+        <RcHeading
+          :size="1"
+          class="id"
+        >
           {{ value.id }}
           <span
             v-if="value.fromEnv"
@@ -35,8 +44,14 @@ export default {
             v-else-if="value.customized"
             class="modified"
           >{{ t('advancedSettings.modified') }}</span>
-        </h1>
-        <h2>{{ t(`advancedSettings.descriptions.${value.id}`) }}</h2>
+        </RcHeading>
+        <RcHeading
+          v-if="i18nExists(descriptionKey)"
+          :size="2"
+          class="description"
+        >
+          {{ t(descriptionKey) }}
+        </RcHeading>
       </div>
       <div
         v-if="value.hasActions"
@@ -44,7 +59,7 @@ export default {
       >
         <action-menu
           :resource="value.data"
-          :button-aria-label="t('advancedSettings.edit.label')"
+          :button-aria-label="t('advancedSettings.edit.moreActions', { setting: value.id })"
           data-testid="action-button"
           button-variant="tertiary"
         />
@@ -87,10 +102,11 @@ export default {
   padding: 20px;
   border-radius: var(--border-radius);
 
-  h1 {
+  .id {
     font-size: 14px;
   }
-  h2 {
+
+  .description {
     font-size: 12px;
     margin-bottom: 0;
     opacity: 0.8;

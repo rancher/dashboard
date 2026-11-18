@@ -20,7 +20,8 @@ import Accordion from '@components/Accordion/Accordion.vue';
 import Banner from '@components/Banner/Banner.vue';
 import PrivateRegistry from '@shell/components/form/PrivateRegistry.vue';
 import { PRIVATE_REGISTRY_CONTEXT } from '@shell/components/form/PrivateRegistry.constants';
-import ClusterMembershipEditor, { canViewClusterMembershipEditor } from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import ClusterMembershipEditor from '@shell/components/form/Members/ClusterMembershipEditor.vue';
+import { useClusterMembership, saveRoleBindings } from '@shell/composables/useClusterMembership';
 import Loading from '@shell/components/Loading.vue';
 
 import { EKSConfig, EKSNodeGroup, AWS, NormanCluster } from '../types';
@@ -205,6 +206,10 @@ export default defineComponent({
     }
   },
 
+  setup() {
+    return useClusterMembership();
+  },
+
   data() {
     // if we are registering a new EKS cluster most of the form is hidden
     const isImport = this.$route?.query?.mode === 'import';
@@ -216,7 +221,6 @@ export default defineComponent({
       PRIVATE_REGISTRY_CONTEXT,
       nodeGroups:             [] as EKSNodeGroup[],
       config:                 { } as EKSConfig,
-      membershipUpdate:       {} as {newBindings: any[], removedBindings: any[], save: Function},
       originalVersion:        '',
       privateRegistryEnabled: false,
       fvFormRuleSets:         isImport ? [{
@@ -238,8 +242,11 @@ export default defineComponent({
       },
       {
         path:  'nodegroupNames',
-        rules: ['nodeGroupNamesRequired', 'nodeGroupNamesUnique']
-
+        rules: ['nodeGroupNamesRequired']
+      },
+      {
+        path:  'nodeGroupNamesUnique',
+        rules: ['nodeGroupNamesUnique']
       },
       {
         path:  'maxSize',
@@ -426,10 +433,6 @@ export default defineComponent({
       return this.normanCluster?.eksStatus?.subnets || [];
     },
 
-    canManageMembers(): boolean {
-      return canViewClusterMembershipEditor(this.$store);
-    },
-
     CREATE(): string {
       return _CREATE;
     },
@@ -514,14 +517,8 @@ export default defineComponent({
       }
     },
 
-    onMembershipUpdate(update: {newBindings: any[], removedBindings: any[], save: Function}): void {
-      this['membershipUpdate'] = update;
-    },
-
     async saveRoleBindings(): Promise<void> {
-      if (this.membershipUpdate.save) {
-        await this.membershipUpdate.save(this.normanCluster.id);
-      }
+      return saveRoleBindings(this.membershipUpdate, this.normanCluster.id as string);
     },
 
     // only save values that differ from upstream aks spec - see diffUpstreamSpec comments for details
@@ -757,6 +754,7 @@ export default defineComponent({
             :weight="-1 * i"
             :label="node.nodegroupName || t('eks.nodeGroups.unnamed')"
             :name="`${node.nodegroupName} ${i}`"
+            :error="node.__nameUnique === false || node.__nameRequired === false"
           >
             <NodeGroup
               v-model:node-role="node.nodeRole"

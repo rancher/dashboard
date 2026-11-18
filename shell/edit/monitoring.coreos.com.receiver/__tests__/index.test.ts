@@ -7,22 +7,27 @@ describe('shell/edit/monitoring.coreos.com.receiver/index.vue', () => {
     getters: {
       'cluster/schemaFor': jest.fn(() => ({ resourceFields })),
       clusterId:           'c-cluster-123',
-      'i18n/t':            (key) => key,
+      'i18n/t':            (key: string) => key,
     },
     dispatch: jest.fn(),
   });
 
+  // Each *_configs entry is a loose bag of alertmanager fields, and the tests move
+  // values between them (smarthost <-> host/port), so they are typed as such rather
+  // than being inferred as never[] from the empty literals.
+  type ReceiverConfig = Record<string, string | undefined>;
+
   const baseValue = () => ({
     spec: {
       name:              'test-receiver',
-      email_configs:     [],
-      slack_configs:     [],
-      webhook_configs:   [],
-      pagerduty_configs: [],
-      opsgenie_configs:  [],
-      victorops_configs: [],
-      pushover_configs:  [],
-      wechat_configs:    [],
+      email_configs:     [] as ReceiverConfig[],
+      slack_configs:     [] as ReceiverConfig[],
+      webhook_configs:   [] as ReceiverConfig[],
+      pagerduty_configs: [] as ReceiverConfig[],
+      opsgenie_configs:  [] as ReceiverConfig[],
+      victorops_configs: [] as ReceiverConfig[],
+      pushover_configs:  [] as ReceiverConfig[],
+      wechat_configs:    [] as ReceiverConfig[],
     },
     applyDefaults:      jest.fn(),
     save:               jest.fn(),

@@ -5,39 +5,22 @@ import { createCssVars } from '@shell/utils/color';
 import { setTitle } from '@shell/config/private-label';
 import { requireJson } from '@shell/utils/require-asset';
 import { setFavIcon, haveSetFavIcon } from '@shell/utils/favicon';
-import { allHash } from '@shell/utils/promise';
 import { fetchInitialSettings } from '@shell/utils/settings';
-import CspAdapterUtils from '@shell/utils/cspAdaptor';
 
 export default {
   async fetch() {
     try {
-      const res = await allHash({
-        // Ensure we read the settings even when we are not authenticated
-        globalSettings: fetchInitialSettings(this.$store),
-        apps:           CspAdapterUtils.fetchCspAdaptorApp(this.$store),
-      });
+      await fetchInitialSettings(this.$store);
 
       // The favicon is implicitly dependent on the initial settings having already been fetched
       if (!haveSetFavIcon()) {
         setFavIcon(this.$store);
       }
-
-      this.apps = res.apps;
     } catch (e) { }
-
-    // Setting this up front will remove `computed` churn, and we only care that we've initialised them
-    this.haveAppsAndSettings = !!this.apps && !!this.globalSettings;
-  },
-
-  data() {
-    return {
-      apps: null, haveAppsAndSettings: null, canPaginate: false
-    };
   },
 
   computed: {
-    ...mapGetters({ loggedIn: 'auth/loggedIn', brand: 'management/brand' }),
+    ...mapGetters({ brand: 'management/brand' }),
 
     // added to fix https://github.com/rancher/dashboard/issues/10788
     // because on logout the brand mixin is mounted, but then a management store reset happens
@@ -69,26 +52,6 @@ export default {
 
       return this.$store.getters['prefs/theme'];
     },
-
-    cspAdapter() {
-      if (!this.canCalcCspAdapter) {
-        // We only have a watch on cspAdapter to kick off persisting the brand setting.
-        // So we need to ensure we don't return an undefined here... which would match the undefined gave if no csp app was found...
-        // .. and wouldn't kick off the watcher
-        return '';
-      }
-
-      // Note! this used to be `findBy(this.app)` however for that case we lost reactivity on the collection
-      // (computed fires before fetch, fetch happens and update apps, computed would not fire again - even with vue.set)
-      // So use `.find` in method instead
-      return CspAdapterUtils.hasCspAdapter({ $store: this.$store, apps: this.apps });
-    },
-
-    canCalcCspAdapter() {
-      // We need to take consider the loggedIn state, as the brand mixin is used in the logout page where we can be in a mixed state
-      // (things in store but user has no auth to make changes)
-      return this.loggedIn && this.haveAppsAndSettings;
-    }
   },
 
   watch: {
@@ -121,35 +84,6 @@ export default {
           this.setCustomColor(this.linkColor, 'link');
         }
         this.setBodyClass();
-      },
-      immediate: true
-    },
-
-    cspAdapter: {
-      handler(neu) {
-        if (!this.canCalcCspAdapter) {
-          return;
-        }
-
-        // The brand setting will only get updated if...
-        if (neu && !this.brand) {
-          // 1) There should be a brand... but there's no brand setting
-          const brandSetting = this.globalSettings?.find((gs) => gs.id === SETTING.BRAND);
-
-          if (brandSetting) {
-            brandSetting.value = 'csp';
-            brandSetting.save();
-          } else {
-            const schema = this.$store.getters['management/schemaFor'](MANAGEMENT.SETTING);
-            const url = schema?.linkFor('collection');
-
-            if (url) {
-              this.$store.dispatch('management/create', {
-                type: MANAGEMENT.SETTING, metadata: { name: SETTING.BRAND }, value: 'csp', default: ''
-              }).then((setting) => setting.save());
-            }
-          }
-        }
       },
       immediate: true
     },

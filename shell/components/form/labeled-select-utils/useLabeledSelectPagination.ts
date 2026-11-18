@@ -12,6 +12,7 @@ interface LabeledSelectPaginationProps {
   paginate?: LabelSelectPaginateFn | null;
   inStore?: string;
   resourceType?: string | null;
+  context?: string | null;
   options?: Array<any>;
 }
 
@@ -38,6 +39,11 @@ export const labeledSelectPaginationProps = {
     default: 'cluster',
   },
 
+  context: {
+    type:    String,
+    default: null,
+  },
+
   /**
    * Resource to show
   */
@@ -62,7 +68,7 @@ export const useLabeledSelectPagination = (props: LabeledSelectPaginationProps):
   const paginating = ref(false);
 
   const canPaginate = computed(() => {
-    return !!props.paginate && !!props.resourceType && store.getters[`${ props.inStore }/paginationEnabled`](props.resourceType);
+    return !!props.paginate && !!props.resourceType && store.getters[`${ props.inStore }/paginationEnabled`]({ id: props.resourceType, context: props.context });
   });
 
   const _options = computed(() => canPaginate.value ? page.value : (props.options || []));

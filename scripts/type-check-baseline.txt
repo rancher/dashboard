@@ -1,0 +1,304 @@
+# Auto-generated type-check baseline. Do not edit by hand.
+# Regenerate with: yarn type-check:baseline
+# Total errors: 301
+pkg/aks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/aks/components/Config.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+pkg/aks/components/Config.vue: error TS2532: Object is possibly 'undefined'.
+pkg/aks/components/Config.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/aks/components/Config.vue: error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'sn' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7006: Parameter 'v' implicitly has an 'any' type.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"_validSize"' can't be used to index type 'AKSNodePool'.
+pkg/aks/components/Config.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"_validSize"' can't be used to index type 'AKSNodePool'.
+pkg/aks/components/CruAks.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/aks/components/CruAks.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/aks/components/CruAks.vue: error TS7006: Parameter 'val' implicitly has an 'any' type.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/aks/util/validators.ts: error TS1530: Unicode property value expressions are only available when the Unicode (u) flag or the Unicode Sets (v) flag is set.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/eks/components/CruEKS.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/CruEKS.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/CruEKS.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/CruEKS.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/Networking.vue: error TS2740: Type 'VuexStore' is missing the following properties from type 'Store<any>': state, install, replaceState, subscribe, and 6 more.
+pkg/eks/components/Networking.vue: error TS2740: Type 'VuexStore' is missing the following properties from type 'Store<any>': state, install, replaceState, subscribe, and 6 more.
+pkg/eks/components/NodeGroup.vue: error TS18046: 'opt' is of type 'unknown'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'label' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type 'never'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2339: Property 'supportedArchitectures' does not exist on type '{}'.
+pkg/eks/components/NodeGroup.vue: error TS2345: Argument of type '`update:${string}`' is not assignable to parameter of type '"error" | "update:instanceType" | "update:spotInstanceTypes" | "update:ec2SshKey" | "update:launchTemplate" | "update:nodeRole" | "update:version" | "update:poolIsUpgrading" | ... 12 more ... | "update:arm"'.
+pkg/eks/components/NodeGroup.vue: error TS2345: Argument of type '`update:${string}`' is not assignable to parameter of type '"error" | "update:instanceType" | "update:spotInstanceTypes" | "update:ec2SshKey" | "update:launchTemplate" | "update:nodeRole" | "update:version" | "update:poolIsUpgrading" | ... 12 more ... | "update:arm"'.
+pkg/eks/components/NodeGroup.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/eks/components/NodeGroup.vue: error TS7006: Parameter 'options' implicitly has an 'any' type.
+pkg/gke/components/AuthScopes.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type '"source" | "trace" | "logging" | "monitoring" | "compute" | "devstorage" | "taskqueue" | "bigquery" | "clouddatastore" | "cloud-platform" | "bigtable.data" | "bigtable.admin" | ... 5 more ... | "sqlservice"'.
+pkg/gke/components/AuthScopes.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type '"source" | "trace" | "logging" | "monitoring" | "compute" | "devstorage" | "taskqueue" | "bigquery" | "clouddatastore" | "cloud-platform" | "bigtable.data" | "bigtable.admin" | ... 5 more ... | "sqlservice"'.
+pkg/gke/components/AuthScopes.vue: error TS2345: Argument of type 'string' is not assignable to parameter of type '"source" | "trace" | "logging" | "monitoring" | "compute" | "devstorage" | "taskqueue" | "bigquery" | "clouddatastore" | "cloud-platform" | "bigtable.data" | "bigtable.admin" | ... 5 more ... | "sqlservice"'.
+pkg/gke/components/AuthScopes.vue: error TS2345: Argument of type 'string' is not assignable to parameter of type '"source" | "trace" | "logging" | "monitoring" | "compute" | "devstorage" | "taskqueue" | "bigquery" | "clouddatastore" | "cloud-platform" | "bigtable.data" | "bigtable.admin" | ... 5 more ... | "sqlservice"'.
+pkg/gke/components/AuthScopes.vue: error TS2538: Type 'undefined' cannot be used as an index type.
+pkg/gke/components/AuthScopes.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/gke/components/AuthScopes.vue: error TS7006: Parameter 'opt' implicitly has an 'any' type.
+pkg/gke/components/AuthScopes.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ userinfo: { labelKey: string; value: string; }[]; compute: { labelKey: string; value: string; }[]; devstorage: { labelKey: string; value: string; }[]; taskqueue: { labelKey: string; value: string; }[]; bigquery: { ...; }[]; ... 12 more ...; cloud_debugger: { ...; }[]; }'.
+pkg/gke/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/gke/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
+pkg/gke/components/Config.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Config.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Config.vue: error TS2353: Object literal may only specify known properties, and 'includePrerelease' does not exist in type 'Options'.
+pkg/gke/components/Config.vue: error TS2531: Object is possibly 'null'.
+pkg/gke/components/Config.vue: error TS2554: Expected 4 arguments, but got 5.
+pkg/gke/components/Config.vue: error TS7006: Parameter 'z' implicitly has an 'any' type.
+pkg/gke/components/CruGKE.vue: error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/gke/components/CruGKE.vue: error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+pkg/gke/components/CruGKE.vue: error TS2551: Property 'decription' does not exist on type '{ imported: boolean; clusterAddons: { horizontalPodAutoscaling: boolean; httpLoadBalancing: boolean; networkPolicyConfig: boolean; }; clusterIpv4Cidr: string; clusterName: string; description: string; ... 17 more ...; zone: string; }'. Did you mean 'description'?
+pkg/gke/components/CruGKE.vue: error TS2554: Expected 0 arguments, but got 1.
+pkg/gke/components/CruGKE.vue: error TS7006: Parameter 'val' implicitly has an 'any' type.
+pkg/gke/components/CruGKE.vue: error TS7053: Element implicitly has an 'any' type because expression of type '"config.imageType"' can't be used to index type '{ autoscaling: { enabled?: boolean | undefined; maxNodeCount?: number | undefined; minNodeCount?: number | undefined; }; config: { diskSizeGb?: number | undefined; diskType?: string | undefined; ... 8 more ...; tags?: any; }; ... 8 more ...; _nameUnique?: boolean | undefined; }'.
+pkg/gke/components/Import.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Networking.vue: error TS18048: '__VLS_ctx.selectedClusterSecondaryRangeName' is possibly 'undefined'.
+pkg/gke/components/Networking.vue: error TS18048: '__VLS_ctx.selectedClusterSecondaryRangeName' is possibly 'undefined'.
+pkg/gke/components/Networking.vue: error TS2339: Property 'ipCidrRange' does not exist on type 'string | GKESecondaryRangeOption'.
+pkg/gke/components/Networking.vue: error TS2339: Property 'ipCidrRange' does not exist on type 'string | GKESecondaryRangeOption'.
+pkg/gke/components/Networking.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Networking.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/gke/components/Networking.vue: error TS2345: Argument of type 'VuexStore' is not assignable to parameter of type 'Store<any>'.
+pkg/rancher-components/src/components/Form/LabeledInput/LabeledInput.vue: error TS2322: Type 'string | number | Record<string, any>' is not assignable to type 'string'.
+pkg/rancher-components/src/components/RcItemCard/RcItemCard.vue: error TS2307: Cannot find module './RcItemCardAction' or its corresponding type declarations.
+pkg/rancher-prime/config/navigation.ts: error TS2353: Object literal may only specify known properties, and 'ifFeature' does not exist in type 'ConfigureVirtualTypeOptions'.
+pkg/rancher-prime/pages/registration.composable.ts: error TS2339: Property 'message' does not exist on type '{}'.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2352: Conversion of type 'ActionFindPageTransientResponse<ResourceInstance<Record<string, any>>>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+shell/apis/resources/__tests__/resources-api-class.test.ts: error TS2352: Conversion of type 'ActionFindPageTransientResponse<ResourceInstance<Record<string, any>>>' to type 'any[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+shell/apis/shell/index.ts: error TS2459: Module '"@shell/apis/intf/shell"' declares 'ProxyApi' locally, but it is not exported.
+shell/apis/shell/proxy.ts: error TS2305: Module '"@shell/apis/intf/shell"' has no exported member 'ProxyAuthCloudCredential'.
+shell/apis/shell/proxy.ts: error TS2305: Module '"@shell/apis/intf/shell"' has no exported member 'ProxyAuthToken'.
+shell/apis/shell/proxy.ts: error TS2305: Module '"@shell/apis/intf/shell"' has no exported member 'ProxyRequestOptions'.
+shell/apis/shell/proxy.ts: error TS2459: Module '"@shell/apis/intf/shell"' declares 'ProxyApi' locally, but it is not exported.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS18047: 'configMap' is possibly 'null'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'data' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'data' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'data' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'data' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2339: Property 'save' does not exist on type 'object'.
+shell/components/ConfigMapSettings/index.vue: error TS2345: Argument of type 'T' is not assignable to parameter of type 'string | number | null | undefined'.
+shell/components/Drawer/ResourceDetailDrawer/__tests__/ConfigTab.test.ts: error TS2322: Type '{ resource: { resource: string; }; component: Raw<DefineComponent<ExtractPropTypes<{ value: { type: ObjectConstructor; required: true; }; mode: { type: StringConstructor; required: true; }; initialValue: { ...; }; useTabbedHash: { ...; }; }>, ... 18 more ..., any>>; }' is not assignable to type 'VNodeProps & { __v_isVNode?: undefined; [Symbol.iterator]?: undefined; } & Record<string, any> & { readonly resource: any; readonly component: any; readonly resourceType: string; readonly defaultTab?: string | undefined; } & AllowedComponentProps & ComponentCustomProps'.
+shell/components/Drawer/ResourceDetailDrawer/__tests__/ConfigTab.test.ts: error TS2322: Type '{ resource: { resource: string; }; component: Raw<DefineComponent<ExtractPropTypes<{ value: { type: ObjectConstructor; required: true; }; mode: { type: StringConstructor; required: true; }; initialValue: { ...; }; useTabbedHash: { ...; }; }>, ... 18 more ..., any>>; }' is not assignable to type 'VNodeProps & { __v_isVNode?: undefined; [Symbol.iterator]?: undefined; } & Record<string, any> & { readonly resource: any; readonly component: any; readonly resourceType: string; readonly defaultTab?: string | undefined; } & AllowedComponentProps & ComponentCustomProps'.
+shell/components/Drawer/ResourceDetailDrawer/index.vue: error TS2614: Module '"@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue"' has no exported member 'Props'. Did you mean to use 'import Props from "@shell/components/Drawer/ResourceDetailDrawer/YamlTab.vue"' instead?
+shell/components/Resource/Detail/Metadata/index.vue: error TS2322: Type '(returnFocusSelector: string, defaultTab: string) => void' is not assignable to type '(returnFocusSelector: string) => void'.
+shell/components/Resource/Detail/TitleBar/__tests__/index.test.ts: error TS2322: Type 'DefineComponent<{}, {}, {}, {}, {}, ComponentOptionsMixin, ComponentOptionsMixin, {}, string, PublicProps, ToResolvedProps<{}, {}>, ... 8 more ..., any>' is not assignable to type 'VueElement | AdditionalActionButton[] | undefined'.
+shell/components/fleet/FleetClusterTargets/index.vue: error TS2345: Argument of type '{ raw: boolean; }' is not assignable to parameter of type 'boolean | undefined'.
+shell/components/fleet/HelmOpAdvancedTab.vue: error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
+shell/components/fleet/HelmOpAdvancedTab.vue: error TS2322: Type 'unknown[]' is not assignable to type 'string[]'.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2739: Type 'Record<string, any>' is missing the following properties from type 'HelmOpResource': spec, metadata
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2739: Type 'Record<string, any>' is missing the following properties from type 'HelmOpValue': spec, metadata, targetClusters
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2739: Type 'Record<string, any>' is missing the following properties from type 'HelmOpValue': spec, metadata, targetClusters
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS2741: Property 'spec' is missing in type 'Record<string, any>' but required in type '{ spec: { serviceAccount?: string | undefined; namespace?: string | undefined; }; }'.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS7005: Variable 'items' implicitly has an 'any[]' type.
+shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS7034: Variable 'items' implicitly has type 'any[]' in some locations where its type cannot be determined.
+shell/components/fleet/HelmOpTargetTab.vue: error TS2322: Type 'object[]' is not assignable to type 'Cluster[]'.
+shell/components/fleet/HelmOpTargetTab.vue: error TS2322: Type 'string' is not assignable to type 'TargetMode | undefined'.
+shell/components/fleet/HelmOpValuesTab.vue: error TS2322: Type 'unknown' is not assignable to type 'ValueFrom[] | undefined'.
+shell/components/fleet/dashboard/ResourceCard.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
+shell/components/fleet/dashboard/ResourceCard.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
+shell/components/fleet/dashboard/ResourceDetails.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
+shell/components/fleet/dashboard/ResourceDetails.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
+shell/components/fleet/dashboard/__tests__/ResourceCard.test.ts: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
+shell/components/fleet/dashboard/__tests__/ResourceCard.test.ts: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
+shell/components/form/GitPicker.vue: error TS2322: Type 'unknown' is not assignable to type 'unknown[] | undefined'.
+shell/components/form/GitPicker.vue: error TS2322: Type 'unknown' is not assignable to type 'unknown[] | undefined'.
+shell/components/form/NodeScheduling.vue: error TS18046: 'n' is of type 'unknown'.
+shell/components/form/NodeScheduling.vue: error TS2322: Type 'string | null' is not assignable to type 'string | boolean | Record<string, any> | undefined'.
+shell/components/form/NodeScheduling.vue: error TS2554: Expected 1-2 arguments, but got 3.
+shell/components/form/__tests__/BannerSettings.test.ts: error TS2322: Type '() => { vendor: string; uiPLSetting: { vendor: string; }; uiBannerSetting: null; bannerVal: {}; errors: never[]; }' is not assignable to type '() => Partial<{ showAsDialog: boolean; buttonText: any; uiBannerFontSizeOptions: string[]; themeVars: { bannerBgColor: string; bannerTextColor: string; }; bannerTitleId: string; isHtml: boolean; }>'.
+shell/components/form/__tests__/Error.test.ts: error TS2719: Type 'Rule[]' is not assignable to type 'Rule[]'. Two different types with this name exist, but they are unrelated.
+shell/components/form/__tests__/Error.test.ts: error TS2719: Type 'Rule[]' is not assignable to type 'Rule[]'. Two different types with this name exist, but they are unrelated.
+shell/components/form/__tests__/Error.test.ts: error TS2719: Type 'Rule[]' is not assignable to type 'Rule[]'. Two different types with this name exist, but they are unrelated.
+shell/components/form/__tests__/Error.test.ts: error TS2719: Type 'Rule[]' is not assignable to type 'Rule[]'. Two different types with this name exist, but they are unrelated.
+shell/components/form/__tests__/Error.test.ts: error TS2719: Type 'Rule[]' is not assignable to type 'Rule[]'. Two different types with this name exist, but they are unrelated.
+shell/components/google/AccountAccess.vue: error TS2339: Property 'data' does not exist on type '{}'.
+shell/components/google/AccountAccess.vue: error TS7006: Parameter 'e' implicitly has an 'any' type.
+shell/components/google/util/__mocks__/gcp.ts: error TS7006: Parameter 'zone' implicitly has an 'any' type.
+shell/components/google/util/gcp.ts: error TS2307: Cannot find module 'types/gcp' or its corresponding type declarations.
+shell/components/nav/NotificationCenter/Notification.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'NotificationLevel' can't be used to index type '{ 0: string; 5: string; 2: string; 1: string; 4: string; 3: string; }'.
+shell/composables/useUserRetentionValidation.ts: error TS2769: No overload matches this call.
+shell/detail/management.cattle.io.oidcclient.vue: error TS2307: Cannot find module '~shell/assets/images/key.svg' or its corresponding type declarations.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'kind' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'label' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'noScopeOption' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'noScopeOption' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'noScopeOption' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'noScopeOption' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'noScopeOption' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'scopeAllSettings' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'scopeAllSettings' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'scopeAllSettings' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'scopePaginatedSettings' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'scopePaginatedSettings' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'scopePaginatedSettings' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'scopePaginatedSettings' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'scopePaginatedSettings' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
+shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS2322: Type '{ selected: string; } | null' is not assignable to type 'Record<string, any> | undefined'.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS2345: Argument of type 'string | LocationQueryValue[]' is not assignable to parameter of type 'string'.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'clusterRepoType' implicitly has an 'any' type.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'key' implicitly has an 'any' type.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'newVal' implicitly has an 'any' type.
+shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'old' implicitly has an 'any' type.
+shell/list/node.vue: error TS2339: Property 'id' does not exist on type 'string'.
+shell/list/projectsecret.vue: error TS2322: Type 'false' is not assignable to type 'string | string[] | undefined'.
+shell/list/projectsecret.vue: error TS2339: Property 'row' does not exist on type 'CreateComponentPublicInstanceWithMixins<ToResolvedProps<ExtractPropTypes<{ resource: { type: StringConstructor; required: true; }; useQueryParamsForSimpleFiltering: { type: BooleanConstructor; default: boolean; }; }>, {}>, ... 24 more ..., {}>'.
+shell/mixins/compact-input.ts: error TS2339: Property 'label' does not exist on type '{ isCompact(): boolean; }'.
+shell/mixins/compact-input.ts: error TS2339: Property 'labelKey' does not exist on type '{ isCompact(): boolean; }'.
+shell/mixins/compact-input.ts: error TS2551: Property 'compact' does not exist on type '{ isCompact(): boolean; }'. Did you mean 'isCompact'?
+shell/mixins/compact-input.ts: error TS2551: Property 'compact' does not exist on type '{ isCompact(): boolean; }'. Did you mean 'isCompact'?
+shell/models/ext.cattle.io.kubeconfig.ts: error TS2305: Module '"vue-router"' has no exported member 'Location'.
+shell/models/ext.cattle.io.kubeconfig.ts: error TS2416: Property '_availableActions' in type 'Kubeconfig' is not assignable to the same property in base type 'SteveModel'.
+shell/models/ext.cattle.io.kubeconfig.ts: error TS2769: No overload matches this call.
+shell/models/steve-schema.ts: error TS2345: Argument of type 'unknown' is not assignable to parameter of type '{} | undefined'.
+shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader.vue: error TS2314: Generic type 'Record' requires 2 type argument(s).
+shell/pages/c/_cluster/apps/charts/__tests__/install.test.ts: error TS18047: 'wrapper.vm.value' is possibly 'null'.
+shell/pages/c/_cluster/apps/charts/__tests__/install.test.ts: error TS2339: Property 'imagePullSecrets' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2339: Property 'type' does not exist on type 'string'.
+shell/pages/c/_cluster/fleet/application/create.vue: error TS2339: Property 'type' does not exist on type 'string'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue: error TS2322: Type '{ id: string; label: string; href: string | null; name: string | undefined; }[]' is not assignable to type 'ChartMaintainer[]'.
+shell/pages/c/_cluster/fleet/application/suse-app-collection/charts.vue: error TS2322: Type '(chartValue: { name: string; }) => void' is not assignable to type '(value: unknown) => void'.
+shell/pages/c/_cluster/fleet/index.vue: error TS18047: '$event.target' is possibly 'null'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'gitRepos' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'helmOps' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'value' does not exist on type 'EventTarget'.
+shell/pages/c/_cluster/fleet/index.vue: error TS2339: Property 'workspaces' does not exist on type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7005: Variable 'out' implicitly has an 'any[]' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7005: Variable 'out' implicitly has an 'any[]' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'acc' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'acc' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'acc' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'action' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'action' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'callback' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'item' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'item' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'key' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'name' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'obj' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'obj' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'resources' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 's' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'schema' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'schema' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'schema' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'selected' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'state' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'statePanel' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'type' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'type' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'value' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'value' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'workspace' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7006: Parameter 'ws' implicitly has an 'any' type.
+shell/pages/c/_cluster/fleet/index.vue: error TS7034: Variable 'out' implicitly has type 'any[]' in some locations where its type cannot be determined.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+shell/pages/c/_cluster/fleet/index.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{}'.
+shell/pages/home.vue: error TS18048: '__VLS_ctx.altClusterListFeature.configuration' is possibly 'undefined'.
+shell/plugins/steve/accept-or-reject-socket-message.ts: error TS2353: Object literal may only specify known properties, and 'type' does not exist in type 'ActionFindAllArgs'.
+shell/utils/duration.ts: error TS2345: Argument of type 'string' is not assignable to parameter of type 'null | undefined'.
+shell/utils/gc/gc-interval.ts: error TS2769: No overload matches this call.
+shell/utils/validators/private-registry.ts: error TS2307: Cannot find module 'types/store/vuex' or its corresponding type declarations.

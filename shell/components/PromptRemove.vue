@@ -12,12 +12,14 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations
 import { CATALOG } from '@shell/config/types';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import AppModal from '@shell/components/AppModal.vue';
+import { RcHeading } from '@components/RcHeading';
+import { doneLocationAfterRemove } from '@shell/utils/prompt-remove';
 
 export default {
   name: 'PromptRemove',
 
   components: {
-    Card, Checkbox, AsyncButton, LabeledInput, AppModal
+    Card, Checkbox, AsyncButton, LabeledInput, AppModal, RcHeading
   },
   props: {
     /**
@@ -96,43 +98,7 @@ export default {
 
     // if the current route ends with the ID of the resource being deleted, whatever page this is wont be valid after successful deletion: navigate away
     doneLocation() {
-      // if deleting more than one resource, this is happening in list view and shouldn't redirect anywhere
-      if (this.toRemove.length > 1) {
-        return null;
-      }
-
-      if (this.toRemove[0].doneOverride) {
-        return this.toRemove[0].doneOverride;
-      }
-
-      const currentRoute = this.toRemove[0].currentRoute();
-      const out = {};
-      const params = { ...currentRoute.params };
-
-      if (params.id && (params.id === this.toRemove[0]?.metadata?.name || params.id === this.toRemove[0].id)) {
-        let { name = '' } = currentRoute;
-
-        const idIndex = name.indexOf('-id');
-
-        if (idIndex !== -1) {
-          name = name.slice(0, idIndex);
-        }
-
-        if (params.namespace) {
-          const namespaceIndex = name.indexOf('-namespace');
-
-          if (namespaceIndex !== -1) {
-            name = name.slice(0, namespaceIndex);
-          }
-          delete params.namespace;
-        }
-        delete params.id;
-
-        out.params = params;
-        out.name = name;
-      }
-
-      return out;
+      return doneLocationAfterRemove(this.toRemove);
     },
 
     currentRouter() {
@@ -351,9 +317,12 @@ export default {
       :show-highlight-border="false"
     >
       <template #title>
-        <h4 class="text-default-text">
+        <RcHeading
+          :size="4"
+          class="text-default-text"
+        >
           {{ t('promptRemove.title') }}
-        </h4>
+        </RcHeading>
       </template>
       <template #body>
         <div class="mb-10">

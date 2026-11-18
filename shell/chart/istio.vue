@@ -252,7 +252,8 @@ export default {
         @onInput="valuesChanged"
       />
       <FileSelector
-        class="role-primary  btn-sm"
+        variant="primary"
+        size="small"
         :label="t('generic.readFromFile')"
         @selected="onFileSelected"
       />
@@ -274,7 +275,7 @@ export default {
     & .yaml-editor{
       flex: 1;
       min-height: $yaml-height;
-      & .code-mirror .CodeMirror {
+      & .code-mirror .cm-editor {
         position: initial;
         height: auto;
         min-height: $yaml-height;

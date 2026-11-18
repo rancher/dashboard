@@ -1,4 +1,5 @@
 import { CYPRESS_SAFE_RESOURCE_REVISION } from '../../../blueprint.utils';
+import { reply } from '../workload-reply';
 
 const cronJobsGetResponseSmallSet = {
   type:         'collection',
@@ -59,15 +60,6 @@ const cronJobsGetResponseSmallSet = {
     }
   }]
 };
-
-function reply(statusCode: number, body: any) {
-  return (req) => {
-    req.reply({
-      statusCode,
-      body
-    });
-  };
-}
 
 export function generateCronJobsDataSmall(): Cypress.Chainable<Response> {
   return cy.intercept('GET', '/v1/batch.cronjobs?*', reply(200, cronJobsGetResponseSmallSet)).as('cronJobsDataSmall');

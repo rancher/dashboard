@@ -1,13 +1,12 @@
 <script>
 import CreateEditView from '@shell/mixins/create-edit-view';
-import { LabeledInput } from '@components/Form/LabeledInput';
-import FileSelector from '@shell/components/form/FileSelector';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 import FormValidation from '@shell/mixins/form-validation';
 
 export default {
   emits: ['validationChanged', 'valueChanged'],
 
-  components: { LabeledInput, FileSelector },
+  components: { FileSelectorTextArea },
   mixins:     [CreateEditView, FormValidation],
 
   data() {
@@ -23,10 +22,6 @@ export default {
   },
 
   methods: {
-    onFileSelected(data) {
-      this.$emit('valueChanged', 'authEncodedJson', data);
-    },
-
     async test() {
       let credentials = null;
       let config = null;
@@ -59,20 +54,15 @@ export default {
 
 <template>
   <div>
-    <LabeledInput
+    <FileSelectorTextArea
+      class="mb-20"
       :value="value.decodedData.authEncodedJson"
       label-key="cluster.credential.gcp.authEncodedJson.label"
       placeholder-key="cluster.credential.gcp.authEncodedJson.placeholder"
-      type="multiline"
       :mode="mode"
       :required="true"
       :rules="fvGetAndReportPathRules('decodedData.authEncodedJson')"
       @update:value="$emit('valueChanged', 'authEncodedJson', $event)"
-    />
-    <FileSelector
-      class="role-primary btn-sm mt-20 mb-20"
-      :label="t('generic.readFromFile')"
-      @selected="onFileSelected"
     />
     <p
       v-clean-html="t('cluster.credential.gcp.authEncodedJson.help.shared', {}, true)"

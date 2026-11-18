@@ -7,10 +7,10 @@ const networkPolicyDescription = 'Custom Network Policy Description';
 const namespace = 'default';
 let networkPolicyName = '';
 let removeNetworkPolicy = false;
-const networkPolicyToDelete = [];
+const networkPolicyToDelete: string[] = [];
 const portValue = 8080;
 
-describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('NetworkPolicies', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.createE2EResourceName('networkpolicy').then((name) => {
@@ -19,6 +19,9 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
   });
 
   it('creates a network policy and displays it in the list', () => {
+    // Ensure we start from a clean slate, fixes auto retry on failureS
+    cy.deleteRancherResource('v1', 'networking.k8s.io.networkpolicies', `${ namespace }/${ customNetworkPolicyName }`, false, { explicitFailOnStatusCodes: [] });
+
     // Visit the main menu and select the 'local' cluster
     // Navigate to Policy => Network Policies
     NetworkPolicyListPagePo.goTo('local');
@@ -62,7 +65,6 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
       // Check if the NetworkPolicy is created successfully
       networkPolicyPage.waitForPage();
       networkPolicyPage.baseResourceList().resourceTable().sortableTable().filter(customNetworkPolicyName);
-      networkPolicyPage.waitForPage(`q=${ customNetworkPolicyName }`);
       networkPolicyPage.baseResourceList().resourceTable().sortableTable().rowElementWithName(customNetworkPolicyName)
         .should('exist')
         .and('be.visible');
@@ -71,8 +73,21 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
 
       const networkPolicyEditPage = new NetworkPolicyCreateEditPagePo('local', namespace, customNetworkPolicyName);
 
+      // We're printing out additional info
       networkPolicyEditPage.waitForPage();
+      networkPolicyEditPage.matchingNamespacesMessage(0).self().scrollIntoView();
+      networkPolicyEditPage.matchingNamespacesMessage(0).self().invoke('text').then((text) => {
+        cy.log('!!!!!!!!');
+        cy.log(`Comparing first component value "${ text }" matches expected "Matches ${ count } of ${ count }"`);
+        cy.log('!!!!!!!!');
+      });
       networkPolicyEditPage.matchingNamespacesMessage(0).shouldContainText(`Matches ${ count } of ${ count }`);
+      networkPolicyEditPage.matchingNamespacesMessage(1).self().scrollIntoView();
+      networkPolicyEditPage.matchingNamespacesMessage(0).self().invoke('text').then((text) => {
+        cy.log('!!!!!!!!');
+        cy.log(`Comparing second component value "${ text }" matches expected "Matches 0 of ${ count }"`);
+        cy.log('!!!!!!!!');
+      });
       networkPolicyEditPage.matchingNamespacesMessage(1).shouldContainText(`Matches 0 of ${ count }`);
     });
   });
@@ -121,7 +136,6 @@ describe('NetworkPolicies', { testIsolation: 'off', tags: ['@explorer', '@adminU
     });
     networkPolicyPage.waitForPage();
     networkPolicyPage.baseResourceList().resourceTable().sortableTable().filter(networkPolicyName);
-    networkPolicyPage.waitForPage(`q=${ networkPolicyName }`);
     networkPolicyPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     networkPolicyPage.list().resourceTable().sortableTable().checkRowCount(false, 1);
     networkPolicyPage.list().actionMenu(networkPolicyName).getMenuItem('Edit Config').click();

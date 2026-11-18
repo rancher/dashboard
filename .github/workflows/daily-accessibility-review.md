@@ -12,7 +12,22 @@ on:
 
 if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_ACCESSIBILITY_REVIEW != 'true'
 
-permissions: read-all
+permissions:
+  actions: read
+  attestations: read
+  checks: read
+  contents: read
+  deployments: read
+  discussions: read
+  issues: read
+  models: read
+  packages: read
+  pages: read
+  pull-requests: read
+  repository-projects: read
+  security-events: read
+  statuses: read
+  copilot-requests: write
 
 network: defaults
 
@@ -27,6 +42,10 @@ safe-outputs:
     max: 5
 
 tools:
+  # Explicit since gh-aw requires shell access to be declared when
+  # `github.min-integrity` is `none`. `true` preserves the unrestricted
+  # shell these workflows have always run with.
+  bash: true
   playwright:
     args: ["--ignore-https-errors"]
   web-fetch:
@@ -38,12 +57,12 @@ timeout-minutes: 60
 
 steps:
   - name: Checkout repository
-    uses: actions/checkout@v6.0.2
+    uses: actions/checkout@v7.0.1
     with:
       fetch-depth: 1
       persist-credentials: false
   - name: Setup env
-    uses: actions/setup-node@v6.4.0
+    uses: actions/setup-node@v7.0.0
     with:
       node-version-file: '.nvmrc'
   - name: Install packages

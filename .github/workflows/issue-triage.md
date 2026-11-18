@@ -13,7 +13,22 @@ on:
 
 if: (github.repository_owner == 'rancher' || vars.ENABLE_AGENTIC_WORKFLOWS == 'true') && vars.DISABLE_AW_ISSUE_TRIAGE != 'true'
 
-permissions: read-all
+permissions:
+  actions: read
+  attestations: read
+  checks: read
+  contents: read
+  deployments: read
+  discussions: read
+  issues: read
+  models: read
+  packages: read
+  pages: read
+  pull-requests: read
+  repository-projects: read
+  security-events: read
+  statuses: read
+  copilot-requests: write
 
 network: defaults
 
@@ -23,6 +38,10 @@ safe-outputs:
   add-comment:
 
 tools:
+  # Explicit since gh-aw requires shell access to be declared when
+  # `github.min-integrity` is `none`. `true` preserves the unrestricted
+  # shell these workflows have always run with.
+  bash: true
   web-fetch:
   github:
     toolsets: [issues]

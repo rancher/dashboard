@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils';
 import RcItemCard from './RcItemCard.vue';
 import RcItemCardAction from './RcItemCardAction.vue';
+import { DropdownOption } from '@components/RcDropdown/types';
 
 class ResizeObserverMock {
   observe = jest.fn();
@@ -11,6 +12,12 @@ class ResizeObserverMock {
 global.ResizeObserver = ResizeObserverMock;
 
 const id = 'test';
+
+// RcDropdown's DropdownOption, which RcItemCard forwards to ActionMenu, carries
+// bulk-action bookkeeping that RcItemCard never reads.
+const actionDefaults: DropdownOption = {
+  enabled: true, total: 1, allEnabled: true, anyEnabled: true, available: 1
+};
 
 const baseProps = {
   id,
@@ -90,7 +97,9 @@ describe('rcItemCard', () => {
     const wrapper = mount(RcItemCard, {
       props: {
         ...baseProps,
-        actions: [{ action: 'test', label: 'test' }]
+        actions: [{
+          ...actionDefaults, action: 'test', label: 'test'
+        }]
       }
     });
 
@@ -113,10 +122,10 @@ describe('rcItemCard', () => {
 
     await wrapper.trigger('click');
 
-    const emitted = wrapper.emitted('card-click');
+    const emitted = wrapper.emitted('card-click') as [Record<string, unknown>][];
 
     expect(emitted).toBeTruthy();
-    expect(emitted?.[0]).toStrictEqual([{ someProperty: 'some-value' }]);
+    expect(emitted[0]).toStrictEqual([{ someProperty: 'some-value' }]);
   });
 
   it('does not emit card-click when clicking on rc-item-card-action content', async() => {
@@ -212,8 +221,12 @@ describe('rcItemCard', () => {
       props: {
         ...baseProps,
         actions: [
-          { action: 'myActionA', label: 'Edit' },
-          { action: 'myActionB', label: 'Delete' }
+          {
+            ...actionDefaults, action: 'myActionA', label: 'Edit'
+          },
+          {
+            ...actionDefaults, action: 'myActionB', label: 'Delete'
+          }
         ]
       }
     });
@@ -231,9 +244,16 @@ describe('rcItemCard', () => {
     actionMenu.vm.$emit('action-invoked', payload);
     await wrapper.vm.$nextTick();
 
-    const emitted = wrapper.emitted('action-invoked');
+    const emitted = wrapper.emitted('action-invoked') as [typeof payload][];
 
     expect(emitted).toBeTruthy();
-    expect(emitted?.[0]).toStrictEqual([payload]);
+    expect(emitted[0]).toStrictEqual([payload]);
+  });
+
+  it('titles the card without adding it to the page heading outline', () => {
+    const wrapper = mount(RcItemCard, { props: baseProps });
+
+    expect(wrapper.get('[data-testid="item-card-header-title"]').element.tagName).toBe('DIV');
+    expect(wrapper.find('h1, h2, h3, h4, h5, h6').exists()).toBe(false);
   });
 });

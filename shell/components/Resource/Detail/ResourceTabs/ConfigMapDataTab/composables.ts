@@ -1,6 +1,7 @@
 import { Props } from '@shell/components/Resource/Detail/ResourceTabs/ConfigMapDataTab/index.vue';
 import { computed } from 'vue';
 import { base64Decode } from '@shell/utils/crypto';
+import { asciiLike } from '@shell/utils/string';
 
 export const useGetConfigMapDataTabProps = (configMap: any): Props => {
   const rows = computed(() => {
@@ -15,12 +16,18 @@ export const useGetConfigMapDataTabProps = (configMap: any): Props => {
       });
     });
 
-    // we define the binary as false so that the ui doesn't display the size of the binary instead of the actual data...
+    // binaryData is base64-encoded per the Kubernetes ConfigMap spec. If it decodes to
+    // readable text, show the decoded content; otherwise flag it as binary so DetailText
+    // renders the size placeholder instead of unreadable bytes.
     Object.keys(binaryData).forEach((key) => {
+      const rawValue = binaryData[key];
+      const decoded = base64Decode(rawValue);
+      const isAscii = asciiLike(decoded);
+
       rows.push({
         key,
-        value:  base64Decode(binaryData[key]),
-        binary: false
+        value:  isAscii ? decoded : rawValue,
+        binary: !isAscii
       });
     });
 

@@ -47,6 +47,21 @@ export const UI_PLUGIN_CHART_ANNOTATIONS = {
   PRIME_ONLY:         'catalog.cattle.io/prime-only'
 };
 
+// Keys written into a UIPlugin CR's `spec.plugin.metadata`.
+//
+// Unlike UI_PLUGIN_CHART_ANNOTATIONS, which are read off the catalog chart, these come
+// from the installed CR and so are only available once an extension is installed.
+export const UI_PLUGIN_METADATA = {
+  // Set on every member of a bundle (umbrella chart) to the name of the bundle's chart,
+  // which is also its Helm release name. Absent on standalone extensions.
+  BUNDLE: 'catalog.cattle.io/ui-extensions-bundle',
+};
+
+// Chart annotation listing a bundle's members, comma separated. Unlike
+// UI_PLUGIN_METADATA.BUNDLE this is readable before anything is installed, which is
+// what lets the Extensions screen spot a conflict ahead of time.
+export const UI_PLUGIN_BUNDLE_MEMBERS_ANNOTATION = 'catalog.cattle.io/ui-extensions-bundle-members';
+
 // Extension catalog labels
 export const UI_PLUGIN_LABELS = {
   CATALOG_IMAGE: 'catalog.cattle.io/ui-extensions-catalog-image',

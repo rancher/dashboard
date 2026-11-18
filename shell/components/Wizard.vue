@@ -50,6 +50,7 @@ export default {
     previousButton: {
       disable: defaults to false
     }
+    fullHeight: Boolean (optional) - the step fills the wizard's height, e.g. for content that scrolls on its own
   }
   */
     steps: {
@@ -180,6 +181,10 @@ export default {
       return (this.activeStepIndex < this.visibleSteps.length - 1) && activeStep.ready;
     },
 
+    activeStepFullHeight() {
+      return !!this.visibleSteps[this.activeStepIndex]?.fullHeight;
+    },
+
     readySteps() {
       return this.visibleSteps.filter((step) => step.ready);
     },
@@ -305,7 +310,7 @@ export default {
       class="outer-container"
       :class="{'hide': !stepsLoaded}"
     >
-      <div>
+      <div :class="{ 'full-height-step': activeStepFullHeight }">
         <div class="header">
           <div :class="['title', !showStepHeader ? 'mmb-4' : '']">
             <div
@@ -358,13 +363,13 @@ export default {
                 </slot>
               </div>
             </div>
-            <div class="step-sequence">
-              <ul
+            <nav
+              class="step-sequence"
+              :aria-label="t('wizard.stepList')"
+            >
+              <ol
                 v-if="showSteps"
                 class="steps"
-                tabindex="0"
-                @keyup.right.stop="selectNext(1)"
-                @keyup.left.stop="selectNext(-1)"
               >
                 <template
                   v-for="(step, idx ) in visibleSteps"
@@ -374,14 +379,14 @@ export default {
 
                     :id="step.name"
                     :class="{step: true, active: step.name === activeStep.name, disabled: !isAvailable(step)}"
-                    role="presentation"
                   >
-                    <span
-                      :aria-controls="'step-container-' + step.name"
-                      :aria-selected="step.name === activeStep.name"
-                      role="tab"
+                    <RcButton
+                      type="button"
+                      variant="ghost"
                       class="controls"
-                      @click.prevent="goToStep(idx+1, true)"
+                      :aria-current="step.name === activeStep.name ? 'step' : null"
+                      :disabled="!isAvailable(step)"
+                      @click="goToStep(idx+1, true)"
                     >
                       <span
                         class="icon icon-lg"
@@ -390,16 +395,17 @@ export default {
                       <span>
                         {{ step.label }}
                       </span>
-                    </span>
+                    </RcButton>
                   </li>
                   <li
                     v-if="idx!==visibleSteps.length-1"
                     :key="step.name"
                     class="divider"
+                    aria-hidden="true"
                   />
                 </template>
-              </ul>
-            </div>
+              </ol>
+            </nav>
           </div>
         </div>
         <slot
@@ -415,9 +421,8 @@ export default {
               v-if="step.name === activeStep.name || step.hidden"
               :id="'step-container-' + step.name"
               :key="step.name"
-              role="tabpanel"
               class="step-container__step"
-              :class="{'hide': step.name !== activeStep.name && step.hidden}"
+              :class="{'hide': step.name !== activeStep.name && step.hidden, 'step-container__step--full-height': step.fullHeight}"
             >
               <slot
                 :step="step"
@@ -446,6 +451,7 @@ export default {
         >
           <Banner
             color="error"
+            role="alert"
             :label="err"
             :closable="true"
             class="footer-error"
@@ -464,6 +470,7 @@ export default {
               type="button"
               variant="secondary"
               size="large"
+              :tabindex="0"
               @click="cancel"
             >
               <t k="generic.cancel" />
@@ -480,6 +487,7 @@ export default {
                 type="button"
                 variant="secondary"
                 size="large"
+                :tabindex="0"
                 @click="back()"
               >
                 <t k="wizard.previous" />
@@ -494,6 +502,7 @@ export default {
                 v-if="!isView"
                 :disabled="!activeStep.ready"
                 :mode="finishMode"
+                :tab-index="0"
                 @click="finish"
               />
             </slot>
@@ -507,6 +516,7 @@ export default {
                 type="button"
                 variant="primary"
                 size="large"
+                :tabindex="0"
                 @click="next()"
               >
                 <t :k="nextButtonLabel" />
@@ -534,7 +544,7 @@ $spacer: 10px;
   display: flex;
   align-content: space-between;
   align-items: center;
-  margin-bottom: 2*$spacer;
+  margin-bottom: 16px;
 
   border-bottom: var(--header-border-size) solid var(--header-border);
 
@@ -557,18 +567,16 @@ $spacer: 10px;
       list-style-type:none;
       padding: 0;
 
-      &:focus{
-          outline:none;
-          box-shadow: none;
-      }
-
       & li.step{
         display: flex;
         flex-direction: row;
         flex-grow: 1;
         align-items: center;
 
-        & > span > span:last-of-type {
+        // Matches the step's control whatever element it is. This was
+        // `> span > span` when the control was a span; as a button it stopped
+        // matching and the label kept a 3px padding it never used to have.
+        & > .controls > span:last-of-type {
           padding-bottom: 0;
         }
 
@@ -577,12 +585,24 @@ $spacer: 10px;
         }
 
         & .controls {
+          // RcButton's ghost variant already drops the background and padding.
+          // A step marker stacks its dot over its label and keeps the
+          // surrounding type, so undo the button's row layout and sizing.
           display: flex;
           flex-direction: column;
           align-items: center;
+          font: inherit;
+          min-height: 0;
+          gap: 0;
           width: 40px;
           overflow: visible;
           padding-top: 7px;
+
+          // The ghost variant defines no disabled state, so an out of reach
+          // step would otherwise pick up the global button's grey chip.
+          &:disabled {
+            background: transparent;
+          }
 
           & > span {
             padding-bottom: 3px;
@@ -697,10 +717,24 @@ $spacer: 10px;
 
   &__step {
     overflow: hidden;
+    // Room for the focus outline of a control at the edge. The margin keeps the content in place.
+    padding-inline: 4px;
+    margin-inline: -4px;
     display: flex;
     flex-direction: column;
     flex: 1;
+
+    // On a short screen the wizard scrolls instead of cutting the step off
+    &--full-height {
+      min-height: min-content;
+    }
   }
+}
+
+.full-height-step {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 // We have to account for the absolute position of the .controls-row

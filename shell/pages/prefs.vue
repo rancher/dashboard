@@ -17,10 +17,12 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { addObject } from '@shell/utils/array';
 import LocaleSelector from '@shell/components/LocaleSelector';
 import TabTitle from '@shell/components/TabTitle';
+import { RcSeparator } from '@components/RcSeparator';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector, TabTitle
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector, TabTitle, RcSeparator, RcHeading
   },
   mixins: [BackRoute],
   data() {
@@ -191,9 +193,10 @@ export default {
       v-if="hasMultipleLocales && !isHarvester"
       class="mt-10 mb-10"
     >
-      <h4
+      <RcHeading
         id="prefs-language"
         v-t="'prefs.language'"
+        :size="4"
       />
       <div class="row">
         <div class="col span-4">
@@ -206,7 +209,10 @@ export default {
     </div>
     <!-- Theme -->
     <div class="mt-10 mb-10">
-      <h4 v-t="'prefs.theme.label'" />
+      <RcHeading
+        v-t="'prefs.theme.label'"
+        :size="4"
+      />
       <ButtonGroup
         v-model:value="theme"
         data-testid="prefs__themeOptions"
@@ -225,16 +231,22 @@ export default {
       v-if="!isSingleProduct"
       class="mt-10 mb-10"
     >
-      <hr role="none">
-      <h4 v-t="'prefs.landing.label'" />
+      <RcSeparator />
+      <RcHeading
+        v-t="'prefs.landing.label'"
+        :size="4"
+      />
       <LandingPagePreference
         data-testid="prefs__landingPagePreference"
       />
     </div>
     <!-- Display Settings -->
     <div class="mt-10 mb-10">
-      <hr role="none">
-      <h4 v-t="'prefs.displaySettings.title'" />
+      <RcSeparator />
+      <RcHeading
+        v-t="'prefs.displaySettings.title'"
+        :size="4"
+      />
       <p class="set-landing-leadin">
         {{ t('prefs.displaySettings.detail', {}, raw=true) }}
       </p>
@@ -277,8 +289,11 @@ export default {
       v-if="!isSingleProduct"
       class="col adv-features mt-10 mb-10"
     >
-      <hr role="none">
-      <h4 v-t="'prefs.confirmationSetting.title'" />
+      <RcSeparator />
+      <RcHeading
+        v-t="'prefs.confirmationSetting.title'"
+        :size="4"
+      />
       <Checkbox
         v-model:value="scalingDownPrompt"
         data-testid="prefs__scalingDownPrompt"
@@ -288,8 +303,11 @@ export default {
     </div>
     <!-- Advanced Features -->
     <div class="col adv-features mt-10 mb-10">
-      <hr role="none">
-      <h4 v-t="'prefs.advFeatures.title'" />
+      <RcSeparator />
+      <RcHeading
+        v-t="'prefs.advFeatures.title'"
+        :size="4"
+      />
       <Checkbox
         v-model:value="viewInApi"
         data-testid="prefs__viewInApi"
@@ -332,8 +350,11 @@ export default {
     </div>
     <!-- YAML editor key mapping -->
     <div class="col mt-10 mb-10">
-      <hr role="none">
-      <h4 v-t="'prefs.keymap.label'" />
+      <RcSeparator />
+      <RcHeading
+        v-t="'prefs.keymap.label'"
+        :size="4"
+      />
       <ButtonGroup
         v-model:value="keymap"
         data-testid="prefs__keymapOptions"
@@ -345,8 +366,11 @@ export default {
       v-if="!isSingleProduct"
       class="col mt-10 mb-40"
     >
-      <hr role="none">
-      <h4 v-t="'prefs.helm.label'" />
+      <RcSeparator />
+      <RcHeading
+        v-t="'prefs.helm.label'"
+        :size="4"
+      />
       <ButtonGroup
         v-model:value="showPreRelease"
         data-testid="prefs__helmOptions"

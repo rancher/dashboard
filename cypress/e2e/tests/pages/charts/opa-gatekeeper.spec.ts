@@ -5,7 +5,7 @@ import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import { InstallChartPage } from '@/cypress/e2e/po/pages/explorer/charts/install-charts.po';
 import { runTestWhenChartAvailable } from '@/cypress/support/commands/rancher-api-commands';
 
-describe('Charts', { testIsolation: 'off', tags: ['@charts', '@adminUser'] }, () => {
+describe('Charts', { testIsolation: false, tags: ['@charts', '@adminUser'] }, () => {
   before(() => {
     cy.login();
     cy.setUserPreference({ 'show-pre-release': true }, true); // Show pre-release versions so charts with only -rc versions appear on Charts page

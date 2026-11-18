@@ -120,3 +120,6 @@ scripts/standalone/node
 
 # GitHub actions scripts output
 codecov
+
+# @rancher/shell on-demand legacy ESLint toolchain (installed by scripts/lint)
+shell/eslint-legacy/node_modules/

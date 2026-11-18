@@ -6,7 +6,7 @@ import { createDeploymentBlueprint } from '@/cypress/e2e/blueprints/explorer/wor
 import NodeSchedulingPo from '@/cypress/e2e/po/components/workloads/node-scheduling.po';
 import { qase } from '@/cypress/support/qase';
 
-describe('Workloads', { tags: ['@noVai', '@adminUser'] }, () => {
+describe('Workloads', { tags: ['@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
   });
@@ -97,8 +97,8 @@ describe('Workloads', { tags: ['@noVai', '@adminUser'] }, () => {
         deploymentsListPage.goToEditConfigPage(nodeSchedulingDeploymentId);
 
         // Navigate to Pod tab > Node Scheduling tab
-        deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('li#pod');
-        deploymentEditConfigPage.podTabs().clickTabWithSelector('li#nodeScheduling-pod');
+        deploymentEditConfigPage.horizontalTabs().clickTabWithSelector('[data-testid="btn-pod"]');
+        deploymentEditConfigPage.podTabs().clickTabWithSelector('[data-testid="btn-nodeScheduling-pod"]');
 
         const nodeScheduling = new NodeSchedulingPo();
 

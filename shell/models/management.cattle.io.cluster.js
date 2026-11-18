@@ -1,21 +1,25 @@
-import { CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS } from '@shell/config/labels-annotations';
+import {
+  CATALOG, CLUSTER_BADGE, NODE_ARCHITECTURE, OPERATION_ANNOTATIONS, IMPORTED_CLUSTER_VERSION_MANAGEMENT
+} from '@shell/config/labels-annotations';
 import {
   NODE, FLEET, MANAGEMENT, CAPI, EXT,
   NORMAN,
   HCI
 } from '@shell/config/types';
-import { insertAt, addObject, removeObject } from '@shell/utils/array';
+import { insertAt, uniq } from '@shell/utils/array';
 import { downloadFile } from '@shell/utils/download';
 import { parseSi } from '@shell/utils/units';
 import { parseColor, textColor } from '@shell/utils/color';
 import { isEmpty, isEqual } from '@shell/utils/object';
 import { HARVESTER_NAME as HARVESTER, IMPORTED_DAY_2_OPS } from '@shell/config/features';
+import { isMachinePoolAutoscaling } from '@shell/utils/autoscaler-utils';
 import { isHarvesterCluster } from '@shell/utils/cluster';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LINUX, WINDOWS } from '@shell/store/catalog';
 import { KEV1 } from './management.cattle.io.kontainerdriver';
 import { requireAsset } from '@shell/utils/require-asset';
 import { PINNED_CLUSTERS } from '@shell/store/prefs';
+import { commitAndReconcile, reportPinWriteFailure, setPinned } from '@shell/utils/cluster-pref-writer';
 import { copyTextToClipboard } from '@shell/utils/clipboard';
 import { isHostedProvider, isCAPIProvider } from '@shell/utils/provider';
 import { ucFirst } from '@shell/utils/string';
@@ -104,12 +108,17 @@ export default class MgmtCluster extends SteveModel {
     });
 
     insertAt(out, 2, {
-      action:   'copyKubeConfig',
-      label:    this.t('cluster.copyConfig'),
-      bulkable: false,
-      enabled:  this.$rootGetters['isRancher'] && this.canCreateKubeconfig,
-      icon:     'icon icon-copy',
+      action:     'copyKubeConfig',
+      bulkAction: 'copyKubeConfigBulk',
+      label:      this.t('cluster.copyConfig'),
+      bulkable:   true,
+      enabled:    this.$rootGetters['isRancher'] && this.canCreateKubeconfig,
+      icon:       'icon icon-copy',
     });
+
+    // The Cluster Management list shows these only for a row with no provisioning cluster to take its actions
+    // from, such as a management cluster created directly.
+    out.unshift(...this.clusterPinActions());
 
     return out;
   }
@@ -395,7 +404,7 @@ export default class MgmtCluster extends SteveModel {
 
   /**
    * Whether day 2 operations are enabled for this cluster.
-   * Reads the `operations.cattle.io/ops-enabled` annotation.
+   * Reads the `rancher.io/operations-enabled` annotation.
    */
   get isDayTwoOpsEnabled() {
     const isImportedRke2K3s = !this.isLocal && (this.isImportedK3s || this.isImportedRke2);
@@ -405,6 +414,23 @@ export default class MgmtCluster extends SteveModel {
     const annotationEnabledOrDefault = annotationExists ? annotationEnabled : globalDefaultIsTrue;
 
     return this.isDayTwoOpsFeatureEnabled && isImportedRke2K3s && annotationEnabledOrDefault;
+  }
+
+  /**
+   * Whether Rancher manages the Kubernetes version of this imported cluster.
+   * Reads the `rancher.io/imported-cluster-version-management` annotation ('true', 'false' or 'system-default');
+   * when it is missing or 'system-default' the `imported-cluster-version-management` global setting applies.
+   * Mirrors the backend's importedclusterversionmanagement.Enabled.
+   */
+  get isVersionManagementEnabled() {
+    switch (this.metadata?.annotations?.[IMPORTED_CLUSTER_VERSION_MANAGEMENT]) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      return this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_VERSION_MANAGEMENT)?.value === 'true';
+    }
   }
 
   get isHarvester() {
@@ -660,10 +686,44 @@ export default class MgmtCluster extends SteveModel {
     }, { root: true });
   }
 
+  /**
+   * Collect the unique management cluster ids for a set of selected rows
+   *
+   * Both management and provisioning cluster rows can be selected, and both can resolve to the same management
+   * cluster, so the ids need to be de-duplicated (spec.clusters is a set)
+   */
+  kubeConfigClusterIds(items = []) {
+    return this.mgmtClusterIds(items);
+  }
+
+  // A cluster management row hands over a provisioning cluster, so resolve either kind.
+  mgmtClusterIds(items = []) {
+    return uniq(items.map((item) => item.mgmt?.id || item.id).filter((id) => !!id));
+  }
+
+  /**
+   * Generate a kubeconfig covering the given clusters
+   *
+   * `includeDefaultEntry: false` omits the legacy `rancher` cluster/user/context entry pointing at the Rancher
+   * server root. As well as being noise in every downloaded file, asking for it makes the backend mint an extra
+   * unscoped 'shared' token on top of the per-cluster token used by ACE clusters.
+   *
+   * See https://github.com/rancher/rancher/issues/55672 and https://github.com/rancher/rancher/issues/55031
+   */
   async generateKubeConfig(clusters = [this.id]) {
+    // The backend rejects a request with no clusters when the default entry is excluded
+    if (!clusters.length) {
+      this.$dispatch('growl/error', {
+        title:   this.t('cluster.kubeConfig.error.title'),
+        message: this.t('cluster.kubeConfig.error.noClusters'),
+      }, { root: true });
+
+      return;
+    }
+
     const memoryResource = await this.$dispatch('management/create', {
       type: EXT.KUBECONFIG,
-      spec: { clusters }
+      spec: { clusters, includeDefaultEntry: false }
     }, { root: true });
 
     const res = await memoryResource.save();
@@ -678,15 +738,28 @@ export default class MgmtCluster extends SteveModel {
   }
 
   async downloadKubeConfigBulk(items) {
-    const clusters = items.map((item) => item.mgmt?.id || item.id);
+    const clusters = this.kubeConfigClusterIds(items);
     const config = await this.generateKubeConfig(clusters);
 
-    downloadFile('kubeconfig.yaml', config, 'application/yaml');
+    if (config) {
+      downloadFile('kubeconfig.yaml', config, 'application/yaml');
+    }
   }
 
   async copyKubeConfig() {
     try {
       const config = await this.generateKubeConfig();
+
+      if (config) {
+        await copyTextToClipboard(config);
+      }
+    } catch {}
+  }
+
+  async copyKubeConfigBulk(items) {
+    try {
+      const clusters = this.kubeConfigClusterIds(items);
+      const config = await this.generateKubeConfig(clusters);
 
       if (config) {
         await copyTextToClipboard(config);
@@ -766,20 +839,87 @@ export default class MgmtCluster extends SteveModel {
     return this.$rootGetters['prefs/get'](PINNED_CLUSTERS).includes(this.id);
   }
 
-  pin() {
-    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
-
-    addObject(types, this.id);
-
-    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  // A dispatch bound to the root store, as the cluster-pref writer expects.
+  get clusterPrefDispatch() {
+    return (action, payload) => this.$dispatch(action, payload, { root: true });
   }
 
+  /**
+   * Pin the cluster by adding it to PINNED_CLUSTERS. Pinning says nothing about RECENT — the two groups
+   * are independent and a pinned cluster keeps its place in the visit history. Routed through the shared
+   * serialized writer so this write can't race the store's cluster-navigation write and 409.
+   */
+  pin() {
+    return this.pinBulk([this]);
+  }
+
+  /**
+   * Unpin the cluster: drop it from PINNED_CLUSTERS, and nothing else. RECENT is a log of clusters the
+   * user actually visited, so unpinning must not write to it — the cluster keeps whatever place its own
+   * visit history earned it, and one it was never visited from does not appear there at all.
+   * Routed through the shared serialized writer so this write can't race the store's
+   * cluster-navigation write and 409.
+   */
   unpin() {
-    const types = this.$rootGetters['prefs/get'](PINNED_CLUSTERS) || [];
+    return this.unpinBulk([this]);
+  }
 
-    removeObject(types, this.id);
+  pinBulk(clusters) {
+    return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), true)]);
+  }
 
-    this.$dispatch('prefs/set', { key: PINNED_CLUSTERS, value: types }, { root: true });
+  unpinBulk(clusters) {
+    return commitAndReconcile(this.clusterPrefDispatch, [setPinned(this.mgmtClusterIds(clusters), false)]);
+  }
+
+  /**
+   * The Pin and Unpin row and bulk actions. The provisioning cluster offers them through this too, so a
+   * selection that mixes the two still gets a single Pin and a single Unpin in the bulk bar.
+   */
+  clusterPinActions() {
+    const pinnable = !this.isLocal;
+
+    // Weighted, or the bulk bar splits the pair: unweighted it falls back to the order the actions are
+    // first met across the rows, and `unpinCluster` is enabled only on a pinned cluster.
+    return [{
+      action:     'pinCluster',
+      bulkAction: 'pinClusterBulk',
+      label:      this.t('cluster.pinAction'),
+      icon:       'icon icon-pin flip-x',
+      bulkable:   true,
+      enabled:    pinnable && !this.pinned,
+      weight:     2,
+    }, {
+      action:     'unpinCluster',
+      bulkAction: 'unpinClusterBulk',
+      label:      this.t('cluster.unpinAction'),
+      icon:       'icon icon-pin-outlined flip-x',
+      bulkable:   true,
+      enabled:    pinnable && this.pinned,
+      weight:     1,
+    }];
+  }
+
+  // A failed preference write RESOLVES with `{ type, status }` rather than throwing, and the optimistic
+  // pin is on screen by then — so it has to be reported, as `Pinned` reports the row control's write.
+  reportPin(write) {
+    return reportPinWriteFailure({ dispatch: this.clusterPrefDispatch }, this.t, write);
+  }
+
+  pinCluster() {
+    return this.reportPin(this.pin());
+  }
+
+  unpinCluster() {
+    return this.reportPin(this.unpin());
+  }
+
+  pinClusterBulk(items) {
+    return this.reportPin(this.pinBulk(items));
+  }
+
+  unpinClusterBulk(items) {
+    return this.reportPin(this.unpinBulk(items));
   }
 
   get canExplore() {
@@ -816,14 +956,12 @@ export default class MgmtCluster extends SteveModel {
       return false;
     }
 
-    return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => {
-      return typeof pool.autoscalingMinSize !== 'undefined' || typeof pool.autoscalingMaxSize !== 'undefined';
-    });
+    return !!this.provCluster.spec?.rkeConfig?.machinePools?.some((pool) => isMachinePoolAutoscaling(pool));
   }
 
   _statusInfoWarned = false;
   get statusInfo() {
-    if (!this.status.info) {
+    if (!this.status?.info) {
       if (!this._statusInfoWarned) {
         this._statusInfoWarned = true;
         // eslint-disable-next-line no-console

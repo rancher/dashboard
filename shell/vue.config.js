@@ -10,6 +10,7 @@ const {
 const har = require('./server/har-file');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const VirtualModulesPlugin = require('webpack-virtual-modules');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 // Suppress info level logging messages from http-proxy-middleware
 // This hides all of the "[HPM Proxy created] ..." messages
@@ -19,7 +20,8 @@ console.info = () => {}; // eslint-disable-line no-console
 
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
-// TODO: Add explanation of this logic
+// Restore console.info immediately after importing `http-proxy-middleware`.
+// The package logs noisy startup messages during import, so we suppress only that import-time output.
 console.info = oldInfoLogger; // eslint-disable-line no-console
 
 // This is currently hardcoded to avoid importing the TS
@@ -196,6 +198,11 @@ const getLoaders = (SHELL_ABS, dir) => [
       }
     ]
   },
+  // Stop xterm from thinking it runs in Node because of the process polyfill
+  {
+    test:   /[\\/]node_modules[\\/]@xterm[\\/]/,
+    loader: path.join(__dirname, 'vue-config-xterm-loader.js'),
+  },
   // Prevent warning in log with the md files in the content folder
   {
     test: /\.md$/,
@@ -207,6 +214,67 @@ const getLoaders = (SHELL_ABS, dir) => [
     ]
   },
 ];
+
+function checkRancherVersionCompatibility(targetApi, shellRancherVersion) {
+  if (!shellRancherVersion) return;
+
+  const url = new URL('/rancherversion', targetApi);
+  const protocol = url.protocol === 'https:' ? require('https') : require('http');
+
+  const req = protocol.get(
+    {
+      hostname:           url.hostname,
+      port:               url.port || (url.protocol === 'https:' ? 443 : 80),
+      path:               '/rancherversion',
+      rejectUnauthorized: false,
+    },
+    (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      res.on('end', () => {
+        try {
+          const { Version } = JSON.parse(data);
+          const targetMatch = Version?.match(/^v?(\d+)\.(\d+)(?:\.(\d+))?/);
+          const shellMatch = shellRancherVersion.match(/^(\d+)\.(\d+)(?:\.(\d+))?/);
+
+          if (targetMatch && shellMatch) {
+            const targetMaj = parseInt(targetMatch[1], 10);
+            const targetMin = parseInt(targetMatch[2], 10);
+            const targetPatch = parseInt(targetMatch[3] || '0', 10);
+            const shellMaj = parseInt(shellMatch[1], 10);
+            const shellMin = parseInt(shellMatch[2], 10);
+            const shellPatch = parseInt(shellMatch[3] || '0', 10);
+
+            if (
+              targetMaj < shellMaj ||
+              (targetMaj === shellMaj && targetMin < shellMin) ||
+              (targetMaj === shellMaj && targetMin === shellMin && targetPatch < shellPatch)
+            ) {
+              // eslint-disable-next-line no-console
+              console.warn([
+                '',
+                '⚠️  Rancher version mismatch detected!',
+                `   Target Rancher:        ${ Version }`,
+                `   Shell compatible with: v${ shellRancherVersion }.x`,
+                '   Whilst this may mostly work, there may be areas that won\'t',
+                '   (where the shell depends on version-dependent Rancher features).',
+                '   It\'s recommended to keep both target Rancher and app shell versions aligned.',
+                '   This only affects `yarn dev` — building and loading extensions continues to work.',
+                '',
+              ].join('\n'));
+            }
+          }
+        } catch { /* ignore malformed responses */ }
+      });
+    }
+  );
+
+  req.on('error', () => { /* ignore — proxy will surface connection errors */ });
+  req.end();
+}
 
 const getDevServerConfig = (proxy) => {
   const harFile = process.env.HAR_FILE;
@@ -236,12 +304,12 @@ const getDevServerConfig = (proxy) => {
 
       const app = devServer.app;
 
-      // Close down quickly in response to CTRL + C
-      process.once('SIGINT', () => {
-        devServer.close();
-        console.log('\n'); // eslint-disable-line no-console
-        process.exit(1);
-      });
+      // CTRL + C is handled by webpack-dev-server itself: its `setupExitSignals`
+      // option (on by default) listens for SIGINT/SIGTERM, shuts the server and
+      // compiler down gracefully, and force-exits on a second CTRL + C. We used
+      // to install our own SIGINT handler here calling `devServer.close()`, but
+      // v5 removed `close()` (and `listen()`) in favour of `stop()`/
+      // `stopCallback()`, so that handler threw a TypeError on exit.
 
       app.use(serverMiddlewares);
 
@@ -270,7 +338,8 @@ const getDevServerConfig = (proxy) => {
         app.use(p, px);
       });
 
-      // TODO: Verify after migration completed
+      // Webpack dev server leaves websocket upgrades to custom middleware for proxied routes.
+      // We route upgrades to the matching proxy middleware to preserve websocket support for API paths.
       devServer.webSocketProxies.push({
         upgrade(req, socket, head) {
           const path = Object.keys(socketProxies).find((path) => req.url.startsWith(path));
@@ -288,6 +357,8 @@ const getDevServerConfig = (proxy) => {
           }
         }
       });
+
+      checkRancherVersionCompatibility(api, shellPkgData.rancherVersion);
 
       return middlewares;
     }
@@ -387,6 +458,7 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
   'process.env.harvesterPkgUrl':           JSON.stringify(process.env.HARVESTER_PKG_URL),
   'process.env.api':                       JSON.stringify(api),
   'process.env.UI_EXTENSIONS_API_VERSION': JSON.stringify(shellPkgData.version),
+  'process.env.UI_SHELL_RANCHER_VERSION':  JSON.stringify(shellPkgData.rancherVersion || ''),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
   'process.env.routerBase':                JSON.stringify(routerBasePath),
   __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
@@ -453,9 +525,8 @@ const printLogs = (dev, dashboardVersion, resourceBase, routerBasePath, pl, ranc
 };
 
 /**
- * Add ignored paths based on env var configuration and known cases
- * TODO: Verify after migration completed
- * In Webpack5 only RegExp, string and [string] types are accepted
+ * Add ignored paths based on env var configuration and known cases.
+ * Webpack 5 accepts RegExp values for `watchOptions.ignored`.
  * https://webpack.js.org/configuration/watch/#watchoptionsignored
  * Example conversion:
  * - as list: [/.shell/, /dist-pkg/, /scripts\/standalone/, /\/pkg.test-pkg/, /\/pkg.harvester/]
@@ -475,7 +546,7 @@ const getWatcherIgnored = (excludes = []) => {
 };
 
 /**
- * Expose a function that can be used by an app to provide a nuxt configuration for building an application
+ * Expose a function that can be used by an app to provide the vue-cli configuration for building an application.
  * This takes the directory of the application as the first argument so that we can derive folder locations
  * from it, rather than from the location of this file
  */
@@ -521,8 +592,9 @@ module.exports = function(dir, appConfig = {}) {
             @import "~shell/assets/styles/base/_functions.scss";
             @import "~shell/assets/styles/base/_mixins.scss";
             @import 'node_modules/@xterm/xterm/css/xterm.css';
-          `
-        }
+          `,
+          sassOptions: { charset: false }
+        },
       }
     },
     outputDir,
@@ -532,9 +604,33 @@ module.exports = function(dir, appConfig = {}) {
         template: path.join(SHELL_ABS, '/public/index.html')
       }
     },
+
+    chainWebpack: (context) => {
+      // Only include the bundle analyzer when ANALYZE_LICENSES is set — the report.json
+      // it emits is what scripts/analyze-licenses reads to enumerate bundled packages.
+      if (process.env.ANALYZE_LICENSES !== 'true') return;
+
+      // Generate report.html (and stats.json) in the dist folder
+      context
+        .plugin('webpack-bundle-analyzer-html')
+        .use(BundleAnalyzerPlugin)
+        .init((Plugin) => new Plugin({
+          analyzerMode:      'static',
+          openAnalyzer:      false,
+          generateStatsFile: true
+        }));
+
+      // Generate report.json in the dist folder
+      context
+        .plugin('webpack-bundle-analyzer-json')
+        .use(BundleAnalyzerPlugin)
+        .init((Plugin) => new Plugin({ analyzerMode: 'json' }));
+    },
+
     configureWebpack(config) {
-      // TODO VUE3: We may want to look into what we want the value to actually be. For the time being this was causing a warning in our CLI because it would set process.env.NODE_ENV to 'development' even thought it was
-      //            already set to 'dev' and we're using 'dev' in other locations so I don't think we want to do that. Config details found here: https://webpack.js.org/configuration/optimization/#optimizationnodeenv.
+      // Keep NODE_ENV unchanged; webpack defaults this to 'development' in dev mode,
+      // but dashboard tooling relies on our existing 'dev' value.
+      // https://webpack.js.org/configuration/optimization/#optimizationnodeenv
       config.optimization.nodeEnv = false;
       config.resolve.alias['~'] = dir;
       config.resolve.alias['@'] = dir;
@@ -553,7 +649,7 @@ module.exports = function(dir, appConfig = {}) {
       config.plugins.push(createEnvVariablesPlugin(routerBasePath, rancherEnv));
       config.plugins.push(new NodePolyfillPlugin({ additionalAliases: ['process'] })); // required from Webpack 5 to polyfill node modules
 
-      // The static assets need to be in the built assets directory in order to get served (primarily the favicon)
+      // The static assets need to be in the built assets directory in order to get served (primarily the favicon).
       config.plugins.push(new CopyWebpackPlugin({ patterns: [{ from: path.join(SHELL_ABS, 'static'), to: '.' }] }));
 
       config.plugins.push(new webpack.IgnorePlugin({ resourceRegExp: /\/__tests__\// }));

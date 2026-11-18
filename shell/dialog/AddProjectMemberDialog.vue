@@ -4,6 +4,7 @@ import ProjectMemberEditor from '@shell/components/form/ProjectMemberEditor';
 import AsyncButton from '@shell/components/AsyncButton';
 import Banner from '@components/Banner/Banner.vue';
 import { NORMAN } from '@shell/config/types';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits: ['close'],
@@ -12,7 +13,8 @@ export default {
     Card,
     ProjectMemberEditor,
     AsyncButton,
-    Banner
+    Banner,
+    RcHeading,
   },
 
   props: {
@@ -51,7 +53,7 @@ export default {
 
   computed: {
     principal() {
-      const principalId = this.member.principalId.replace(/\//g, '%2F');
+      const principalId = encodeURIComponent(this.member.principalId);
 
       return this.$store.dispatch('rancher/find', {
         type: NORMAN.PRINCIPAL,
@@ -115,8 +117,9 @@ export default {
     :sticky="true"
   >
     <template #title>
-      <h4
+      <RcHeading
         v-clean-html="t('addProjectMemberDialog.title')"
+        :size="4"
         class="text-default-text"
       />
     </template>

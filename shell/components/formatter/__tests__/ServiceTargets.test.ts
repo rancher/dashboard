@@ -20,7 +20,7 @@ describe('component: ServiceTargets', () => {
   function mountComponent(row: Record<string, any>) {
     return shallowMount(ServiceTargets, {
       props: {
-        value: null,
+        value: undefined,
         row,
         col:   {},
       },

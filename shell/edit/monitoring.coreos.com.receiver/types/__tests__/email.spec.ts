@@ -81,6 +81,8 @@ describe('component: Email', () => {
     await tls.vm.$emit('update:value', updatedValue);
 
     expect(wrapper.emitted('input')).toHaveLength(1);
-    expect(wrapper.emitted('input')?.[0][0]).toStrictEqual(updatedValue);
+    const emitted = wrapper.emitted('input') as [typeof updatedValue][];
+
+    expect(emitted[0][0]).toStrictEqual(updatedValue);
   });
 });

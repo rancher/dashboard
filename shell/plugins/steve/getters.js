@@ -42,13 +42,7 @@ export default {
    *
    * Can be used to change behaviour given steve api
    */
-  isSteveUrl:      () => (urlPath) => steveRegEx.test(urlPath),
-  /**
-   * Is the url path a rancher steve one AND the steve cache is enabled?
-   *
-   * Can be used to change behaviour given steve cache api functionality
-   */
-  isSteveCacheUrl: (state, getters, rootState, rootGetters) => (urlPath) => getters.isSteveUrl(urlPath) && paginationUtils.isSteveCacheEnabled({ rootGetters }),
+  isSteveUrl: () => (urlPath) => steveRegEx.test(urlPath),
 
   /**
    * opt: ActionFindPageArgs
@@ -63,7 +57,7 @@ export default {
     if (stevePagination) {
       url += `${ (url.includes('?') ? '&' : '?') + stevePagination }`;
     } else {
-      const isSteveCacheUrl = getters.isSteveCacheUrl(parsedUrl.path);
+      const isSteveUrl = getters.isSteveUrl(parsedUrl.path);
 
       // labelSelector
       if ( opt.labelSelector ) {
@@ -73,7 +67,6 @@ export default {
 
       // Filter
       if ( opt.filter ) {
-        // When ui-sql-cache is always on we should look to replace the usages of this with findPage (basically using the new filter definitions)
         url += `${ (url.includes('?') ? '&' : '?') }`;
         const keys = Object.keys(opt.filter);
 
@@ -89,7 +82,7 @@ export default {
           }
 
           const filterStrings = vals.map((val) => {
-            return `${ encodeURI(key) }${ isSteveCacheUrl ? '~' : '=' }${ encodeURI(val) }`;
+            return `${ encodeURI(key) }${ isSteveUrl ? '~' : '=' }${ encodeURI(val) }`;
           });
           const urlEnding = url.charAt(url.length - 1);
           const nextStringConnector = ['&', '?', '='].includes(urlEnding) ? '' : '&';
@@ -117,7 +110,7 @@ export default {
       // End: Limit
 
       // Page Size
-      if (isSteveCacheUrl && opt.isCollection) {
+      if (isSteveUrl && opt.isCollection) {
         // This is a steve url and the new cache is being used.
         // Pre-cache there was always a max page size (given kube proxy). With cache there's not.
         // So ensure we don't go backwards (and fetch crazy high resource counts) by adding a default

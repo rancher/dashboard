@@ -77,7 +77,7 @@ describe('page: LonghornOverview', () => {
     const containsProxyUrl = wrapper.vm.externalLinks.find((link: LinkConfig) => link.link);
 
     expect(containsProxyUrl).toBeTruthy();
-    expect(containsProxyUrl.link).toStrictEqual(proxyUrl);
+    expect(containsProxyUrl?.link).toStrictEqual(proxyUrl);
   });
 
   it('displays IconMessage when externalLinks array is empty', () => {

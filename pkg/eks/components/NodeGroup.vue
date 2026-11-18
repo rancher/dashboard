@@ -14,11 +14,12 @@ import RadioGroup from '@components/Form/Radio/RadioGroup.vue';
 import KeyValue from '@shell/components/form/KeyValue.vue';
 import Banner from '@components/Banner/Banner.vue';
 import UnitInput from '@shell/components/form/UnitInput.vue';
-import FileSelector from '@shell/components/form/FileSelector.vue';
+import FileSelectorTextArea from '@shell/components/form/FileSelectorTextArea.vue';
 
 import { MANAGED_TEMPLATE_PREFIX, parseTags } from '../util/aws';
 import * as AWS from '@shell/types/aws-sdk';
 import { DEFAULT_NODE_GROUP_CONFIG } from './CruEKS.vue';
+import { RcSeparator } from '@components/RcSeparator';
 
 // map between fields in rancher eksConfig and amazon launch templates
 const launchTemplateFieldMapping: {[key: string]: string} = {
@@ -54,8 +55,9 @@ export default defineComponent({
     Banner,
     Checkbox,
     UnitInput,
-    FileSelector,
-    RadioGroup
+    FileSelectorTextArea,
+    RadioGroup,
+    RcSeparator,
   },
 
   props: {
@@ -798,10 +800,7 @@ export default defineComponent({
         </KeyValue>
       </div>
     </div>
-    <hr
-      class="mb-20"
-      role="none"
-    >
+    <RcSeparator class="mb-20" />
     <h3>{{ t('eks.nodeGroups.templateDetails') }}</h3>
     <Banner
       v-if="clusterWillUpgrade && !poolIsUnprovisioned"
@@ -959,23 +958,18 @@ export default defineComponent({
     </div>
     <div class="row mb-15">
       <div class="col span-6 user-data">
-        <LabeledInput
+        <FileSelectorTextArea
           label-key="eks.nodeGroups.userData.label"
           :mode="mode"
-          type="multiline"
           :value="userData"
           :disabled="hasUserLaunchTemplate"
           :placeholder="userDataPlaceholder"
           :sub-label="t('eks.nodeGroups.userData.tooltip', {}, true)"
           @update:value="$emit('update:userData', $event)"
         />
-        <FileSelector
-          :mode="mode"
-          :label="t('generic.readFromFile')"
-          class="role-tertiary mt-20"
-          @selected="$emit('update:userData', $event)"
-        />
       </div>
+    </div>
+    <div class="row mb-15">
       <div class="col span-6">
         <LabeledSelect
           :loading="loadingSshKeyPairs"
@@ -1014,12 +1008,6 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-.user-data{
-  &>button{
-    float: right;
-  }
-}
-
 .upgrade-version {
   display: flex;
   align-items: center;

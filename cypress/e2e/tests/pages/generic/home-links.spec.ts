@@ -2,8 +2,25 @@ import { RANCHER_PAGE_EXCEPTIONS, catchTargetPageException } from '@/cypress/sup
 import { qase } from '@/cypress/support/qase';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 
+const RANCHER_PRIME_LINK = 'https://www.suse.com/products/rancher';
+
 describe('Home Page Support Links', { tags: ['@generic', '@adminUser', '@standardUser'] }, () => {
   const homePage = new HomePagePo();
+
+  before(() => {
+    // The external SUSE / Rancher Prime pages load a third-party telemetry pixel (cdn.vector.co) that
+    // asynchronously throws "No visitor ID available. Load may have failed." - often LATE, in the
+    // after-all hook, after the per-test catchTargetPageException (cy.on) handler's scope has ended,
+    // and Cypress does not retry hook failures. Register a spec-wide global handler so these known
+    // third-party errors never fail this spec's hooks; only the known messages are swallowed.
+    Cypress.on('uncaught:exception', (err) => {
+      if (RANCHER_PAGE_EXCEPTIONS.some((m) => (err?.message || '').includes(m))) {
+        return false;
+      }
+
+      return undefined;
+    });
+  });
 
   // Click the support links and verify user lands on the correct page
   beforeEach(() => {
@@ -67,12 +84,16 @@ describe('Home Page Support Links', { tags: ['@generic', '@adminUser', '@standar
   }));
 
   qase(1476, it('can click on Rancher Prime link', { tags: '@noPrime' }, () => {
-    catchTargetPageException();
-
-    // click Rancher Prime link (replaces old Commercial Support link)
-    homePage.clickSupportLink(5, true);
-    cy.origin('https://www.suse.com', () => {
-      cy.url().should('include', 'suse.com/products/rancher');
+    // Verify the Rancher Prime link (replaces old Commercial Support link) instead of navigating to it.
+    // Loading www.suse.com is an external network dependency that times out in CI; the href/target/rel
+    // is the part the dashboard actually owns.
+    homePage.checkSupportLinkText(5, 'Rancher Prime');
+    homePage.supportLinks().eq(5).should(($el) => {
+      // Prefix match, as in prime.spec.ts: the trailing slash is incidental and a link interceptor may
+      // legitimately rewrite the tail.
+      expect($el.attr('href'), 'href').to.satisfy((href: string) => href?.startsWith(RANCHER_PRIME_LINK));
+      expect($el).to.have.attr('target', '_blank');
+      expect($el).to.have.attr('rel', 'noopener noreferrer nofollow');
     });
   }));
 

@@ -10,13 +10,11 @@ import GrowlManager from '@shell/components/GrowlManager';
 import ModalManager from '@shell/components/ModalManager';
 import SlideInPanelManager from '@shell/components/SlideInPanelManager';
 import PromptRemove from '@shell/components/PromptRemove';
-import PromptRestore from '@shell/components/PromptRestore';
 import PromptModal from '@shell/components/PromptModal';
 import Header from '@shell/components/nav/Header';
 import Inactivity from '@shell/components/Inactivity';
 import Brand from '@shell/mixins/brand';
 import FixedBanner from '@shell/components/FixedBanner';
-import AwsComplianceBanner from '@shell/components/AwsComplianceBanner';
 import { MANAGEMENT } from '@shell/config/types';
 import { markSeenReleaseNotes } from '@shell/utils/version';
 import PageHeaderActions from '@shell/mixins/page-actions';
@@ -33,7 +31,6 @@ export default {
 
   components: {
     PromptRemove,
-    PromptRestore,
     PromptModal,
     Header,
     ActionMenu,
@@ -41,7 +38,6 @@ export default {
     ModalManager,
     SlideInPanelManager,
     FixedBanner,
-    AwsComplianceBanner,
     Inactivity,
     SideNav,
     RcButton,
@@ -179,7 +175,6 @@ export default {
       {{ t('nav.skipToContent') }}
     </rc-button>
     <FixedBanner :header="true" />
-    <AwsComplianceBanner v-if="managementReady" />
     <div
       v-if="managementReady"
       class="dashboard-content"
@@ -203,7 +198,6 @@ export default {
         />
         <ActionMenu />
         <PromptRemove />
-        <PromptRestore />
         <PromptModal />
         <ModalManager />
         <button

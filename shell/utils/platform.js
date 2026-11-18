@@ -8,6 +8,17 @@ export const isWin = platform.includes('win');
 export const alternateKey = (isMac ? 'metaKey' : 'ctrlKey');
 export const alternateLabel = (isMac ? 'Command' : 'Control');
 
+/**
+ * A keyboard shortcut as a user READS it, the keys hyphenated: `⌘-Shift-P` rather than `⌘⇧P`, which arrives as
+ * one unfamiliar word and has to be picked apart before it can be followed.
+ *
+ * Not for `aria-keyshortcuts`, which is defined to take an unspaced `Meta+Shift+P` and is parsed rather
+ * than read.
+ */
+export function shortcutLabel(keys) {
+  return keys.join('-');
+}
+
 export const moreKey = alternateKey;
 export const moreLabel = alternateLabel;
 

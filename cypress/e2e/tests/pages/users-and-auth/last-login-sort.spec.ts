@@ -4,7 +4,7 @@ import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
 const LAST_LOGIN_COLUMN = 6;
 const NAME_COLUMN = 3;
 
-describe('Users: Last Login sorting', { testIsolation: 'off', tags: ['@usersAndAuths', '@adminUser'] }, () => {
+describe('Users: Last Login sorting', { testIsolation: false, tags: ['@usersAndAuths', '@adminUser'] }, () => {
   const runTimestamp = +new Date();
   const usersPo = new UsersPo();
   const userIdsList: string[] = [];
@@ -53,8 +53,9 @@ describe('Users: Last Login sorting', { testIsolation: 'off', tags: ['@usersAndA
     usersPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
     // Narrow the table to the two test users created in this run so ordering is deterministic
-    // even if previous failed runs left orphan users behind.
-    usersPo.list().resourceTable().sortableTable().filter(`-${ runTimestamp }`);
+    // even if previous failed runs left orphan users behind. No leading "-": the query box reads that
+    // as leaving these out
+    usersPo.list().resourceTable().sortableTable().filter(`${ runTimestamp }`);
     usersPo.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     usersPo.list().resourceTable().sortableTable().checkRowCount(false, 2);
 

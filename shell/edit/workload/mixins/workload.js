@@ -65,6 +65,26 @@ const TAB_WEIGHT_MAP = {
   volumeClaimTemplates: 89,
 };
 
+const REQUIRED_VOLUME_FIELDS = {
+  name:                              'workload.storage.volumeName',
+  'awsElasticBlockStore.volumeID':   'workload.storage.csi.volumeID',
+  'azureDisk.diskName':              'workload.storage.csi.diskName',
+  'azureDisk.diskURI':               'workload.storage.csi.diskURI',
+  'azureFile.shareName':             'workload.storage.csi.shareName',
+  'azureFile.secretName':            'workload.storage.csi.secretName',
+  'configMap.name':                  'workload.storage.subtypes.configMap',
+  'csi.driver':                      'workload.storage.driver',
+  'gcePersistentDisk.pdName':        'workload.storage.csi.pdName',
+  'hostPath.path':                   'workload.storage.nodePath',
+  'nfs.path':                        'workload.storage.path',
+  'nfs.server':                      'workload.storage.server',
+  'persistentVolumeClaim.claimName': 'workload.storage.subtypes.persistentVolumeClaim',
+  'secret.secretName':               'workload.storage.subtypes.secret',
+  'vsphereVolume.volumePath':        'workload.storage.csi.volumePath',
+};
+
+const volumeFieldPath = (field) => `podTemplateSpec.volumes.${ field }`;
+
 const GPU_KEY = 'nvidia.com/gpu';
 const ID_KEY = Symbol('container-id');
 
@@ -184,25 +204,26 @@ export default {
           name:            `container-0`,
         }];
 
-        const metadata = { ...this.value.metadata };
-
-        const podSpec = { template: { spec: { containers: podContainers, initContainers: [] }, metadata } };
-
-        this.value['spec'] = podSpec;
+        // A standalone Pod keeps its spec in the native Pod shape (spec.*),
+        // NOT wrapped in a Workload's spec.template.spec. The shared form works
+        // on this shape via the podTemplateSpec/podLabels/podAnnotations
+        // computeds. See https://github.com/rancher/dashboard/issues/10171
+        this.value['spec'] = { containers: podContainers, initContainers: [] };
       }
     }
 
-    // EDIT view for POD
-    // Transform it from POD world to workload
-    if ((this.mode === _EDIT || this.mode === _VIEW || this.realMode === _CLONE ) && this.value.type === 'pod') {
-      const podSpec = { ...this.value.spec };
-      const metadata = { ...this.value.metadata };
-
-      this.value.spec['template'] = { spec: podSpec, metadata };
-    }
-
+    // Pods are read/edited/cloned in their native shape - no POD->workload
+    // wrapping needed. (Workloads legitimately nest under spec.template.spec.)
     const spec = this.value.spec;
-    let podTemplateSpec = type === WORKLOAD_TYPES.CRON_JOB ? spec.jobTemplate.spec.template.spec : spec?.template?.spec;
+    let podTemplateSpec;
+
+    if (type === WORKLOAD_TYPES.CRON_JOB) {
+      podTemplateSpec = spec.jobTemplate.spec.template.spec;
+    } else if (this.value.type === POD) {
+      podTemplateSpec = spec;
+    } else {
+      podTemplateSpec = spec?.template?.spec;
+    }
 
     // Area to add default value to securityContext on POD CREATE
     // Check if the securityContext has been setup, for None should be {} when cloning, for new should be empty.
@@ -210,12 +231,9 @@ export default {
       podTemplateSpec.securityContext = { seccompProfile: { type: 'RuntimeDefault' } };
     }
 
+    const hadAffinity = !!podTemplateSpec.affinity;
     let containers = podTemplateSpec.containers || [];
     let container;
-
-    if (this.mode === _VIEW && this.value.type === 'pod' ) {
-      podTemplateSpec = spec;
-    }
 
     if (
       this.mode === _CREATE ||
@@ -278,6 +296,7 @@ export default {
       servicesToRemove:           [],
       portsForServices:           [],
       container,
+      hadAffinity,
       containerChange:            0,
       tabChange:                  0,
       savePvcHookName:            'savePvcHook',
@@ -288,6 +307,18 @@ export default {
         rules:          [''],
         rootObject:     this,
         translationKey: 'workload.container.security.localhostProfile.label'
+      },
+      ...Object.entries(REQUIRED_VOLUME_FIELDS).map(([field, translationKey]) => ({
+        path:       volumeFieldPath(field),
+        rules:      ['required'],
+        rootObject: this,
+        translationKey
+      })),
+      {
+        path:           'spec.volumeClaimTemplates.metadata.name',
+        rules:          ['required'],
+        rootObject:     this,
+        translationKey: 'persistentVolumeClaim.name'
       }],
       fvReportedValidationPaths: ['spec'],
       isNamespaceNew:            false,
@@ -316,8 +347,48 @@ export default {
         }];
     },
 
+    containerNameRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.container.containerName') });
+
+      return [required];
+    },
+
+    containerImageRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.container.image') });
+
+      return [required];
+    },
+
+    volumeMountPathRules() {
+      const { required } = formRulesGenerator(this.$store.getters['i18n/t'], { key: this.t('workload.storage.mountPoint') });
+
+      return [required];
+    },
+
+    volumeRules() {
+      return Object.keys(REQUIRED_VOLUME_FIELDS).reduce((rules, field) => ({
+        ...rules,
+        [field]: this.fvGetAndReportPathRules(volumeFieldPath(field))
+      }), {});
+    },
+
+    volumeClaimTemplateNames() {
+      return (this.spec?.volumeClaimTemplates || []).map((template) => template.metadata?.name || '');
+    },
+
     tabErrors() {
-      const tabErrors = { podSecurityContext: this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0 };
+      const { volumeMountPath, persistentVolumeClaimSpec } = formRulesGenerator(this.$store.getters['i18n/t'], {});
+      const newVolumeClaims = (this.podTemplateSpec?.volumes || []).filter((volume) => volume._type === 'createPVC' && volume.__newPvc).map((volume) => volume.__newPvc);
+      const tabErrors = {
+        podSecurityContext:   this.fvGetPathErrors(['podTemplateSpec.securityContext.seccompProfile.localhostProfile'])?.length > 0,
+        podStorage:           this.fvGetPathErrors(Object.keys(REQUIRED_VOLUME_FIELDS).map(volumeFieldPath))?.length > 0 || newVolumeClaims.some((claim) => !!persistentVolumeClaimSpec(claim)),
+        volumeClaimTemplates: this.fvGetPathErrors(['spec.volumeClaimTemplates.metadata.name'])?.length > 0 ||
+          (this.spec?.volumeClaimTemplates || []).some((claim) => !!persistentVolumeClaimSpec(claim)) ||
+          this.allContainers.some((container) => !!volumeMountPath({
+            name:         container.name,
+            volumeMounts: this.volumeMountsOf(container, true)
+          }))
+      };
 
       return tabErrors;
     },
@@ -365,14 +436,25 @@ export default {
       return this.type === WORKLOAD_TYPES.STATEFUL_SET;
     },
 
-    // if this is a cronjob, grab pod spec from within job template spec
+    // For a Pod the pod spec IS spec; a cronjob nests it within the job template
+    // spec; other workloads nest it under spec.template.spec.
     podTemplateSpec: {
       get() {
-        return this.isCronJob ? this.spec.jobTemplate.spec.template.spec : this.spec?.template?.spec;
+        if (this.isCronJob) {
+          return this.spec.jobTemplate.spec.template.spec;
+        }
+        if (this.isPod) {
+          return this.spec;
+        }
+
+        return this.spec?.template?.spec;
       },
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.spec.template['spec'] = neu;
+        } else if (this.isPod) {
+          this.spec = neu;
+          this.value['spec'] = neu;
         } else {
           this.spec.template['spec'] = neu;
         }
@@ -389,6 +471,17 @@ export default {
           return this.spec.jobTemplate.metadata.labels;
         }
 
+        if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          if (!this.value.metadata.labels) {
+            this.value.metadata['labels'] = {};
+          }
+
+          return this.value.metadata.labels;
+        }
+
         if (!this.spec.template.metadata) {
           this.spec.template['metadata'] = { labels: {} };
         }
@@ -398,6 +491,11 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.metadata['labels'] = neu;
+        } else if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          this.value.metadata['labels'] = neu;
         } else {
           this.spec.template.metadata['labels'] = neu;
         }
@@ -413,6 +511,18 @@ export default {
 
           return this.spec.jobTemplate.metadata.annotations;
         }
+
+        if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          if (!this.value.metadata.annotations) {
+            this.value.metadata['annotations'] = {};
+          }
+
+          return this.value.metadata.annotations;
+        }
+
         if (!this.spec.template.metadata) {
           this.spec.template['metadata'] = { annotations: {} };
         }
@@ -422,6 +532,11 @@ export default {
       set(neu) {
         if (this.isCronJob) {
           this.spec.jobTemplate.metadata['annotations'] = neu;
+        } else if (this.isPod) {
+          if (!this.value.metadata) {
+            this.value['metadata'] = {};
+          }
+          this.value.metadata['annotations'] = neu;
         } else {
           this.spec.template.metadata['annotations'] = neu;
         }
@@ -432,34 +547,51 @@ export default {
       const containers = this.podTemplateSpec?.containers || [];
       const initContainers = this.podTemplateSpec?.initContainers || [];
       const key = this.idKey;
+      // Containers can already carry an id (e.g. cloned from the model the view page used),
+      // so skip ids in use. Otherwise two container tabs share a name and render as one.
+      const usedIds = new Set([...containers, ...initContainers].map((each) => each[key]).filter(Boolean));
+      const ensureId = (each) => {
+        if (each[key]) {
+          return;
+        }
+
+        let id = serialMaker.genSym();
+
+        while (usedIds.has(id)) {
+          id = serialMaker.genSym();
+        }
+
+        each[key] = id;
+        usedIds.add(id);
+      };
 
       return [
         ...containers.map((each) => {
           each._init = false;
-          if (!each[key]) {
-            each[key] = serialMaker.genSym();
-          }
+          ensureId(each);
 
           return each;
         }),
         ...initContainers.map((each) => {
           each._init = true;
-          if (!each[key]) {
-            each[key] = serialMaker.genSym();
-          }
+          ensureId(each);
 
           return each;
         }),
       ].map((container) => {
-        const containerImageRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).containerImage;
-        const localhostProfileRule = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name }).localhostProfile;
-
-        const imageError = containerImageRule(container);
-        const localhostProfileError = localhostProfileRule(container);
+        const rules = formRulesGenerator(this.$store.getters['i18n/t'], { name: container.name });
+        const imageError = rules.containerImage(container);
+        const nameError = rules.containerName(container);
+        const localhostProfileError = rules.localhostProfile(container);
+        const volumeMountPathError = rules.volumeMountPath({
+          name:         container.name,
+          volumeMounts: this.volumeMountsOf(container, false)
+        });
 
         container.error = {
-          general:          imageError,
-          localhostProfile: localhostProfileError
+          general:          nameError || imageError,
+          localhostProfile: localhostProfileError,
+          storage:          volumeMountPathError
         };
 
         return container;
@@ -669,6 +801,10 @@ export default {
   },
 
   methods: {
+    volumeMountsOf(container, fromClaimTemplates) {
+      return (container.volumeMounts || []).filter((mount) => this.volumeClaimTemplateNames.includes(mount?.name) === fromClaimTemplates);
+    },
+
     secondaryResourceDataConfig() {
       return {
         namespace: this.value?.metadata?.namespace || null,
@@ -763,7 +899,9 @@ export default {
     },
 
     saveWorkload() {
+      // A Pod has no selector/template - it is saved in its native shape.
       if (
+        !this.isPod &&
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
         (this.mode === _CREATE || this.realMode === _CLONE)
@@ -776,12 +914,18 @@ export default {
 
       if (this.type === WORKLOAD_TYPES.CRON_JOB) {
         template = this.spec.jobTemplate;
+      } else if (this.isPod) {
+        // For a Pod, `spec` is the pod spec and `value.metadata` is the pod
+        // metadata - present them the same way the workload template is shaped
+        // so the shared logic below can operate on them uniformly.
+        template = { spec: this.spec, metadata: this.value.metadata };
       } else {
         template = this.spec.template;
       }
 
       // WORKLOADS
       if (
+        !this.isPod &&
         this.type !== WORKLOAD_TYPES.JOB &&
         this.type !== WORKLOAD_TYPES.CRON_JOB &&
         (this.mode === _CREATE || this.realMode === _CLONE)
@@ -831,7 +975,7 @@ export default {
 
       // The fields are being removed because they are not allowed to be editabble
       if (this.mode === _EDIT) {
-        if (template?.spec?.affinity && Object.keys(template?.spec?.affinity).length === 0) {
+        if (!this.hadAffinity && template?.spec?.affinity && Object.keys(template?.spec?.affinity).length === 0) {
           delete template.spec.affinity;
         }
 
@@ -983,7 +1127,8 @@ export default {
       this.podTemplateSpec.containers.push(container);
       this.selectContainer(container);
       this.$nextTick(() => {
-        this.$refs.containersTabbed?.select(container.name);
+        // Container tabs are named by container id, not container name
+        this.$refs.containersTabbed?.select(container[this.idKey]);
       });
     },
 

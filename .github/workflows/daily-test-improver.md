@@ -11,7 +11,8 @@
     Always thoughtful, quality-focused, and mindful of test maintainability.
 
   on:
-    schedule: daily
+    schedule:
+      - cron: "36 11 * * 1-5"
     workflow_dispatch:
     slash_command:
       name: test-assist
@@ -21,7 +22,22 @@
 
   timeout-minutes: 30
 
-  permissions: read-all
+  permissions:
+    actions: read
+    attestations: read
+    checks: read
+    contents: read
+    deployments: read
+    discussions: read
+    issues: read
+    models: read
+    packages: read
+    pages: read
+    pull-requests: read
+    repository-projects: read
+    security-events: read
+    statuses: read
+    copilot-requests: write
 
   network:
     allowed:
@@ -41,7 +57,7 @@
       draft: true
       title-prefix: "[Test Improver] "
       labels: [bot/daily-test-improver, "QA/None"]
-      max: 4
+      max: 5
       protected-files: fallback-to-issue
     push-to-pull-request-branch:
       target: "*"
@@ -149,6 +165,8 @@
   6. If significant opportunities found, comment on relevant issues or create a new issue summarizing findings.
 
   ### Task 3: Implement Test Improvements
+
+  **Open-PR limit (hard cap of 5):** Before doing anything else in this task, count the currently OPEN pull requests carrying the `[Test Improver]` title prefix (label `bot/daily-test-improver`). **If 5 or more are already open, skip this task entirely** — do not create a branch and do not open a new PR — and proceed directly to Task 4 to maintain the existing ones. If fewer than 5 are open, you may create new PRs this run only up to the point where the open total would reach 5 (e.g. if 3 are open, create at most 2 more). Never let the number of open Test Improver PRs exceed 5.
 
   1. Check memory for work in progress. Continue existing work before starting new work.
   2. If starting fresh, select a testing goal from the backlog. Prefer:

@@ -4,6 +4,8 @@ import { clusterRegistrationTokensNoData, generateclusterRegistrationTokensDataS
 import * as path from 'path';
 import * as jsyaml from 'js-yaml';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
+import { qase } from '@/cypress/support/qase';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 // const localWorkspace = 'fleet-local';
 const defaultWorkspace = 'fleet-default';
@@ -12,7 +14,7 @@ let removeToken = false;
 const tokenNameList = [];
 const downloadsFolder = Cypress.config('downloadsFolder');
 
-describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet', '@adminUser'] }, () => {
+describe('Cluster Registration Tokens', { testIsolation: false, tags: ['@fleet', '@adminUser'] }, () => {
   const fleetTokensListPage = new FleetClusterRegistrationTokenListPagePo();
 
   const headerPo = new HeaderPo();
@@ -25,7 +27,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
       });
     });
 
-    it('can create a cluster registration token', () => {
+    qase(8578, it('can create a cluster registration token', () => {
       const fleetTokenCreateEditPage = new FleetTokensCreateEditPo();
 
       cy.intercept('POST', '/v1/fleet.cattle.io.clusterregistrationtokens').as('createToken');
@@ -61,7 +63,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
       });
       fleetTokensListPage.waitForPage();
       fleetTokensListPage.list().rowWithName(customTokenName).checkVisible();
-    });
+    }));
 
     // Skipping until issue resolved: https://github.com/rancher/dashboard/issues/13990
     // it.skip('can Edit Config', () => {
@@ -97,13 +99,17 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     //   fleetTokensListPage.waitForPage();
     // });
 
-    it('can clone a cluster registration token', () => {
+    qase(8580, it('can clone a cluster registration token', () => {
       const fleetTokenCreateEditPage = new FleetTokensCreateEditPo(defaultWorkspace, customTokenName);
 
       cy.intercept('POST', '/v1/fleet.cattle.io.clusterregistrationtokens').as('cloneToken');
 
       fleetTokensListPage.goTo();
       fleetTokensListPage.waitForPage();
+      // A fresh goTo does not reliably preserve the fleet-default workspace filter, and a token is
+      // only listed in its own workspace - so select it explicitly (as the create test does) before
+      // acting on the row. In another workspace the row is simply absent and no retry can find it.
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Clone')
         .click();
       fleetTokenCreateEditPage.waitForPage('mode=clone&as=yaml');
@@ -129,15 +135,18 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
       });
       fleetTokensListPage.waitForPage();
       fleetTokensListPage.list().rowWithName(`${ customTokenName }-clone`).checkVisible();
-    });
+    }));
 
-    it('can Download YAML', () => {
+    qase(8581, it('can Download YAML', () => {
       cy.deleteDownloadsFolder();
 
       fleetTokensListPage.goTo();
       fleetTokensListPage.waitForPage();
-      fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Download YAML')
+      // Re-select the workspace so the token is listed (see the Clone test above).
+      headerPo.selectWorkspace(defaultWorkspace);
+      fleetTokensListPage.list().actionMenu(customTokenName).getMenuItem('Export As...')
         .click();
+      new ExportModalPo().download();
 
       const downloadedFilename = path.join(downloadsFolder, `${ customTokenName }.yaml`);
 
@@ -148,11 +157,13 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
         expect(obj.kind).to.equal('ClusterRegistrationToken');
         expect(obj.metadata['name']).to.equal(customTokenName);
       });
-    });
+    }));
 
-    it('can delete a cluster registration token', () => {
+    qase(8582, it('can delete a cluster registration token', () => {
       fleetTokensListPage.goTo();
       fleetTokensListPage.waitForPage();
+      // Re-select the workspace so the token is listed (see the Clone test above).
+      headerPo.selectWorkspace(defaultWorkspace);
       fleetTokensListPage.list().actionMenu(`${ customTokenName }-clone`).getMenuItem('Delete')
         .click();
       fleetTokensListPage.list().resourceTable().sortableTable()
@@ -171,7 +182,7 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
             .rowNames('.col-link-detail')
             .should('not.contain', `${ customTokenName }-clone`);
         });
-    });
+    }));
 
     after('clean up', () => {
       if (removeToken) {
@@ -180,12 +191,12 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
     });
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before(() => {
       cy.login();
     });
 
-    it('validate cluster registration tokens table in empty state', () => {
+    qase(4061, it('validate cluster registration tokens table in empty state', () => {
       clusterRegistrationTokensNoData();
       fleetTokensListPage.goTo();
       fleetTokensListPage.waitForPage();
@@ -202,9 +213,9 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
 
       fleetTokensListPage.list().resourceTable().sortableTable()
         .checkRowCount(true, 1);
-    });
+    }));
 
-    it('validate cluster registration tokens table', () => {
+    qase(4120, it('validate cluster registration tokens table', () => {
       generateclusterRegistrationTokensDataSmall();
       FleetClusterRegistrationTokenListPagePo.navTo();
       fleetTokensListPage.waitForPage();
@@ -219,6 +230,6 @@ describe('Cluster Registration Tokens', { testIsolation: 'off', tags: ['@fleet',
         .each((el, i) => {
           expect(el.text().trim()).to.eq(expectedHeaders[i]);
         });
-    });
+    }));
   });
 });

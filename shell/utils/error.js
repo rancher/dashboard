@@ -3,7 +3,7 @@ const AWS_SDK_UNHANDLED_ERROR = 'Deserialization error:';
 const DO_NOT_LOG_ERROR = '__doNotLogError';
 
 export class ClusterNotFoundError extends Error {
-  static NAME = 'ClusterNotFoundError'
+  static NAME = 'ClusterNotFoundError';
 
   constructor(message) {
     super(message);
@@ -15,7 +15,7 @@ export class ClusterNotFoundError extends Error {
  * An error occurred and the user should be redirected to a certain location (where this is handled)
  */
 export class RedirectToError extends Error {
-  static NAME = 'RedirectToError'
+  static NAME = 'RedirectToError';
 
   constructor(message, url) {
     super(message);

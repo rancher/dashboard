@@ -3,11 +3,12 @@ import { mapGetters } from 'vuex';
 import ChangePassword from '@shell/components/form/ChangePassword';
 import { Card } from '@components/Card';
 import AsyncButton from '@shell/components/AsyncButton';
+import { RcHeading } from '@components/RcHeading';
 
 export default {
   emits:      ['close'],
   components: {
-    Card, AsyncButton, ChangePassword
+    Card, AsyncButton, ChangePassword, RcHeading
   },
   props: {
     user: {
@@ -43,9 +44,12 @@ export default {
     :show-highlight-border="false"
   >
     <template #title>
-      <h4 class="text-default-text">
+      <RcHeading
+        :size="4"
+        class="text-default-text"
+      >
         {{ t("changePassword.title") }}
-      </h4>
+      </RcHeading>
     </template>
 
     <template #body>

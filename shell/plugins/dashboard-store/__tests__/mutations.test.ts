@@ -1,7 +1,7 @@
 import { batchChanges, loadAdd } from '@shell/plugins/dashboard-store/mutations.js';
 import { POD, WORKLOAD_TYPES } from '@shell/config/types';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
-import mutationHelpers from '@shell/plugins/steve/__tests__/utils/mutation.test.helpers';
+import mutationHelpers, { BatchPayload, ExpectedCaches, MutationFixture } from '@shell/plugins/steve/__tests__/utils/mutation.test.helpers';
 
 const {
   createCtx, createCache, createNoOp, createResource, createPod, createPodResource
@@ -9,9 +9,11 @@ const {
 
 const ctx = createCtx(); // This should be fresh per test.. not sure why it wasn't originally
 
+type BatchFixture = MutationFixture<BatchPayload, ExpectedCaches>;
+
 describe('dashboard-store: mutations', () => {
   describe('batchChanges', () => {
-    const createRegister = () => {
+    const createRegister = (): BatchFixture => {
       return {
         params: [{ types: {} }, {
           ctx,
@@ -21,7 +23,7 @@ describe('dashboard-store: mutations', () => {
       };
     };
 
-    const createNewEntry = () => {
+    const createNewEntry = (): BatchFixture => {
       const pod = createPod();
 
       return {
@@ -46,7 +48,7 @@ describe('dashboard-store: mutations', () => {
       };
     };
 
-    const createExisting = () => {
+    const createExisting = (): BatchFixture => {
       const existingPod = createPodResource();
       const newPod = createPodResource({ change: true });
 
@@ -82,7 +84,7 @@ describe('dashboard-store: mutations', () => {
       };
     };
 
-    const createRemove = () => {
+    const createRemove = (): BatchFixture => {
       const existingPod = createPodResource();
 
       return {
@@ -114,7 +116,7 @@ describe('dashboard-store: mutations', () => {
       };
     };
 
-    const createAddRemove = () => {
+    const createAddRemove = (): BatchFixture => {
       const existingPod1 = createPodResource({ id: '1' });
       // const newPod1 = createPodResource({ id: '1', new: true });
       const existingPod2 = createPodResource({ id: '2' });
@@ -156,7 +158,7 @@ describe('dashboard-store: mutations', () => {
       };
     };
 
-    const createRemoveAdd = () => {
+    const createRemoveAdd = (): BatchFixture => {
       const existingPod1 = createPodResource({ id: '1' });
       // const newPod1 = createPodResource({ id: '1', new: true });
       const existingPod2 = createPodResource({ id: '2' });
@@ -197,9 +199,9 @@ describe('dashboard-store: mutations', () => {
       };
     };
 
-    const createAddMultipleTypes = () => {
+    const createAddMultipleTypes = (): BatchFixture => {
       const pod = createPodResource({ id: '1' });
-      const deployment = createResource({ id: '2', type: WORKLOAD_TYPES.DEPLOYMENT });
+      const deployment = createResource(WORKLOAD_TYPES.DEPLOYMENT, { id: '2' });
 
       return {
         params: [
@@ -242,7 +244,7 @@ describe('dashboard-store: mutations', () => {
       };
     };
 
-    const removeNonExisting = () => {
+    const removeNonExisting = (): BatchFixture => {
       const pod1 = createPodResource({ id: '1' });
       const pod2 = createPodResource({ id: '2' });
 
@@ -273,7 +275,7 @@ describe('dashboard-store: mutations', () => {
       };
     };
 
-    const muchMuchChange = () => {
+    const muchMuchChange = (): BatchFixture => {
       const pod1NoChange = createPodResource({ id: '1' });
 
       const pod2Add = createPodResource({ id: '2' });
@@ -378,8 +380,8 @@ describe('dashboard-store: mutations', () => {
       run.expected.types[POD].havePage = false;
 
       loadAdd(...run.params);
-      const { map: cacheMap, ...cacheState } = run.params[0].types?.[POD] || {};
-      const { map: expectedMap, ...expected } = run.expected.types?.[POD];
+      const { map: cacheMap, ...cacheState } = run.params[0].types[POD];
+      const { map: expectedMap, ...expected } = run.expected.types[POD];
 
       expect(cacheMap).toBeDefined();
       expect(expectedMap).toBeDefined();

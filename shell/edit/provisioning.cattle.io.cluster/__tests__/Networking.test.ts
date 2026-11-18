@@ -1,5 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import Networking from '@shell/edit/provisioning.cattle.io.cluster/tabs/networking/index.vue';
+import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
+import Checkbox from '@components/Form/Checkbox/Checkbox.vue';
 
 const mockServerArgs = { disable: {}, cni: { options: [] } };
 
@@ -29,7 +31,7 @@ const defaultSpec = {
 describe('component: RKE2Networking', () => {
   it('should show a stack preference dropdown', () => {
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         mode:            'create',
         value:           { spec: defaultSpec },
         selectedVersion: { serverArgs: mockServerArgs },
@@ -42,7 +44,7 @@ describe('component: RKE2Networking', () => {
       },
     });
 
-    const dropdown = wrapper.findComponent('[data-testid="network-tab-stackpreferences"]');
+    const dropdown = wrapper.findComponent<typeof LabeledSelect>('[data-testid="network-tab-stackpreferences"]');
 
     expect(dropdown.props('options')).toHaveLength(3);
   });
@@ -51,7 +53,7 @@ describe('component: RKE2Networking', () => {
     const spec = { ...defaultSpec } as any;
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         mode:            'create',
         value:           { spec },
         selectedVersion: { serverArgs: mockServerArgs, label: 'k3s' },
@@ -64,7 +66,7 @@ describe('component: RKE2Networking', () => {
       },
     });
 
-    const input = wrapper.findComponent('[data-testid="cluster-rke2-flannel-masq-checkbox"]');
+    const input = wrapper.findComponent<typeof Checkbox>('[data-testid="cluster-rke2-flannel-masq-checkbox"]');
 
     expect(input.exists()).toBe(true);
   });
@@ -73,7 +75,7 @@ describe('component: RKE2Networking', () => {
     const spec = { ...defaultSpec } as any;
 
     const wrapper = shallowMount(Networking, {
-      propsData: {
+      props: {
         mode:            'create',
         value:           { spec },
         selectedVersion: { serverArgs: mockServerArgs, label: 'rke2' },
@@ -86,7 +88,7 @@ describe('component: RKE2Networking', () => {
       },
     });
 
-    const input = wrapper.findComponent('[data-testid="cluster-rke2-flannel-masq-checkbox"]');
+    const input = wrapper.findComponent<typeof Checkbox>('[data-testid="cluster-rke2-flannel-masq-checkbox"]');
 
     expect(wrapper.vm.showFlannelMasq).toBe(false);
     expect(input.exists()).toBe(false);

@@ -1,6 +1,4 @@
-import {
-  deriveRepoName, fetchAppCoCharts, ensureAppCoResources, ensureAppCoImagePullSecret, getDownstreamResourcesDocsUrl, FLEET_DOWNSTREAM_RESOURCES_DOCS_FALLBACK_URL
-} from '@shell/utils/fleet-appco';
+import { deriveRepoName, fetchAppCoCharts, ensureAppCoResources, ensureAppCoImagePullSecret } from '@shell/utils/fleet-appco';
 import { SECRET, CATALOG as CATALOG_TYPES } from '@shell/config/types';
 import { SECRET_TYPES } from '@shell/config/secret';
 
@@ -58,29 +56,6 @@ describe('fleet-appco utils', () => {
 
     it('should return empty string for empty input', () => {
       expect(deriveRepoName('')).toStrictEqual('');
-    });
-  });
-
-  describe('getDownstreamResourcesDocsUrl', () => {
-    it.each([
-      ['v2.15.0', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['2.15.0', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.16.3', 'https://fleet.rancher.io/0.17/downstream-resources'],
-      ['v2.15.0-rc1', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.15-head', 'https://fleet.rancher.io/0.16/downstream-resources'],
-      ['v2.20.0', 'https://fleet.rancher.io/0.21/downstream-resources'],
-    ])('should map Rancher %s to Fleet docs %s', (version, expected) => {
-      expect(getDownstreamResourcesDocsUrl(version)).toStrictEqual(expected);
-    });
-
-    it.each([
-      ['v2.14.0'],
-      ['v2.9.0'],
-      ['dev'],
-      [''],
-      [undefined],
-    ])('should fall back to the unversioned docs for %s', (version) => {
-      expect(getDownstreamResourcesDocsUrl(version)).toStrictEqual(FLEET_DOWNSTREAM_RESOURCES_DOCS_FALLBACK_URL);
     });
   });
 

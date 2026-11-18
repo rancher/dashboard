@@ -1,5 +1,10 @@
 import { mount } from '@vue/test-utils';
-import DrainOptions from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade/DrainOptions';
+import DrainOptions from '@shell/edit/provisioning.cattle.io.cluster/tabs/upgrade/DrainOptions.vue';
+
+// Payload of the component's `update:value` event. Left as an open record rather than
+// restating the drain options: the `toStrictEqual` in each test below is the real check,
+// and spelling the fields out here would mean maintaining the same shape twice in one file.
+type DrainOptionsValue = Record<string, unknown>;
 
 describe('drain options', () => {
   it('should update an empty value with default drain options', () => {
@@ -11,7 +16,9 @@ describe('drain options', () => {
 
       });
 
-    expect(wrapper.emitted('update:value')?.[0]?.[0]).toStrictEqual({
+    const emitted = wrapper.emitted('update:value') as [DrainOptionsValue][];
+
+    expect(emitted[0][0]).toStrictEqual({
       deleteEmptyDirData:              true,
       disableEviction:                 false,
       enabled:                         false,
@@ -40,7 +47,9 @@ describe('drain options', () => {
 
       });
 
-    expect(wrapper.emitted('update:value')?.[0]?.[0]).toStrictEqual({
+    const emitted = wrapper.emitted('update:value') as [DrainOptionsValue][];
+
+    expect(emitted[0][0]).toStrictEqual({
       deleteEmptyDirData:              false,
       disableEviction:                 false,
       enabled:                         false,

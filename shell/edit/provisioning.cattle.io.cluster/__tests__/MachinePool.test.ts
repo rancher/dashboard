@@ -1,7 +1,10 @@
 import { shallowMount } from '@vue/test-utils';
 import MachinePool from '@shell/edit/provisioning.cattle.io.cluster/tabs/MachinePool.vue';
+import { CAPI as CAPI_ANNOTATIONS } from '@shell/config/labels-annotations';
 
 const TRANSLATION_KEY = '%cluster.machinePool.name.unique%';
+const PAUSED_MIN = CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_PAUSED_MIN_SIZE;
+const PAUSED_MAX = CAPI_ANNOTATIONS.AUTOSCALER_MACHINE_POOL_PAUSED_MAX_SIZE;
 
 function createPool(name: string, { remove = false } = {}) {
   return {
@@ -20,7 +23,11 @@ function createPool(name: string, { remove = false } = {}) {
   };
 }
 
-function mountMachinePool(currentPool: ReturnType<typeof createPool>, allPools: ReturnType<typeof createPool>[]) {
+function mountMachinePool(
+  currentPool: ReturnType<typeof createPool>,
+  allPools: ReturnType<typeof createPool>[],
+  { stubs = {}, featureEnabled = false }: { stubs?: Record<string, unknown>, featureEnabled?: boolean } = {}
+) {
   return shallowMount(MachinePool, {
     props: {
       value:          currentPool,
@@ -39,7 +46,7 @@ function mountMachinePool(currentPool: ReturnType<typeof createPool>, allPools: 
             'i18n/exists':                              () => false,
             'type-map/hasCustomMachineConfigComponent': () => false,
             'type-map/importMachineConfig':             () => null,
-            'features/get':                             () => false,
+            'features/get':                             () => featureEnabled,
           },
           dispatch: jest.fn(),
         },
@@ -52,6 +59,7 @@ function mountMachinePool(currentPool: ReturnType<typeof createPool>, allPools: 
         AdvancedSection: true,
         Banner:          true,
         UnitInput:       true,
+        ...stubs,
       },
     },
   });
@@ -99,6 +107,112 @@ describe('component: MachinePool', () => {
       const wrapper = mountMachinePool(pool1, [pool1, pool2]);
 
       expect(wrapper.vm.fvExtraRules.uniquePoolName(nameA)).toStrictEqual(TRANSLATION_KEY);
+    });
+  });
+
+  describe('isAutoscalerEnabled', () => {
+    const mountWithPool = (pool: any) => {
+      const value = { ...createPool('pool1'), pool };
+
+      return mountMachinePool(value, [value]);
+    };
+
+    it.each([
+      ['both bounds are set', { autoscalingMinSize: 1, autoscalingMaxSize: 4 }, true],
+      ['only the min bound is set', { autoscalingMinSize: 1 }, true],
+      ['only the max bound is set', { autoscalingMaxSize: 4 }, true],
+      ['a bound has been cleared while editing the range', { autoscalingMinSize: 1, autoscalingMaxSize: null }, true],
+      ['the pool is paused', { machineDeploymentAnnotations: { [PAUSED_MIN]: '1', [PAUSED_MAX]: '4' } }, false],
+    ])('should reflect that %s', (_label, pool, expected) => {
+      expect(mountWithPool(pool).vm.isAutoscalerEnabled).toStrictEqual(expected);
+    });
+
+    it('should seed a default range when enabled on a pool that was never autoscaling', () => {
+      const pool: any = { quantity: 2 };
+      const wrapper = mountWithPool(pool);
+
+      wrapper.vm.isAutoscalerEnabled = true;
+
+      expect(pool).toStrictEqual({
+        quantity: 2, autoscalingMinSize: 1, autoscalingMaxSize: 2
+      });
+    });
+
+    it('should resume the stashed range when enabled on a paused pool', () => {
+      const pool: any = { quantity: 3, machineDeploymentAnnotations: { [PAUSED_MIN]: '2', [PAUSED_MAX]: '5' } };
+      const wrapper = mountWithPool(pool);
+
+      wrapper.vm.isAutoscalerEnabled = true;
+
+      expect(pool).toStrictEqual({
+        quantity: 3, autoscalingMinSize: 2, autoscalingMaxSize: 5
+      });
+    });
+
+    it('should drop the stash when disabled on a paused pool', () => {
+      const pool: any = { quantity: 3, machineDeploymentAnnotations: { [PAUSED_MIN]: '2', [PAUSED_MAX]: '5' } };
+      const wrapper = mountWithPool(pool);
+
+      wrapper.vm.isAutoscalerEnabled = false;
+
+      expect(pool).toStrictEqual({ quantity: 3 });
+    });
+
+    it('should drop the stash when disabled on an autoscaling pool that still carries one', () => {
+      const pool: any = {
+        quantity:                     3,
+        autoscalingMinSize:           1,
+        autoscalingMaxSize:           4,
+        machineDeploymentAnnotations: {
+          foo: 'bar', [PAUSED_MIN]: '2', [PAUSED_MAX]: '5'
+        },
+      };
+      const wrapper = mountWithPool(pool);
+
+      wrapper.vm.isAutoscalerEnabled = false;
+
+      expect(pool).toStrictEqual({ quantity: 3, machineDeploymentAnnotations: { foo: 'bar' } });
+    });
+  });
+
+  describe('a paused pool', () => {
+    const mountWithPool = (pool: any) => {
+      const value = { ...createPool('pool1'), pool };
+
+      return mountMachinePool(value, [value], {
+        featureEnabled: true,
+        stubs:          { AdvancedSection: { template: '<div><slot /></div>' } }
+      });
+    };
+    const pausedPool = () => ({ quantity: 3, machineDeploymentAnnotations: { [PAUSED_MIN]: '2', [PAUSED_MAX]: '5' } });
+
+    it('should report the range it was paused with', () => {
+      const wrapper = mountWithPool(pausedPool() as any);
+
+      expect(wrapper.vm.isAutoscalerPaused).toStrictEqual(true);
+      expect(wrapper.vm.pausedAutoscalerRange).toStrictEqual({ min: 2, max: 5 });
+    });
+
+    it('should show that range read only, alongside the paused banner', () => {
+      const wrapper = mountWithPool(pausedPool() as any);
+      const min = wrapper.find('[data-testid="autoscaler-paused-min"]');
+      const max = wrapper.find('[data-testid="autoscaler-paused-max"]');
+
+      expect(wrapper.find('[data-testid="autoscaler-paused-banner"]').exists()).toStrictEqual(true);
+      expect(min.attributes('value')).toStrictEqual('2');
+      expect(max.attributes('value')).toStrictEqual('5');
+      expect(min.attributes('disabled')).toStrictEqual('true');
+      expect(max.attributes('disabled')).toStrictEqual('true');
+    });
+
+    it('should show none of that for a pool that is not paused', () => {
+      const wrapper = mountWithPool({
+        quantity: 3, autoscalingMinSize: 1, autoscalingMaxSize: 4
+      } as any);
+
+      expect(wrapper.vm.isAutoscalerPaused).toStrictEqual(false);
+      expect(wrapper.find('[data-testid="autoscaler-paused-banner"]').exists()).toStrictEqual(false);
+      expect(wrapper.find('[data-testid="autoscaler-paused-min"]').exists()).toStrictEqual(false);
     });
   });
 });

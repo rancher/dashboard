@@ -64,6 +64,25 @@ Danger banners should be used when the system has failed to perform an action, o
 
 <Canvas of={BannerStories.Error} />
 
+#### Live regions
+
+By default a Banner has no ARIA role and is not announced by assistive technology. Set the `role` prop when the banner is a *status message* — something that appears in response to what the user just did, rather than content that was on the page all along.
+
+- `role="alert"` for errors and anything needing immediate attention. Equivalent to `aria-live="assertive"`; it interrupts whatever the screen reader is currently saying.
+- `role="status"` for informational and warning messages. Equivalent to `aria-live="polite"`; it waits for a pause before announcing.
+- Omit the prop for decorative or purely visual banners, and for banners that are part of the page on load — announcing those is disruptive and adds nothing.
+
+<Canvas of={BannerStories.LiveRegionAlert} />
+<Canvas of={BannerStories.LiveRegionStatus} />
+
+#### Where to put the role
+
+Assistive technology announces a live region in two situations: when the region is inserted into the page, and when the contents of an already-present region change. Banners in the dashboard are nearly always behind a `v-if` or `v-for`, so the insertion case is the one that applies.
+
+Put the role on an element that **already exists** — either the Banner itself, or the container that already groups several banners (`#cru-errors` on create/edit forms, for example). Don't add a wrapper element just to hold the live region: these banners sit inside grid and flex layouts, so a new box becomes a grid cell or a flex item and shifts the surrounding layout.
+
+If a container that only ever holds banners is already rendered unconditionally — the login page's `.login-messages` is one — put the role on that container rather than on the individual banners. The region is then present before the message arrives, which is the more reliable of the two patterns.
+
 ### Accessibility
 
 Make sure that the information presented in an alert is important enough to justify taking away the user’s attention from what they are doing (ie. errors, warnings, validations, etc.).

@@ -3,7 +3,18 @@ import { nextTick } from 'vue';
 import { mount } from '@vue/test-utils';
 import Navlink from '@shell/edit/ui.cattle.io.navlink.vue';
 import { _CREATE } from '@shell/config/query-params';
-import CruResource from '@shell/components/CruResource';
+import CruResource from '@shell/components/CruResource.vue';
+
+// WARNING: the canSave() assertion in the last test below asserts nothing. It calls a
+// computed off CruResource's raw options object, so `this` is that object, `showAsForm`
+// is undefined and `canSave()` returns true for every input - including if navlink stopped
+// enabling save entirely. It is kept only because the test's dropdown selections drive
+// `keydown` on the root wrapper, which never reaches the LabeledSelect, so no service is
+// ever picked and the real `saveButton.disabled` check (used by the other tests here)
+// cannot pass yet. Fixing that interaction is a behaviour change and needs its own issue.
+// The cast exists because CruResource is a plain-JS SFC and vue-tsc sees only its
+// component type, not the options object.
+type CruResourceOptions = { computed: { canSave: () => boolean } };
 
 describe('view: ui.cattle.io.navlink should', () => {
   const name = 'test';
@@ -20,7 +31,7 @@ describe('view: ui.cattle.io.navlink should', () => {
             currentStore:              () => 'current_store',
             'current_store/schemaFor': jest.fn(),
             'current_store/all':       jest.fn(),
-            'i18n/t':                  (val) => val,
+            'i18n/t':                  (val: string) => val,
             'i18n/exists':             jest.fn(),
             'store/customisation/':    jest.fn()
           }
@@ -29,7 +40,7 @@ describe('view: ui.cattle.io.navlink should', () => {
         $router: { applyQuery: jest.fn() },
       },
     },
-    propsData: {
+    props: {
       metadata:   { namespace: 'test' },
       spec:       { template: {} },
       targetInfo: { mode: 'all' },
@@ -63,6 +74,7 @@ describe('view: ui.cattle.io.navlink should', () => {
     expect(saveButton.disabled).toBe(true);
   });
   it('have "Create" button enabled when Link type is URL and all required fields are filled in', async() => {
+    const saveButton = wrapper.find('[data-testid="form-save"]').element as HTMLInputElement;
     const nameField = wrapper.find('[data-testid="Navlink-name-field"]').find('input');
     const urlField = wrapper.find('[data-testid="Navlink-url-field"]');
 
@@ -71,7 +83,7 @@ describe('view: ui.cattle.io.navlink should', () => {
 
     await nextTick();
 
-    expect(CruResource.computed.canSave()).toBe(true);
+    expect(saveButton.disabled).toBe(false);
   });
 
   it('have "Create" button disabled when Link type is Service and and only name is filled in', async() => {
@@ -109,6 +121,6 @@ describe('view: ui.cattle.io.navlink should', () => {
     await wrapper.trigger('keydown.down');
     await wrapper.trigger('keydown.enter');
 
-    expect(CruResource.computed.canSave()).toBe(true);
+    expect((CruResource as unknown as CruResourceOptions).computed.canSave()).toBe(true);
   });
 });

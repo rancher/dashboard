@@ -21,6 +21,8 @@ import { PaginationFilterField, PaginationParamFilter } from '@shell/types/store
 const RKE1_ALLOWED_ACTIONS = [
   'promptRemove',
   'openShell',
+  'pinCluster',
+  'unpinCluster',
   'downloadKubeConfig',
   'copyKubeConfig',
   'download',
@@ -37,6 +39,33 @@ const AUTOSCALER_STATUS = {
  * @extends SteveModel
  */
 export default class ProvCluster extends SteveModel {
+  isAnnotationIgnored(key) {
+    if (key === CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME) {
+      return false;
+    }
+
+    return super.isAnnotationIgnored(key);
+  }
+
+  get allowedSystemAnnotationKeys() {
+    // Allow this annotation to bypass the cattle.io/ regex protection in the Labels UI
+    // so that users can set it during cluster creation
+    if (!this.id) {
+      return [CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME];
+    }
+
+    return [];
+  }
+
+  get readOnlyAnnotationKeys() {
+    // On edit, show the annotation with a warning that changes will not be persisted
+    if (this.id && this.metadata?.annotations?.[CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME]) {
+      return [CAPI_ANNOTATIONS.MANAGEMENT_CLUSTER_NAME];
+    }
+
+    return [];
+  }
+
   get details() {
     const out = [
       {
@@ -128,9 +157,9 @@ export default class ProvCluster extends SteveModel {
     const ready = this.mgmt?.isReady;
 
     const canDayTwoOps = ready && this.isDayTwoOpsEnabled && this.canUpdate;
-    const canEditRKE2cluster = this.isRke2 && ready && this.canUpdate;
 
     const actions = [
+      ...(this.mgmt?.clusterPinActions() || []),
       // Note: Actions are not supported in the Steve API, so we check
       // available actions for RKE1 clusters, but not RKE2 clusters.
       {
@@ -146,11 +175,12 @@ export default class ProvCluster extends SteveModel {
         bulkable:   true,
         enabled:    this.mgmt?.canCreateKubeconfig,
       }, {
-        action:   'copyKubeConfig',
-        label:    this.t('cluster.copyConfig'),
-        bulkable: false,
-        enabled:  this.mgmt?.canCreateKubeconfig,
-        icon:     'icon icon-copy',
+        action:     'copyKubeConfig',
+        bulkAction: 'copyKubeConfigBulk',
+        label:      this.t('cluster.copyConfig'),
+        bulkable:   true,
+        enabled:    this.mgmt?.canCreateKubeconfig,
+        icon:       'icon icon-copy',
       }, {
         action:     'snapshotAction',
         label:      this.$rootGetters['i18n/t']('nav.takeSnapshot'),
@@ -167,7 +197,7 @@ export default class ProvCluster extends SteveModel {
         action:  'rotateCertificates',
         label:   this.$rootGetters['i18n/t']('nav.rotateCertificates'),
         icon:    'icon icon-backup',
-        enabled: canEditRKE2cluster || (this.mgmt?.hasAction('rotateCertificates') && ready),
+        enabled: canDayTwoOps,
       }, {
         action:  'rotateEncryptionKey',
         label:   this.$rootGetters['i18n/t']('nav.rotateEncryptionKeys'),
@@ -325,7 +355,7 @@ export default class ProvCluster extends SteveModel {
    * Whether this is an imported RKE2/K3s cluster with day 2 operations enabled.
    */
   get isImportedWithDayTwoOps() {
-    const annotationExists = typeof this.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
+    const annotationExists = typeof this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] !== 'undefined';
     const annotationEnabled = this.mgmt?.metadata?.annotations?.[OPERATION_ANNOTATIONS.ENABLED] === 'true';
     const globalDefaultIsTrue = this.$rootGetters['management/byId'](MANAGEMENT.SETTING, SETTING.IMPORTED_CLUSTER_DAY2_OPS_DEFAULT)?.value === 'true';
     const annotationOrGlobalEnabled = annotationEnabled || (!annotationExists && globalDefaultIsTrue);
@@ -335,7 +365,12 @@ export default class ProvCluster extends SteveModel {
   }
 
   get isK3s() {
-    return this.mgmt?.isK3s;
+    if (this.mgmt) {
+      return this.mgmt.isK3s;
+    }
+
+    // No management cluster yet (e.g. the create flow), fall back to the selected kubernetes version
+    return (this.spec?.kubernetesVersion || '').includes('k3s');
   }
 
   get isRke2() {
@@ -553,6 +588,26 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.downloadKubeConfigBulk(items);
   }
 
+  copyKubeConfigBulk(items) {
+    return this.mgmt?.copyKubeConfigBulk(items);
+  }
+
+  pinCluster() {
+    return this.mgmt?.pinCluster();
+  }
+
+  unpinCluster() {
+    return this.mgmt?.unpinCluster();
+  }
+
+  pinClusterBulk(items) {
+    return this.mgmt?.pinClusterBulk(items);
+  }
+
+  unpinClusterBulk(items) {
+    return this.mgmt?.unpinClusterBulk(items);
+  }
+
   async snapshotAction() {
     try {
       await this.takeSnapshot();
@@ -646,14 +701,16 @@ export default class ProvCluster extends SteveModel {
   rotateCertificates(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-      component:      'RotateCertificatesDialog'
+      component:      'RotateCertificatesDialog',
+      ownsModal:      true
     });
   }
 
   rotateEncryptionKey(cluster = this) {
     this.$dispatch('promptModal', {
       componentProps: { cluster },
-      component:      'RotateEncryptionKeyDialog'
+      component:      'RotateEncryptionKeyDialog',
+      ownsModal:      true
     });
   }
 
@@ -790,12 +847,13 @@ export default class ProvCluster extends SteveModel {
   }
 
   get namespaceLocation() {
-    // Check side nav for local cluster access — `management/byId` only reflects what's
-    // currently cached, which on a downstream detail page is just the downstream cluster
-    // (so admins would falsely look like they have no local access). The side nav reflects
-    // permission, not cache state, so it's accurate for both admins and downstream-only users.
-    const hasLocalCluster = sideNavService.helper.clustersPinned.some((c) => c.id === LOCAL_CLUSTER) ||
-      sideNavService.helper.clustersOthers.some((c) => c.id === LOCAL_CLUSTER);
+    // Check the side nav for local cluster access — `management/byId` only reflects what's
+    // currently cached, which on a downstream detail page is just the downstream cluster (so
+    // admins would falsely look like they have no local access). The side nav reflects permission,
+    // not cache state, so it's accurate for both admins and downstream-only users. `local` lives in
+    // its own fixed `clustersLocal` slice — it's excluded from the pinned/recent/others groups, so
+    // that slice is the single source of truth for local access.
+    const hasLocalCluster = sideNavService.helper.clustersLocal.some((c) => c.id === LOCAL_CLUSTER);
 
     if (!hasLocalCluster) {
       return null;

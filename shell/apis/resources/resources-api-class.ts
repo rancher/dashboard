@@ -5,6 +5,7 @@ import {
 } from '@shell/apis/intf/resources-api/resource-base';
 import { ResourceInstance } from '@shell/apis/intf/resources-api/resource-instance';
 import { ResourcesApi } from '@shell/apis/intf/resources-api/resources-api';
+import { patchWithFallback } from '@shell/apis/resources/patch-content-type';
 import { ActionFindPageTransientResponse } from '@shell/types/store/dashboard-store.types';
 import { Store } from 'vuex';
 
@@ -106,14 +107,14 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    *
    * The response is not cached
    *
-   * Requires `ui-sql-cache` to be enabled.
+   * Requires resourceType to be server-side pagination enabled (see enableServerSidePagination).
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
-   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
+   * @throws Error if pagination mode is requested but resourceType is not server-side pagination enabled.
    */
   findFiltered<T = Record<string, any>, I = ActionFindPageTransientResponse<ResourceInstance<T>>>(
     resourceType: ResourceType,
@@ -125,14 +126,14 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    *
    * The response is cached.
    *
-   * Requires `ui-sql-cache` to be enabled.
+   * Requires resourceType to be server-side pagination enabled (see enableServerSidePagination).
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
    * @param resourceType - The type of the resources to find (examples in **{@link K8S}**). See also {@link ResourceType}.
    * @param options - Pagination options with server-side filtering and sorting via the Steve API's pagination cache. See {@link FindFilteredPageOptions}.
    * @returns Response containing resource items
-   * @throws Error if pagination mode is requested but `ui-sql-cache` is not enabled.
+   * @throws Error if pagination mode is requested but resourceType is not server-side pagination enabled.
    */
   findFiltered<T = Record<string, any>, I = ResourceInstance<T>>(
     resourceType: ResourceType,
@@ -143,7 +144,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
    * Finds resources using label selector matching.
    *
    * Filters resources by Kubernetes labels. The store automatically handles pagination:
-   * - If `ui-sql-cache` is enabled: uses server-side pagination
+   * - If resourceType is server-side pagination enabled: uses server-side pagination
    * - Otherwise: uses native Kubernetes API pagination
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
@@ -170,7 +171,7 @@ export class ResourcesApiClassImpl implements ResourcesApi {
         const canPaginate = this.store.getters[`${ this.storeType }/paginationEnabled`]?.(resourceType);
 
         if (!canPaginate) {
-          return this.surfaceError('findFiltered requests with FindFilteredPageOptions are only supported when ui-sql-cache is enabled');
+          return this.surfaceError('findFiltered requests with FindFilteredPageOptions are only supported when resourceType is enabled with server-side pagination');
         }
 
         const safeOption = options as FindFilteredPageOptions;
@@ -268,10 +269,13 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   }
 
   /**
-   * Applies a partial update to a resource using HTTP PATCH (merge-patch).
+   * Applies a partial update to a resource using HTTP PATCH.
    *
    * Only the fields provided in `data` are sent to the server.
    * This is a raw HTTP operation — it does not check permissions or update the store cache.
+   *
+   * Strategic merge patch is attempted first. Resources that reject it (CRDs, which is most of
+   * Rancher) are retried with merge patch, and remembered so the retry only happens once per type.
    *
    * @template T - Your specific resource type. Rancher will supplement the response with additional properties and methods
    * @template I - An override for the response type. By default this uses T and supplements the response, or by supplying a value ignores T
@@ -287,13 +291,18 @@ export class ResourcesApiClassImpl implements ResourcesApi {
   ): Promise<I> {
     try {
       const url = this.resourceUrl(resourceType, resourceId);
-      const res = await this.store.dispatch(`${ this.storeType }/request`, {
-        opt: {
-          url,
-          method:  'patch',
-          headers: { 'content-type': 'application/strategic-merge-patch+json' },
-          data,
-        }
+      const res = await patchWithFallback({
+        storeName: this.storeType,
+        resourceType,
+        send:      (contentType: string) => this.store.dispatch(`${ this.storeType }/request`, {
+          opt: {
+            url,
+            method:  'patch',
+            headers: { 'content-type': contentType },
+            data,
+          }
+        }),
+        onFallback: (message: string, e: any) => this.surfaceWarning(message, e),
       });
 
       return res as I;

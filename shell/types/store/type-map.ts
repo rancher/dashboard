@@ -90,6 +90,21 @@ export interface TypeMapProduct {
   showNamespaceFilter?: boolean;
 
   /**
+   * Show the nav toolbar (the jump-to search and the collapse-all control) above
+   * this product's nav. Off by default: the search is only worth its place in a
+   * nav big enough to get lost in.
+   *
+   * Only read from a root product, because the toolbar belongs to the tree it
+   * sits above and that tree is the root's: every `inStore: 'cluster'` product
+   * is rooted into the explorer, and on one of those routes `getGroups` builds
+   * the explorer's whole nav rather than the route product's. So setting this on
+   * a product that roots into another has no effect - its own nav is never the
+   * one on screen - and the explorer's setting covers Apps, monitoring and every
+   * chart-installed product with it.
+   */
+  navSearch?: boolean;
+
+  /**
    * A number used to determine where in navigation this item will be placed. The highest number will be at the top of the list.
    */
   weight?: number;
@@ -229,8 +244,8 @@ export interface TypeMapConfigureType {
  * Used by type-map virtualType
  */
 export interface TypeMapVirtualType {
-  /** Display only if condition is met (relates to IF_HAVE in shell/store/type-map) */
-  ifHave?: boolean;
+  /** Display only if condition is met. One of the `IF_HAVE` values in shell/store/type-map */
+  ifHave?: string;
   /** Display only if feature is present (relates to shell/store/features) */
   ifFeature?: string;
   /** Display only if resource type exists */
@@ -258,7 +273,31 @@ export interface TypeMapVirtualType {
   overview?: boolean;
   /** Whether this custom page has an exact path match */
   'exact-path'?: boolean;
+  /**
+   * `navResources` is an optional array of resource types. The nav item stays
+   * highlighted while on a route for one of those resources. For example, some
+   * create/edit pages of a type have no nav entry of their own.
+   */
+  navResources?: string[];
 }
+
+/**
+ * A conditional `ignoreGroup` rule, as stored in type-map's `groupIgnore` state
+ *
+ * `type` is a regex source (RegExp objects don't serialize into state) and `cb` decides, at
+ * runtime, whether the group is actually ignored for the current context
+ */
+export interface TypeMapConditionalIgnoreRule {
+  type: string,
+  cb: (getters: any) => boolean,
+}
+
+/**
+ * An entry of type-map's `typeIgnore` / `groupIgnore` state
+ *
+ * A plain string is an unconditional rule, an object is a conditional one
+ */
+export type TypeMapIgnoreRule = string | TypeMapConditionalIgnoreRule;
 
 /**
  * interface for type-map's' definition for table headers/columns
@@ -266,7 +305,7 @@ export interface TypeMapVirtualType {
 export interface TableColumn {
   name: string,
   label?: string,
-  value: any,
+  value?: any,
   sort?: string | string[],
   formatter?: string,
   formatterOpts?: any,

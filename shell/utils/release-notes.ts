@@ -2,9 +2,17 @@ import { getVersionData } from '@shell/config/version';
 import { READ_WHATS_NEW } from '@shell/store/prefs';
 import { NotificationLevel } from '@shell/types/notifications';
 
+const prefix = 'release-notes-';
+
+/**
+ * The running version the release notes are for, without the build suffix (e.g. 'v2.16.0')
+ */
+export function releaseNotesVersion(): string {
+  return getVersionData().Version.split('-')[0];
+}
+
 export async function addReleaseNotesNotification(dispatch: any, getters: any) {
-  const rancherVersion = getVersionData().Version.split('-')[0];
-  const prefix = 'release-notes-';
+  const rancherVersion = releaseNotesVersion();
   const id = `${ prefix }${ rancherVersion }`;
   let found = false;
   const all = getters['notifications/all'];
@@ -44,5 +52,19 @@ export async function addReleaseNotesNotification(dispatch: any, getters: any) {
     };
 
     await dispatch('notifications/add', notification);
+  }
+}
+
+/**
+ * Mark the release notes for the running version as read, like reading their notification does
+ */
+export async function markReleaseNotesRead(dispatch: any, getters: any) {
+  const rancherVersion = releaseNotesVersion();
+  const notification = getters['notifications/item'](`${ prefix }${ rancherVersion }`);
+
+  if (notification && !notification.read) {
+    await dispatch('notifications/markRead', notification.id);
+  } else if (getters['prefs/get'](READ_WHATS_NEW) !== rancherVersion) {
+    await dispatch('prefs/set', { key: READ_WHATS_NEW, value: rancherVersion });
   }
 }

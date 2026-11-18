@@ -25,7 +25,7 @@ describe('view: nodedriver should', () => {
       },
 
     },
-    propsData: {
+    props: {
       value: {
         spec: {
           active:           true,

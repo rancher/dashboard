@@ -3,12 +3,12 @@ import { generateRoleBindingDataSmall, roleBindingNoData } from '@/cypress/e2e/b
 
 const roleBindingsPage = new RoleBindingsPagePo();
 
-describe('RoleBindings', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('RoleBindings', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter('local', 'none', '{\"local\":[]}', { delay: true });
     });
@@ -58,11 +58,10 @@ describe('RoleBindings', { testIsolation: 'off', tags: ['@explorer', '@adminUser
       cy.wait('@roleBindingDataSmall');
 
       // group by namespace
-      roleBindingsPage.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      roleBindingsPage.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Role', 'Users', 'Groups', 'Service Accounts', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Role', 'Users', 'Groups', 'Service Accounts', 'Age'];
 
       roleBindingsPage.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

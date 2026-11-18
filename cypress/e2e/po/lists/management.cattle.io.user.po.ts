@@ -14,11 +14,11 @@ export default class MgmtUsersListPo extends BaseResourceList {
   }
 
   deactivate() {
-    return cy.getId('sortable-table-deactivate');
+    return this.resourceTable().sortableTable().bulkAction('deactivate');
   }
 
   activate() {
-    return cy.getId('sortable-table-activate');
+    return this.resourceTable().sortableTable().bulkAction('activate');
   }
 
   openBulkActionDropdown() {

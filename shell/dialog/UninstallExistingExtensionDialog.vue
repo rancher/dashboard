@@ -2,6 +2,7 @@
 import AsyncButton from '@shell/components/AsyncButton';
 import { CATALOG } from '@shell/config/types';
 import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
+import { RcHeading } from '@components/RcHeading';
 
 /**
  * Dialog shown when user tries to install an extension that is already installed from a different source.
@@ -10,7 +11,7 @@ import { UI_PLUGIN_NAMESPACE } from '@shell/config/uiplugins';
 export default {
   emits: ['close'],
 
-  components: { AsyncButton },
+  components: { AsyncButton, RcHeading },
 
   props: {
     /**
@@ -103,9 +104,13 @@ export default {
 
 <template>
   <div class="plugin-install-dialog">
-    <h4 class="mt-10">
+    <RcHeading
+      :size="4"
+      class="mt-10"
+      data-modal-title
+    >
       {{ t('plugins.install.alreadyInstalledTitle') }}
-    </h4>
+    </RcHeading>
     <div class="mt-10 dialog-panel">
       <div class="dialog-info">
         <p>

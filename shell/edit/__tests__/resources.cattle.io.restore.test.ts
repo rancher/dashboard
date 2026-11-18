@@ -47,7 +47,7 @@ describe('view: restore storage source switching', () => {
           $fetchState: { pending: false }
         }
       },
-      propsData: defaultProps
+      props: defaultProps
     });
   };
 

@@ -1,6 +1,7 @@
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import GithubAppPo from '@/cypress/e2e/po/edit/auth/githubapp.po';
 import { AuthProvider, AuthProviderPo } from '@/cypress/e2e/po/pages/users-and-auth/authProvider.po';
+import { interceptAuthConfigCreate } from '@/cypress/e2e/blueprints/users/auth-config-stubs';
 
 const authClusterId = '_';
 const authProviderPo = new AuthProviderPo(authClusterId);
@@ -25,13 +26,16 @@ describe('GitHub App', { tags: ['@adminUser', '@usersAndAuths'] }, () => {
   });
 
   it('can navigate to Auth Provider and Select GitHub App', () => {
-    githubAppPo.mastheadTitle().should('include', `GitHub App`);
+    authProviderPo.createTitle().should('contain', 'GitHub App');
 
     githubAppPo.gitHubAppBanner().should('be.visible');
     githubAppPo.permissionsWarningBanner().should('be.visible');
   });
 
   it('sends correct request to create GitHub App auth provider', () => {
+    interceptAuthConfigCreate({
+      name: 'githubapp', normanType: 'githubAppConfig', collection: 'githubAppConfigs', actions: ['configureTest', 'testAndApply', 'disable']
+    });
     cy.intercept('POST', 'v3/githubAppConfigs/githubapp?action=configureTest', (req) => {
       expect(req.body.enabled).to.equal(false);
       expect(req.body.id).to.equal('githubapp');

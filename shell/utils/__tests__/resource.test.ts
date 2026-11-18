@@ -1,16 +1,17 @@
-import { validateResource } from '@shell/utils/resource';
+import { validateResource, INVALID_RESOURCE_IN_CONTEXT } from '@shell/utils/resource';
 import { canViewResource } from '@shell/utils/auth';
-import { getResourceFromRoute } from '@shell/utils/router';
+import { getResourceFromRoute, findMeta } from '@shell/utils/router';
 import { RouteLocation } from 'vue-router';
 
 // Mock dependencies from other modules
 jest.mock('@shell/utils/auth', () => ({ canViewResource: jest.fn() }));
 
-jest.mock('@shell/utils/router', () => ({ getResourceFromRoute: jest.fn() }));
+jest.mock('@shell/utils/router', () => ({ getResourceFromRoute: jest.fn(), findMeta: jest.fn() }));
 
 // Typed mocks for better intellisense and type-checking
 const mockCanViewResource = canViewResource as jest.Mock;
 const mockGetResourceFromRoute = getResourceFromRoute as jest.Mock;
+const mockFindMeta = findMeta as jest.Mock;
 
 describe('validateResource', () => {
   let mockStore: any;
@@ -70,11 +71,12 @@ describe('validateResource', () => {
     expect(mockStore.dispatch).not.toHaveBeenCalled();
   });
 
-  it('should throw an error and dispatch loadingError if user cannot view the resource', () => {
+  it('should throw an error and dispatch loadingError if user cannot view the resource on a route without the in-context meta', () => {
     const resource = 'pod';
 
     mockGetResourceFromRoute.mockReturnValue(resource);
     mockCanViewResource.mockReturnValue(false);
+    mockFindMeta.mockReturnValue(undefined);
 
     const errorMessage = `i18n: nav.failWhale.resourceNotFound {"resource":"${ resource }"}`;
 
@@ -83,5 +85,17 @@ describe('validateResource', () => {
     expect(() => validateResource(mockStore, mockTo)).toThrow(errorMessage);
     expect(mockStore.dispatch).toHaveBeenCalledWith('loadingError', expect.any(Error));
     expect(mockStore.getters['i18n/t']).toHaveBeenCalledWith('nav.failWhale.resourceNotFound', { resource }, true);
+  });
+
+  it('should not throw or redirect to fail whale for an unknown resource when the route opts in via meta (shown in-context instead)', () => {
+    mockGetResourceFromRoute.mockReturnValue('thisisatypethatdoesnotexist');
+    mockCanViewResource.mockReturnValue(false);
+    mockFindMeta.mockReturnValue(true);
+
+    const result = validateResource(mockStore, mockTo);
+
+    expect(result).toBe(false);
+    expect(mockStore.dispatch).not.toHaveBeenCalled();
+    expect(mockFindMeta).toHaveBeenCalledWith(mockTo, INVALID_RESOURCE_IN_CONTEXT);
   });
 });

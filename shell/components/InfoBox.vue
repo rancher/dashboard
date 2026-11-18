@@ -26,7 +26,7 @@ export default {
 
 <style lang="scss" scoped>
   .info-box {
-    border: 2px solid var(--tabbed-border);
+    border: 1px solid var(--tabbed-border);
     padding: 10px;
     margin-bottom: 20px;
     border-radius: var(--border-radius);

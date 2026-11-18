@@ -164,6 +164,11 @@ export default {
         }
 
         await this.applyHooks(AFTER_SAVE_HOOKS, this.value);
+
+        if ( this.isCreate ) {
+          this.value.notifyGeneratedName?.();
+        }
+
         buttonDone && buttonDone(true);
 
         this.done();

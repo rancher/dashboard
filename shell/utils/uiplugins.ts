@@ -1,3 +1,4 @@
+import semver from 'semver';
 import { matchesSomeRegex } from '@shell/utils/string';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@shell/config/labels-annotations';
 import { CATALOG } from '@shell/config/types';
@@ -7,6 +8,12 @@ import { Plugin, Version } from '@shell/types/uiplugins';
 const MAX_RETRIES = 10;
 const RETRY_WAIT = 2500; // 2.5 seconds
 const ACTIVE_STATUS_TIMEOUT = 200000; // 20 seconds
+
+// Backoff schedule (ms) for retrying a chart install/upgrade action that failed because a
+// follower Rancher replica's in-memory catalog index cache hadn't caught up yet (see #17543)
+const ACTION_RETRY_DELAYS = [1000, 2000, 4000, 8000];
+
+export const INSTALL_ACTION_MAX_RETRIES = ACTION_RETRY_DELAYS.length;
 
 type Action = 'install' | 'upgrade';
 export type HelmRepository = any;
@@ -161,6 +168,60 @@ export async function installHelmChart(repo: any, chart: any, values: any = {}, 
   const res = await repo.doAction(action, installRequest);
 
   return res;
+}
+
+/**
+ * Whether a chart install/upgrade action error is a transient failure caused by a Rancher
+ * replica whose in-memory catalog index cache hasn't caught up with a just-created/updated
+ * repo yet, and is therefore safe to retry (as opposed to e.g. a validation or permission error).
+ */
+export function isTransientChartActionError(error: any): boolean {
+  const status = error?._status ?? error?.status;
+
+  if (status !== 500) {
+    return false;
+  }
+
+  const message = error?.message || error?.data?.message || '';
+
+  // Matches the Rancher catalog controller's own wording, e.g. "failed to find chartName
+  // harvester version v1.8.1 Not found 404", to avoid retrying (and masking) other 500s
+  return /failed to find chart.*version.*not\s*found/i.test(message);
+}
+
+/**
+ * Install/upgrade a Helm Chart, retrying with exponential backoff when the failure looks like a
+ * transient catalog index cache miss (see isTransientChartActionError). Other errors are thrown
+ * immediately without retrying.
+ *
+ * @param onRetry Called before each retry with the attempt number and the max number of retries
+ */
+export async function installHelmChartWithRetry(
+  repo: any,
+  chart: any,
+  values: any = {},
+  namespace = 'default',
+  action: Action = 'install',
+  onRetry?: (attempt: number, maxAttempts: number) => void,
+) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await installHelmChart(repo, chart, values, namespace, action);
+    } catch (error) {
+      if (attempt >= ACTION_RETRY_DELAYS.length || !isTransientChartActionError(error)) {
+        throw error;
+      }
+
+      const delay = ACTION_RETRY_DELAYS[attempt];
+      const nextAttempt = attempt + 1;
+
+      console.log(`Installing harvester helm chart failed, attempt ${ nextAttempt }, wait ${ delay / 1000 } second(s) and retry... `); // eslint-disable-line no-console
+
+      onRetry?.(nextAttempt, ACTION_RETRY_DELAYS.length);
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
 }
 
 /**
@@ -365,4 +426,60 @@ export function getPluginChartVersionLabel(version: Version) {
   if (version.appVersion === version.version) return `${ version.version }`;
 
   return `${ version.appVersion } (${ version.version })`;
+}
+
+/**
+ * Number of minor releases older than the current one shown in the extension versions list.
+ * Anything older than that sits behind the "show all" disclosure.
+ */
+const OLDER_MINOR_RELEASES_SHOWN = 2;
+
+/**
+ * Keys a chart version by its major/minor release, falling back to the raw version string when
+ * it can't be parsed as semver.
+ */
+function minorReleaseKey(version: Version): string {
+  const parsed = semver.parse(version.version) || semver.coerce(version.version);
+
+  return parsed ? `${ parsed.major }.${ parsed.minor }` : version.version;
+}
+
+/**
+ * Trims the chart versions shown for an extension down to the ones worth a quick glance: the
+ * latest version of every minor release newer than the current one, the current version itself,
+ * and the latest version of the two minor releases before it.
+ *
+ * @param versions All chart versions for the extension, sorted newest to oldest
+ * @param currentVersion Chart version the list is anchored on (the installed one, or the one the panel pre-selects when nothing is installed)
+ * @param pinnedVersions Chart versions which must be shown whatever the criteria above
+ * @returns The versions to show, in the order they were given in
+ */
+export function getLatestPluginVersions(
+  versions: Version[] = [],
+  currentVersion?: string,
+  pinnedVersions: (string | undefined)[] = []
+): Version[] {
+  const latestPerMinorRelease: Version[] = [];
+  const minorReleases = new Set<string>();
+
+  // versions come in newest to oldest, so the first one seen for a minor release is its latest
+  versions.forEach((version) => {
+    const key = minorReleaseKey(version);
+
+    if (!minorReleases.has(key)) {
+      minorReleases.add(key);
+      latestPerMinorRelease.push(version);
+    }
+  });
+
+  const current = versions.find((version) => version.version === currentVersion);
+  const currentIndex = current ? latestPerMinorRelease.findIndex((version) => minorReleaseKey(version) === minorReleaseKey(current)) : 0;
+
+  const shown = new Set([
+    ...latestPerMinorRelease.slice(0, currentIndex + 1 + OLDER_MINOR_RELEASES_SHOWN).map((version) => version.version),
+    ...pinnedVersions,
+    currentVersion
+  ]);
+
+  return versions.filter((version) => shown.has(version.version));
 }

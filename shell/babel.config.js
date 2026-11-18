@@ -18,7 +18,12 @@ module.exports = function(api) {
     }
   };
 
-  const plugins = ['@babel/plugin-transform-nullish-coalescing-operator'];
+  // intl-messageformat v11+ ships static class blocks (`static { … }`); the class-features
+  // transform (from the vue-cli preset) needs this plugin enabled to handle them.
+  const plugins = [
+    '@babel/plugin-transform-nullish-coalescing-operator',
+    '@babel/plugin-transform-class-static-block'
+  ];
 
   if (process.env.NODE_ENV === 'test') {
     plugins.push('transform-require-context');

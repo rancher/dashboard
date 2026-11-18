@@ -1,5 +1,17 @@
 import { toContextKey, requireAsset, requireJson, _setContexts } from '@shell/utils/require-asset';
 
+/**
+ * A stand-in for a webpack require.context. The context is a function, but it also carries
+ * `keys`, `resolve` and `id`, so a bare jest.fn() is not one.
+ */
+function makeContext(impl: (key: string) => any) {
+  return Object.assign(jest.fn(impl), {
+    keys:    () => [] as string[],
+    resolve: (key: string) => key,
+    id:      'mock-context',
+  });
+}
+
 describe('fx: toContextKey', () => {
   it.each([
     ['~shell/assets/images/providers/aws.svg', './images/providers/aws.svg'],
@@ -21,7 +33,7 @@ describe('fx: requireAsset', () => {
   });
 
   it('should return the resolved asset URL from the image context', () => {
-    const mockImgCtx = jest.fn().mockReturnValue('/static/images/aws.svg');
+    const mockImgCtx = makeContext(() => '/static/images/aws.svg');
 
     _setContexts(mockImgCtx, null);
 
@@ -39,7 +51,7 @@ describe('fx: requireAsset', () => {
   });
 
   it('should propagate errors from the context function for missing assets', () => {
-    const mockImgCtx = jest.fn().mockImplementation(() => {
+    const mockImgCtx = makeContext(() => {
       throw new Error('Cannot find module');
     });
 
@@ -57,7 +69,7 @@ describe('fx: requireJson', () => {
 
   it('should return mod.default when available', () => {
     const jsonData = { vendor: 'suse' };
-    const mockJsonCtx = jest.fn().mockReturnValue({ default: jsonData });
+    const mockJsonCtx = makeContext(() => ({ default: jsonData }));
 
     _setContexts(null, mockJsonCtx);
 
@@ -69,7 +81,7 @@ describe('fx: requireJson', () => {
 
   it('should return mod directly when no default export', () => {
     const jsonData = { vendor: 'rancher' };
-    const mockJsonCtx = jest.fn().mockReturnValue(jsonData);
+    const mockJsonCtx = makeContext(() => jsonData);
 
     _setContexts(null, mockJsonCtx);
 
@@ -86,7 +98,7 @@ describe('fx: requireJson', () => {
   });
 
   it('should propagate errors from the context function for missing files', () => {
-    const mockJsonCtx = jest.fn().mockImplementation(() => {
+    const mockJsonCtx = makeContext(() => {
       throw new Error('Cannot find module');
     });
 

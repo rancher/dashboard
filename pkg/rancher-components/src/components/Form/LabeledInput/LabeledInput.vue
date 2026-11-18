@@ -2,6 +2,7 @@
 import { defineComponent, inject, computed, toRef } from 'vue';
 import TextAreaAutoGrow from '@components/Form/TextArea/TextAreaAutoGrow.vue';
 import LabeledTooltip from '@components/LabeledTooltip/LabeledTooltip.vue';
+import RcButton from '@components/RcButton/RcButton.vue';
 import { escapeHtml, generateRandomAlphaString } from '@shell/utils/string';
 import cronstrue from 'cronstrue';
 import { isValidCron } from 'cron-validator';
@@ -21,7 +22,9 @@ const provideProps: NonReactiveProps = {
 };
 
 export default defineComponent({
-  components: { LabeledTooltip, TextAreaAutoGrow },
+  components: {
+    LabeledTooltip, RcButton, TextAreaAutoGrow
+  },
 
   inheritAttrs: false,
 
@@ -55,6 +58,16 @@ export default defineComponent({
     subLabel: {
       type:    String,
       default: null
+    },
+
+    /**
+     * Shows the human readable cron description under the input when type is
+     * cron. Set to false to show it somewhere else, using the cron-hint-change
+     * event to get the text.
+     */
+    showCronHint: {
+      type:    Boolean,
+      default: true
     },
 
     /**
@@ -113,6 +126,14 @@ export default defineComponent({
     },
 
     /**
+     * Optionally use force usage of custom aria-label instead of the label for accessibility
+     */
+    overrideAriaLabel: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
      * Optionally use this to comply with a11y IF there's no label
      * associated with the input
      */
@@ -128,10 +149,31 @@ export default defineComponent({
     name: {
       type:    String,
       default: null
+    },
+
+    /**
+     * Show a clear button when the input has a value.
+     * When true, displays a keyboard-accessible clear button.
+     * When false, never shows a clear button.
+     * When undefined (default), shows the clear button only for type="search".
+     */
+    showClearButton: {
+      type:    Boolean,
+      default: undefined
+    },
+
+    /**
+     * Accessible label for the clear button. Pass an already translated string
+     * to describe what is being cleared in this specific context.
+     * Falls back to the generic "Clear" translation.
+     */
+    clearButtonLabel: {
+      type:    String,
+      default: undefined
     }
   },
 
-  emits: ['change', 'update:value', 'blur', 'update:validation'],
+  emits: ['change', 'update:value', 'blur', 'update:validation', 'cron-hint-change'],
 
   setup(props, { emit }) {
     const {
@@ -172,6 +214,17 @@ export default defineComponent({
     // formatting quirks (e.g. scientific notation for large values).
     const inputMode = computed(() => (isInteger.value ? 'numeric' : undefined));
 
+    // Determine if clear button should be shown
+    const shouldShowClearButton = computed(() => {
+      // Explicit prop takes precedence
+      if (props.showClearButton !== undefined) {
+        return props.showClearButton && !!props.value;
+      }
+
+      // Default: show for search type when there's a value
+      return props.type === 'search' && !!props.value;
+    });
+
     return {
       focused,
       onFocusLabeled,
@@ -187,6 +240,7 @@ export default defineComponent({
       isInteger,
       nativeType,
       inputMode,
+      shouldShowClearButton,
     };
   },
 
@@ -200,6 +254,13 @@ export default defineComponent({
   },
 
   computed: {
+    strippedAriaLabel(): string | undefined {
+      if (this.overrideAriaLabel) {
+        return this.ariaLabel || undefined;
+      }
+
+      return !this.hasLabel && this.ariaLabel ? this.ariaLabel : undefined;
+    },
     /**
      * Determines if the Labeled Input should display a label.
      */
@@ -209,7 +270,7 @@ export default defineComponent({
 
     ariaDescribedBy(): string | undefined {
       const inheritedDescribedBy = this.$attrs['aria-describedby'];
-      const internalDescribedBy = this.cronHint || this.subLabel ? this.describedById : undefined;
+      const internalDescribedBy = this.visibleCronHint || this.subLabel ? this.describedById : undefined;
 
       if (inheritedDescribedBy && internalDescribedBy) {
         return `${ inheritedDescribedBy } ${ internalDescribedBy }`;
@@ -240,6 +301,14 @@ export default defineComponent({
      */
     hasSuffix(): boolean {
       return !!this.$slots.suffix;
+    },
+
+    /**
+     * Accessible label for the clear button, falling back to the generic
+     * "Clear" translation when the consumer hasn't supplied a specific one.
+     */
+    clearButtonAriaLabel(): string {
+      return this.clearButtonLabel || this.t('generic.clear');
     },
 
     /**
@@ -281,6 +350,13 @@ export default defineComponent({
     },
 
     /**
+     * The cron hint to display under the Labeled Input, if any.
+     */
+    visibleCronHint(): string | undefined {
+      return this.showCronHint ? this.cronHint : undefined;
+    },
+
+    /**
      * The placeholder value for the Labeled Input.
      */
     _placeholder(): string {
@@ -307,6 +383,17 @@ export default defineComponent({
 
     className() {
       return this.class;
+    }
+  },
+
+  watch: {
+    cronHint: {
+      handler(hint: string | undefined) {
+        if (this.type === 'cron') {
+          this.$emit('cron-hint-change', hint);
+        }
+      },
+      immediate: true
     }
   },
 
@@ -438,11 +525,30 @@ export default defineComponent({
     onBlur(event: string | FocusEvent): void {
       this.$emit('blur', event);
       this.onBlurLabeled();
+      this.touch(event instanceof FocusEvent ? event : undefined);
+    },
+
+    /**
+     * Marks the field as touched and validates it, so its error shows. Blur
+     * does this, and so should anything that sets the value without focusing
+     * the input, e.g. reading it from a file.
+     */
+    touch(event?: FocusEvent): void {
       // Mark the field as touched in vee-validate without relying on its
       // 'validated-only' guard, then run validation unconditionally so
       // errors surface on the first blur (matching useLabeledFormElement behavior).
-      this.veeHandleBlur(event instanceof FocusEvent ? event : undefined, false);
+      this.veeHandleBlur(event, false);
       this.veeValidate();
+    },
+
+    /**
+     * Clears the input value and refocuses the input field.
+     */
+    clearInput(): void {
+      this.$emit('update:value', '');
+      this.$nextTick(() => {
+        this.focus();
+      });
     },
 
     escapeHtml
@@ -492,7 +598,7 @@ export default defineComponent({
         :id="inputId"
         ref="value"
         v-bind="$attrs"
-        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
+        v-stripped-aria-label="strippedAriaLabel"
         :name="name || undefined"
         :maxlength="_maxlength"
         :disabled="isDisabled"
@@ -500,7 +606,7 @@ export default defineComponent({
         :value="value || ''"
         :placeholder="_placeholder"
         autocapitalize="off"
-        :class="{ 'multiline-password': type === 'multiline-password' }"
+        :class="{ 'multiline-password': type === 'multiline-password', 'auto-grow-labeled': hasLabel }"
         :aria-describedby="ariaDescribedBy"
         :aria-required="requiredField"
         @update:value="onInput"
@@ -511,8 +617,7 @@ export default defineComponent({
         v-else
         :id="inputId"
         ref="value"
-        v-stripped-aria-label="!hasLabel && ariaLabel ? ariaLabel : undefined"
-        :role="nativeType === 'number' ? undefined : 'textbox'"
+        v-stripped-aria-label="strippedAriaLabel"
         :class="{ 'no-label': !hasLabel }"
         v-bind="$attrs"
         :name="name || undefined"
@@ -538,6 +643,20 @@ export default defineComponent({
     </slot>
 
     <slot name="suffix" />
+    <!-- Clear button for search inputs -->
+    <RcButton
+      v-if="shouldShowClearButton"
+      type="button"
+      size="small"
+      variant="ghost"
+      left-icon="close"
+      class="labeled-input-clear-button"
+      :aria-label="clearButtonAriaLabel"
+      :disabled="isDisabled"
+      @click="clearInput"
+      @keydown.enter.prevent="clearInput"
+      @keydown.space.prevent="clearInput"
+    />
     <!-- informational tooltip about field -->
     <LabeledTooltip
       v-if="hasTooltip"
@@ -552,17 +671,17 @@ export default defineComponent({
       :value="validationMessage"
     />
     <div
-      v-if="cronHint || subLabel"
+      v-if="visibleCronHint || subLabel"
       class="sub-label"
       data-testid="sub-label"
     >
       <div
-        v-if="cronHint"
+        v-if="visibleCronHint"
         :id="describedById"
         role="alert"
-        :aria-label="cronHint"
+        :aria-label="visibleCronHint"
       >
-        {{ cronHint }}
+        {{ visibleCronHint }}
       </div>
       <div
         v-else-if="subLabel"
@@ -573,6 +692,10 @@ export default defineComponent({
   </div>
 </template>
 <style scoped lang="scss">
+.labeled-input {
+  position: relative;
+}
+
 .multiline-password:not(:focus) {
   -webkit-text-security: disc;
 }
@@ -596,6 +719,45 @@ export default defineComponent({
   input[type=number] {
     -moz-appearance: textfield;
   }
+}
+
+/* Hide the native, mouse-only search cancel button in Chrome/Safari */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+// RcButton (ghost) supplies the transparent background, flex centring and focus
+// outline. All that's left here is placing it in the field and sizing the target.
+.labeled-input-clear-button {
+  // Square 24px target (WCAG 2.5.8) - `btn-small` already gives us the height
+  --rc-button-padding: 0;
+
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  color: var(--input-text);
+
+  &:hover:not(:disabled) {
+    color: var(--primary);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  // RcButton renders its leftIcon with size="inherit", so pin the glyph here to
+  // keep the 14px it had before, independent of the button's font-size.
+  :deep(.rc-icon) {
+    font-size: 14px;
+  }
+}
+
+.labeled-input.suffix .labeled-input-clear-button {
+  right: 40px;
 }
 </style>
 <style>

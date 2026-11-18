@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, ref } from 'vue';
 import cleanHtmlDirective from '@shell/directives/clean-html';
 import i18n from '@shell/plugins/i18n';
 
@@ -12,6 +12,9 @@ const openAPI = new OpenAPI();
 
 // Slide in panel component
 let slideInPanel;
+
+// Shared reactive ref so the header button can reflect open state
+export const isExplainPanelOpen = ref(false);
 
 /**
  * Show the slide-in panel with the resource explanation

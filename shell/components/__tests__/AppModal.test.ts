@@ -1,6 +1,8 @@
 /* eslint-disable jest/no-hooks */
+import { h, nextTick, ref } from 'vue';
 import { mount, VueWrapper } from '@vue/test-utils';
 import AppModal from '@shell/components/AppModal.vue';
+import { Card } from '@components/Card';
 
 let wrapper: VueWrapper<InstanceType<typeof AppModal>>;
 
@@ -62,7 +64,7 @@ describe('appModal', () => {
   });
 
   it('sets a width for the modal container', async() => {
-    const container = document.querySelector('.modal-container');
+    const container = document.querySelector('.modal-container') as HTMLElement;
 
     expect(container).toBeTruthy();
     expect(container?.style.width).toBe('600px');
@@ -70,7 +72,7 @@ describe('appModal', () => {
 
   it('sets a percentage width for the modal container', async() => {
     await wrapper.setProps({ width: '50%' });
-    const container = document.querySelector('.modal-container');
+    const container = document.querySelector('.modal-container') as HTMLElement;
 
     expect(container).toBeTruthy();
     expect(container?.style.width).toBe('50%');
@@ -82,7 +84,7 @@ describe('appModal', () => {
     consoleErrorSpy.mockImplementation(() => {});
 
     await wrapper.setProps({ width: '200px' });
-    const container = document.querySelector('.modal-container');
+    const container = document.querySelector('.modal-container') as HTMLElement;
 
     expect(container).toBeTruthy();
     expect(container?.style.width).toBe('200px');
@@ -96,11 +98,102 @@ describe('appModal', () => {
     consoleErrorSpy.mockImplementation(() => {});
 
     await wrapper.setProps({ width: 'FAIL' });
-    const container = document.querySelector('.modal-container');
+    const container = document.querySelector('.modal-container') as HTMLElement;
 
     expect(container).toBeTruthy();
     expect(container?.style.width).toBe('600px');
 
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('appModal accessible name', () => {
+  const dialog = () => document.querySelector('.modal-container');
+
+  // the MutationObserver watching the slot content reports asynchronously
+  const settle = async() => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await nextTick();
+  };
+
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="modals"></div>';
+  });
+
+  afterEach(() => {
+    wrapper?.unmount();
+    document.body.innerHTML = '';
+  });
+
+  it('is not labelled when no element is marked with data-modal-title', async() => {
+    wrapper = mount(AppModal, {
+      attachTo: document.body,
+      slots:    { default: '<div class="content">Modal content</div>' }
+    });
+
+    await settle();
+
+    expect(dialog()?.getAttribute('aria-labelledby')).toBeNull();
+  });
+
+  it('is labelled by an element marked with data-modal-title', async() => {
+    wrapper = mount(AppModal, {
+      attachTo: document.body,
+      slots:    { default: () => h('h4', { 'data-modal-title': '' }, 'Slot title') }
+    });
+
+    await settle();
+
+    const titleId = dialog()?.getAttribute('aria-labelledby');
+
+    expect(titleId).toBeTruthy();
+    expect(document.getElementById(titleId as string)?.textContent).toBe('Slot title');
+  });
+
+  it('is labelled by the title of a Card rendered as its content', async() => {
+    wrapper = mount(AppModal, {
+      attachTo: document.body,
+      slots:    { default: () => h(Card, null, { title: () => h('h4', 'Card title') }) }
+    });
+
+    await settle();
+
+    const titleId = dialog()?.getAttribute('aria-labelledby');
+
+    expect(titleId).toBeTruthy();
+    expect(document.getElementById(titleId as string)?.textContent).toBe('Card title');
+  });
+
+  it('is labelled once a title renders after the modal itself', async() => {
+    const showTitle = ref(false);
+
+    wrapper = mount(AppModal, {
+      attachTo: document.body,
+      slots:    { default: () => (showTitle.value ? h('h4', { 'data-modal-title': '' }, 'Late title') : h('div', 'Loading')) }
+    });
+
+    await settle();
+
+    expect(dialog()?.getAttribute('aria-labelledby')).toBeNull();
+
+    showTitle.value = true;
+    await nextTick();
+    await settle();
+
+    expect(dialog()?.getAttribute('aria-labelledby')).toBeTruthy();
+  });
+
+  it('keeps an aria-labelledby provided by the caller', async() => {
+    document.body.innerHTML = '<div id="modals"></div><h4 id="external-title">External title</h4>';
+
+    wrapper = mount(AppModal, {
+      attachTo: document.body,
+      attrs:    { 'aria-labelledby': 'external-title' },
+      slots:    { default: () => h('h4', { 'data-modal-title': '' }, 'Slot title') }
+    });
+
+    await settle();
+
+    expect(dialog()?.getAttribute('aria-labelledby')).toBe('external-title');
   });
 });

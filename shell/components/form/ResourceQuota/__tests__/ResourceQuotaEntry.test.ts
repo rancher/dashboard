@@ -44,6 +44,7 @@ describe('component: ResourceQuotaEntry', () => {
 
   const defaultProps = {
     id:                    '1',
+    index:                 0,
     mode:                  'edit',
     types:                 allTypes,
     resourceType:          'configMaps',

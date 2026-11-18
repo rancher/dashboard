@@ -9,6 +9,7 @@ import SortableTablePo from '@/cypress/e2e/po/components/sortable-table.po';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import FixedBannerPo from '@/cypress/e2e/po/components/fixed-banner.po';
 import { USERS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import ExportModalPo from '@/cypress/e2e/po/prompts/exportModal.po';
 
 const usersPo = new UsersPo('_');
 const userCreate = usersPo.createEdit();
@@ -254,7 +255,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
 
       usersPo.goTo();
       usersPo.waitForPage();
-      usersPo.list().clickRowActionMenuItem(standardUsername, 'Download YAML');
+      usersPo.list().clickRowActionMenuItem(standardUsername, 'Export As...');
+      new ExportModalPo().download();
       cy.readFile(downloadedFilename).should('exist').then((buffer) => {
         const obj: any = jsyaml.load(buffer);
 
@@ -307,7 +309,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       usersPo.list().openBulkActionDropdown();
 
       cy.intercept('GET', `${ USERS_BASE_URL }/*`).as('downloadYaml');
-      usersPo.list().bulkActionButton('Download YAML').click({ force: true });
+      usersPo.list().bulkActionButton('Export As...').click({ force: true });
+      new ExportModalPo().download();
       cy.wait('@downloadYaml', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
       const downloadedFilename = path.join(downloadsFolder, 'resources.zip');
 
@@ -332,7 +335,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
   });
 
-  describe('List', { testIsolation: 'off', tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { testIsolation: false, tags: ['@adminUser'] }, () => {
     let uniqueUserName = SortableTablePo.firstByDefaultName('user');
 
     const userIdsList: string[] = [];
@@ -342,7 +345,7 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       cy.login();
       cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
         // we need to filter out system users here, as they are not shown in the UI
-        const filteredUsersNotSystem = resp.body.data.filter((item) => {
+        const filteredUsersNotSystem = resp.body.data.filter((item: any) => {
           const res = item.principalIds.filter((fp: string) => fp.startsWith('system://'));
 
           return res.length === 0;
@@ -377,20 +380,29 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('pagination is visible and user is able to navigate through users data', () => {
-      usersPo.goTo(); // This is needed for the @noVai only world
+      usersPo.goTo();
       usersPo.waitForPage();
       const count = initialCount + 26;
 
       // check users count
       cy.waitForRancherResources('v1', 'management.cattle.io.users', count).then((resp: Cypress.Response<any>) => {
         // we need to filter out system users here, as they are not shown in the UI
-        const filteredUsersNotSystem = resp.body.data.filter((item) => {
+        const filteredUsersNotSystem = resp.body.data.filter((item: any) => {
           const res = item.principalIds.filter((fp: string) => fp.startsWith('system://'));
 
           return res.length === 0;
         });
 
         const count = filteredUsersNotSystem.length;
+
+        cy.get('tbody tr:last-of-type').scrollIntoView();
+
+        cy.getRancherResource('v1', 'userpreferences').then((resp: Cypress.Response<any>) => {
+          cy.log('User Preferences: ', JSON.stringify(resp.body.data[0].data));
+        });
+
+        cy.log('All User Count:', resp.body.data.length);
+        cy.log('Filtered User Count:', count);
 
         // pagination is visible
         usersPo.list().resourceTable().sortableTable().pagination()
@@ -594,6 +606,16 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
     });
 
     it('User creation should throw an error if creating a user with a higher permission set, the error should be removable, and creation should succeed once permissions are appropriately lowered', () => {
+      // Idempotent across Cypress retries (testIsolation off): the fixed-name standard user survives a
+      // failed attempt and collides on re-create (the create then never fires its request). Remove it.
+      cy.getRancherResource('v1', 'management.cattle.io.users').then((resp: Cypress.Response<any>) => {
+        const existing = (resp.body.data || []).find((u: any) => u.username === standardUsername);
+
+        if (existing) {
+          cy.deleteRancherResource('v1', 'management.cattle.io.users', existing.id, false);
+        }
+      });
+
       // create standard user
       usersPo.goTo();
       usersPo.waitForPage();
@@ -648,8 +670,8 @@ describe('Users', { tags: ['@usersAndAuths', '@adminUser'] }, () => {
       userCreate.saveAndWaitForRequests('POST', '/v3/globalrolebindings');
 
       // save and assert that the new user exists
-      usersPo.goTo();
-      usersPo.waitForPage();
+      // Wait for the users list GET to resolve before asserting, so the new row isn't queried mid-load.
+      usersPo.waitForRequests();
       usersPo.list().elementWithName(adminUsername).should('exist');
     });
   });

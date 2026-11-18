@@ -14,8 +14,15 @@ describe('component: Tls', () => {
     },
   };
 
+  // A tlsConfig entry is a secret reference in one of two shapes: `keySecret` carries
+  // name/key directly, while `ca` and `cert` wrap one under `.secret`. Typed as the
+  // superset of both rather than a union, so both access paths compile at the sites that
+  // pick between them by key. It deliberately does not enforce which shape an entry has.
+  type TlsSecretRef = { name?: string, key?: string };
+  type TlsConfig = Record<string, TlsSecretRef & { secret: TlsSecretRef }>;
+
   const requiredProps = {
-    value:     { tlsConfig: {} },
+    value:     { tlsConfig: {} as TlsConfig },
     namespace: 'test-namespace',
   };
 
@@ -36,7 +43,8 @@ describe('component: Tls', () => {
     const wrapper = shallowMount(Tls, {
       props: {
         ...requiredProps,
-        namespace: undefined,
+        // `namespace` is a required String prop; omitting it is exactly what this test exercises.
+        namespace: undefined as unknown as string,
         mode:      _EDIT,
       },
       global: { mocks: mockStore },
@@ -45,7 +53,7 @@ describe('component: Tls', () => {
 
     expect(banner.exists()).toBe(true);
     expect(banner.props().color).toBe('error');
-    expect(banner.vm.$slots.default()[0].children).toBe('%alertmanagerConfigReceiver.namespaceWarning%');
+    expect(banner.vm.$slots.default?.()[0].children).toBe('%alertmanagerConfigReceiver.namespaceWarning%');
   });
 
   it('should not show a banner if namespace is provided', () => {
@@ -132,7 +140,7 @@ describe('component: Tls', () => {
       ['cert', 1, 'cert', 'updateClientCertSecretName', 'updateClientCertSecretKey'],
       ['key', 2, 'keySecret', 'updateClientKeySecretName', 'updateClientKeySecretKey'],
     ])('should handle %p secret selector events', async(secretType, index, tlsConfigKey, nameHandler, keyHandler) => {
-      const value = { tlsConfig: {} };
+      const value = { tlsConfig: {} as TlsConfig };
       const wrapper = shallowMount(Tls, {
         props: {
           ...requiredProps, value, mode: _EDIT
@@ -161,7 +169,7 @@ describe('component: Tls', () => {
   });
 
   describe('secret updates', () => {
-    it.each([
+    it.each<[string, string, string, keyof TlsSecretRef]>([
       ['Ca', 'updateCaSecretName', 'ca', 'name'],
       ['Ca', 'updateCaSecretKey', 'ca', 'key'],
       ['ClientCert', 'updateClientCertSecretName', 'cert', 'name'],
@@ -169,7 +177,7 @@ describe('component: Tls', () => {
       ['ClientKey', 'updateClientKeySecretName', 'keySecret', 'name'],
       ['ClientKey', 'updateClientKeySecretKey', 'keySecret', 'key'],
     ])('should update %p secret %p', (secret, handler, obj, field) => {
-      const value = { tlsConfig: {} };
+      const value = { tlsConfig: {} as TlsConfig };
       const wrapper = shallowMount(Tls, {
         props: {
           ...requiredProps,

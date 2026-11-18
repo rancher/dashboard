@@ -2,7 +2,7 @@ import { processAnnouncements, ANNOUNCEMENT_PREFIX } from '../announcement';
 import { NotificationLevel, Notification } from '@shell/types/notifications';
 import { READ_ANNOUNCEMENTS } from '@shell/store/prefs';
 import { DynamicContentAnnouncementHandlerName } from '../notification-handler';
-import { Context, VersionInfo, Announcement } from '../types';
+import { Context, Announcement } from '../types';
 import semver from 'semver';
 
 jest.mock('semver', () => ({
@@ -126,9 +126,8 @@ describe('processAnnouncements', () => {
         audience: 'admin'
       },
     ];
-    const versionInfo: VersionInfo = { version: VERSION_270.version };
 
-    await processAnnouncements(mockContext, announcements, versionInfo);
+    await processAnnouncements(mockContext, announcements, VERSION_270);
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith('notifications/add', expect.any(Object));

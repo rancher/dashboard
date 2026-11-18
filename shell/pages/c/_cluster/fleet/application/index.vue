@@ -128,6 +128,7 @@ export default {
       </template>
     </Masthead>
     <FleetApplications
+      :table-view-tabs="false"
       :rows="rows"
       :schema="schema"
       :loading="$fetchState.pending"

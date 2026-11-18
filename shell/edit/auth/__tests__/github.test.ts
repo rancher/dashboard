@@ -3,6 +3,7 @@ import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 
 import GitHub from '@shell/edit/auth/github.vue';
+import AuthConfigIdentity from '@shell/components/auth/AuthConfigIdentity.vue';
 
 jest.mock('@shell/utils/clipboard', () => {
   return { copyTextToClipboard: jest.fn(() => Promise.resolve({})) };
@@ -17,6 +18,7 @@ const validTargetUrl = 'https://github.mycompany.com';
 const mockGitHubModel = {
   enabled:      false,
   id:           'github',
+  type:         'githubConfig',
   clientId:     validClientId,
   clientSecret: validClientSecret,
   hostname:     'github.com',
@@ -26,6 +28,7 @@ const mockGitHubModel = {
 const mockGitHubAppModel = {
   ...mockGitHubModel,
   id:         'githubapp',
+  type:       'githubAppConfig',
   appId:      validAppId,
   privateKey: validPrivateKey,
 };
@@ -132,6 +135,88 @@ describe('github.vue', () => {
 
         expect(saveButton.disabled).toBe(false);
       });
+    });
+  });
+
+  // Name and description belong to the config, so the form edits them alongside
+  // everything else - the way every other edit form renders NameNsDescription.
+  describe('identity', () => {
+    it('should render the name and description of the config', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup() });
+
+      expect(wrapper.findComponent(AuthConfigIdentity).exists()).toBe(true);
+    });
+
+    it('should not offer to rename a config that already exists', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup() });
+
+      expect(wrapper.findComponent(AuthConfigIdentity).props('nameFixed')).toBe(true);
+    });
+  });
+
+  // The config is sent as the form filled it in. Which config it is belongs to
+  // the root of the request, and the mixin that saves puts it there.
+  describe('what is saved', () => {
+    it('should send the config the form filled in', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup() });
+
+      expect(wrapper.vm.toSave).toStrictEqual({
+        enabled:      true,
+        githubConfig: wrapper.vm.model,
+        description:  'Enable GitHub',
+      });
+    });
+
+    it('should not name the config within the config itself', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup() });
+
+      expect(wrapper.vm.toSave.githubConfig).not.toHaveProperty('configName');
+    });
+  });
+
+  // A config that is being added has never been saved, so it carries none of the
+  // fields a config the server wrote would. Public GitHub only answers over https,
+  // and a config that says otherwise is refused the access token it asks for.
+  describe('which target the form starts on', () => {
+    const fetched = async(model: any) => {
+      const vm: any = { model, mixinFetch: jest.fn() };
+
+      await (GitHub as any).fetch.call(vm);
+
+      return vm;
+    };
+
+    it.each([
+      ['a config that has never been saved', {}, 'public', 'https://github.com'],
+      ['a config the server has defaulted', { hostname: 'github.com', tls: true }, 'public', 'https://github.com'],
+      ['a private installation over https', { hostname: 'github.mycompany.com', tls: true }, 'private', 'https://github.mycompany.com'],
+      ['a private installation over http', { hostname: 'github.mycompany.com', tls: false }, 'private', 'http://github.mycompany.com'],
+      ['a private installation over http the server sent no tls for', { hostname: 'github.mycompany.com' }, 'private', 'http://github.mycompany.com'],
+    ])('should start %s on %s', async(_label, model, targetType, targetUrl) => {
+      const vm = await fetched({ ...model });
+
+      expect(vm.targetType).toBe(targetType);
+      expect(vm.targetUrl).toBe(targetUrl);
+    });
+
+    it('should write the target back onto the config', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup({ hostname: undefined, tls: undefined }, { targetUrl: 'https://github.com' }) });
+
+      expect(wrapper.vm.model.tls).toBe(true);
+      expect(wrapper.vm.model.hostname).toBe('github.com');
+    });
+  });
+
+  // A config's id is its own name, and a new config has none yet, so which
+  // GitHub the form is for comes from the config's type
+  describe.each([
+    ['named something else', 'corp-apps'],
+    ['that has not been created yet', undefined],
+  ])('a GitHub App config %s', (_label, id) => {
+    it('should show the GitHub App fields', () => {
+      const wrapper = mount(GitHub, { ...requiredSetup({ ...mockGitHubAppModel, id }) });
+
+      expect(wrapper.find('[data-testid="app-id"]').exists()).toBe(true);
     });
   });
 

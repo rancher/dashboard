@@ -2,6 +2,24 @@ import { mount } from '@vue/test-utils';
 import FleetClusters from '@shell/components/fleet/FleetClusters.vue';
 import ResourceTable from '@shell/components/ResourceTable.vue';
 
+/**
+ * `headers` is inferred as a union of heterogeneous column-definition object
+ * literals, so no single member carries every optional field these assertions
+ * read (`search`, `width`, `formatterOpts`, ...). Read the columns through the
+ * common table-header shape instead.
+ */
+interface TableHeader {
+  name?: string;
+  labelKey?: string;
+  value?: string;
+  search?: boolean;
+  width?: number;
+  formatter?: string;
+  formatterOpts?: Record<string, unknown>;
+}
+
+const findHeader = (headers: unknown, name: string): TableHeader | undefined => (headers as TableHeader[]).find((h) => h.name === name);
+
 describe('component: FleetClusters', () => {
   const mockStore = {
     getters: {
@@ -88,7 +106,7 @@ describe('component: FleetClusters', () => {
 
     it('should configure reposReady column correctly', () => {
       const wrapper = createWrapper();
-      const reposReady = wrapper.vm.headers.find((h: any) => h.name === 'reposReady');
+      const reposReady = findHeader(wrapper.vm.headers, 'reposReady');
 
       expect(reposReady?.labelKey).toBe('tableHeaders.reposReady');
       expect(reposReady?.value).toBe('status.readyGitRepos');
@@ -97,7 +115,7 @@ describe('component: FleetClusters', () => {
 
     it('should configure helmOpsReady column correctly', () => {
       const wrapper = createWrapper();
-      const helmOpsReady = wrapper.vm.headers.find((h: any) => h.name === 'helmOpsReady');
+      const helmOpsReady = findHeader(wrapper.vm.headers, 'helmOpsReady');
 
       expect(helmOpsReady?.labelKey).toBe('tableHeaders.helmOpsReady');
       expect(helmOpsReady?.value).toBe('status.readyHelmOps');
@@ -106,7 +124,7 @@ describe('component: FleetClusters', () => {
 
     it('should configure bundlesReady column correctly', () => {
       const wrapper = createWrapper();
-      const bundlesReady = wrapper.vm.headers.find((h: any) => h.name === 'bundlesReady');
+      const bundlesReady = findHeader(wrapper.vm.headers, 'bundlesReady');
 
       expect(bundlesReady?.labelKey).toBe('tableHeaders.bundlesReady');
       expect(bundlesReady?.value).toBe('status.display.readyBundles');
@@ -115,7 +133,7 @@ describe('component: FleetClusters', () => {
 
     it('should configure lastSeen column with LiveDate formatter', () => {
       const wrapper = createWrapper();
-      const lastSeen = wrapper.vm.headers.find((h: any) => h.name === 'lastSeen');
+      const lastSeen = findHeader(wrapper.vm.headers, 'lastSeen');
 
       expect(lastSeen?.formatter).toBe('LiveDate');
       expect(lastSeen?.formatterOpts).toStrictEqual({ addSuffix: true });

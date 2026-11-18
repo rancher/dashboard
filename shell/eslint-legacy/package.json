@@ -1,0 +1,21 @@
+{
+  "name": "@rancher/shell-eslint-legacy",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Isolated ESLint 7 (eslintrc) toolchain shipped by @rancher/shell. Extensions that still use a legacy `.eslintrc.*` config are linted with this self-contained toolchain, selected automatically by `scripts/lint`. Kept in its own folder (with its own node_modules, installed on demand) so its plugin versions never collide with the flat-config ESLint 10 toolchain in the main @rancher/shell dependencies. Do not add this to the monorepo workspaces.",
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "5.62.0",
+    "@typescript-eslint/parser": "5.62.0",
+    "@vue/eslint-config-standard": "6.1.0",
+    "@vue/eslint-config-typescript": "9.1.0",
+    "babel-eslint": "10.1.0",
+    "eslint": "7.32.0",
+    "eslint-config-standard": "16.0.3",
+    "eslint-plugin-cypress": "2.12.1",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-promise": "5.2.0",
+    "eslint-plugin-vue": "9.32.0",
+    "typescript": "5.3.3"
+  }
+}

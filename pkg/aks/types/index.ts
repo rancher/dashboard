@@ -28,6 +28,7 @@ export interface AKSNodePool {
   _id?: string
   _validation: {
     _validName?: boolean
+    _validUnique?: boolean
     _validSize?: boolean
     _validAZ?: boolean
     _validCount?: boolean
@@ -52,25 +53,31 @@ export interface AKSConfig {
   kubernetesVersion?: string,
   linuxAdminUsername?: string,
   loadBalancerSku?: LoadBalancerSku,
-  logAnalyticsWorkspaceGroup?: string,
-  logAnalyticsWorkspaceName?: string,
-  managedIdentity?:string,
+  // The form clears these back to `null` rather than deleting them, so that the value sent to the
+  // API explicitly unsets whatever the cluster was previously configured with.
+  logAnalyticsWorkspaceGroup?: string | null,
+  logAnalyticsWorkspaceName?: string | null,
+  managedIdentity?: boolean,
   monitoring?: boolean,
   networkPlugin?: string,
-  networkPolicy?: string,
+  networkPolicy?: string | null,
   nodePools?: AKSNodePool[],
   nodeResourceGroup?: string,
   outboundType?: OutboundType,
   podCidr?: string,
   privateCluster?: boolean,
+  privateDnsZone?: string,
   resourceGroup?: string,
   resourceLocation?: string
   serviceCidr?: string
   sshPublicKey?: string
-  subnet?: string,
-  tags?: Map<string, string>,
-  virtualNetwork?: string,
-  virtualNetworkResourceGroup?: string
+  subnet?: string | null,
+  tags?: {
+    [key: string]: string
+  },
+  userAssignedIdentity?: string,
+  virtualNetwork?: string | null,
+  virtualNetworkResourceGroup?: string | null
 }
 
 export interface VirtualNetworkSubnet {

@@ -1,8 +1,13 @@
 import { mount } from '@vue/test-utils';
 import Probe from '@shell/components/form/Probe.vue';
 import { _EDIT } from '@shell/config/query-params';
-import { ExtendedVue, Vue } from 'vue/types/vue';
-import { DefaultProps } from 'vue/types/options';
+
+/**
+ * A bare string selector picks the `getComponent<T extends never>` overload, which
+ * returns a `WrapperLike` with no `vm`. The runtime object is a full component
+ * wrapper, so expose just the emitter this test drives.
+ */
+const emitterOf = (wrapper: unknown) => (wrapper as { vm: { $emit(event: string, ...args: unknown[]): void } }).vm;
 
 describe('component: Probe', () => {
   describe.each([
@@ -15,7 +20,7 @@ describe('component: Probe', () => {
       'successThreshold',
       'failureThreshold',
     ])('should emit an update on %p input', (field) => {
-      const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+      const wrapper = mount(Probe, {
         props: {
           mode: _EDIT,
           value,
@@ -34,7 +39,7 @@ describe('component: Probe', () => {
       'initialDelaySeconds',
       'timeoutSeconds',
     ])('should emit an update on %p input and blur', (field) => {
-      const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, {
+      const wrapper = mount(Probe, {
         props: {
           mode: _EDIT,
           value
@@ -53,7 +58,7 @@ describe('component: Probe', () => {
   it.each([
     'kind',
   ])('should emit an update on %p selection change', async(field) => {
-    const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { mode: _EDIT } });
+    const wrapper = mount(Probe, { props: { mode: _EDIT } });
 
     const select = wrapper.find(`[data-testid="input-probe-${ field }"]`);
 
@@ -65,13 +70,15 @@ describe('component: Probe', () => {
   });
 
   it('should emit an update when http headers are modified', () => {
-    const wrapper = mount(Probe as unknown as ExtendedVue<Vue, {}, {}, {}, DefaultProps>, { props: { mode: _EDIT, value: { httpGet: { scheme: 'https' } } } });
+    const wrapper = mount(Probe, { props: { mode: _EDIT, value: { httpGet: { scheme: 'https' } } } });
 
     const httpHeaders = wrapper.getComponent('[data-testid="input-probe-http-headers"]');
 
-    httpHeaders.vm.$emit('update:value', [{ name: 'abc', value: 'def' }]);
+    emitterOf(httpHeaders).$emit('update:value', [{ name: 'abc', value: 'def' }]);
 
-    expect(wrapper.emitted()?.['update:value']?.[0]?.[0]).toStrictEqual({
+    const [[emittedValue]] = wrapper.emitted('update:value') as [[unknown]];
+
+    expect(emittedValue).toStrictEqual({
       exec: null, httpGet: { httpHeaders: [{ name: 'abc', value: 'def' }], scheme: 'HTTPS' }, tcpSocket: null
     });
   });

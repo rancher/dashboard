@@ -8,13 +8,15 @@ import { clone } from '@shell/utils/object';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import Banner from '@components/Banner/Banner.vue';
 import { useVeeValidateField } from '@shell/composables/useVeeValidateField';
+import { RcButton } from '@components/RcButton';
+
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
   emits: ['add', 'remove', 'update:value'],
 
   components: {
-    TextAreaAutoGrow, LabeledInput, Banner
+    TextAreaAutoGrow, LabeledInput, Banner, RcButton
   },
   props: {
     value: {
@@ -65,6 +67,10 @@ export default {
       type:    String,
       default: '',
     },
+    addBtnAriaLabel: {
+      type:    String,
+      default: '',
+    },
     addAllowed: {
       type:    Boolean,
       default: true,
@@ -93,6 +99,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    disabledList: {
+      type:    Array,
+      default: null
+    },
     required: {
       type:    Boolean,
       default: false
@@ -120,6 +130,11 @@ export default {
       type:    String,
       default: null,
     },
+
+    useRcButton: {
+      type:    Boolean,
+      default: false
+    }
 
   },
 
@@ -246,6 +261,12 @@ export default {
       }
 
       return !this.valueMultiline && this.protip;
+    },
+    // Return the index of the disabled rows based on the disabledList prop
+    // The value is not used directly because only the first instance of a value is disabled
+    // Usually they are at the top of the list and that is how this has been designed
+    disabledIndexList() {
+      return this.disabledList?.map((value) => this.rows.findIndex((row) => row.value === value));
     }
   },
   created() {
@@ -354,7 +375,7 @@ export default {
           :key="idx"
           :data-testid="`${componentTestid}-box${ idx }`"
           class="box"
-          :class="{'hide-remove-is-view': isView}"
+          :class="{'hide-remove': isView || !removeAllowed}"
           role="group"
         >
           <slot
@@ -365,6 +386,7 @@ export default {
             :row="row"
             :mode="mode"
             :isView="isView"
+            :remove="() => remove(row, idx)"
           >
             <div class="value">
               <slot
@@ -381,7 +403,7 @@ export default {
                   :data-testid="`${componentTestid}-textarea-${idx}`"
                   :placeholder="valuePlaceholder"
                   :mode="mode"
-                  :disabled="disabled"
+                  :disabled="disabled || disabledIndexList?.includes(idx)"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
                   @update:value="queueUpdate"
@@ -393,7 +415,7 @@ export default {
                   v-model:value="row.value"
                   :data-testid="`${componentTestid}-labeled-input-${idx}`"
                   :placeholder="valuePlaceholder"
-                  :disabled="isView || disabled"
+                  :disabled="isView || disabled || disabledIndexList?.includes(idx)"
                   :rules="rules"
                   :compact="false"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
@@ -407,7 +429,7 @@ export default {
                   v-model="row.value"
                   :data-testid="`${componentTestid}-input-${idx}`"
                   :placeholder="valuePlaceholder"
-                  :disabled="isView || disabled"
+                  :disabled="isView || disabled || disabledIndexList?.includes(idx)"
                   :aria-label="a11yLabel ? `${a11yLabel} ${t('generic.ariaLabel.genericRow', {index: idx+1})}` : undefined"
                   @paste="onPaste(idx, $event)"
                   @blur="validate"
@@ -416,7 +438,7 @@ export default {
             </div>
           </slot>
           <div
-            v-if="showRemove && !isView"
+            v-if="showRemove && !isView && !disabledIndexList?.includes(idx)"
             class="remove"
           >
             <slot
@@ -458,20 +480,38 @@ export default {
       </div>
       <div
         v-if="showAdd && !isView"
-        class="footer mmt-6"
+        class="footer"
+        :class="{'mmt-6':!useRcButton}"
       >
         <slot
           v-if="showAdd"
           name="add"
           :add="add"
         >
+          <RcButton
+            v-if="useRcButton"
+            size="small"
+            variant="secondary"
+            :class="[addClass]"
+            :data-testid="`${componentTestid}-button`"
+            :disabled="loading || disableAdd"
+            role="button"
+            :aria-label="_addLabel"
+            @click="add()"
+          >
+            <i
+              class="mr-5 icon"
+              :class="loading ? ['icon-lg', 'icon-spinner','icon-spin']: [addIcon]"
+            /> {{ _addLabel }}
+          </RcButton>
           <button
+            v-else
             type="button"
             class="btn role-tertiary add"
             :class="[addClass]"
             :disabled="loading || disableAdd"
             :data-testid="`${componentTestid}-button`"
-            :aria-label="_addLabel"
+            :aria-label="addBtnAriaLabel || _addLabel"
             role="button"
             @click="add()"
           >
@@ -513,7 +553,7 @@ export default {
     }
   }
 
-  .box.hide-remove-is-view {
+  .box.hide-remove {
     grid-template-columns: auto;
   }
 

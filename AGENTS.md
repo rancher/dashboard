@@ -44,9 +44,9 @@ You are an expert Senior Software Engineer specializing in Vue.js and TypeScript
   - The dashboard will be available at `https://127.0.0.1:8005`.
 - **Build**: `yarn build`
 - **Lint**: `yarn lint`
+- **Lint one ore more files**: `./node_modules/.bin/eslint <file 1> <file 2>`
 - **Unit Tests**: `yarn test:ci` (Jest)
 - **E2E Tests**: See contributors guide
-
 
 # Contributors Guide
 
@@ -83,6 +83,24 @@ To get started, follow the `Getting Started` section.
   - `shell/`: Core application logic, components, and pages.
   - `storybook/`: Component documentation source
 
+When either created, editing, viewing or listing a kubernetes resource the following core components are used
+- Listing resources
+  - Root component
+    - shell/pages/c/_cluster/_product/_resource/index.vue
+  - shell/components/ResourceList/index.vue
+    - This contains a generic component for the list's header
+    - Then either a ResourceTable or a custom page for that specific resource type
+      - custom components are either supplied via components in `shell/list` or externally via a UI Extension
+- Create / Edit a resource, or Viewing a Resource
+  - Root component
+    - Create / Edit - shell/pages/c/_cluster/_product/_resource/create.vue
+    - Viewing - shell/pages/c/_cluster/_product/_resource/_id.vue
+  - shell/components/ResourceDetail/index.vue
+    - Contains either
+      - a totally custom page for that resource type and mode,
+      - or a generic component for header, handling YAML or a custom component to show a form
+    - custom components are either supplied via components in `shell/edit` (create/edit), `shell/detail` (detail) or externally via a UI Extension
+
 
 ## Unit Tests
 
@@ -108,7 +126,7 @@ Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://ex
 - ✅ **Always:**
   - Act as a QA Software Developer
   - Use `toStrictEqual` instead of `toEqual`
-  - Use `toHaveBeenCalledWith` instead of `toHaveBeenCalled`
+  - Use `toHaveBeenCalledWith` instead of `toHaveBeenCalled`, even for a call with no arguments (assert `toHaveBeenCalledWith()` explicitly rather than falling back to `toHaveBeenCalled()`)
 - 🚫 **Never:**
   - Overwrite existing test files
 
@@ -123,6 +141,8 @@ Please see [Rancher UI Internal Documentation - Testing - Unit Tests](https://ex
 - E2E tests use the Cypress framework, Mocha for structure and Chai based assertions
 - E2E tests should be written in TypeScript
 - E2E files can be found in the `./cypress` directory
+- Always prefer calling `PagePo`'s' `navTo` method rather than `goTo` when navigating from one page to another. The former simulates a user experience better as they click through the UI, whilst the later is a fresh reload which the user should never have to do.
+- When improving an E2E test do not replace `PagePo` `navTo` with a `goTo`, investigate other ways to resolve the issue like waiting for pre or post navigation page element state. If no way can be found it might represent a genuine bug that should be raised.
 
 #### Running E2E Tests
 
@@ -184,6 +204,8 @@ Dependencies are managed via `package.json` and `yarn`
 - Ensure you have the latest of that branch `git pull --rebase`
 - Checkout the branch to commit the changes to `git checkout issue-${issueNumber}`. Replace `${issueNumber}` with the issue number.
 
+
+
 ## Creating a commit
 
 - Follow the [Chris Beams](http://chris.beams.io/posts/git-commit/) 'seven rules of a great Git commit message'  for commit messages.
@@ -193,8 +215,19 @@ Dependencies are managed via `package.json` and `yarn`
 - Pull requests must come from forks
 - Description should always reference the issue that the PR resolves e.g. `Fixes #1234`.
 - Pull Requests that update code in `shell/` should update existing or add new unit tests to cover the change in functionality
+- Pull Request descriptions should use the github template and be concise
 - A Pull Request will only be merged once
   - The pull request checklist has been completed
   - ALL CI gates have passed
   - At least one rancher/dashboard team member reviews and approves the PR
 
+## Creating Code
+
+### Comments
+
+- Comments should only accompany a code change if the reason for the change is not clear and obvious.
+- Comments should be short and concise.
+
+### CSS
+
+- never use `:deep`

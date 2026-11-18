@@ -5,12 +5,12 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 const cluster = 'local';
 const serviceAccountsPagePo = new ServiceAccountsPagePo();
 
-describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@adminUser'] }, () => {
+describe('Service Accounts', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, () => {
   before(() => {
     cy.login();
   });
 
-  describe('List', { tags: ['@noVai', '@adminUser'] }, () => {
+  describe('List', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.updateNamespaceFilter(cluster, 'none', '{\"local\":[]}', { delay: true });
     });
@@ -62,11 +62,10 @@ describe('Service Accounts', { testIsolation: 'off', tags: ['@explorer', '@admin
       cy.wait('@serviceAccDataSmall');
 
       // group by namespace
-      serviceAccountsPagePo.list().resourceTable().sortableTable().groupByButtons(1)
-        .click();
+      serviceAccountsPagePo.list().resourceTable().sortableTable().groupBy('Namespace');
 
       //  check table headers are visible
-      const expectedHeaders = ['State', 'Name', 'Age'];
+      const expectedHeaders = ['State', 'Name', 'Namespace', 'Age'];
 
       serviceAccountsPagePo.list().resourceTable().sortableTable().tableHeaderRow()
         .get('.table-header-container .content')

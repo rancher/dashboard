@@ -83,9 +83,11 @@ const sidebars = {
         'changelog',
         'support-matrix',
         'extensions-getting-started',
+        'building-with-ai',
         'folder-structure',
         'configuration',
         'unit-testing',
+        'linting',
         {
           type:  'category',
           label: 'Performance',
@@ -221,6 +223,7 @@ const sidebars = {
                 'provisioning/hosted-provider/cluster'
               ]
             },
+            'provisioning/capi-provisioner',
             'provisioning/provider-icon',
             'provisioning/localization',
             'provisioning/cloud-credential',
@@ -238,6 +241,7 @@ const sidebars = {
             'advanced/hooks',
             'advanced/stores',
             'advanced/version-compatibility',
+            'advanced/bundling-extensions',
             'advanced/safe-mode',
             'advanced/yarn-link'
           ]

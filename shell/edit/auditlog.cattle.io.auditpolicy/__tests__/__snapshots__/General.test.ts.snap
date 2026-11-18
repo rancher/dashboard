@@ -52,6 +52,7 @@ exports[`component: General rendering & initial state should render with default
         <h4>
           auditPolicy.general.verbosity.level.title 
           <i
+            aria-describedby="clean-tooltip-description-1"
             class="icon icon-info has-clean-tooltip"
           />
         </h4>
@@ -69,11 +70,13 @@ exports[`component: General rendering & initial state should render with default
               filterable="true"
               hovertooltip="true"
               instore="cluster"
+              keepsearchonblur="false"
               label="auditPolicy.general.verbosity.level.label"
               loading="false"
               localizedlabel="false"
               lockedoptions=""
               mode="create"
+              mutedvalue="false"
               nooptionslabelkey="labelSelect.noOptions.empty"
               optionlabel="label"
               options="[object Object],[object Object],[object Object],[object Object]"
@@ -84,7 +87,9 @@ exports[`component: General rendering & initial state should render with default
               rules=""
               searchable="false"
               selectable="[Function]"
+              size="large"
               value="0"
+              visiblerowheight="18"
             />
           </div>
         </div>
@@ -100,6 +105,7 @@ exports[`component: General rendering & initial state should render with default
             <h4>
               auditPolicy.general.verbosity.request.title 
               <i
+                aria-describedby="clean-tooltip-description-2"
                 class="icon icon-info has-clean-tooltip"
               />
             </h4>
@@ -142,6 +148,7 @@ exports[`component: General rendering & initial state should render with default
             <h4>
               auditPolicy.general.verbosity.response.title 
               <i
+                aria-describedby="clean-tooltip-description-3"
                 class="icon icon-info has-clean-tooltip"
               />
             </h4>

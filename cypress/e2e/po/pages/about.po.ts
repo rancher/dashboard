@@ -7,7 +7,7 @@ const burgerMenu = new BurgerMenuPo();
  * About page
  */
 export default class AboutPagePo extends PagePo {
-  static url = '/about'
+  static url = '/about';
   static goTo(): Cypress.Chainable<Cypress.AUTWindow> {
     return super.goTo(AboutPagePo.url);
   }
@@ -28,10 +28,6 @@ export default class AboutPagePo extends PagePo {
     return this.self().get('.about').find('a').contains(value);
   }
 
-  getLinkDestination(value: string): Cypress.Chainable {
-    return this.links(value).invoke('prop', 'href');
-  }
-
   clickVersionLink(value: string) {
     this.links(value)
       .then((el) => {
@@ -41,8 +37,8 @@ export default class AboutPagePo extends PagePo {
       .click();
   }
 
-  getCliDownloadLinkByLabel(label: string) {
-    return this.self().contains(label);
+  cliDocsLink() {
+    return cy.getId('about__cli_docs_link');
   }
 
   rancherPrimeInfo() {

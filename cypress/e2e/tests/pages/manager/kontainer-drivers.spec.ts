@@ -6,8 +6,9 @@ import ClusterManagerListPagePo from '@/cypress/e2e/po/pages/cluster-manager/clu
 import ClusterManagerCreatePagePo from '@/cypress/e2e/po/edit/provisioning.cattle.io.cluster/create/cluster-create.po';
 import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import { LONG_TIMEOUT_OPT, MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import { qase } from '@/cypress/support/qase';
 
-describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@adminUser'] }, () => {
+describe('Kontainer Drivers', { testIsolation: false, tags: ['@manager', '@adminUser'] }, () => {
   const driversPage = new KontainerDriversPagePo();
   const createDriverPage = new KontainerDriverEditPo();
   const clusterList = new ClusterManagerListPagePo();
@@ -27,15 +28,15 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.login();
   });
 
-  it('should show the cluster drivers list page', () => {
+  qase(2997, it('should show the cluster drivers list page', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     driversPage.title().should('be.visible');
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
-  });
+  }));
 
-  it('can attempt to refresh kubernetes metadata', () => {
+  qase(18579, it('can attempt to refresh kubernetes metadata', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     cy.intercept('POST', '/v3/kontainerdrivers?action=refresh').as('refresh');
@@ -49,15 +50,19 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
         cy.get('.growl-text').contains('Error refreshing cluster drivers').should('be.visible');
       }
     });
-  });
+  }));
 
-  it('can create new driver', () => {
+  qase(2996, it('can create new driver', () => {
     // Clean up any existing driver with the same URL to avoid 409 conflicts
     cy.getRancherResource('v3', 'kontainerdrivers').then((resp: Cypress.Response<any>) => {
       const existingDriver = resp.body.data?.find((driver: any) => driver.url === downloadUrl);
 
       if (existingDriver) {
-        cy.deleteRancherResource('v3', 'kontainerDrivers', existingDriver.id);
+        cy.deleteRancherResource('v3', 'kontainerDrivers', existingDriver.id, false);
+        // The delete propagates asynchronously. Wait for the driver to actually be gone before
+        // re-creating, otherwise on a retry (testIsolation is off) the UI create races the delete
+        // and the POST comes back 409, failing every retry.
+        cy.waitForRancherResource('v3', 'kontainerdrivers', existingDriver.id, (r: any) => r?.status === 404, 20, { failOnStatusCode: false });
       }
     });
 
@@ -84,7 +89,13 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       driverId = response?.body.id;
     });
 
-    driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
+    // The "Example" display name resolves from the fetched driver binary shortly after create, and
+    // the list can lag the create, so the row is not queryable by name within the default window.
+    // Wait longer for the row to appear, then confirm it reaches its Active end state. (The transient
+    // "Activating" state raced the name resolving and was not reliably observable by name.)
+    driversPage.list().resourceTable().sortableTable()
+      .rowElementWithName(exampleDriver, LONG_TIMEOUT_OPT)
+      .should('be.visible');
     driversPage.list().details(exampleDriver, 1).contains('Active', LONG_TIMEOUT_OPT);
 
     // Verify the driver tile appears on the cluster create page.
@@ -95,9 +106,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName('example', 'exist');
-  });
+  }));
 
-  it('can activate drivers in bulk', () => {
+  qase(3566, it('can activate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
 
@@ -155,9 +166,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName(openTelekomDriver, 'exist');
     createCluster.gridElementExistanceByName(oracleDriver, 'exist');
-  });
+  }));
 
-  it('will show error if could not deactivate driver', () => {
+  qase(8549, it('will show error if could not deactivate driver', () => {
     cy.intercept('POST', '/v3/kontainerDrivers/opentelekomcloudcontainerengine?action=deactivate', {
       statusCode: 500,
       body:       { message: `Could not deactivate driver` }
@@ -179,9 +190,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       deactivateDialog.errorBannerContent('Could not deactivate driver').should('exist').and('be.visible');
     });
     deactivateDialog.cancel();
-  });
+  }));
 
-  it('can deactivate driver', () => {
+  qase(2998, it('can deactivate driver', () => {
     const requestData = { };
 
     KontainerDriversPagePo.navTo();
@@ -210,9 +221,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName('example', 'not.exist');
-  });
+  }));
 
-  it('can activate driver', () => {
+  qase(2999, it('can activate driver', () => {
     const requestData = { };
 
     KontainerDriversPagePo.navTo();
@@ -254,9 +265,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName('example', 'exist');
-  });
+  }));
 
-  it('will show error if could not activate driver', () => {
+  qase(8550, it('will show error if could not activate driver', () => {
     cy.intercept('POST', '/v3/kontainerDrivers/linodekubernetesengine?action=activate', {
       statusCode: 500,
       body:       { message: `Could not activate driver` }
@@ -274,9 +285,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     cy.wait('@activationError').then(() => {
       cy.get('.growl-text').contains('Could not activate driver').should('be.visible');
     });
-  });
+  }));
 
-  it('can edit a cluster driver', () => {
+  qase(3568, it('can edit a cluster driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     // Ensure table is loaded and no modal overlays
@@ -295,9 +306,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     clusterList.createCluster();
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName('example', 'exist');
-  });
+  }));
 
-  it('can deactivate drivers in bulk', () => {
+  qase(3567, it('can deactivate drivers in bulk', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
     // Ensure table is loaded and no modal overlays
@@ -330,9 +341,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     createCluster.waitForPage();
     createCluster.gridElementExistanceByName(openTelekomDriver, 'not.exist');
     createCluster.gridElementExistanceByName(oracleDriver, 'not.exist');
-  });
+  }));
 
-  it('can delete a driver', () => {
+  qase(16625, it('can delete a driver', () => {
     KontainerDriversPagePo.navTo();
     driversPage.waitForPage();
 
@@ -340,10 +351,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-    cy.intercept('DELETE', '/v3/kontainerDrivers/*', {
-      statusCode: 200,
-      body:       { }
-    }).as('deleteDriver');
+    // A 204 says the driver is gone, so the list drops it. A 200 says it may be terminating, and the
+    // driver that was never really deleted stays in the list
+    cy.intercept('DELETE', '/v3/kontainerDrivers/*', { statusCode: 204 }).as('deleteDriver');
 
     driversPage.list().actionMenu(exampleDriver).getMenuItem('Delete').click();
 
@@ -352,7 +362,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     promptRemove.remove();
 
     cy.wait('@deleteDriver').then(({ response }) => {
-      expect(response?.statusCode).to.eq(200);
+      expect(response?.statusCode).to.eq(204);
     });
 
     driversPage.waitForPage();
@@ -361,7 +371,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
 
     // only mark removeDriver false once tests assert the driver is actually gone
     removeDriver = false;
-  });
+  }));
 
   after(() => {
     if (removeDriver) {
@@ -376,7 +386,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.applyDefaultTestTheme();
   });
 
-  it('should display kontainer drivers list page', () => {
+  qase(18401, it('should display kontainer drivers list page', () => {
     const driversPage = new KontainerDriversPagePo();
 
     KontainerDriversPagePo.goTo('_');
@@ -390,7 +400,7 @@ describe('Visual Testing', { tags: ['@percy', '@manager', '@adminUser'] }, () =>
     cy.hideElementBySelector('[data-testid="nav_header_showUserMenu"]', '[data-testid="type-count"]');
     // takes percy snapshot.
     cy.percySnapshot('kontainer drivers list page');
-  });
+  }));
 
   after(() => {
     cy.restoreProductDefaultTestTheme();

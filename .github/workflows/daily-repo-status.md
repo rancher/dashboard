@@ -15,10 +15,15 @@ permissions:
   contents: read
   issues: read
   pull-requests: read
+  copilot-requests: write
 
 network: defaults
 
 tools:
+  # Explicit since gh-aw requires shell access to be declared when
+  # `github.min-integrity` is `none`. `true` preserves the unrestricted
+  # shell these workflows have always run with.
+  bash: true
   github:
     # If in a public repo, setting `lockdown: false` allows
     # reading issues, pull requests and comments from 3rd-parties

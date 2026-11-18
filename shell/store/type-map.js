@@ -53,6 +53,9 @@
 //                            --  obj can contain anything in the objects getTree returns.
 //                            --  obj must have a `name` that is unique among all virtual types.
 //                            -- `cluster` is automatically added to route.params if it exists.
+//                            -- `navResources` is an optional array of resource types. The nav item stays
+//                               highlighted while on a route for one of those resources. For example, some
+//                               create/edit pages of a type have no nav entry of their own.
 //
 // spoofedType(obj)           Create a fake type that can be treated like a normal type
 //
@@ -156,10 +159,6 @@ import { createHeaders, rowValueGetter } from '@shell/store/type-map.utils';
 import { defineAsyncComponent } from 'vue';
 import { filterLocationValidParams } from '@shell/utils/router';
 
-export const NAMESPACED = 'namespaced';
-export const CLUSTER_LEVEL = 'cluster';
-export const BOTH = 'both';
-
 export const TYPE_MODES = {
   /**
    * allTypes usage: All resource types
@@ -205,21 +204,27 @@ export const TYPE_MODES = {
 
 export const ROOT = 'root';
 
+// Name of the side nav group `getTree` puts starred (favorite) types in
+export const FAVORITE_GROUP = 'starred';
+
 export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
 const instanceMethods = {};
 
 export const IF_HAVE = {
-  V2_MONITORING:            'v2-monitoring',
-  PROJECT:                  'project',
-  NO_PROJECT:               'no-project',
-  NOT_V1_ISTIO:             'not-v1-istio',
-  MULTI_CLUSTER:            'multi-cluster',
-  NEUVECTOR_NAMESPACE:      'neuvector-namespace',
-  ADMIN:                    'admin-user',
-  MCM_DISABLED:             'mcm-disabled',
-  NOT_STANDALONE_HARVESTER: 'not-standalone-harvester',
+  V2_MONITORING:              'v2-monitoring',
+  PROJECT:                    'project',
+  NO_PROJECT:                 'no-project',
+  NOT_V1_ISTIO:               'not-v1-istio',
+  MULTI_CLUSTER:              'multi-cluster',
+  NEUVECTOR_NAMESPACE:        'neuvector-namespace',
+  ADMIN:                      'admin-user',
+  MCM_DISABLED:               'mcm-disabled',
+  NOT_STANDALONE_HARVESTER:   'not-standalone-harvester',
+  // Show if the user can access cluster OR project role template bindings, so a project-only
+  // member can reach the "Cluster and Project Members" nav, not just cluster-level ones.
+  CLUSTER_OR_PROJECT_MEMBERS: 'cluster-or-project-members',
 };
 
 export function DSL(store, product, module = 'type-map') {
@@ -235,6 +240,7 @@ export function DSL(store, product, module = 'type-map') {
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
+        navSearch:           false,
         public:              true,
         filterMode:          'namespaces',
         ...inOpt
@@ -391,27 +397,50 @@ function validateProductName(product) {
   }
 }
 
-let called = false;
+let loading = null;
 
+/**
+ * Registers the built-in products, once per session.
+ *
+ * Callers get the same promise, so a navigation that arrives while the products
+ * are still loading waits for them like the first one did. It used to raise a
+ * flag before the loads finished and return immediately to anyone who came in
+ * behind, which let a route render against a half-registered product list -
+ * and `currentProduct` answers for a product that has not registered yet by
+ * falling back to an unrelated one.
+ *
+ * Only the built-in ones: `loadProducts` returns nothing to await, inits each
+ * plugin's products in an un-awaited `forEach`, and in any case only reaches
+ * plugins already loaded - external ones arrive later through
+ * `loadPluginAsync`. So an extension product can still register after a route
+ * has rendered, exactly as it could before. Awaiting extension products is a
+ * change to the extension API, not to this function.
+ *
+ * A failed load clears the promise so the next navigation can try again, rather
+ * than leaving every later caller inheriting the failure.
+ */
 export async function applyProducts(store, $extension) {
-  if (called) {
-    return;
-  }
+  loading = loading || (async() => {
+    for ( const product of listProducts() ) {
+      const impl = await loadProduct(product);
 
-  called = true;
-  for ( const product of listProducts() ) {
-    const impl = await loadProduct(product);
-
-    if ( impl?.init ) {
-      impl.init(store);
+      if ( impl?.init ) {
+        impl.init(store);
+      }
     }
-  }
-  // Load the products from all plugins
-  $extension.loadProducts();
+    // Load the products from all plugins
+    $extension?.loadProducts();
+  })().catch((e) => {
+    loading = null;
+
+    throw e;
+  });
+
+  return loading;
 }
 
 export function productsLoaded() {
-  return called;
+  return !!loading;
 }
 
 export const state = function() {
@@ -664,14 +693,12 @@ export const getters = {
 
   getTree(state, getters, rootState, rootGetters) {
     // Name the function so it's easily identifiable when performance tracing
-    return function getTree(productId, mode, allTypes, clusterId, namespaceMode, currentType, search) {
+    return function getTree(productId, mode, allTypes, clusterId, currentType, search) {
       // getTree has four modes:
       // - `basic` matches data types that should always be shown (even if there are 0 of them).
-      // - `used` matches the data types where there are more than 0 of them in the current set of namespaces.
+      // - `used` matches the data types that have been used, shown regardless of their current count.
       // - `all` matches all types.
       // - `favorite` matches starred types.
-      // namespaceMode: 'namespaced', 'cluster', or 'both'
-      // namespaces: null means all, otherwise it will be an array of specific namespaces to include
       const isBasic = mode === TYPE_MODES.BASIC;
 
       let searchRegex;
@@ -699,12 +726,6 @@ export const getters = {
         }
 
         const namespaced = typeObj.namespaced;
-
-        if ( (namespaceMode === NAMESPACED && !namespaced ) || (namespaceMode === CLUSTER_LEVEL && namespaced) ) {
-          // Skip types that are not the right namespace mode
-          continue;
-        }
-
         const inStore = rootGetters.currentStore(typeObj.name);
         const count = rootGetters[`${ inStore }/count`](typeObj);
         const groupForBasicType = getters.groupForBasicType(productId, typeObj.name);
@@ -714,9 +735,11 @@ export const getters = {
         } else if ( isBasic && !groupForBasicType ) {
           // If we want the basic tree only return basic types;
           continue;
-        } else if ( mode === TYPE_MODES.USED && count <= 0 ) {
-          // If there's none of this type, ignore this entry when viewing only in-use types
-          // Note: count is sometimes null, in js `null <= 0` is `true`.
+        }
+
+        // Skip schema backed types the user can't list (e.g. SelfSubjectAccessReviews), their list page would only show an error.
+        // Virtual and spoofed types have no schema. Types with a custom route or list component don't hit that error (see ResourceList)
+        if ( typeObj.schema && !typeObj.route && !rootGetters[`${ inStore }/canList`](typeObj.name) && !getters.hasCustomList(typeObj.name) ) {
           continue;
         }
 
@@ -741,7 +764,7 @@ export const getters = {
         if ( isBasic ) {
           group = _ensureGroup(root, groupForBasicType, true);
         } else if ( mode === TYPE_MODES.FAVORITE ) {
-          group = _ensureGroup(root, 'starred');
+          group = _ensureGroup(root, FAVORITE_GROUP);
           group.weight = 1000;
         } else if ( mode === TYPE_MODES.USED ) {
           group = _ensureGroup(root, `inUse::${ getters.groupLabelFor(typeObj.schema) }`);
@@ -783,6 +806,7 @@ export const getters = {
           name:         typeObj.name,
           weight:       typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
           overview:     !!typeObj.overview,
+          navResources: typeObj.navResources,
         });
       }
 
@@ -2051,6 +2075,11 @@ function ifHave(getters, option) {
   }
   case IF_HAVE.NOT_STANDALONE_HARVESTER: { // Not used by harvester extension...
     return !getters['isStandaloneHarvester'];
+  }
+  case IF_HAVE.CLUSTER_OR_PROJECT_MEMBERS: {
+    // Reachable if the user can access EITHER cluster OR project role template bindings.
+    return !!getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) ||
+           !!getters['management/schemaFor'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING);
   }
   default:
     return false;

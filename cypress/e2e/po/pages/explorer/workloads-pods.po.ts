@@ -1,7 +1,6 @@
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
+import { navToWorkloadTypeViaSideMenu } from '@/cypress/e2e/po/side-bars/workload-side-nav';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
-import BurgerMenuPo from '@/cypress/e2e/po/side-bars/burger-side-menu.po';
-import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { WorkloadsCreatePageBasePo } from '@/cypress/e2e/po/pages/explorer/workloads/workloads.po';
 
 type WorkloadType = 'workload' | 'pods' | 'apps.deployments' | 'replicasets' | 'daemonsets' | 'statefulsets' | 'jobs' | 'cronjobs';
@@ -20,12 +19,7 @@ export class WorkloadsPodsListPagePo extends BaseListPagePo {
   }
 
   static navTo(clusterId = 'local') {
-    const burgerMenu = new BurgerMenuPo();
-    const sideNav = new ProductNavPo();
-
-    burgerMenu.goToCluster(clusterId);
-    sideNav.navToSideMenuGroupByLabel('Workloads');
-    sideNav.navToSideMenuEntryByLabel('Pods');
+    navToWorkloadTypeViaSideMenu(clusterId, 'Pods');
   }
 
   createPod() {

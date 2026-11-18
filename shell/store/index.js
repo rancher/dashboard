@@ -17,7 +17,7 @@ import { BY_TYPE } from '@shell/plugins/dashboard-store/classify';
 import Steve from '@shell/plugins/steve';
 import { STEVE_MODEL_TYPES } from '@shell/plugins/steve/getters';
 import { CLUSTER as CLUSTER_PREF, LAST_NAMESPACE, NAMESPACE_FILTERS, WORKSPACE } from '@shell/store/prefs';
-import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@shell/store/type-map';
+import { recordClusterNavigation } from '@shell/utils/cluster-pref-writer';
 import { filterBy, findBy } from '@shell/utils/array';
 import { ApiError, ClusterNotFoundError } from '@shell/utils/error';
 import { gcActions, gcGetters } from '@shell/utils/gc/gc-root-store';
@@ -25,9 +25,6 @@ import {
   NAMESPACE_FILTER_ALL_ORPHANS as ALL_ORPHANS,
   NAMESPACE_FILTER_ALL_SYSTEM as ALL_SYSTEM,
   NAMESPACE_FILTER_ALL_USER as ALL_USER,
-  NAMESPACE_FILTER_NAMESPACED_NO as NAMESPACED_NO,
-  NAMESPACE_FILTER_NAMESPACED_PREFIX as NAMESPACED_PREFIX,
-  NAMESPACE_FILTER_NAMESPACED_YES as NAMESPACED_YES,
   splitNamespaceFilterKey,
   NAMESPACE_FILTER_NS_FULL_PREFIX,
 } from '@shell/utils/namespace-filter';
@@ -43,10 +40,13 @@ import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
+import { showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
 export const strict = false;
+
+const LEGACY_NAMESPACED_FILTER_PREFIX = 'namespaced://';
 
 export const plugins = [
   Steve({
@@ -190,9 +190,7 @@ const getActiveNamespaces = (state, getters, readonly = false) => {
     .filter((ns) => product.hideSystemResources ? !ns.isSystem : true); // Filter out Fleet system namespaces
 
   // Retrieve all the filters selected by the user
-  const filters = state.namespaceFilters.filter(
-    (filters) => !!filters && !`${ filters }`.startsWith(NAMESPACED_PREFIX)
-  );
+  const filters = state.namespaceFilters.filter((filter) => !!filter);
 
   const activeNamespaces = {
     ...getActiveNamespacesCategories(getters, allowedNamespaces, filters),
@@ -403,7 +401,7 @@ export const getters = {
       return true;
     }
 
-    return state.namespaceFilters.filter((x) => !`${ x }`.startsWith(NAMESPACED_PREFIX)).length === 0;
+    return state.namespaceFilters.length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -434,39 +432,7 @@ export const getters = {
    * Namespace/Project filter for the current cluster
    */
   namespaceFilters(state) {
-    const filters = state.namespaceFilters.filter((x) => !!x && !`${ x }`.startsWith(NAMESPACED_PREFIX));
-
-    return filters;
-  },
-
-  namespaceMode(state, getters) {
-    const filters = state.namespaceFilters;
-    const product = getters['currentProduct'];
-
-    if ( !product?.showNamespaceFilter ) {
-      return BOTH;
-    }
-
-    // Explicitly asking
-    if ( filters.includes(NAMESPACED_YES) ) {
-      return NAMESPACED;
-    } else if ( filters.includes(NAMESPACED_NO) ) {
-      return CLUSTER_LEVEL;
-    }
-
-    const byKind = {};
-
-    for ( const filter of filters ) {
-      const type = filter.split('://', 2)[0];
-
-      byKind[type] = (byKind[type] || 0) + 1;
-    }
-
-    if ( byKind['project'] > 0 || byKind['ns'] > 0 ) {
-      return NAMESPACED;
-    }
-
-    return BOTH;
+    return state.namespaceFilters.filter((x) => !!x);
   },
 
   activeNamespaceCache(state) {
@@ -663,7 +629,7 @@ export const mutations = {
    * Updates cluster specific ns settings, including the selected ns cache `activeNamespaceCache`
    */
   updateNamespaces(state, { filters, all, getters: optGetters }) {
-    state.namespaceFilters = filters.filter((x) => !!x);
+    state.namespaceFilters = filters.filter((x) => !!x && !`${ x }`.startsWith(LEGACY_NAMESPACED_FILTER_PREFIX));
 
     if ( all ) {
       state.allNamespaces = all;
@@ -826,7 +792,7 @@ export const actions = {
     const isRancher = res.rancherSchemas.status === 'fulfilled' && !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
 
     if ( isRancher ) {
-      promises['prefs'] = dispatch('prefs/loadServer');
+      promises['prefs'] = dispatch('prefs/loadServerQueued');
       promises['rancherSubscribe'] = dispatch('rancher/subscribe');
     }
 
@@ -907,6 +873,9 @@ export const actions = {
       await addReleaseNotesNotification(dispatch, getters);
 
       fetchAndProcessDynamicContent(dispatch, getters, this.$axios);
+
+      // Welcome users to a new minor release, once
+      showReleaseWelcomeIfNew(commit, getters);
     }
 
     if (systemNamespaces) {
@@ -922,10 +891,9 @@ export const actions = {
     });
 
     if ( res[FLEET.WORKSPACE] ) {
-      commit('updateWorkspace', {
+      dispatch('restoreWorkspace', {
         value: getters['prefs/get'](WORKSPACE),
-        all:   res[FLEET.WORKSPACE],
-        getters
+        all:   res[FLEET.WORKSPACE]
       });
     }
 
@@ -1000,8 +968,19 @@ export const actions = {
     }
 
     if ( id ) {
-      // Remember the current cluster
-      dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
+      // Remember the current cluster AND record the visit in the app-bar RECENT shelf in ONE merge write:
+      // writing CLUSTER separately raced the recent write on the shared Preference and clobbered the shelf.
+      // Fire-and-forget: loading the cluster must not wait on (or fail with) the preference write.
+      recordClusterNavigation(dispatch, id)
+        // The write REPORTS failure by resolving with `{ type, status }`, so the resolved value needs
+        // checking too — a `.catch` alone would let a failed persist pass as a success.
+        .then((result) => {
+          if (result?.status) {
+            console.warn('Unable to record cluster navigation', result); // eslint-disable-line no-console
+          }
+        })
+        .catch((e) => console.warn('Unable to record cluster navigation', e)); // eslint-disable-line no-console
+
       commit('clusterId', id);
 
       // Use a pseudo cluster ID to pretend we have a cluster... to ensure some screens that don't care about a cluster but 'require' one to show
@@ -1063,7 +1042,8 @@ export const actions = {
         console.warn('Cluster is not ready, cannot load it:', cluster.nameDisplay); // eslint-disable-line no-console
         throw new Error('Unready cluster');
       }
-    } catch {
+    } catch (e) {
+      console.warn('Failed to find cluster, or cluster is not ready. Cluster:', id, '.Error: ', e); // eslint-disable-line no-console
       commit('clusterId', null);
       commit('cluster/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);
@@ -1329,6 +1309,21 @@ export const actions = {
 
   showWorkspaceSwitcher({ commit }, value) {
     commit('showWorkspaceSwitcher', value);
+  },
+
+  // Corrects the selection in use only. The stored preference is deliberately left alone, so a list
+  // that has not caught up yet - right after creating a workspace - can never cost the user their choice.
+  restoreWorkspace({ commit, getters, state }, { value, all }) {
+    commit('updateWorkspace', {
+      value, all: all || state.allWorkspaces, getters
+    });
+  },
+
+  // Sets the selection without correcting it against anything. For callers that already know which
+  // value they want and whose options the store cannot see - the workspace-annotated namespaces the
+  // switcher falls back to when the user has no permission to list workspaces.
+  setWorkspace({ commit, getters }, { value }) {
+    commit('updateWorkspace', { value, getters });
   },
 
   ...gcActions

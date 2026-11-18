@@ -1,6 +1,29 @@
 export const UNITS = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
 export const FRACTIONAL = ['', 'm', 'u', 'n', 'p', 'f', 'a', 'z', 'y']; // milli micro nano pico femto
 
+/**
+ * @typedef {object} FormatSiOptions
+ * @property {number} [increment] - How much of one unit makes the next one up, normally 1000 or 1024.
+ * @property {boolean} [addSuffix] - Whether the unit is appended to the number at all.
+ * @property {boolean} [addSuffixSpace] - Whether a space goes between the number and the unit.
+ * @property {string} [suffix] - Appended after the unit letter, for example `iB` to make `KiB`.
+ * @property {string | null} [firstSuffix] - Used in place of `suffix` when the result is in the base unit.
+ * @property {number} [startingExponent] - Which unit the value is already expressed in.
+ * @property {number} [minExponent] - The smallest unit the value may be scaled to.
+ * @property {number} [maxExponent] - The largest unit the value may be scaled to. Negative to scale down.
+ * @property {number} [maxPrecision] - How many decimal places to keep, for results below 10. A
+ * result of 10 or more is rounded to an integer whatever this is.
+ * @property {boolean} [canRoundToZero] - Whether a small non-zero value is allowed to format as `0`.
+ */
+
+/**
+ * Format a number with an SI unit, scaling it to the largest unit that keeps it readable.
+ *
+ * @param {number | string} inValue - The value to format. Strings are compared and divided as
+ * numbers, which is what callers that pass a stringified number rely on.
+ * @param {FormatSiOptions} [opt] - How to format it.
+ * @returns {string} The formatted value.
+ */
 export function formatSi(inValue, {
   increment = 1000,
   addSuffix = true,

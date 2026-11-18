@@ -1,5 +1,4 @@
 // External version of globals.d.ts for @rancher/cypress package
-// Dependencies on @shell/types removed for standalone use
 
 type Verbs = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
@@ -74,7 +73,23 @@ export interface CreateResourceNameOptions {
 declare global {
   namespace Cypress {
     interface RancherVersion {
+      Version?: string;
       RancherPrime?: string;
+    }
+
+    /**
+     * Tag support provided at runtime by @cypress/grep (`describe`/`it` config `tags`).
+     *
+     * Declared locally rather than via a tsconfig `types: ['@cypress/grep']` entry:
+     * @cypress/grep v6 is exports-only (no top-level "types"/"main" field), so a `types`
+     * entry no longer resolves and fails with TS2688.
+     */
+    interface SuiteConfigOverrides {
+      tags?: string | string[];
+    }
+
+    interface TestConfigOverrides {
+      tags?: string | string[];
     }
 
     interface Chainable {
@@ -83,6 +98,7 @@ declare global {
       state(state: any): any;
 
       login(username?: string, password?: string, cacheSession?: boolean, skipNavigation?: boolean, acceptConfirmation?: string): Chainable<Element>;
+      refreshCsrfToken(): Chainable;
       logout(): Chainable;
       clearAllSessions(): Chainable;
       byLabel(label: string): Chainable<Element>;
@@ -119,7 +135,7 @@ declare global {
          */
         context?: string,
         namespace?: string,
-        createResource: ({ ns, i }) => Chainable
+        createResource: ({ ns, i }: { ns: string, i: number }) => Chainable
         count?: number,
         /**
          * Every 5 resources cy.wait this amount of milliseconds
@@ -128,22 +144,29 @@ declare global {
       }): Chainable;
       applyDefaultTestTheme(): Chainable<any>;
       restoreProductDefaultTestTheme(): Chainable<any>;
-      getRancherVersion(): Chainable<RancherVersion>;
+      getRancherVersion(forceRefresh?: boolean): Chainable<RancherVersion>;
       getRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId?: string, expectedStatusCode?: number): Chainable;
       setRancherResource(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, body: any): Chainable;
       createRancherResource(prefix: 'v3' | 'v1', resourceType: string, body: any, failOnStatusCode?: boolean): Chainable;
       waitForRancherResource<T = boolean>(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, testFn: (resp: any) => boolean, retries?: number, config?: {failOnStatusCode?: boolean, retryOnNetworkFailure?: boolean, timeout?: number, returnResource?: boolean}): Chainable<T>;
-      waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean): Chainable;
-      waitForInterceptWithConflictRetry(alias: string, successStatusCode?: number, retryStatusCodes?: number[], options?: { timeout?: number }): Chainable;
+      waitForRancherResources(prefix: 'v3' | 'v1', resourceType: string, expectedResourcesTotal: number, greaterThan?: boolean, config?: { requestTimeout: number }): Chainable;
+      waitForStableFilteredResourceCount(prefix: 'v3' | 'v1', resourceType: string, namespaces: string[], config?: { stableReads?: number, maxReads?: number, intervalMs?: number, minCount?: number }): Chainable<number>;
+      waitForInterceptWithConflictRetry(alias: `@${ string }`, successStatusCode?: number, retryStatusCodes?: number[], options?: { timeout?: number }): Chainable;
       waitForRepositoryDownload(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, retries?: number): Chainable;
       waitForResourceState(prefix: 'v3' | 'v1', resourceType: string, resourceId: string, resourceState?: string, retries?: number, failOnStatusCode?: boolean): Chainable;
-      deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean): Chainable;
+      /**
+       * delete a v3 / v1 resource
+       *
+       * @param failOnStatusCode true to fail on anything other than 2XX and 3XX
+       * @param config.explicitFailOnStatusCodes Array of explicit status codes to assert against when failOnStatusCode is false
+       */
+      deleteRancherResource(prefix: 'v3' | 'v1' | 'k8s', resourceType: string, resourceId: string, failOnStatusCode?: boolean, config?: { explicitFailOnStatusCodes?: number[]}): Chainable;
       getClusterIdByName(clusterName: string): Chainable<string>;
       checkChartPresence(repoName: string, chartKey: string): Chainable<{ inFiltered: boolean, inUnfiltered: boolean }>;
       getClusterToolsChartCount(repoName?: string): Chainable<number>;
       installChart(repo: string, chartId: string, chartName: string, chartVersion: string, namespace: string): Chainable;
       getChartVersions(repo: string, chartId: string): Chainable<string[]>;
-      deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean)
+      deleteNodeTemplate(nodeTemplateId: string, timeout?: number, failOnStatusCode?: boolean): Chainable<void>;
       /**
        * Delete a namespace and wait for it to 404. Helpful when the ns contains many resources
        */
@@ -160,7 +183,7 @@ declare global {
          * Every 5 resources cy.wait this amount of milliseconds
          */
         wait?: number
-      })
+      }): Chainable<void>;
       /**
        * Loop through the array and execute the process, pausing every 5 entries for wait amount
        */
@@ -228,22 +251,12 @@ declare global {
       isEnabled(): Chainable<Element>;
 
       // Check css var
-      shouldHaveCssVar(name: string, value: string);
-
-      /**
-       * realHover event from cypress-real-events
-       */
-      realHover(): Chainable<Element>;
+      shouldHaveCssVar(name: string, value: string): Chainable<void>;
 
       /**
        * Fetch the steve `revision` / timestamp of request
        */
       fetchRevision(): Chainable<string>;
-
-      /**
-       * Check if the vai FF is enabled
-       */
-      isVaiCacheEnabled(): Chainable<boolean>;
 
       /**
        * Run an accessibility check on the current page or the specified element

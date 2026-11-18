@@ -4,6 +4,7 @@ const webpack = require('webpack');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const VirtualModulesPlugin = require('webpack-virtual-modules');
 const { generateTypeImport } = require('./auto-import');
+const sharedCodeMirror = require('./shared-codemirror');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 module.exports = function(dir) {
@@ -78,12 +79,34 @@ module.exports = function(dir) {
         resource.request = path.join(__dirname, 'require-asset.lib.js');
       });
 
+      // vue-router can't simply be externalised: the UMD wrapper binds externals at load time,
+      // so on hosts that don't define window.__vueRouter (Rancher <= 2.14) it resolves to
+      // undefined and every useRoute()/useRouter() call throws in setup(). The stub forwards to
+      // the host global when it exists and falls back to $route/$router when it doesn't, so a
+      // single extension build works on Rancher 2.11 through 2.15 and later.
+      const vueRouterOverride = new webpack.NormalModuleReplacementPlugin(/^vue-router$/, (resource) => {
+        resource.request = path.join(__dirname, 'vue-router.lib.js');
+      });
+
+      // Use the host's CodeMirror 6 when it provides one, otherwise a bundled copy - see shared-codemirror.js
+      const codeMirrorOverride = new webpack.NormalModuleReplacementPlugin(/^@(codemirror|lezer|replit)\//, (resource) => {
+        const replacement = sharedCodeMirror.replacementFor(resource.request, resource.contextInfo?.issuer);
+
+        if (replacement) {
+          resource.request = replacement;
+        }
+      });
+      const codeMirrorStubsPlugin = new VirtualModulesPlugin(sharedCodeMirror.stubModules());
+
       // Auto-generate module to import the types (model, detail, edit etc)
       const autoImportPlugin = new VirtualModulesPlugin({ 'node_modules/@rancher/auto-import': generateTypeImport('@pkg', dir) });
 
       config.plugins.unshift(dynamicImporterOverride);
       config.plugins.unshift(modelLoaderImporterOverride);
       config.plugins.unshift(requireAssetOverride);
+      config.plugins.unshift(vueRouterOverride);
+      config.plugins.unshift(codeMirrorOverride);
+      config.plugins.unshift(codeMirrorStubsPlugin);
       config.plugins.unshift(autoImportPlugin);
       config.plugins.unshift(new NodePolyfillPlugin()); // required from Webpack 5 to polyfill node modules
       // config.plugins.unshift(debug);
@@ -91,10 +114,9 @@ module.exports = function(dir) {
       // These modules will be externalised and not included with the build of a package library
       // This helps reduce the package size, but these dependencies must be provided by the hosting application
       config.externals = {
-        jquery:       '$',
-        jszip:        '__jszip',
-        'js-yaml':    '__jsyaml',
-        'vue-router': '__vueRouter'
+        jquery:    '$',
+        jszip:     '__jszip',
+        'js-yaml': '__jsyaml'
       };
 
       // Prevent warning in log with the md files in the content folder

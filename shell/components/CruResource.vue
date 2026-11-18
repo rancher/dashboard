@@ -22,6 +22,8 @@ import {
 
 import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 import Wizard from '@shell/components/Wizard';
+import { RcSeparator } from '@components/RcSeparator';
+import { RcHeading } from '@components/RcHeading';
 
 export const CONTEXT_HOOK_EDIT_YAML = 'show-preview-yaml';
 
@@ -37,7 +39,9 @@ export default {
     CruResourceFooter,
     ResourceYaml,
     Wizard,
-    TableOfContents
+    TableOfContents,
+    RcSeparator,
+    RcHeading,
   },
 
   props: {
@@ -685,6 +689,8 @@ export default {
         v-if="hasErrors"
         id="cru-errors"
         class="cru__errors"
+        role="alert"
+        aria-live="assertive"
       >
         <Banner
           v-for="(err, i) in errors"
@@ -750,13 +756,16 @@ export default {
                     class="title"
                     :class="{'with-description': !!subtype.description}"
                   >
-                    <h5>
+                    <RcHeading
+                      :size="5"
+                      class="subtype-name"
+                    >
                       <span
                         v-if="$store.getters['i18n/exists'](subtype.label)"
                         v-clean-html="t(subtype.label)"
                       />
                       <span v-else>{{ subtype.label }}</span>
-                    </h5>
+                    </RcHeading>
                     <a
                       v-if="subtype.docLink"
                       :href="subtype.docLink"
@@ -765,10 +774,7 @@ export default {
                       class="flex-right"
                     >{{ t('generic.moreInfo') }} <i class="icon icon-external-link" /></a>
                   </div>
-                  <hr
-                    v-if="subtype.description"
-                    role="none"
-                  >
+                  <RcSeparator v-if="subtype.description" />
                   <div
                     v-if="subtype.description"
                     class="description"
@@ -1048,6 +1054,10 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+  .subtype-body .title .subtype-name {
+    margin: 0;
+  }
+
 $logo: 60px;
 $logo-space: 100px;
 

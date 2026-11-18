@@ -4,13 +4,15 @@ import FormValidation from '@shell/mixins/form-validation';
 import WorkLoadMixin from '@shell/edit/workload/mixins/workload';
 import { mapGetters } from 'vuex';
 import { FORM_TYPES } from '@shell/components/form/Security';
-import { NODE } from '@shell/config/types';
+import { NODE, POD } from '@shell/config/types';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 export default {
-  name:   'Workload',
-  emits:  ['input'],
-  mixins: [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
-  props:  {
+  name:       'Workload',
+  emits:      ['input'],
+  components: { RcIconTooltip },
+  mixins:     [CreateEditView, FormValidation, WorkLoadMixin], // The order here is important since WorkLoadMixin contains some FormValidation configuration
+  props:      {
     value: {
       type:     Object,
       required: true,
@@ -28,6 +30,7 @@ export default {
     return {
       selectedName: null,
       errors:       [],
+      cronHint:     '',
       canNode,
       FORM_TYPES
     };
@@ -35,10 +38,61 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    containersImmutable() {
+      return this.isPod && !this.isCreate;
+    },
+
     isFormValid() {
       const hasContainerErrors = this.allContainers.some(this.hasContainerError);
 
-      return this.fvFormIsValid && !hasContainerErrors;
+      return this.fvFormIsValid && !hasContainerErrors && !this.tabErrors.podStorage && !this.tabErrors.volumeClaimTemplates;
+    },
+
+    serviceOptions() {
+      const noneOption = {
+        label: this.t('generic.none'),
+        value: ''
+      };
+
+      const services = this.headlessServices.map((service) => ({
+        label: service.metadata.name,
+        value: service.metadata.name
+      }));
+
+      services.unshift(noneOption);
+
+      return services;
+    },
+    optionalServiceName: {
+      get() {
+        return this.spec.serviceName || '';
+      },
+      set(value) {
+        if (!value) {
+          delete this.spec.serviceName;
+
+          return;
+        }
+
+        this.spec.serviceName = value;
+      }
+    },
+    /**
+     * For Pods, render empty blocks (e.g. an unused podAntiAffinity the form
+     * seeds as empty) as `{}` in "Edit as YAML" instead of a valueless key that
+     * parses back to `null` - so the same pod data always yields the same YAML.
+     * See https://github.com/rancher/dashboard/issues/10171
+     */
+    yamlModifiers() {
+      return this.value.type === POD ? { collapseEmptyObjects: true } : undefined;
+    },
+
+    upgradingTabLabel() {
+      // ReplicaSet / ReplicationController have no rollout strategy; this tab only
+      // exposes minReadySeconds for them, so frame it as availability, not upgrades.
+      const noUpgradePolicy = this.isReplicable && !this.isDeployment && !this.isStatefulSet;
+
+      return noUpgradePolicy ? this.t('workload.container.titles.availability') : this.t('workload.container.titles.upgrading');
     }
   },
   methods: {
@@ -112,6 +166,7 @@ export default {
       :subtypes="workloadSubTypes"
       :apply-hooks="applyHooks"
       :value="value"
+      :yaml-modifiers="yamlModifiers"
       :errors-map="getErrorsMap(fvUnreportedValidationErrors)"
       @finish="save"
       @select-type="selectType"
@@ -140,7 +195,19 @@ export default {
             :label="t('workload.cronSchedule')"
             :rules="fvGetAndReportPathRules('spec.schedule')"
             placeholder="0 * * * *"
+            :show-cron-hint="false"
+            aria-describedby="cron-schedule-hint"
+            @cron-hint-change="cronHint = $event"
           />
+        </div>
+        <div
+          v-if="isCronJob"
+          id="cron-schedule-hint"
+          class="col span-9 cron-schedule-hint"
+          data-testid="cron-schedule-hint"
+          aria-live="polite"
+        >
+          {{ cronHint }}
         </div>
         <div
           v-if="isReplicable"
@@ -160,13 +227,13 @@ export default {
           class="col span-3"
         >
           <LabeledSelect
-            v-model:value="spec.serviceName"
-            option-label="metadata.name"
-            :reduce="service=>service.metadata.name"
+            v-model:value="optionalServiceName"
+            option-label="label"
+            :reduce="opt=>opt.value"
             :mode="mode"
+            :disabled="!isCreate"
             :label="t('workload.serviceName')"
-            :options="headlessServices"
-            required
+            :options="serviceOptions"
           />
         </div>
       </div>
@@ -206,7 +273,7 @@ export default {
                 #tab-header-right
               >
                 <button
-                  v-if="allContainers.length > 1 && !isView"
+                  v-if="allContainers.length > 1 && !isView && !containersImmutable"
                   type="button"
                   class="btn-sm role-link"
                   @click="removeContainer(tab)"
@@ -223,12 +290,16 @@ export default {
                     <LabeledInput
                       v-model:value="allContainers[i].name"
                       :mode="mode"
+                      :disabled="containersImmutable"
                       :label="t('workload.container.containerName')"
+                      required
+                      :rules="containerNameRules"
                     />
                   </div>
                   <div class="col span-6">
                     <RadioGroup
                       :mode="mode"
+                      :disabled="containersImmutable"
                       :value="allContainers[i]._init"
                       name="initContainer"
                       :options="[true, false]"
@@ -246,6 +317,8 @@ export default {
                       :mode="mode"
                       :label="t('workload.container.image')"
                       :placeholder="t('generic.placeholder', {text: 'nginx:latest'}, true)"
+                      required
+                      :rules="containerImageRules"
                     />
                   </div>
                   <div class="col span-6">
@@ -278,13 +351,7 @@ export default {
               <div>
                 <h3>
                   {{ t('workload.container.ports.expose') }}
-                  <i
-                    v-clean-tooltip="{content: t('workload.container.ports.toolTip'), triggers: ['hover', 'touch', 'focus'] }"
-                    v-stripped-aria-label="t('workload.container.ports.toolTip')"
-                    class="icon icon-info"
-                    tabindex="0"
-                    role="tooltip"
-                  />
+                  <rc-icon-tooltip :content="t('workload.container.ports.toolTip')" />
                 </h3>
                 <p class="padded">
                   {{ t('workload.container.ports.description') }}
@@ -371,9 +438,11 @@ export default {
               :label="t('workload.storage.title')"
               name="storage"
               :weight="tabWeightMap['storage']"
+              :error="!!tab.error.storage"
             >
               <ContainerMountPaths
                 v-model:container="allContainers[i]"
+                :rules="volumeMountPathRules"
                 :value="podTemplateSpec"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
@@ -409,7 +478,7 @@ export default {
               />
             </Tab>
             <Tab
-              :label="t('workload.container.titles.upgrading')"
+              :label="upgradingTabLabel"
               name="upgrading"
               :weight="tabWeightMap['upgrading']"
             >
@@ -433,7 +502,7 @@ export default {
           :label="t('workload.tabs.labels.pod')"
           :name="'pod'"
           :weight="98"
-          :error="tabErrors.podSecurityContext"
+          :error="tabErrors.podSecurityContext || tabErrors.podStorage || tabErrors.volumeClaimTemplates"
         >
           <Tabbed
             name="podTabs"
@@ -445,11 +514,13 @@ export default {
               :label="t('workload.storage.title')"
               name="storage-pod"
               :weight="tabWeightMap['storage']"
+              :error="tabErrors.podStorage"
               @active="$refs.storage.refresh()"
             >
               <Storage
                 ref="storage"
                 v-model:value="podTemplateSpec"
+                :rules="volumeRules"
                 :namespace="value.metadata.namespace"
                 :register-before-hook="registerBeforeHook"
                 :mode="mode"
@@ -574,10 +645,12 @@ export default {
               :label="t('workload.container.titles.volumeClaimTemplates')"
               name="volumeClaimTemplates-pod"
               :weight="tabWeightMap['volumeClaimTemplates']"
+              :error="tabErrors.volumeClaimTemplates"
             >
               <VolumeClaimTemplate
                 v-model:value="spec"
                 :mode="mode"
+                :mount-path-rules="volumeMountPathRules"
               />
             </Tab>
             <Tab
@@ -614,9 +687,9 @@ export default {
           </Tabbed>
         </Tab>
         <template #tab-row-extras>
-          <li class="tablist-controls">
+          <div class="tablist-controls">
             <button
-              v-if="!isView"
+              v-if="!isView && !containersImmutable"
               type="button"
               class="btn-sm role-link"
               data-testid="workload-button-add-container"
@@ -624,7 +697,7 @@ export default {
             >
               <i class="icon icon-plus pr-5" /> {{ t('workload.container.addContainer') }}
             </button>
-          </li>
+          </div>
         </template>
       </Tabbed>
     </CruResource>
@@ -636,6 +709,11 @@ export default {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
+}
+
+.cron-schedule-hint {
+  align-self: center;
+  color: var(--input-label);
 }
 
 .type-placeholder {

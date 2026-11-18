@@ -1,6 +1,10 @@
 import Workload from '@shell/models/workload.js';
 import { steveClassJunkObject } from '@shell/plugins/steve/__tests__/utils/steve-mocks';
-import { WORKLOAD_TYPES, SERVICE, INGRESS } from '@shell/config/types';
+import { WORKLOAD_TYPES, SERVICE, INGRESS, GATEWAY_API } from '@shell/config/types';
+import HttpRoute from '@shell/models/gateway.networking.k8s.io.httproute';
+import Gateway from '@shell/models/gateway.networking.k8s.io.gateway';
+import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
+import Pod from '@shell/models/pod';
 
 describe('class: Workload', () => {
   describe('given custom workload keys', () => {
@@ -91,6 +95,100 @@ describe('class: Workload', () => {
     });
   });
 
+  describe.each([
+    ['scaleUp', 2, 3],
+    ['scaleDown', 2, 1],
+  ] as const)('method: %s', (method, replicas, expected) => {
+    const createWorkload = (save: jest.Mock) => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test-workload', namespace: 'default' },
+        spec:     { replicas }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      workload.save = save;
+
+      return workload;
+    };
+
+    const conflictReloading = (workload: Workload, reloaded: number) => () => {
+      workload.spec.replicas = reloaded;
+
+      return Promise.reject(Object.assign(new Error('Conflict'), { _status: 409 }));
+    };
+
+    it('should show the new replica count before the save completes', () => {
+      const workload = createWorkload(jest.fn().mockReturnValue(new Promise(() => {})));
+
+      workload[method]();
+
+      expect(workload.spec.replicas).toStrictEqual(expected);
+    });
+
+    it('should go back to the previous replica count when the save fails', async() => {
+      const workload = createWorkload(jest.fn().mockRejectedValue(new Error('Scale failed')));
+
+      await workload[method]().catch(() => {});
+
+      expect(workload.spec.replicas).toStrictEqual(replicas);
+    });
+
+    it('should reject when the save fails', async() => {
+      const err = new Error('Scale failed');
+      const workload = createWorkload(jest.fn().mockRejectedValue(err));
+
+      await expect(workload[method]()).rejects.toStrictEqual(err);
+    });
+
+    it('should keep the new replica count when the save after a conflict succeeds', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, replicas)).mockResolvedValue(undefined);
+
+      await workload[method]();
+
+      expect(workload.spec.replicas).toStrictEqual(expected);
+    });
+
+    it('should only save twice when it keeps conflicting', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementation(conflictReloading(workload, replicas));
+
+      await workload[method]().catch(() => {});
+
+      expect(save).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not save again when the conflict changed the replica count', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, 7)).mockResolvedValue(undefined);
+
+      await workload[method]().catch(() => {});
+
+      expect(save).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep the reloaded replica count when the conflict changed it', async() => {
+      const save = jest.fn();
+      const workload = createWorkload(save);
+
+      save.mockImplementationOnce(conflictReloading(workload, 7)).mockResolvedValue(undefined);
+
+      await workload[method]().catch(() => {});
+
+      expect(workload.spec.replicas).toStrictEqual(7);
+    });
+  });
+
   describe('method: scale', () => {
     it('should call scaleUp when isUp is true', async() => {
       const scaleUpMock = jest.fn().mockResolvedValue(undefined);
@@ -144,7 +242,6 @@ describe('class: Workload', () => {
       });
 
       workload.scaleUp = scaleUpMock;
-      workload.$store = { dispatch: dispatchMock };
 
       await workload.scale(true);
 
@@ -273,9 +370,43 @@ describe('class: Workload', () => {
       const card = workload.podsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props.title).toBe('component.resource.detail.card.podsCard.title');
-      expect(card.props.showScaling).toBe(true);
-      expect(card.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+      expect(card?.props.title).toBe('component.resource.detail.card.podsCard.title');
+      expect(card?.props.showScaling).toBe(true);
+      expect(card?.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+    });
+
+    it('should scale by spec.replicas rather than the number of matching pods', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { replicas: 2 }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod, mockPod, mockPod, mockPod] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+
+      expect(workload.podsCard?.props.scaleValue).toStrictEqual(2);
+    });
+
+    it('should return the same component each time so the card is not remounted', () => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { replicas: 2 }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
+
+      expect(workload.podsCard?.component).toBe(workload.podsCard?.component);
     });
 
     it('should return card for DaemonSet type without scaling', () => {
@@ -295,7 +426,7 @@ describe('class: Workload', () => {
       const card = workload.podsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props.showScaling).toBe(false);
+      expect(card?.props.showScaling).toBe(false);
     });
 
     it('should return null for unsupported types like CronJob', () => {
@@ -331,8 +462,8 @@ describe('class: Workload', () => {
       const card = workload.podsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props.resources).toStrictEqual([]);
-      expect(card.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
+      expect(card?.props.resources).toStrictEqual([]);
+      expect(card?.props.noResourcesMessage).toBe('component.resource.detail.card.podsCard.noPods');
     });
 
     it('should return null for non-scalable type with empty pods', () => {
@@ -388,7 +519,7 @@ describe('class: Workload', () => {
 
       const card = workload.podsCard;
 
-      expect(card.props.showScaling).toBe(false);
+      expect(card?.props.showScaling).toBe(false);
     });
   });
 
@@ -411,8 +542,8 @@ describe('class: Workload', () => {
       const card = workload.jobsCard;
 
       expect(card).not.toBeNull();
-      expect(card.props.title).toBe('component.resource.detail.card.jobsCard.title');
-      expect(card.props.showScaling).toBe(false);
+      expect(card?.props.title).toBe('component.resource.detail.card.jobsCard.title');
+      expect(card?.props.showScaling).toBe(false);
     });
 
     it('should return null for non-CronJob types', () => {
@@ -464,8 +595,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': () => []
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       () => []
         },
       });
 
@@ -475,7 +607,7 @@ describe('class: Workload', () => {
       const cards = workload.cards;
 
       // Cards should include podsCard (not null), jobsCard (null for deployment), and _cards from parent
-      const nonNullCards = cards.filter((c: any) => c !== null);
+      const nonNullCards = cards.filter((c): c is NonNullable<typeof c> => c !== null);
 
       expect(nonNullCards.length).toBeGreaterThanOrEqual(1);
       expect(nonNullCards[0].props.title).toBe('component.resource.detail.card.podsCard.title');
@@ -491,8 +623,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': () => []
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       () => []
         },
       });
 
@@ -723,8 +856,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': (type: string) => {
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       (type: string) => {
             if (type === SERVICE) {
               return [mockService];
             }
@@ -769,8 +903,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': (type: string) => {
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       (type: string) => {
             if (type === SERVICE) {
               return [mockService];
             }
@@ -789,7 +924,7 @@ describe('class: Workload', () => {
       const ingressesRow = rows.find((r: any) => r.label === 'component.resource.detail.card.resourcesCard.rows.ingresses');
 
       expect(ingressesRow).toBeDefined();
-      expect(ingressesRow.to).toBe('#ingresses');
+      expect(ingressesRow?.to).toBe('#ingresses');
     });
 
     it('should order services before ingresses', () => {
@@ -819,8 +954,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': (type: string) => {
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       (type: string) => {
             if (type === SERVICE) {
               return [mockService];
             }
@@ -862,8 +998,9 @@ describe('class: Workload', () => {
         getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
         dispatch:    jest.fn(),
         rootGetters: {
-          'i18n/t':      (key: string) => key,
-          'cluster/all': (type: string) => {
+          'i18n/t':            (key: string) => key,
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       (type: string) => {
             if (type === SERVICE) {
               return [mockService];
             }
@@ -879,6 +1016,299 @@ describe('class: Workload', () => {
       const ingressesRow = rows.find((r: any) => r.label === 'component.resource.detail.card.resourcesCard.rows.ingresses');
 
       expect(ingressesRow).toBeUndefined();
+    });
+  });
+
+  describe('getter: matchingHttpRoutes', () => {
+    const mockService = {
+      metadata: { name: 'svc1', namespace: 'default' },
+      spec:     { selector: { app: 'my-app' } }
+    };
+
+    const makeHttpRoute = (spec: any, gateways: any[] = [], namespace = 'default') => new HttpRoute({
+      metadata: { name: 'route1', namespace },
+      spec
+    }, {
+      rootGetters: {
+        'cluster/schemaFor': () => ({}),
+        'cluster/all':       (type: string) => (type === GATEWAY_API.GATEWAY ? gateways : [])
+      }
+    });
+
+    const makeWorkload = (services: any[], httpRoutes: any[], hasGatewayApi = true) => new Workload({
+      type:     WORKLOAD_TYPES.DEPLOYMENT,
+      metadata: { name: 'test', namespace: 'default' },
+      spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
+    }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: {
+        'i18n/t':            jest.fn(),
+        'cluster/schemaFor': () => (hasGatewayApi ? {} : undefined),
+        'cluster/all':       (type: string) => {
+          if (type === SERVICE) {
+            return services;
+          }
+          if (type === GATEWAY_API.HTTP_ROUTE) {
+            return httpRoutes;
+          }
+
+          return [];
+        }
+      },
+    });
+
+    it('should return an empty array when there are no related services', () => {
+      const route = makeHttpRoute({ rules: [{ backendRefs: [{ name: 'svc1' }] }] });
+
+      expect(makeWorkload([], [route]).matchingHttpRoutes).toStrictEqual([]);
+    });
+
+    it('should return an empty array when no HTTPRoutes exist', () => {
+      expect(makeWorkload([mockService], []).matchingHttpRoutes).toStrictEqual([]);
+    });
+
+    it('should not ask the store for a type with no schema, on a cluster without the Gateway API', () => {
+      const clusterAll = jest.fn().mockReturnValue([]);
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     { template: { metadata: { labels: { app: 'my-app' } } } }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: {
+          'i18n/t':            jest.fn(),
+          'cluster/schemaFor': () => undefined,
+          'cluster/all':       clusterAll,
+        },
+      });
+
+      expect(workload.matchingHttpRoutes).toStrictEqual([]);
+      expect(clusterAll).not.toHaveBeenCalledWith(GATEWAY_API.HTTP_ROUTE);
+    });
+
+    it('should find the routes that send traffic to a related service', () => {
+      const route = makeHttpRoute({ rules: [{ backendRefs: [{ name: 'svc1' }] }] });
+      const other = makeHttpRoute({ rules: [{ backendRefs: [{ name: 'svc2' }] }] });
+
+      expect(makeWorkload([mockService], [other, route]).matchingHttpRoutes).toStrictEqual([route]);
+    });
+
+    it('should not match a route whose backendRef points at another namespace', () => {
+      const route = makeHttpRoute({ rules: [{ backendRefs: [{ name: 'svc1', namespace: 'elsewhere' }] }] });
+
+      expect(makeWorkload([mockService], [route]).matchingHttpRoutes).toStrictEqual([]);
+    });
+  });
+
+  describe('getters: publicEndpoints / gatewayEndpoints / detailEndpoints', () => {
+    const publicEndpoint = {
+      addresses: ['172.18.0.3'], port: 80, protocol: 'HTTP', serviceName: 'default:svc1'
+    };
+
+    const mockService = {
+      metadata: { name: 'svc1', namespace: 'default' },
+      spec:     { selector: { app: 'my-app' } }
+    };
+
+    const mockGateway = new Gateway({
+      metadata: { name: 'gw', namespace: 'default' },
+      spec:     {
+        listeners: [{
+          name: 'http', protocol: 'HTTP', port: 80
+        }]
+      },
+      status: {}
+    });
+
+    const mockRoute = new HttpRoute({
+      metadata: { name: 'route1', namespace: 'default' },
+      spec:     {
+        parentRefs: [{ name: 'gw' }],
+        hostnames:  ['demo.example.com'],
+        rules:      [{ matches: [{ path: { value: '/shop' } }], backendRefs: [{ name: 'svc1' }] }]
+      }
+    }, {
+      rootGetters: {
+        'cluster/schemaFor': () => ({}),
+        'cluster/all':       (type: string) => (type === GATEWAY_API.GATEWAY ? [mockGateway] : [])
+      }
+    });
+
+    const makeWorkload = (annotations: any, httpRoutes: any[] = []) => new Workload({
+      type:     WORKLOAD_TYPES.DEPLOYMENT,
+      metadata: {
+        name: 'test', namespace: 'default', annotations
+      },
+      spec: { template: { metadata: { labels: { app: 'my-app' } } } }
+    }, {
+      getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+      dispatch:    jest.fn(),
+      rootGetters: {
+        'i18n/t':            jest.fn(),
+        'cluster/schemaFor': () => ({}),
+        'cluster/all':       (type: string) => {
+          if (type === SERVICE) {
+            return [mockService];
+          }
+          if (type === GATEWAY_API.HTTP_ROUTE) {
+            return httpRoutes;
+          }
+
+          return [];
+        }
+      },
+    });
+
+    it('should parse the publicEndpoints annotation', () => {
+      const workload = makeWorkload({ [CATTLE_PUBLIC_ENDPOINTS]: JSON.stringify([publicEndpoint]) });
+
+      expect(workload.publicEndpoints).toStrictEqual([publicEndpoint]);
+    });
+
+    it.each([
+      ['no annotations at all', undefined],
+      ['no publicEndpoints annotation', { other: 'value' }],
+      ['a malformed annotation', { [CATTLE_PUBLIC_ENDPOINTS]: 'not json' }],
+      ['an annotation that is not an array', { [CATTLE_PUBLIC_ENDPOINTS]: '{"a":1}' }],
+    ])('should return no public endpoints for %s', (_label, annotations) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      expect(makeWorkload(annotations).publicEndpoints).toStrictEqual([]);
+
+      warn.mockRestore();
+    });
+
+    it('should resolve gateway endpoints through the matching routes', () => {
+      expect(makeWorkload(undefined, [mockRoute]).gatewayEndpoints).toStrictEqual([
+        { link: 'http://demo.example.com/shop', linkDisplay: 'http://demo.example.com/shop' }
+      ]);
+    });
+
+    const makeRoute = (name: string, path: string) => new HttpRoute({
+      metadata: { name, namespace: 'default' },
+      spec:     {
+        parentRefs: [{ name: 'gw' }],
+        hostnames:  ['demo.example.com'],
+        rules:      [{ matches: [{ path: { value: path } }], backendRefs: [{ name: 'svc1' }] }]
+      }
+    }, {
+      rootGetters: {
+        'cluster/schemaFor': () => ({}),
+        'cluster/all':       (type: string) => (type === GATEWAY_API.GATEWAY ? [mockGateway] : [])
+      }
+    });
+
+    it('should show a link once when two routes send it to the workload', () => {
+      const routes = [mockRoute, makeRoute('route2', '/shop')];
+
+      expect(makeWorkload(undefined, routes).gatewayEndpoints).toStrictEqual([
+        { link: 'http://demo.example.com/shop', linkDisplay: 'http://demo.example.com/shop' }
+      ]);
+    });
+
+    it('should keep the links of every route when they differ', () => {
+      const routes = [mockRoute, makeRoute('route2', '/cart')];
+
+      expect(makeWorkload(undefined, routes).gatewayEndpoints).toStrictEqual([
+        { link: 'http://demo.example.com/shop', linkDisplay: 'http://demo.example.com/shop' },
+        { link: 'http://demo.example.com/cart', linkDisplay: 'http://demo.example.com/cart' }
+      ]);
+    });
+
+    it('should combine published endpoints with gateway endpoints', () => {
+      const workload = makeWorkload({ [CATTLE_PUBLIC_ENDPOINTS]: JSON.stringify([publicEndpoint]) }, [mockRoute]);
+
+      expect(workload.detailEndpoints).toStrictEqual([
+        publicEndpoint,
+        { link: 'http://demo.example.com/shop', linkDisplay: 'http://demo.example.com/shop' }
+      ]);
+    });
+
+    it('should be undefined when the workload is exposed by nothing, so the masthead row stays hidden', () => {
+      // An empty array would be truthy and leave a labelled Endpoints row with no value.
+      expect(makeWorkload(undefined).detailEndpoints).toBeUndefined();
+    });
+  });
+
+  describe('getter: restartCount', () => {
+    const makeWorkload = (pods: any[], type = WORKLOAD_TYPES.DEPLOYMENT) => {
+      const workload = new Workload({ type, metadata: { name: 'test', namespace: 'default' } }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key, 'cluster/schemaFor': () => undefined },
+      });
+
+      Object.defineProperty(workload, 'pods', { get: () => pods });
+
+      return workload;
+    };
+
+    const makePod = (spec: any, status: any) => new Pod({
+      metadata: { name: 'test-abcde', namespace: 'default' }, spec, status
+    }, {
+      getters: {}, dispatch: jest.fn(), rootGetters: {}
+    });
+
+    it.each([
+      ['no pods', [], 0],
+      ['pods that never restarted', [{ totalRestartCount: 0 }, { totalRestartCount: 0 }], 0],
+      ['pods that restarted', [{ totalRestartCount: 17 }, { totalRestartCount: 16 }, { totalRestartCount: 18 }], 51],
+      ['a pod without a restart count', [{ totalRestartCount: 2 }, {}], 2],
+      ['a very large number of restarts', [{ totalRestartCount: Number.MAX_SAFE_INTEGER - 1 }, { totalRestartCount: 1 }], Number.MAX_SAFE_INTEGER],
+    ])('should add up the restarts of %s', (_, pods, expected) => {
+      expect(makeWorkload(pods).restartCount).toStrictEqual(expected);
+    });
+
+    it.each([
+      WORKLOAD_TYPES.DEPLOYMENT,
+      WORKLOAD_TYPES.DAEMON_SET,
+      WORKLOAD_TYPES.STATEFUL_SET,
+      WORKLOAD_TYPES.REPLICA_SET,
+      WORKLOAD_TYPES.JOB,
+      WORKLOAD_TYPES.CRON_JOB,
+      WORKLOAD_TYPES.REPLICATION_CONTROLLER,
+    ])('should count the restarts of sidecar containers like kubectl and the Pods list, for a %s', (type) => {
+      // Restarts of a sidecar (an init container that keeps running) count, as they do in the RESTARTS column of kubectl
+      const pod = makePod({
+        initContainers: [{ name: 'sidecar', restartPolicy: 'Always' }],
+        containers:     [{ name: 'app' }],
+      }, {
+        conditions:            [{ type: 'Initialized', status: 'True' }],
+        initContainerStatuses: [{
+          name: 'sidecar', restartCount: 2, started: true, ready: true
+        }],
+        containerStatuses: [{
+          name: 'app', restartCount: 3, ready: true, state: { running: {} }
+        }],
+      });
+
+      expect(makeWorkload([pod, pod], type).restartCount).toStrictEqual(10);
+    });
+
+    it('should show the restarts in the masthead', () => {
+      const restarts: any = makeWorkload([{ totalRestartCount: 4 }]).details.find((item: any) => item.label === 'resourceDetail.masthead.restartCount');
+
+      expect(restarts?.content).toStrictEqual(4);
+    });
+  });
+
+  describe('getter: ready', () => {
+    const makeWorkload = (type: string, spec: any, status: any) => new Workload({
+      type, metadata: { name: 'test', namespace: 'default' }, spec, status
+    }, {
+      getters: {}, dispatch: jest.fn(), rootGetters: {}
+    });
+
+    it.each([
+      [WORKLOAD_TYPES.DEPLOYMENT, { replicas: 3 }, { replicas: 3, unavailableReplicas: 1 }, '2/3'],
+      [WORKLOAD_TYPES.STATEFUL_SET, { replicas: 3 }, { replicas: 3 }, '3/3'],
+      [WORKLOAD_TYPES.REPLICATION_CONTROLLER, { replicas: 2 }, { replicas: 2, unavailableReplicas: 2 }, '0/2'],
+      [WORKLOAD_TYPES.DAEMON_SET, {}, { replicas: 4, unavailableReplicas: 1 }, 3],
+      [WORKLOAD_TYPES.DEPLOYMENT, { replicas: 3 }, undefined, '0/3'],
+    ])('should count the replicas that are not unavailable for a %s', (type, spec, status, expected) => {
+      expect(makeWorkload(type, spec, status).ready).toStrictEqual(expected);
     });
   });
 });

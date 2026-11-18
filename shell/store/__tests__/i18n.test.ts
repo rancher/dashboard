@@ -5,9 +5,13 @@ import {
   getters,
   mutations,
   actions,
+  I18N_GLOBAL_TYPE,
 } from '@shell/store/i18n';
 
+import { loadTranslation } from '@shell/utils/dynamic-importer';
+
 jest.mock('@shell/assets/translations/en-us.yaml', () => ({}));
+jest.mock('@shell/utils/dynamic-importer', () => ({ loadTranslation: jest.fn() }));
 
 // The NONE constant is not exported; mirror its value used in the source
 const NONE = 'none';
@@ -32,10 +36,12 @@ function makeTranslations() {
   };
 }
 
-function makeState(overrides?: Partial<ReturnType<typeof state>>): ReturnType<typeof state> {
+type I18nState = ReturnType<typeof state>;
+
+function makeState(overrides?: Partial<I18nState>): I18nState {
   const base = state();
 
-  base.translations = makeTranslations() as any;
+  base.translations = makeTranslations();
   base.selected = 'en-us';
   base.default = 'en-us';
   base.available = ['en-us', 'zh-hans'];
@@ -45,7 +51,7 @@ function makeState(overrides?: Partial<ReturnType<typeof state>>): ReturnType<ty
 
 // ----- helpers to build mock getters (for testing getters.withFallback / multiWithFallback) -----
 
-function makeMockGetters(st: ReturnType<typeof state>) {
+function makeMockGetters(st: I18nState) {
   const g: Record<string, any> = {};
 
   g.t = getters.t(st);
@@ -185,6 +191,29 @@ describe('i18n store', () => {
         expect(translate('template.message', { count: 3 })).toStrictEqual('Found 3 items');
       });
 
+      it('formats an ICU argument that needs locale data when no locale has been selected yet', () => {
+        // `selected` is null until the setSelected mutation runs. IntlMessageFormat only
+        // substitutes its own default for `undefined`, so a null locale reaches Intl.* and
+        // throws. t() has to fall back to the store default instead.
+        const s = makeState({ selected: null });
+
+        (s.translations as any)['en-us'].preInitPlural = '{count, plural, one {# cluster} other {# clusters}}';
+
+        const translate = getters.t(s);
+
+        expect(translate('preInitPlural', { count: 2 })).toStrictEqual('2 clusters');
+      });
+
+      it('formats a number argument when no locale has been selected yet', () => {
+        const s = makeState({ selected: null });
+
+        (s.translations as any)['en-us'].preInitNumber = 'There are {count, number} items';
+
+        const translate = getters.t(s);
+
+        expect(translate('preInitNumber', { count: 1234 })).toStrictEqual('There are 1,234 items');
+      });
+
       it('returns undefined when the key is not found in any locale', () => {
         const s = makeState({ selected: 'en-us' });
         const translate = getters.t(s);
@@ -205,6 +234,92 @@ describe('i18n store', () => {
         const translate = getters.t(s);
 
         expect(translate('greeting', {}, 'en-us')).toStrictEqual('Hello');
+      });
+
+      describe('i18n globals ([[name]] substitution)', () => {
+        // The formatter cache in i18n.js is keyed by locale/key; use unique keys
+        // per test so results do not leak between cases. Keys must not contain
+        // dots — the store looks them up with lodash `get`, which treats dots
+        // as nested-path navigation.
+        function stateWithGlobalMsg(key: string, msg: string) {
+          const s = makeState({ selected: 'en-us' });
+
+          (s.translations as any)['en-us'][key] = msg;
+
+          return s;
+        }
+
+        function extensionWith(globals: Record<string, string | Function>) {
+          return {
+            getDynamic: (type: string, name: string) => {
+              return type === I18N_GLOBAL_TYPE ? globals[name] : undefined;
+            }
+          };
+        }
+
+        it('substitutes a [[name]] token with the registered global value', () => {
+          const s = stateWithGlobalMsg('i18nGlobalRegistered', 'Manage your [[Harvester]] cluster');
+          const rootState = { $extension: extensionWith({ Harvester: 'Rancher Virtualization' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobalRegistered')).toStrictEqual('Manage your Rancher Virtualization cluster');
+        });
+
+        it('falls back to the token name when the global is not registered', () => {
+          const s = stateWithGlobalMsg('i18nGlobalUnregistered', 'Manage your [[Harvester]] cluster');
+          const rootState = { $extension: extensionWith({}) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobalUnregistered')).toStrictEqual('Manage your Harvester cluster');
+        });
+
+        it('evaluates function-valued globals when substituting', () => {
+          const s = stateWithGlobalMsg('i18nGlobalFunction', 'Welcome to [[Product]]');
+          const rootState = { $extension: extensionWith({ Product: () => 'Fabric' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobalFunction')).toStrictEqual('Welcome to Fabric');
+        });
+
+        it('preserves the literal [[name]] when the token is escaped with a backslash', () => {
+          const s = stateWithGlobalMsg('i18nGlobalEscaped', 'Use \\[[Harvester]] to reference the global');
+          const rootState = { $extension: extensionWith({ Harvester: 'Rancher Virtualization' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobalEscaped')).toStrictEqual('Use [[Harvester]] to reference the global');
+        });
+
+        it('substitutes multiple different tokens in the same message', () => {
+          const s = stateWithGlobalMsg('i18nGlobalMultiple', '[[Product]] on [[Platform]]');
+          const rootState = { $extension: extensionWith({ Product: 'Fabric', Platform: 'Kubernetes' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobalMultiple')).toStrictEqual('Fabric on Kubernetes');
+        });
+
+        it('substitutes before IntlMessageFormat args are interpolated', () => {
+          const s = stateWithGlobalMsg('i18nGlobalWithArgs', 'Found {count} [[Harvester]] cluster(s)');
+          const rootState = { $extension: extensionWith({ Harvester: 'Rancher Virtualization' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobalWithArgs', { count: 3 })).toStrictEqual('Found 3 Rancher Virtualization cluster(s)');
+        });
+
+        it('leaves messages without [[ tokens unchanged', () => {
+          const s = stateWithGlobalMsg('i18nGlobalNoToken', 'Nothing to substitute here');
+          const rootState = { $extension: extensionWith({ Harvester: 'Rancher Virtualization' }) };
+          const translate = getters.t(s, undefined, rootState);
+
+          expect(translate('i18nGlobalNoToken')).toStrictEqual('Nothing to substitute here');
+        });
+
+        it('does not crash when rootState.$extension is unavailable', () => {
+          const s = stateWithGlobalMsg('i18nGlobalNoExtension', 'Manage your [[Harvester]] cluster');
+          const translate = getters.t(s, undefined, {});
+
+          // With no extension registry available, the token name is used as the value
+          expect(translate('i18nGlobalNoExtension')).toStrictEqual('Manage your Harvester cluster');
+        });
       });
     });
 
@@ -237,6 +352,20 @@ describe('i18n store', () => {
 
         // 'onlyInZh' is not in the default (en-us) translations
         expect(check('onlyInZh')).toBe(false);
+      });
+
+      it('shares the formatter cache with t() when no locale has been selected yet', () => {
+        // Both getters have to resolve the same locale, or exists() looks the message up
+        // under a different cache key than the one t() wrote it to.
+        const s = makeState({ selected: null });
+
+        (s.translations as any)['en-us'].preInitCached = '{count, plural, one {# cluster} other {# clusters}}';
+
+        getters.t(s)('preInitCached', { count: 1 });
+
+        delete (s.translations as any)['en-us'].preInitCached;
+
+        expect(getters.exists(s)('preInitCached')).toBe(true);
       });
 
       it('returns true for a key in the default translations regardless of selected locale', () => {
@@ -525,6 +654,238 @@ describe('i18n store', () => {
         actions.toggleNone({ state: s, dispatch } as any);
 
         expect(dispatch).toHaveBeenCalledWith('switchTo', 'en-us');
+      });
+    });
+
+    describe('init', () => {
+      it('dispatches switchTo the locale from prefs when the locale is available', () => {
+        const dispatch = jest.fn();
+        const commit = jest.fn();
+        const s = makeState({ available: ['en-us', 'zh-hans'] });
+        const rootGetters = { 'prefs/get': () => 'zh-hans' };
+
+        actions.init({
+          state: s, commit, dispatch, rootGetters
+        } as any);
+
+        expect(dispatch).toHaveBeenCalledWith('switchTo', 'zh-hans');
+      });
+
+      it('falls back to the default locale when the prefs locale is not in available', () => {
+        const dispatch = jest.fn();
+        const commit = jest.fn();
+        const s = makeState({ available: ['en-us'], default: 'en-us' });
+        const rootGetters = { 'prefs/get': () => 'de' };
+
+        actions.init({
+          state: s, commit, dispatch, rootGetters
+        } as any);
+
+        expect(dispatch).toHaveBeenCalledWith('switchTo', 'en-us');
+      });
+
+      it('falls back to the default locale when prefs returns no locale', () => {
+        const dispatch = jest.fn();
+        const commit = jest.fn();
+        const s = makeState({ available: ['en-us'], default: 'en-us' });
+        const rootGetters = { 'prefs/get': () => null };
+
+        actions.init({
+          state: s, commit, dispatch, rootGetters
+        } as any);
+
+        expect(dispatch).toHaveBeenCalledWith('switchTo', 'en-us');
+      });
+    });
+
+    describe('load', () => {
+      const mockLoadTranslation = loadTranslation as jest.Mock;
+
+      beforeEach(() => {
+        mockLoadTranslation.mockReset();
+      });
+
+      it('commits loadTranslations with the resolved module default export', async() => {
+        const commit = jest.fn();
+        const translations = { greeting: 'Hello' };
+
+        mockLoadTranslation.mockResolvedValue({ default: translations });
+
+        await actions.load({ commit } as any, 'en-us');
+
+        expect(commit).toHaveBeenCalledWith('loadTranslations', {
+          locale: 'en-us',
+          translations,
+        });
+      });
+
+      it('commits loadTranslations with the module itself when no default export', async() => {
+        const commit = jest.fn();
+        const translations = { greeting: 'Hola' };
+
+        mockLoadTranslation.mockResolvedValue(translations);
+
+        await actions.load({ commit } as any, 'es');
+
+        expect(commit).toHaveBeenCalledWith('loadTranslations', {
+          locale: 'es',
+          translations,
+        });
+      });
+
+      it('returns true on success', async() => {
+        const commit = jest.fn();
+
+        mockLoadTranslation.mockResolvedValue({ default: {} });
+
+        const result = await actions.load({ commit } as any, 'en-us');
+
+        expect(result).toStrictEqual(true);
+      });
+    });
+
+    describe('mergeLoad', () => {
+      it('calls the module function and commits mergeLoadTranslations with default export', async() => {
+        const commit = jest.fn();
+        const translations = { key: 'value' };
+        const moduleFn = jest.fn().mockResolvedValue({ default: translations });
+
+        await actions.mergeLoad({ commit } as any, { locale: 'en-us', module: moduleFn });
+
+        expect(moduleFn).toHaveBeenCalledWith();
+        expect(commit).toHaveBeenCalledWith('mergeLoadTranslations', {
+          locale: 'en-us',
+          translations,
+        });
+      });
+
+      it('accepts a pre-resolved module object instead of a function', async() => {
+        const commit = jest.fn();
+        const translations = { key: 'static' };
+        const moduleObj = { default: translations };
+
+        await actions.mergeLoad({ commit } as any, { locale: 'zh-hans', module: moduleObj });
+
+        expect(commit).toHaveBeenCalledWith('mergeLoadTranslations', {
+          locale: 'zh-hans',
+          translations,
+        });
+      });
+
+      it('uses the module itself when no default export', async() => {
+        const commit = jest.fn();
+        const translations = { key: 'flat' };
+        const moduleFn = jest.fn().mockResolvedValue(translations);
+
+        await actions.mergeLoad({ commit } as any, { locale: 'fr', module: moduleFn });
+
+        expect(commit).toHaveBeenCalledWith('mergeLoadTranslations', {
+          locale: 'fr',
+          translations,
+        });
+      });
+    });
+
+    describe('switchTo', () => {
+      const mockLoadTranslation = loadTranslation as jest.Mock;
+
+      beforeEach(() => {
+        mockLoadTranslation.mockReset();
+        mockLoadTranslation.mockResolvedValue({ default: {} });
+      });
+
+      it('commits setSelected with NONE and does not call dispatch when locale is NONE', async() => {
+        const commit = jest.fn();
+        const dispatch = jest.fn();
+        const s = makeState({ translations: {} });
+        const g = { current: () => 'en-us' };
+        const rootState = {};
+
+        await actions.switchTo({
+          state: s, rootState, commit, dispatch, getters: g
+        } as any, NONE);
+
+        expect(commit).toHaveBeenCalledWith('setSelected', NONE);
+        expect(dispatch).not.toHaveBeenCalled();
+      });
+
+      it('loads translations when locale is not yet in state', async() => {
+        const commit = jest.fn();
+        const dispatch = jest.fn();
+        const s = makeState({ translations: {} });
+        const g = { current: () => 'en-us' };
+        const rootState = {};
+
+        await actions.switchTo({
+          state: s, rootState, commit, dispatch, getters: g
+        } as any, 'zh-hans');
+
+        expect(dispatch).toHaveBeenCalledWith('load', 'zh-hans');
+        expect(commit).toHaveBeenCalledWith('setSelected', 'zh-hans');
+      });
+
+      it('skips loading when locale translations are already present', async() => {
+        const commit = jest.fn();
+        const dispatch = jest.fn();
+        const s = makeState();
+        const g = { current: () => 'en-us' };
+        const rootState = {};
+
+        // 'en-us' is already in makeState() translations
+        await actions.switchTo({
+          state: s, rootState, commit, dispatch, getters: g
+        } as any, 'en-us');
+
+        expect(dispatch).not.toHaveBeenCalledWith('load', 'en-us');
+      });
+
+      it('falls back to DEFAULT_LOCALE when load fails and no extension provides translations', async() => {
+        const commit = jest.fn();
+        const dispatch = jest.fn().mockRejectedValueOnce(new Error('load failed'));
+        const s = makeState({ translations: {} });
+        const g = { current: () => 'en-us' };
+        const rootState = {};
+
+        await actions.switchTo({
+          state: s, rootState, commit, dispatch, getters: g
+        } as any, 'zh-hans');
+
+        expect(commit).toHaveBeenCalledWith('setSelected', 'en-us');
+      });
+
+      it('dispatches prefs/set when the locale changes', async() => {
+        const commit = jest.fn();
+        const dispatch = jest.fn();
+        const s = makeState({ selected: 'en-us' });
+        const g = { current: () => 'en-us' };
+        const rootState = {};
+
+        await actions.switchTo({
+          state: s, rootState, commit, dispatch, getters: g
+        } as any, 'zh-hans');
+
+        expect(dispatch).toHaveBeenCalledWith(
+          'prefs/set',
+          { key: 'locale', value: s.selected },
+          { root: true }
+        );
+      });
+
+      it('does not dispatch prefs/set when the locale has not changed', async() => {
+        const commit = jest.fn();
+        const dispatch = jest.fn();
+        const s = makeState({ translations: {}, selected: 'en-us' });
+        const g = { current: () => 'en-us' };
+        const rootState = {};
+
+        // same locale - current() returns 'en-us', switching to 'en-us'
+        await actions.switchTo({
+          state: s, rootState, commit, dispatch, getters: g
+        } as any, 'en-us');
+
+        const prefsCalls = dispatch.mock.calls.filter(([type]: string[]) => type === 'prefs/set');
+
+        expect(prefsCalls).toHaveLength(0);
       });
     });
   });

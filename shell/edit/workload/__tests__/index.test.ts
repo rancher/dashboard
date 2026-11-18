@@ -41,7 +41,7 @@ describe('component: Workload', () => {
       registerBeforeHook:          jest.fn(),
       pvcs:                        jest.fn(),
     },
-    computed: { allContainers: jest.fn(() => []) }
+    computed: { allContainers: jest.fn(() => []), tabErrors: jest.fn(() => ({})) }
   };
 
   describe('component: Workload', () => {
@@ -100,6 +100,145 @@ describe('component: Workload', () => {
       const result = (wrapper.vm as any).mapError(oldMessage).message;
 
       expect(result).toStrictEqual(newMessage);
+    });
+
+    it.each([
+      // isReplicable, isDeployment, isStatefulSet, expected label key
+      ['ReplicaSet/ReplicationController', true, false, false, 'workload.container.titles.availability'],
+      ['Deployment', true, true, false, 'workload.container.titles.upgrading'],
+      ['StatefulSet', true, false, true, 'workload.container.titles.upgrading'],
+      ['non-replicable (e.g. DaemonSet)', false, false, false, 'workload.container.titles.upgrading'],
+    ])('should label the upgrading tab correctly for %p', (_name, isReplicable, isDeployment, isStatefulSet, expected) => {
+      const typeMixin = {
+        computed: {
+          isReplicable: () => isReplicable, isDeployment: () => isDeployment, isStatefulSet: () => isStatefulSet
+        }
+      };
+      const MockedWorkload = {
+        ...Workload,
+        mixins: [baseMockedValidationMixin, baseMockedCREMixin, { ...baseMockedWorkloadMixin, computed: { ...baseMockedWorkloadMixin.computed, allNodeObjects: jest.fn() } }, typeMixin]
+      };
+      const wrapper = shallowMount(MockedWorkload, {
+        props: {
+          value:         { metadata: {}, spec: { template: {} } },
+          params:        {},
+          fvFormIsValid: {}
+        },
+
+        global: {
+          mocks: {
+            $route:      { params: {}, query: {} },
+            $router:     { applyQuery: jest.fn() },
+            $fetchState: { pending: false },
+            $store:      {
+              getters: {
+                'cluster/schemaFor': jest.fn(),
+                'cluster/canList':   jest.fn(),
+                currentStore:        () => 'cluster',
+                'type-map/labelFor': jest.fn(),
+                'i18n/t':            (text: string) => text,
+              },
+            },
+          },
+
+          stubs: {
+            Tab:                 true,
+            LabeledInput:        true,
+            VolumeClaimTemplate: true,
+            Networking:          true,
+            Job:                 true,
+            NodeScheduling:      true,
+            PodAffinity:         true,
+            Tolerations:         true,
+            Storage:             true,
+            Tabbed:              true,
+            LabeledSelect:       true,
+            NameNsDescription:   true,
+            CruResource:         true,
+            KeyValue:            true
+          },
+        },
+      });
+
+      expect((wrapper.vm as any).upgradingTabLabel).toStrictEqual(expected);
+    });
+
+    it.each([
+      ['a pod being edited', true, 'edit', true],
+      ['a pod being created', true, 'create', false],
+      ['a deployment being edited', false, 'edit', false],
+    ])('should only lock the containers for %s', (_name, isPod, mode, locked) => {
+      const containerMixin = {
+        computed: {
+          isPod:            () => isPod,
+          isCreate:         () => mode === 'create',
+          headlessServices: () => [],
+          allContainers:    () => [
+            {
+              name: 'container-0', image: 'nginx', error: {}
+            },
+            {
+              name: 'container-1', image: 'redis', error: {}
+            }
+          ]
+        },
+        methods: { nameDisplayFor: jest.fn() }
+      };
+      const MockedWorkload = {
+        ...Workload,
+        mixins: [baseMockedValidationMixin, baseMockedCREMixin, { ...baseMockedWorkloadMixin, computed: { ...baseMockedWorkloadMixin.computed, allNodeObjects: jest.fn() } }, containerMixin]
+      };
+      const wrapper = shallowMount(MockedWorkload, {
+        props: {
+          value:         { metadata: {}, spec: { template: {} } },
+          params:        {},
+          fvFormIsValid: {},
+          mode
+        },
+
+        global: {
+          renderStubDefaultSlot: true,
+          mocks:                 {
+            $route:      { params: {}, query: {} },
+            $router:     { applyQuery: jest.fn() },
+            $fetchState: { pending: false },
+            $store:      {
+              getters: {
+                'cluster/schemaFor': jest.fn(),
+                'cluster/canList':   jest.fn(),
+                currentStore:        () => 'cluster',
+                'type-map/labelFor': jest.fn(),
+                'i18n/t':            (text: string) => text,
+              },
+            },
+          },
+
+          stubs: {
+            Tab:                 { template: '<div><slot name="tab-header-right" /><slot /></div>' },
+            LabeledInput:        true,
+            VolumeClaimTemplate: true,
+            Networking:          true,
+            Job:                 true,
+            NodeScheduling:      true,
+            PodAffinity:         true,
+            Tolerations:         true,
+            Storage:             true,
+            Tabbed:              { template: '<div><slot /><slot name="tab-row-extras" /></div>' },
+            LabeledSelect:       true,
+            NameNsDescription:   true,
+            CruResource:         true,
+            KeyValue:            true
+          },
+        },
+      });
+
+      const containerNames = wrapper.findAllComponents({ name: 'LabeledInput' }).filter((input) => input.attributes('label') === 'workload.container.containerName');
+      const removeButtons = wrapper.findAll('button').filter((button) => button.text() === 'workload.container.removeContainer');
+
+      expect(containerNames.map((input) => input.attributes('disabled'))).toStrictEqual([`${ locked }`, `${ locked }`]);
+      expect(wrapper.findAll('radiogroup').map((radio) => radio.attributes('disabled'))).toStrictEqual([`${ locked }`, `${ locked }`]);
+      expect(wrapper.find('[data-testid="workload-button-add-container"]').exists()).toStrictEqual(!locked);
+      expect(removeButtons).toHaveLength(locked ? 0 : 2);
     });
   });
 });

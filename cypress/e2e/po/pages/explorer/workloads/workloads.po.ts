@@ -8,7 +8,7 @@ import PromptRemove from '@/cypress/e2e/po/prompts/promptRemove.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import WorkloadPodStoragePo from '@/cypress/e2e/po/components/workloads/pod-storage.po';
 import ContainerMountPathPo from '@/cypress/e2e/po/components/workloads/container-mount-paths.po';
-import { WorkloadType } from '@shell/types/fleet';
+import { WorkloadType } from '@/cypress/support/utils/shell';
 import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import CardPo from '~/cypress/e2e/po/components/Resource/Detail/Card/statusCard.po';
@@ -154,6 +154,18 @@ export class WorkloadDetailsPageBasePo extends BaseDetailPagePo {
     this.replicaCount().should('be.visible').and('not.be.empty');
 
     return this;
+  }
+
+  clickStorageTab() {
+    return this.resourceDetail().tabs().clickTabWithName('storage');
+  }
+
+  storageTabPanel() {
+    return this.self().find('[data-testid="tab-panel-storage"]');
+  }
+
+  storageList() {
+    return this.resourceDetail().tabbedList('storage');
   }
 }
 
@@ -321,7 +333,7 @@ export class WorkloadsCreatePageBasePo extends BaseDetailPagePo {
    * @returns po for vertical tabs used to configure nth container
    */
   nthContainerTabs(containerIndex: number) {
-    this.horizontalTabs().clickTabWithSelector(`>ul>li:nth-child(${ containerIndex + 3 })`);
+    this.horizontalTabs().clickTabWithSelector(`> .tabs > .tab-list > li:nth-child(${ containerIndex + 3 })`);
 
     return new TabbedPo(`[data-testid="workload-container-tabs-${ containerIndex }"]`);
   }

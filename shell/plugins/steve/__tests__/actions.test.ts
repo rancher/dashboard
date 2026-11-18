@@ -1,9 +1,15 @@
 import actions from '@shell/plugins/steve/actions';
-import paginationUtils from '@shell/utils/pagination-utils';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 import { PaginationParamFilter } from '@shell/types/store/pagination.types';
 
-const { fetchResourceSummary } = actions;
+const { fetchResourceSummary, cleanForDownload, promptRestore } = actions as any;
+
+const YAML = `apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-configmap
+  uid: 3f2a
+`;
 
 describe('steve: actions:', () => {
   describe('fetchResourceSummary', () => {
@@ -26,7 +32,6 @@ describe('steve: actions:', () => {
 
     beforeEach(() => {
       warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-      jest.spyOn(paginationUtils, 'isSteveCacheEnabled').mockReturnValue(true);
     });
 
     afterEach(() => {
@@ -39,15 +44,6 @@ describe('steve: actions:', () => {
 
       expect(result).toBeUndefined();
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('no schema found'));
-    });
-
-    it('should return undefined and warn when VAI is not enabled', async() => {
-      jest.spyOn(paginationUtils, 'isSteveCacheEnabled').mockReturnValue(false);
-      const ctx = baseCtx();
-      const result = await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name' } });
-
-      expect(result).toBeUndefined();
-      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('VAI is not enabled'));
     });
 
     it('should return undefined and warn when summaryField is missing', async() => {
@@ -126,7 +122,11 @@ describe('steve: actions:', () => {
       const ctx = baseCtx();
       const filters = [PaginationParamFilter.createSingleField({ field: 'metadata.namespace', value: 'default' })];
 
-      jest.spyOn(stevePaginationUtils, 'convertPaginationParams').mockReturnValue('filter=metadata.namespace%3Ddefault');
+      const spyablePaginationUtils = stevePaginationUtils as unknown as
+        { convertPaginationParams: (typeof stevePaginationUtils)['convertPaginationParams'] };
+
+      const convertParamsSpy = jest.spyOn(spyablePaginationUtils, 'convertPaginationParams').mockReturnValue('filter=metadata.namespace%3Ddefault');
+
       ctx.dispatch.mockResolvedValue({ count: 3, summary: null });
 
       await fetchResourceSummary.call({}, ctx, { type: 'pod', opt: { summaryField: 'metadata.state.name', filters } });
@@ -134,7 +134,7 @@ describe('steve: actions:', () => {
       const requestUrl = ctx.dispatch.mock.calls[0][1].opt.url;
 
       expect(requestUrl).toContain('filter=');
-      expect(stevePaginationUtils.convertPaginationParams).toHaveBeenCalledWith(expect.objectContaining({ filters }));
+      expect(convertParamsSpy).toHaveBeenCalledWith(expect.objectContaining({ filters }));
     });
 
     it('should return count and summary from the response', async() => {
@@ -207,6 +207,44 @@ describe('steve: actions:', () => {
 
       expect(result).toBeUndefined();
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('summary API request failed'), expect.any(Error));
+    });
+  });
+
+  describe('cleanForDownload', () => {
+    it('should clean a { yaml, opt } payload and hide server-managed metadata when editing', () => {
+      const result = cleanForDownload({}, { yaml: YAML, opt: { editing: true } }) as string;
+
+      expect(result).toContain('name: my-configmap');
+      expect(result).not.toContain('uid:');
+    });
+
+    it('should keep server-managed metadata when not editing', () => {
+      const result = cleanForDownload({}, { yaml: YAML, opt: {} }) as string;
+
+      expect(result).toContain('uid:');
+    });
+
+    it('should accept the legacy yaml-string payload for backwards compatibility', () => {
+      const result = cleanForDownload({}, YAML as any) as string;
+
+      expect(result).toContain('name: my-configmap');
+      // legacy callers never asked to edit, so server-managed fields remain
+      expect(result).toContain('uid:');
+    });
+  });
+
+  describe('promptRestore', () => {
+    it('should open the restore snapshot dialog, which renders its own RcModal, for the given resources', async() => {
+      const dispatch = jest.fn();
+      const resources = [{ id: 'fleet-default/cluster' }];
+
+      await promptRestore({ dispatch }, resources);
+
+      expect(dispatch).toHaveBeenCalledWith('promptModal', {
+        component: 'PromptRestore',
+        ownsModal: true,
+        resources,
+      });
     });
   });
 });

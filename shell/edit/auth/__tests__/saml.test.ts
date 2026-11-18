@@ -2,6 +2,7 @@ import { nextTick } from 'vue';
 import { mount, type VueWrapper, flushPromises } from '@vue/test-utils';
 import { _EDIT } from '@shell/config/query-params';
 import Saml from '@shell/edit/auth/saml.vue';
+import * as VersionModule from '@shell/config/version';
 
 const REQUIRED_FIELDS = [
   'displayNameField',
@@ -74,6 +75,43 @@ const mountOptions = (model: object) => ({
   props: {
     value: {},
     mode:  _EDIT,
+  },
+});
+
+const mountOptionsForProvider = (provider: string, model: object, value: object = {}) => ({
+  data() {
+    return {
+      isEnabling:     false,
+      editConfig:     false,
+      model:          { ...model, id: provider },
+      serverSetting:  null,
+      errors:         [],
+      originalModel:  null,
+      principals:     [],
+      authConfigName: provider,
+    } as any;
+  },
+  global: {
+    mocks: {
+      $fetchState: { pending: false },
+      $store:      {
+        getters: {
+          currentStore:              () => 'current_store',
+          'current_store/schemaFor': jest.fn(),
+          'current_store/all':       jest.fn(),
+          'i18n/t':                  (val: string) => val,
+          'i18n/exists':             jest.fn(),
+          'features/get':            () => false,
+        },
+        dispatch: jest.fn(),
+      },
+      $route:  { query: { AS: '' }, params: { id: provider } },
+      $router: { applyQuery: jest.fn() },
+    },
+  },
+  props: {
+    value,
+    mode: _EDIT,
   },
 });
 
@@ -192,6 +230,292 @@ describe('saml.vue', () => {
 
         expect(saveButton.disabled).toBe(false);
       });
+    });
+  });
+
+  describe('genericsaml provider', () => {
+    const genericSamlModel = {
+      ...validModel,
+      id: 'genericsaml',
+    };
+
+    let wrapper: VueWrapper<any, any>;
+
+    afterEach(() => {
+      wrapper.unmount();
+    });
+
+    it('isGenericSaml is true for genericsaml provider', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', genericSamlModel));
+      await flushPromises();
+
+      expect(wrapper.vm.isGenericSaml).toBe(true);
+    });
+
+    it('isGenericSaml is false for other providers', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('shibboleth', validModel));
+      await flushPromises();
+
+      expect(wrapper.vm.isGenericSaml).toBe(false);
+    });
+
+    it('seeds nameIDFormat and signatureMethod defaults when unset', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider(
+        'genericsaml',
+        {
+          ...genericSamlModel, nameIDFormat: undefined, signatureMethod: undefined
+        },
+        { configType: 'saml' }
+      ));
+      await flushPromises();
+      wrapper.vm.applyDefaults();
+
+      expect(wrapper.vm.model.nameIDFormat).toBe('unspecified');
+      expect(wrapper.vm.model.signatureMethod).toBe('RSA-SHA256');
+    });
+
+    it('does not overwrite nameIDFormat and signatureMethod when already set', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider(
+        'genericsaml',
+        {
+          ...genericSamlModel, nameIDFormat: 'persistent', signatureMethod: 'RSA-SHA512'
+        },
+        { configType: 'saml' }
+      ));
+      await flushPromises();
+      wrapper.vm.applyDefaults();
+
+      expect(wrapper.vm.model.nameIDFormat).toBe('persistent');
+      expect(wrapper.vm.model.signatureMethod).toBe('RSA-SHA512');
+    });
+
+    it('does not seed generic SAML defaults for other saml providers', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('shibboleth', validModel, { configType: 'saml' }));
+      await flushPromises();
+      wrapper.vm.applyDefaults();
+
+      expect(wrapper.vm.model.nameIDFormat).toBeUndefined();
+      expect(wrapper.vm.model.signatureMethod).toBeUndefined();
+    });
+
+    it('translates the nameIDFormat option labels', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', genericSamlModel));
+      await flushPromises();
+
+      expect(wrapper.vm.nameIDFormatOptions).toStrictEqual([
+        { value: 'unspecified', label: '%authConfig.saml.nameIDFormatOptions.unspecified%' },
+        { value: 'emailAddress', label: '%authConfig.saml.nameIDFormatOptions.emailAddress%' },
+        { value: 'transient', label: '%authConfig.saml.nameIDFormatOptions.transient%' },
+        { value: 'persistent', label: '%authConfig.saml.nameIDFormatOptions.persistent%' },
+      ]);
+    });
+
+    it('resolves nameIDFormatLabel from the model value', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, nameIDFormat: 'emailAddress' }));
+      await flushPromises();
+
+      expect(wrapper.vm.nameIDFormatLabel).toBe('%authConfig.saml.nameIDFormatOptions.emailAddress%');
+    });
+
+    it.each([
+      ['keycloak', true],
+      ['ping', true],
+      ['genericsaml', true],
+      ['shibboleth', false],
+      ['okta', false],
+    ] as [string, boolean][])('supportsEntityId for %s is %s', async(provider: string, expected: boolean) => {
+      wrapper = mount(Saml, mountOptionsForProvider(provider, { ...validModel, id: provider }));
+      await flushPromises();
+
+      expect(wrapper.vm.supportsEntityId).toBe(expected);
+    });
+
+    it('renders generic SAML fields when provider is genericsaml', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', genericSamlModel));
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="genericsaml-fields"]').exists()).toBe(true);
+    });
+
+    it('does not render generic SAML fields for non-generic providers', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('shibboleth', validModel));
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="genericsaml-fields"]').exists()).toBe(false);
+    });
+
+    it('renders generic SAML fields in the enabled read-only view', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', { ...genericSamlModel, enabled: true }));
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="genericsaml-view-fields"]').exists()).toBe(true);
+    });
+
+    it('does not render generic SAML view fields for non-generic providers when enabled', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('shibboleth', { ...validModel, enabled: true }));
+      await flushPromises();
+
+      expect(wrapper.find('[data-testid="genericsaml-view-fields"]').exists()).toBe(false);
+    });
+
+    it('omits the nameIDFormat and signatureMethod rows when those values are unset', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', {
+        ...genericSamlModel, enabled: true, nameIDFormat: undefined, signatureMethod: undefined
+      }));
+      await flushPromises();
+
+      const rows = wrapper.findAll('tr').map((row) => row.text());
+
+      expect(rows).not.toContainEqual(expect.stringContaining('authConfig.saml.nameIDFormat'));
+      expect(rows).not.toContainEqual(expect.stringContaining('authConfig.saml.signatureMethod'));
+    });
+
+    it('renders the nameIDFormat and signatureMethod rows when those values are set', async() => {
+      wrapper = mount(Saml, mountOptionsForProvider('genericsaml', {
+        ...genericSamlModel, enabled: true, nameIDFormat: 'emailAddress', signatureMethod: 'RSA-SHA512'
+      }));
+      await flushPromises();
+
+      const rows = wrapper.findAll('tr').map((row) => row.text());
+
+      expect(rows).toContainEqual(expect.stringContaining('%authConfig.saml.nameIDFormatOptions.emailAddress%'));
+      expect(rows).toContainEqual(expect.stringContaining('RSA-SHA512'));
+    });
+  });
+
+  describe('supportsLDAPSearch computed', () => {
+    let wrapper: VueWrapper<any, any>;
+
+    const mountWithGates = (provider: string, { prime, featureEnabled }: { prime: boolean, featureEnabled: boolean }) => {
+      jest.spyOn(VersionModule, 'isRancherPrime').mockReturnValue(prime);
+
+      const options = mountOptionsForProvider(provider, { ...validModel, id: provider });
+
+      (options.global.mocks.$store.getters as Record<string, unknown>)['features/get'] = (name: string) => name === 'adfs-ldap-search' && featureEnabled;
+
+      return mount(Saml, options);
+    };
+
+    afterEach(() => {
+      wrapper?.unmount();
+    });
+
+    it.each([
+      ['shibboleth', false, false, true],
+      ['okta', false, false, true],
+      ['adfs', true, true, true],
+      ['adfs', false, true, false],
+      ['adfs', true, false, false],
+      ['adfs', false, false, false],
+      ['keycloak', true, true, false],
+      ['ping', true, true, false],
+      ['genericsaml', true, true, false],
+    ] as [string, boolean, boolean, boolean][])('for %s with prime=%s and adfs-ldap-search=%s is %s', async(provider, prime, featureEnabled, expected) => {
+      wrapper = mountWithGates(provider, { prime, featureEnabled });
+      await flushPromises();
+
+      expect(wrapper.vm.supportsLDAPSearch).toBe(expected);
+    });
+
+    it('renders the LDAP search option for adfs on a prime install with the feature enabled', async() => {
+      wrapper = mountWithGates('adfs', { prime: true, featureEnabled: true });
+      await flushPromises();
+
+      expect(wrapper.text()).toContain('authConfig.saml.showLdap');
+    });
+
+    it('does not render the LDAP search option for adfs on a community install', async() => {
+      wrapper = mountWithGates('adfs', { prime: false, featureEnabled: true });
+      await flushPromises();
+
+      expect(wrapper.text()).not.toContain('authConfig.saml.showLdap');
+    });
+  });
+
+  describe('LDAP search validation', () => {
+    const validLdapConfig = {
+      servers:                         ['ldap.example.com'],
+      port:                            389,
+      connectionTimeout:               5000,
+      tls:                             false,
+      starttls:                        false,
+      serviceAccountDistinguishedName: 'cn=admin,dc=example,dc=com',
+      serviceAccountPassword:          'secretpassword',
+      userSearchBase:                  'dc=example,dc=com',
+    };
+
+    let wrapper: VueWrapper<any, any>;
+
+    const mountWithLdap = async(provider: string, openLdapConfig: object, { prime = false, featureEnabled = false } = {}) => {
+      jest.spyOn(VersionModule, 'isRancherPrime').mockReturnValue(prime);
+
+      const options = mountOptionsForProvider(provider, { ...validModel, openLdapConfig });
+      const baseData = options.data;
+
+      (options.global.mocks.$store.getters as Record<string, unknown>)['features/get'] = (name: string) => name === 'adfs-ldap-search' && featureEnabled;
+
+      wrapper = mount(Saml, {
+        ...options,
+        data() {
+          return { ...baseData(), showLdap: true };
+        },
+      });
+      await flushPromises();
+      await wrapper.vm.validateAllFields();
+      await flushPromises();
+
+      return wrapper;
+    };
+
+    afterEach(() => {
+      wrapper?.unmount();
+    });
+
+    it('passes when the LDAP server fields are filled', async() => {
+      await mountWithLdap('okta', validLdapConfig);
+
+      expect(wrapper.vm.validationPassed).toBe(true);
+    });
+
+    it.each([
+      ['hostname', { servers: [] }],
+      ['port', { port: '' }],
+      ['connectionTimeout', { connectionTimeout: '' }],
+      ['serviceAccountDistinguishedName', { serviceAccountDistinguishedName: '' }],
+      ['serviceAccountPassword', { serviceAccountPassword: '' }],
+      ['userSearchBase', { userSearchBase: '' }],
+    ] as [string, object][])('fails when %s is empty', async(_field: string, override: object) => {
+      await mountWithLdap('okta', { ...validLdapConfig, ...override });
+
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('fails when TLS is enabled and the certificate is empty', async() => {
+      await mountWithLdap('shibboleth', {
+        ...validLdapConfig, tls: true, certificate: ''
+      });
+
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('passes when TLS is enabled and the certificate is provided', async() => {
+      await mountWithLdap('shibboleth', {
+        ...validLdapConfig, tls: true, certificate: '-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----'
+      });
+
+      expect(wrapper.vm.validationPassed).toBe(true);
+    });
+
+    it('fails for adfs when LDAP search is available and the LDAP fields are empty', async() => {
+      await mountWithLdap('adfs', { ...validLdapConfig, servers: [] }, { prime: true, featureEnabled: true });
+
+      expect(wrapper.vm.validationPassed).toBe(false);
+    });
+
+    it('ignores LDAP fields for adfs when LDAP search is not available', async() => {
+      await mountWithLdap('adfs', { ...validLdapConfig, servers: [] }, { prime: false, featureEnabled: true });
+
+      expect(wrapper.vm.validationPassed).toBe(true);
     });
   });
 });

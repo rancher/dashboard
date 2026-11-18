@@ -2,7 +2,7 @@
 
 This guide will walk through setting up your development environment and creating a new Rancher extension.
 
-For an easy follow of this guide, there is two different concepts that a developer should understand:
+The following two concepts are important to understand for UI extension development:
 - A `Development app` is the environment on which you will develop and test your Rancher extensions. In a `Development app` you can have multiple `extensions`/`packages`
 - An `extension`/`package` is the actual extension code
 
@@ -38,15 +38,9 @@ npm init @rancher/extension@latest my-app
 cd my-app && yarn install
 ```
 
-This command will create a new development app in a folder called `my-app` and also create you first extension package also named `my-app` (inside `/pkg` folder) populating it with the minimum files needed for your extension.
+This command will create a new development app in a folder called `my-app` and also creates your first extension package, also named `my-app` (inside `/pkg` folder), populating it with the minimum files needed for your extension.
 
-If you want to add another `extension` inside the same development app, you'll need to be inside the root folder of the development app and just run the init command with the desired name for the other extension:
-
-```sh
-npm init @rancher/extension@latest another-extension
-```
-
-> NOTE: the `npm init` command must always use the same tag as the one that generated it. Also check examples below.
+> NOTE: the `npm init` command must always use the same tag as the one that generated it. See examples below.
 
 ### _Extension Options_
 
@@ -60,6 +54,9 @@ There are a few options available to be passed as an argument to the `@rancher/e
 |           `-l`            | This will automatically add the [`.gitlab-ci.yml`](https://github.com/rancher/dashboard/blob/master/creators/extension/app/files/.gitlab-ci.yml) pipeline file for integration with GitLab                                                                                              |
 |           `-w`            | Does not add the Github workflow files [`build-extension-catalog.yml`, `build-extension-charts.yml`](https://github.com/rancher/dashboard/tree/master/creators/extension/app/files/.github/workflows) to be used as Github actions. These files will be added automatically by default. |
 |           `-t`            | Does not add the template folders automatically into the Extension package. These folders will be added automatically by default                                                                                                                                                        |
+|      `--skip-agents`      | Does not add the AI agent guidance (`AGENTS.md`, `CLAUDE.md` and the Rancher UI reference docs). These files are added automatically by default.                                                                                                                                       |
+|         `--agents`        | Adds only the AI agent guidance, into the current folder. Use this to add it to a development app you already have.                                                                                                                                                                     |
+|         `--skill`         | Adds the same guidance as a self-contained skill folder instead of `AGENTS.md`.                                                                                                                                                                                                         |
 
 
 - If you want the development app to have a different name than the extension package, you can use the `--app-name` (or `-a`) option:
@@ -70,7 +67,7 @@ npm init @rancher/extension@latest new-extension -- --app-name my-app
 
 This will create a development app named `my-app` and an extension package named `new-extension`.
 
-- If you are already within a development app and want to create another extension package within the same application, simply run the same command:
+- If you are already within a development app and want to create another extension package within the same application, make sure you are inside the root folder of the development app and run the same command:
 
 ```sh
 npm init @rancher/extension@latest another-extension
@@ -88,6 +85,16 @@ This will create only the development app, and you can later add extension packa
 
 This flexibility allows you to structure your development environment based on your specific needs, whether you're starting fresh or adding to an existing setup.
 
+### _AI agent guidance_
+
+Your development app is generated with guidance for AI coding agents working on
+Rancher UI Extensions, in an `AGENTS.md` file that most agents read without being
+configured. You can also take it as a skill instead, or skip it with
+`--skip-agents`.
+
+See **[Building with AI](./building-with-ai.md)** for what it contains and how to
+use it.
+
 ### Compatibility Note
 
 As stated before, when you generate/support multiple extensions fom the same development app please make sure that all packages and the development app share the same tag. The Node.js version required depends on the tag, as outlined in the prerequisites section. Matching tags and Node.js versions is critical to avoid compatibility issues.
@@ -102,7 +109,7 @@ yarn install
 API=<Rancher Backend URL> yarn dev
 ```
 
-You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI. Your development app is a full Rancher UI - but referenced via `npm`.
+You should be able to open a browser at https://127.0.0.1:8005 and you'll get the Rancher Dashboard UI. Your development app runs the full Rancher UI, with the core dashboard sourced from the `@rancher/shell` npm package rather than from source.
 
 ## Developing your first Extension
 
@@ -209,6 +216,8 @@ yarn build-pkg my-app
 ```
 
 This will build the extension as a Vue library and the built extension will be placed in the `dist-pkg` folder.
+
+If you leave the name off, every extension under `pkg/` is built. In a repo with a single extension, `yarn build-pkg` on its own is all you need.
 
 ## Loading Into Rancher in a quick way (Developer Load)
 
