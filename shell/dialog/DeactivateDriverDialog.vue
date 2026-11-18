@@ -102,6 +102,7 @@ export default {
       <rc-button
         variant="outline"
         size="large"
+        data-testid="deactivate-driver-cancel"
         @click="close"
       >
         {{ t('generic.cancel') }}

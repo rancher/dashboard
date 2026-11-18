@@ -21,6 +21,7 @@ import {
   NavigationProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
+import { warnOnce } from './deprecation';
 
 const buttonVariants: { variant: ButtonVariant, className: string }[] = [
   { variant: 'solid', className: 'variant-primary' },
@@ -37,6 +38,7 @@ const deprecatedVariants: Record<DeprecatedButtonVariant, { className: string, r
 };
 
 const deprecatedVariantProps: (keyof ButtonVariantProps)[] = ['primary', 'secondary', 'tertiary', 'link', 'multiAction', 'ghost'];
+
 
 const buttonSizes: { size: keyof ButtonSizeProps, className: string }[] = [
   { size: 'small', className: 'btn-sm' },
@@ -102,7 +104,7 @@ const linkProps = computed(() => {
 
 const activeVariantClassName = computed(() => {
   if (props.multiAction) {
-    console.warn('[RcButton] The "multiAction" prop is deprecated and will be removed in a future version.'); // eslint-disable-line no-console
+    warnOnce('[RcButton] The "multiAction" prop is deprecated and will be removed in a future version.');
 
     return deprecatedVariants.multiAction.className;
   }
@@ -113,7 +115,7 @@ const activeVariantClassName = computed(() => {
     const deprecatedProp = deprecatedVariants[activeProp as DeprecatedButtonVariant];
     const replacement = deprecatedProp?.replacement ?? activeProp;
 
-    console.warn( // eslint-disable-line no-console
+    warnOnce(
       `[RcButton] The "${ activeProp }" prop is deprecated and will be removed in a future version. ` +
       `Please use variant="${ replacement }" instead.`
     );
@@ -126,7 +128,7 @@ const activeVariantClassName = computed(() => {
   if (deprecated) {
     const advice = deprecated.replacement ? ` Please use variant="${ deprecated.replacement }" with color="primary" instead.` : '';
 
-    console.warn(`[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version.${ advice }`); // eslint-disable-line no-console
+    warnOnce(`[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version.${ advice }`);
 
     return deprecated.className;
   }
@@ -134,16 +136,26 @@ const activeVariantClassName = computed(() => {
   return buttonVariants.find(({ variant }) => variant === props.variant)?.className || 'variant-primary';
 });
 
+// Only the solid and outline shapes carry color rules, so a color on any other
+// shape would be dropped without trace.
+const colorableClassNames = ['variant-primary', 'variant-secondary'];
+
+if (process.env.NODE_ENV !== 'production') {
+  watchEffect(() => {
+    if (props.color && props.color !== 'primary' && !colorableClassNames.includes(activeVariantClassName.value)) {
+      warnOnce(`[RcButton] color="${ props.color }" has no effect on variant="${ props.variant }". Color applies to the solid and outline variants.`);
+    }
+  });
+}
+
 const activeSizeClassName = computed(() => {
   const activeSize = buttonSizes.find(({ size }) => props[size]);
 
   if (activeSize) {
-    /* eslint-disable no-console */
-    console.warn(
+    warnOnce(
       `[RcButton] The "${ activeSize.size }" prop is deprecated and will be removed in a future version. ` +
       `Please use size="${ activeSize.size }" instead.`
     );
-    /* eslint-enable no-console */
 
     return activeSize.className;
   } else {

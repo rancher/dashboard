@@ -141,6 +141,26 @@ describe('rcButton.vue', () => {
     });
   });
 
+  describe('color on a variant that ignores it', () => {
+    it('warns that color has no effect on link', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      mount(RcButton, { props: { variant: 'link', color: 'destructive' } });
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('has no effect on variant="link"'));
+      warn.mockRestore();
+    });
+
+    it('does not warn when the variant supports color', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      mount(RcButton, { props: { variant: 'outline', color: 'destructive' } });
+
+      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('has no effect'));
+      warn.mockRestore();
+    });
+  });
+
   describe('deprecated variant values', () => {
     it.each([
       ['primary', 'solid', 'variant-primary'],
