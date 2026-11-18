@@ -110,13 +110,7 @@ watch([disableAfterPeriod, deleteAfterPeriod], ([newDisableAfterPeriod, newDelet
     return;
   }
 
-  const skippedIds: readonly UserRetentionSettingId[] = [
-    SETTING.DISABLE_INACTIVE_USER_AFTER,
-    SETTING.DELETE_INACTIVE_USER_AFTER,
-  ];
-
-  ids.filter((id) => !skippedIds.includes(id))
-    .forEach(assignSettings);
+  retentionProcessIds.forEach(assignSettings);
 });
 
 const assignSettings = (key: UserRetentionSettingId) => {
@@ -136,6 +130,11 @@ const fetchSetting = async(id: string) => {
 };
 
 const ids = Object.keys(userRetentionSettings) as UserRetentionSettingId[];
+const inactivityPeriodIds: readonly UserRetentionSettingId[] = [
+  SETTING.DISABLE_INACTIVE_USER_AFTER,
+  SETTING.DELETE_INACTIVE_USER_AFTER,
+];
+const retentionProcessIds = ids.filter((id) => !inactivityPeriodIds.includes(id));
 const settingPromises = ids.map((id) => fetchSetting(id));
 
 onMounted(async() => {
@@ -159,6 +158,17 @@ onMounted(async() => {
 
 const { t } = useI18n(store);
 const error = ref<string | null>(null);
+const saveSettings = (keys: readonly UserRetentionSettingId[]) => Promise.all(keys.map(async(key) => {
+  const setting = await store.dispatch('management/clone', { resource: settings[key] });
+
+  setting.value = userRetentionSettings[key];
+
+  if (key === SETTING.USER_LAST_LOGIN_DEFAULT && userRetentionSettings[key]) {
+    setting.value = dayjs(Number(userRetentionSettings[key])).format();
+  }
+
+  return setting.save();
+}));
 const save = async(btnCB: (arg: boolean) => void) => {
   const { valid } = await validateForm();
 
@@ -170,15 +180,8 @@ const save = async(btnCB: (arg: boolean) => void) => {
 
   try {
     error.value = null;
-    ids.forEach((key) => {
-      settings[key].value = userRetentionSettings[key];
-
-      if (key === SETTING.USER_LAST_LOGIN_DEFAULT && userRetentionSettings[key]) {
-        settings[key].value = dayjs(Number(userRetentionSettings[key])).format();
-      }
-    });
-
-    await Promise.all(ids.map((setting) => settings[setting].save()));
+    await saveSettings(inactivityPeriodIds);
+    await saveSettings(retentionProcessIds);
 
     btnCB(true);
     store.dispatch(
