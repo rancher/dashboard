@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+# Runs a Cypress command and watches its output.
+#
+# Cypress can hang for good while it waits on Chrome (seen right after "Running: <spec>"). No Cypress
+# timeout covers that wait, so the job sits until GitHub cancels it after 6 hours. When the output goes
+# quiet for E2E_STALL_MINUTES, this prints what the runner, Chrome and Rancher look like, kills the run
+# and retries once with the specs that had not finished.
+#
+# Usage: e2e-stall-watchdog "<cypress run command>"
+
+COMMAND="$1"
+STALL_SECONDS=$(( ${E2E_STALL_MINUTES:-20} * 60 ))
+POLL_SECONDS=5
+LOG_DIR=$(mktemp -d)
+REPORT_DIR="cypress/reports"
+
+print_diagnostics() {
+  echo "::group::[watchdog] Diagnostics"
+  date -u
+  uptime
+  free -m
+  df -h / /tmp
+
+  echo "--- Cypress and Chrome processes"
+  # [c] keeps this grep out of the list without dropping the Cypress lines that contain grepTags
+  ps -eo pid,ppid,pgid,etimes,pcpu,rss,stat,args --forest | grep -iE '[c]ypress|[c]hrome' | cut -c1-250
+
+  echo "--- Kernel OOM kills and crashes"
+  sudo -n dmesg -T 2>/dev/null | grep -iE 'out of memory|killed process|segfault' | tail -n 20
+
+  for port in $(ps -eo args | grep -oE -- '--remote-debugging-port=[0-9]+' | cut -d= -f2 | sort -u); do
+    echo "--- Chrome DevTools on port $port"
+    curl -s -m 5 "http://127.0.0.1:$port/json/version" || echo "No answer from /json/version"
+    curl -s -m 5 "http://127.0.0.1:$port/json/list" | grep -E '"(type|title|url)"' || echo "No answer from /json/list"
+  done
+
+  if [ -n "$API" ]; then
+    echo "--- Rancher /ping: $(curl -sk -m 10 -o /dev/null -w '%{http_code}' "$API/ping")"
+  fi
+  echo "::endgroup::"
+}
+
+# Runs a command in its own process group, streaming its output. Returns its exit code. When the output
+# stalls it kills the run and sets STALLED=1, since Cypress exits with its failed-test count and any exit
+# code could be a normal finish.
+run_attempt() {
+  local cmd="$1" log="$2"
+  local pid tail_pid size last_size=-1 quiet=0 longest=0
+
+  STALLED=0
+  : > "$log"
+  setsid bash -c "$cmd" > "$log" 2>&1 &
+  pid=$!
+  tail -n +1 -f --pid="$pid" "$log" &
+  tail_pid=$!
+
+  while kill -0 "$pid" 2>/dev/null; do
+    sleep "$POLL_SECONDS"
+    size=$(stat -c %s "$log")
+    if [ "$size" = "$last_size" ]; then
+      quiet=$(( quiet + POLL_SECONDS ))
+      [ "$quiet" -gt "$longest" ] && longest=$quiet
+    else
+      quiet=0
+      last_size=$size
+    fi
+
+    if [ "$quiet" -ge "$STALL_SECONDS" ]; then
+      sleep 1
+      echo "[watchdog] No Cypress output for ${quiet}s - stall detected"
+      # Shows on the run summary, which stays green when the retry recovers
+      echo "::warning title=Cypress stall::No Cypress output for ${quiet}s, see the [watchdog] lines in this job's log"
+      print_diagnostics
+      kill -TERM -- "-$pid" 2>/dev/null
+      sleep 10
+      kill -KILL -- "-$pid" 2>/dev/null
+      # Chrome is not always in Cypress' process group
+      pkill -KILL -f -- '--remote-debugging-port' 2>/dev/null
+      wait "$pid" 2>/dev/null
+      kill "$tail_pid" 2>/dev/null
+      wait "$tail_pid" 2>/dev/null
+      STALLED=1
+
+      return 1
+    fi
+  done
+
+  wait "$pid"
+  local rc=$?
+
+  wait "$tail_pid" 2>/dev/null
+  echo "[watchdog] Longest quiet gap: ${longest}s"
+
+  return $rc
+}
+
+# Prints the spec file a "Running:" path names. Cypress cuts long paths short, so a path that is not a
+# file stands for the one file it starts.
+spec_file() {
+  local match matches=()
+
+  if [ -f "$1" ]; then
+    echo "$1"
+    return
+  fi
+  for match in "$1"*; do
+    [ -f "$match" ] && matches+=("$match")
+  done
+  [ "${#matches[@]}" = 1 ] && echo "${matches[0]}"
+}
+
+# "Running:" shows spec paths relative to the folder all the run's specs share. Prints that folder: the
+# one under cypress/e2e that holds every spec given, or nothing when no folder or more than one does.
+spec_root() {
+  local match root spec ok roots=()
+
+  while IFS= read -r match; do
+    root="${match%"$1"*}"
+    ok=true
+    for spec in "$@"; do
+      [ -n "$(spec_file "$root$spec")" ] || ok=false
+    done
+    [ "$ok" = true ] && [[ " ${roots[*]} " != *" $root "* ]] && roots+=("$root")
+  done < <(find cypress/e2e -type f -path "*/$1*")
+
+  [ "${#roots[@]}" = 1 ] && echo "${roots[0]}"
+}
+
+FIRST_LOG="$LOG_DIR/attempt-1.log"
+run_attempt "$COMMAND" "$FIRST_LOG"
+rc=$?
+[ "$STALLED" = 0 ] && exit "$rc"
+
+# Cypress colours its output in CI, so parse a copy without the colour codes
+PLAIN_LOG="$LOG_DIR/attempt-1.plain.log"
+sed -E 's/\x1b\[[0-9;]*m//g' "$FIRST_LOG" > "$PLAIN_LOG"
+
+# Every spec Cypress started except the last one finished
+mapfile -t started < <(grep -oE 'Running: +[^ ]+ +\([0-9]+ of [0-9]+\)' "$PLAIN_LOG" | awk '{ print $2 }')
+failed_before=$(grep -oE 'Failing: +[0-9]+' "$PLAIN_LOG" | awk '{ s += $2 } END { print s + 0 }')
+
+# Keep the first attempt's videos and screenshots, which Cypress otherwise deletes when the retry starts.
+# Cypress reads one --config only, so everything the retry changes goes in this one.
+retry_config='"trashAssetsBeforeRuns":false'
+
+root=""
+[ "${#started[@]}" -gt 1 ] && root=$(spec_root "${started[@]}")
+
+if [ -n "$root" ]; then
+  finished=("${started[@]:0:${#started[@]}-1}")
+  excluded=""
+  for spec in "${finished[@]}"; do
+    excluded="$excluded,\"$(spec_file "$root$spec")\""
+  done
+  retry_config="$retry_config,\"excludeSpecPattern\":[${excluded:1}]"
+  echo "[watchdog] ${#finished[@]} specs finished before the stall ($failed_before failing tests)"
+fi
+
+retry_cmd="$COMMAND --config '{$retry_config}'"
+
+# The mochawesome reporter clears its folder when a run starts, so keep the first attempt's reports
+[ -d "$REPORT_DIR" ] && mv "$REPORT_DIR" "$LOG_DIR/reports-attempt-1"
+
+echo "[watchdog] Retrying once: $retry_cmd"
+run_attempt "$retry_cmd" "$LOG_DIR/attempt-2.log"
+rc=$?
+
+# Its per-spec reports are in a hidden folder, which the artifact upload skips
+if ls "$LOG_DIR"/reports-attempt-1/.jsons/*.json >/dev/null 2>&1; then
+  mkdir -p "$REPORT_DIR/attempt-1"
+  mv "$LOG_DIR"/reports-attempt-1/.jsons/*.json "$REPORT_DIR/attempt-1/"
+fi
+
+if [ "$STALLED" = 1 ]; then
+  echo "[watchdog] Cypress stalled again on the retry - giving up"
+  exit 1
+fi
+
+if [ "$rc" -eq 0 ] && [ "$failed_before" -gt 0 ]; then
+  echo "[watchdog] The retry passed, but $failed_before tests failed before the stall"
+  exit 1
+fi
+
+exit "$rc"
