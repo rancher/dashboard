@@ -273,8 +273,11 @@ export default {
     },
 
     filteredAttrs() {
+      // The combobox takes the name; on v-select, aria-labelledby would hide the `- value` aria-label it reads the value from
       const {
         class: _class,
+        'aria-label': _ariaLabel,
+        'aria-labelledby': _ariaLabelledBy,
         ...rest
       } = this.$attrs;
 
@@ -628,6 +631,8 @@ export default {
     :tabindex="isView || disabled ? -1 : 0"
     role="combobox"
     :aria-expanded="isOpen"
+    :aria-label="$attrs['aria-label'] || undefined"
+    :aria-labelledby="$attrs['aria-labelledby'] || undefined"
     :aria-describedby="$attrs['aria-describedby'] || undefined"
     :aria-description="keptSearch ? t('labeledSelect.keptSearch', { search: keptSearch }) : undefined"
     :aria-required="requiredField"

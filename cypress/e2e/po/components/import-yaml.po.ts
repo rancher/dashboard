@@ -23,7 +23,7 @@ export class ImportYamlPo extends ComponentPo {
   }
 
   importYamlCancelClick() {
-    this.self().find('[data-testid="import-yaml-cancel"]').click();
+    this.self().find('[data-testid="rc-modal-cancel"]').click();
   }
 
   importYamlSortableTable() {
