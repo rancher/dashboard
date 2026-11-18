@@ -29,6 +29,22 @@ fi
 PKG_ARG=${1}
 CREATE_TARBALL=${2}
 
+# Set by build_pkg once the .shell link for the package being built is confirmed
+# as ours, so the trap below can never remove a .shell this script did not create
+SHELL_LINK=""
+
+# Remove the .shell link however the script exits, so that an interrupted
+# build does not leave one behind and break every subsequent build
+function cleanup_shell_link() {
+  if [ -L "${SHELL_LINK}" ]; then
+    rm -f "${SHELL_LINK}"
+  fi
+}
+
+trap cleanup_shell_link EXIT
+trap 'cleanup_shell_link; trap - INT; kill -INT $$' INT
+trap 'cleanup_shell_link; trap - TERM; kill -TERM $$' TERM
+
 # A folder under pkg/ is a UI Package we can build when it has both a package.json
 # and an entry point. This is what keeps libraries like rancher-components, which
 # live under pkg/ but are built by `yarn build:lib`, out of a build-everything run
@@ -59,17 +75,26 @@ function build_pkg() {
 
   pushd pkg/${PKG}
 
-  # Check that the .shell link exists and points to the correct place
-  if [ -e ".shell" ]; then
+  # Check that the .shell link exists and points to the correct place.
+  # -L is tested as well as -e because -e is false for a dangling symlink,
+  # which is what an interrupted build can leave behind
+  if [ -L ".shell" ]; then
     local LINK=$(readlink .shell)
     if [ "${LINK}" != "${SHELL_DIR}" ]; then
-      echo ".shell symlink exists but does not point to expected location - please check and fix"
-      popd
-      return 1
+      echo "Replacing stale .shell symlink (pointed to ${LINK})"
+      rm -f .shell
+      ln -s ${SHELL_DIR} .shell
     fi
+  elif [ -e ".shell" ]; then
+    echo ".shell exists but is not a symlink - please check and remove it"
+    popd
+    return 1
   else
     ln -s ${SHELL_DIR} .shell
   fi
+
+  # Deliberately not local - cleanup_shell_link reads this from the traps
+  SHELL_LINK="$(pwd)/.shell"
 
   local FILE=index.js
   if [ -f ./index.ts ]; then
@@ -85,7 +110,8 @@ function build_pkg() {
   cp -f ./package.json ${PKG_DIST}/package.json
   node ${SCRIPT_DIR}/pkgfile.js ${PKG_DIST}/package.json
   rm -rf ${PKG_DIST}/*.bak
-  rm .shell
+  rm -f .shell
+  SHELL_LINK=""
 
   popd
 
