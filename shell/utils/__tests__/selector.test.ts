@@ -252,6 +252,39 @@ describe('fx: convert', () => {
     expect(result).toStrictEqual([]);
     expect(() => result).not.toThrow();
   });
+
+  it('should leave the matchExpressions it is given unchanged', () => {
+    const matchExpressions = () => [{
+      key: 'foo', operator: 'In', values: ['baz']
+    }];
+    const given = matchExpressions();
+
+    convert({ foo: 'bar', baz: 'bat' }, given);
+
+    expect(given).toStrictEqual(matchExpressions());
+  });
+
+  it.each([
+    ['an In rule with other values', ['baz'], [
+      {
+        key: 'foo', operator: 'In', values: ['baz']
+      },
+      {
+        key: 'foo', operator: 'In', values: ['bar']
+      },
+    ]],
+    ['an identical In rule', ['bar'], [
+      {
+        key: 'foo', operator: 'In', values: ['bar']
+      },
+    ]],
+  ])('should combine a label with %s on the same key without changing what they select', (_, values, expected) => {
+    const result = convert({ foo: 'bar' }, [{
+      key: 'foo', operator: 'In', values
+    }]);
+
+    expect(result).toStrictEqual(expected);
+  });
 });
 
 describe('fx: simplify', () => {
@@ -441,4 +474,12 @@ describe('fx: matches', () => {
 });
 
 describe('fx: matching', () => {
+  it('should require both a label and an In rule on the same key', () => {
+    const pod = { metadata: { labels: { foo: 'bar' } } };
+    const expressions = convert({ foo: 'bar' }, [{
+      key: 'foo', operator: 'In', values: ['baz']
+    }]);
+
+    expect(matching([pod], expressions)).toStrictEqual([]);
+  });
 });
