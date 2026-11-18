@@ -1897,3 +1897,54 @@ describe('type-map', () => {
     });
   });
 });
+
+describe('type-map isIgnored', () => {
+  const schema = { id: 'helm.cattle.io.projecthelmchart', attributes: { group: 'helm.cattle.io' } };
+
+  const isIgnored = (typeIgnore: any[], rootGetters = {}) => (getters as any).isIgnored({
+    groupIgnore: [], typeIgnore: [...typeIgnore], cache: { ignore: {} }
+  }, {}, {}, rootGetters)(schema);
+
+  const ruleFor = (cb?: (rootGetters: any) => boolean) => {
+    const state = { typeIgnore: [] as any[] };
+
+    mutations.ignoreType(state as any, { regexOrString: schema.id, cb });
+
+    return state.typeIgnore;
+  };
+
+  it('should ignore a type with a plain rule', () => {
+    expect(isIgnored(ruleFor())).toBe(true);
+  });
+
+  it('should not ignore a type that matches no rule', () => {
+    expect(isIgnored(['other.type'])).toBe(false);
+  });
+
+  it.each([true, false])('should follow the callback of a conditional rule (%p)', (value) => {
+    const rootGetters = { someFlag: value };
+
+    expect(isIgnored(ruleFor((g) => g.someFlag), rootGetters)).toBe(value);
+  });
+
+  it('should not run the callback of a rule for another type', () => {
+    const cb = jest.fn(() => true);
+    const state = { typeIgnore: [] as any[] };
+
+    mutations.ignoreType(state as any, { regexOrString: 'other.type', cb });
+
+    expect(isIgnored(state.typeIgnore)).toBe(false);
+    expect(cb).not.toHaveBeenCalled();
+  });
+
+  it('should see a callback result change without being set up again', () => {
+    const rootGetters = { someFlag: true };
+    const rules = ruleFor((g) => g.someFlag);
+
+    expect(isIgnored(rules, rootGetters)).toBe(true);
+
+    rootGetters.someFlag = false;
+
+    expect(isIgnored(rules, rootGetters)).toBe(false);
+  });
+});

@@ -1,4 +1,6 @@
 import { actions, getters, mutations } from '../index';
+import { HELM } from '@shell/config/types';
+import paginationUtils from '@shell/utils/pagination-utils';
 
 describe('mutations', () => {
   describe('updateNamespaces', () => {
@@ -206,6 +208,71 @@ describe('actions', () => {
 
       expect(ctx.state.allWorkspaces).toStrictEqual(workspaces);
       expect(ctx.state.workspace).toBe('fleet-default');
+    });
+  });
+
+  describe('loadCluster', () => {
+    const failure = (status: number) => () => Promise.reject(Object.assign(new Error('Failed'), { status }));
+
+    beforeEach(() => {
+      jest.spyOn(paginationUtils, 'isEnabled').mockReturnValue(false);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    const load = async(hasSchema: boolean, find: () => Promise<unknown>) => {
+      const commit = jest.fn();
+      const dispatch = jest.fn((action: string) => {
+        if (action === 'management/find') {
+          return Promise.resolve({ isReady: true });
+        }
+
+        return action === 'cluster/find' ? find() : Promise.resolve([]);
+      });
+      const storeGetters = {
+        'cluster/schemaFor':    (type: string) => (hasSchema && type === HELM.PROJECTHELMCHART ? {} : undefined),
+        'management/schemaFor': () => undefined,
+        'prefs/get':            () => ({}),
+      };
+
+      await actions.loadCluster({
+        state: { managementReady: true }, commit, dispatch, getters: storeGetters, rootGetters: {}
+      }, {
+        id: 'c-abc', product: 'monitoring', oldProduct: undefined, oldPkg: undefined, newPkg: undefined, targetRoute: undefined
+      });
+
+      return commit;
+    };
+
+    it.each([
+      [false, 'the config map exists', () => Promise.resolve({})],
+      [false, 'find returns nothing', () => Promise.resolve(undefined)],
+      [false, 'the config map request is forbidden', failure(403)],
+      [false, 'the config map request fails', failure(500)],
+      [true, 'the config map is not found', failure(404)],
+    ])('should set federatorMissing to %p when %s', async(federatorMissing, _label, find) => {
+      const commit = await load(true, find);
+
+      expect(commit).toHaveBeenCalledWith('federatorMissing', federatorMissing);
+    });
+
+    it('should not look for the config map without the project helm chart schema', async() => {
+      const find = jest.fn();
+      const commit = await load(false, find);
+
+      expect(find).not.toHaveBeenCalled();
+      expect(commit).toHaveBeenCalledWith('federatorMissing', false);
+    });
+
+    it('should set federatorMissing before the cluster is ready, as that builds the side nav', async() => {
+      const commit = await load(true, failure(404));
+      const names = commit.mock.calls.map(([name]) => name);
+
+      expect(commit).toHaveBeenCalledWith('federatorMissing', true);
+      expect(commit).toHaveBeenCalledWith('clusterReady', true);
+      expect(names.indexOf('federatorMissing')).toBeLessThan(names.indexOf('clusterReady'));
     });
   });
 });

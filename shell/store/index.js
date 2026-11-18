@@ -6,9 +6,11 @@ import {
 } from '@shell/config/query-params';
 import { SETTING } from '@shell/config/settings';
 import {
+  CONFIG_MAP,
   COUNT,
   DEFAULT_WORKSPACE,
   FLEET,
+  HELM,
   MANAGEMENT,
   NAMESPACE, NORMAN,
   UI, VIRTUAL_HARVESTER_PROVIDER, HCI
@@ -41,6 +43,7 @@ import { addReleaseNotesNotification } from '@shell/utils/release-notes';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
 import { showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
+import { PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP } from '@shell/utils/monitoring';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -256,6 +259,7 @@ export const state = () => {
     systemNamespaces:        [],
     isSingleProduct:         undefined,
     isRancherInHarvester:    false,
+    federatorMissing:        false,
     targetRoute:             null,
     rootProduct:             undefined,
     $router:                 markRaw({}),
@@ -563,6 +567,14 @@ export const getters = {
     return state.isRancherInHarvester;
   },
 
+  /**
+   * The ProjectHelmChart schema is there but the federator's config map isn't. Kept outside the resource cache, which
+   * may hold a page of config maps without the federator's one
+   */
+  federatorMissing(state) {
+    return state.federatorMissing;
+  },
+
   isVirtualCluster(state, getters) {
     const cluster = getters['currentCluster'];
 
@@ -623,6 +635,10 @@ export const mutations = {
 
   isRancherInHarvester(state, neu) {
     state.isRancherInHarvester = neu;
+  },
+
+  federatorMissing(state, neu) {
+    state.federatorMissing = neu;
   },
 
   /**
@@ -1088,7 +1104,14 @@ export const actions = {
       counts:     dispatch('cluster/findAll', { type: COUNT }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE }),
       navLinks:   !!getters['cluster/schemaFor'](UI.NAV_LINK) && dispatch('cluster/findAll', { type: UI.NAV_LINK }),
+      // Only a 404 shows the federator isn't installed. A 403 can also mean the chart's rbac.subjects were narrowed
+      federator:  !!getters['cluster/schemaFor'](HELM.PROJECTHELMCHART) && dispatch('cluster/find', {
+        type: CONFIG_MAP, id: PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP, opt: { watch: false }
+      }).catch((e) => (e?.status === 404 ? null : undefined)),
     });
+
+    // Without the schema nothing was fetched, and it arriving later is what shows the federator was installed
+    commit('federatorMissing', res.federator === null);
 
     await dispatch('cleanNamespaces');
 
