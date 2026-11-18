@@ -122,20 +122,26 @@ export default class ClusterNode extends SteveModel {
     return this.customLabels.length;
   }
 
-  get customLabels() {
-    const parsedLabels = [];
+  /**
+   * Labels with the Rancher and Kubernetes system ones removed.
+   *
+   * The detail page reads this too, so the list and the detail page cannot show different labels
+   * for the same node.
+   */
+  get filteredSystemLabels() {
+    return Object.entries(this.labels).reduce((res, [key, value]) => {
+      const [prefix] = key.split('/');
 
-    if (this.labels) {
-      for (const k in this.labels) {
-        const [prefix] = k.split('/');
-
-        if (!SYSTEM_LABELS.includes(prefix)) {
-          parsedLabels.push(`${ k }=${ this.labels[k] }`);
-        }
+      if (!SYSTEM_LABELS.includes(prefix)) {
+        res[key] = value;
       }
-    }
 
-    return parsedLabels;
+      return res;
+    }, {});
+  }
+
+  get customLabels() {
+    return Object.entries(this.filteredSystemLabels).map(([key, value]) => `${ key }=${ value }`);
   }
 
   get isWorker() {
