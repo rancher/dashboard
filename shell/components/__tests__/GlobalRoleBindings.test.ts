@@ -29,6 +29,7 @@ interface Binding {
   id: string;
   globalRoleName: string;
   userName?: string;
+  userPrincipalName?: string;
   groupPrincipalName?: string;
 }
 
@@ -39,6 +40,7 @@ interface RoleChanges {
 
 interface GlobalRoleBindingsVm {
   selectedRoles: string[];
+  startingSelectedRoles: { roleId: string, bindingId: string }[];
   groupRoles: Record<string, string[]>;
   checkboxChanged: () => void;
   roleChanges: RoleChanges;
@@ -48,7 +50,11 @@ describe('component: GlobalRoleBindings', () => {
   /**
    * Mount the user's form and run its fetch
    */
-  const load = async({ globalRoleBindings = [] as Binding[], groups = { [OPS_GROUP]: 'ops' } as Record<string, string> } = {}) => {
+  const load = async({
+    globalRoleBindings = [] as Binding[],
+    groups = { [OPS_GROUP]: 'ops' } as Record<string, string>,
+    userPrincipalIds = [] as string[],
+  } = {}) => {
     const user = { id: USER_ID, fetchGroupPrincipals: () => Promise.resolve(groups) };
     const dispatch = jest.fn((action: string, opt: { type?: string }) => {
       if (action === 'management/findAll') {
@@ -60,7 +66,7 @@ describe('component: GlobalRoleBindings', () => {
 
     const wrapper = shallowMount(GlobalRoleBindings, {
       props: {
-        type: 'user', userId: USER_ID, mode: _EDIT, realMode: _EDIT
+        type: 'user', userId: USER_ID, userPrincipalIds, mode: _EDIT, realMode: _EDIT
       },
       global: {
         mocks: {
@@ -99,6 +105,44 @@ describe('component: GlobalRoleBindings', () => {
 
     expect(vm.selectedRoles).toStrictEqual(['user']);
     expect(vm.groupRoles).toStrictEqual({ 'users-manage': ['ops'] });
+  });
+
+  it('checks the roles bound to the user by name and by any of their principals', async() => {
+    const { vm } = await load({
+      userPrincipalIds:   ['local://u-alice'],
+      globalRoleBindings: [
+        {
+          id: 'grb-name', globalRoleName: 'user', userName: USER_ID
+        },
+        {
+          id: 'grb-principal', globalRoleName: 'users-manage', userPrincipalName: 'local://u-alice'
+        },
+        {
+          id: 'grb-bob', globalRoleName: 'clusters-create', userPrincipalName: 'local://u-bob'
+        },
+      ]
+    });
+
+    expect(vm.selectedRoles).toStrictEqual(['user', 'users-manage']);
+    expect(vm.startingSelectedRoles).toStrictEqual([
+      { roleId: 'user', bindingId: 'grb-name' },
+      { roleId: 'users-manage', bindingId: 'grb-principal' },
+    ]);
+  });
+
+  it('only checks the roles bound by name when the user\'s principals aren\'t given', async() => {
+    const { vm } = await load({
+      globalRoleBindings: [
+        {
+          id: 'grb-name', globalRoleName: 'user', userName: USER_ID
+        },
+        {
+          id: 'grb-principal', globalRoleName: 'users-manage', userPrincipalName: 'local://u-alice'
+        },
+      ]
+    });
+
+    expect(vm.selectedRoles).toStrictEqual(['user']);
   });
 
   it('adds a user binding when a role the group already grants is checked', async() => {

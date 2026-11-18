@@ -155,7 +155,10 @@ export default {
   },
   methods: {
     isBoundToUser(binding, userId) {
-      return binding.userName === userId || !!this.groupPrincipals[binding.groupPrincipalName];
+      // A binding made with one of the user's principals (e.g. by a persona) has no userName
+      return binding.userName === userId ||
+        (this.value.principalIds || []).includes(binding.userPrincipalName) ||
+        !!this.groupPrincipals[binding.groupPrincipalName];
     },
 
     grantedVia(binding) {

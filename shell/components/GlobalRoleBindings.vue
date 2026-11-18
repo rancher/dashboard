@@ -49,6 +49,13 @@ export default {
     userId: {
       type:    String,
       default: ''
+    },
+    /**
+     * The user's principal ids, to also find their bindings made with a principal (no userName)
+     */
+    userPrincipalIds: {
+      type:    Array,
+      default: () => []
     }
   },
   async fetch() {
@@ -190,7 +197,11 @@ export default {
         }
 
         const boundRoles = this.globalRoleBindings.filter((grb) => {
-          return this.groupPrincipalId ? grb.groupPrincipalName === this.groupPrincipalId : grb.userName === this.userId;
+          if (this.groupPrincipalId) {
+            return grb.groupPrincipalName === this.groupPrincipalId;
+          }
+
+          return grb.userName === this.userId || this.userPrincipalIds.includes(grb.userPrincipalName);
         });
 
         Object.values(this.sortedRoles).forEach((roles) => {

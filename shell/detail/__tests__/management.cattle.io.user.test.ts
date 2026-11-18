@@ -10,6 +10,7 @@ const DIRECT = '%user.detail.generic.direct%';
 
 interface Binding {
   userName?: string;
+  userPrincipalName?: string;
   groupPrincipalName?: string;
   globalRoleName?: string;
   clusterName?: string;
@@ -58,6 +59,7 @@ describe('view: management.cattle.io.user', () => {
     clusterRoleBindings = [] as Binding[],
     projectRoleBindings = [] as Binding[],
     groups = { [OPS_GROUP]: 'ops' } as Record<string, string>,
+    principalIds = [] as string[],
     stubs = { ResourceTabs: { template: '<div />' } } as Record<string, object>,
   } = {}): Promise<UserDetail> => {
     const dispatch = jest.fn((action: string, opt: { type?: string, resource?: object }) => {
@@ -90,7 +92,12 @@ describe('view: management.cattle.io.user', () => {
     };
 
     const wrapper = shallowMount(DetailUser, {
-      props:  { value: { id: USER_ID, fetchGroupPrincipals: () => Promise.resolve(groups) }, mode: 'view' },
+      props: {
+        value: {
+          id: USER_ID, principalIds, fetchGroupPrincipals: () => Promise.resolve(groups)
+        },
+        mode: 'view'
+      },
       global: {
         mocks: {
           $store:      { getters, dispatch },
@@ -159,6 +166,30 @@ describe('view: management.cattle.io.user', () => {
 
     expect(boundRoles(vm)).toStrictEqual([{ id: 'clusters-create', grantedVia: [DIRECT] }]);
     expect(vm.tableHeaders.gp.map((h) => h.name)).not.toContain('grantedVia');
+  });
+
+  it('shows a global role bound to one of the user\'s principals (no user name) as direct', async() => {
+    const vm = await load({
+      principalIds:       ['local://u-alice', 'github_user://123'],
+      globalRoleBindings: [
+        grb('clusters-create', { userName: USER_ID }),
+        grb('users-manage', { userPrincipalName: 'github_user://123' }),
+      ]
+    });
+
+    expect(boundRoles(vm)).toStrictEqual([
+      { id: 'users-manage', grantedVia: [DIRECT] },
+      { id: 'clusters-create', grantedVia: [DIRECT] },
+    ]);
+  });
+
+  it('ignores a global role bound to another user\'s principal', async() => {
+    const vm = await load({
+      principalIds:       ['local://u-alice'],
+      globalRoleBindings: [grb('users-manage', { userPrincipalName: 'local://u-bob' })]
+    });
+
+    expect(boundRoles(vm)).toStrictEqual([]);
   });
 
   it('shows cluster roles bound to the user\'s groups with the group in the Granted Via column', async() => {
