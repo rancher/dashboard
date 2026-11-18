@@ -522,4 +522,59 @@ describe('class Node', () => {
       });
     });
   });
+
+  describe('labels', () => {
+    const nodeWith = (labels?: Record<string, string>) => new Node({ metadata: labels ? { labels } : {} });
+
+    describe('filteredSystemLabels', () => {
+      it.each([
+        ['no metadata labels', undefined, {}],
+        ['an empty label set', {}, {}],
+        ['only system labels', {
+          'beta.kubernetes.io/arch': 'amd64', 'kubernetes.io/os': 'linux', 'node-role.kubernetes.io/control-plane': 'true'
+        }, {}],
+        ['only non-system labels', { 'plan.cattle.io/cluster-name': 'local', myLabel: 'myValue' }, { 'plan.cattle.io/cluster-name': 'local', myLabel: 'myValue' }],
+        ['a mix of both', {
+          'beta.kubernetes.io/arch': 'amd64', 'node.kubernetes.io/instance-type': 'k3s', 'plan.cattle.io/machine-kind': 'Node'
+        }, { 'plan.cattle.io/machine-kind': 'Node' }],
+        ['a label with an empty value', { 'example.com/empty': '' }, { 'example.com/empty': '' }],
+        ['a key whose system prefix is only a substring, not the whole prefix', { 'not-kubernetes.io/thing': 'yes' }, { 'not-kubernetes.io/thing': 'yes' }],
+      ])('should drop the system labels given %s', (_, labels, expected) => {
+        expect(nodeWith(labels).filteredSystemLabels).toStrictEqual(expected);
+      });
+    });
+
+    describe('customLabels', () => {
+      it('should render the filtered labels as key=value strings', () => {
+        const node = nodeWith({ 'plan.cattle.io/cluster-name': 'local', 'kubernetes.io/os': 'linux' });
+
+        expect(node.customLabels).toStrictEqual(['plan.cattle.io/cluster-name=local']);
+      });
+
+      it('should show exactly the labels the detail page shows, so the list and the detail page agree', () => {
+        const node = nodeWith({
+          'beta.kubernetes.io/arch':     'amd64',
+          'kubernetes.io/hostname':      'node-1',
+          'plan.cattle.io/cluster-name': 'local',
+          'plan.cattle.io/machine-kind': 'Node',
+        });
+
+        expect(node.customLabels).toStrictEqual(Object.entries(node.filteredSystemLabels).map(([k, v]) => `${ k }=${ v }`));
+      });
+
+      it('should be empty when every label is a system label', () => {
+        expect(nodeWith({ 'kubernetes.io/os': 'linux' }).customLabels).toStrictEqual([]);
+      });
+    });
+
+    describe('customLabelCount', () => {
+      it.each([
+        ['no labels', undefined, 0],
+        ['only system labels', { 'kubernetes.io/os': 'linux' }, 0],
+        ['a mix of both', { 'kubernetes.io/os': 'linux', 'plan.cattle.io/machine-kind': 'Node' }, 1],
+      ])('should count only the non-system labels given %s', (_, labels, expected) => {
+        expect(nodeWith(labels).customLabelCount).toStrictEqual(expected);
+      });
+    });
+  });
 });
