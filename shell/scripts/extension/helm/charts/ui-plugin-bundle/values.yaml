@@ -1,0 +1,26 @@
+# An umbrella chart for a set of UI extensions. It has no templates of its own - every
+# rendered resource comes from the member charts vendored into charts/ at build time -
+# so the only values it declares are the ones a member or the Dashboard reads.
+#
+# build-extensions-bundle adds one block per member:
+#
+#   <member>:
+#     enabled: true
+#     fullnameOverride: <member>
+#     plugin:
+#       metadata:
+#         catalog.cattle.io/ui-extensions-bundle: <bundle>
+#
+# fullnameOverride is required. Without it the member's fullname resolves to
+# "<release>-<chart>", naming the UIPlugin CR after the bundle rather than the
+# extension - and the asset URL and UMD global are both derived from that name.
+
+plugin:
+  # Set from the bundle's "noAuth" in rancher.bundles[]. Warns in the install dialog
+  # that these extensions load before authentication.
+  #
+  # When true it is written here AND into every member, because the two readers see
+  # different scopes: the Dashboard only ever gets this file (Rancher decodes just the
+  # chart's top-level values.yaml), while cr.yaml renders from the member's own scope
+  # and cannot see the parent's root values.
+  noAuth: false

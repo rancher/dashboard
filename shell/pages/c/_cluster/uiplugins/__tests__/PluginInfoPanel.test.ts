@@ -92,6 +92,47 @@ describe('component: PluginInfoPanel', () => {
       expect(actions.some((action: any) => action.action === 'upgrade')).toBe(false);
       expect(actions.some((action: any) => action.action === 'downgrade')).toBe(false);
     });
+
+    /**
+     * The card hides Install on a conflict, so offering it here is a way round that
+     * gate - the install then fails on Helm's ownership error instead of explaining.
+     */
+    it('should not show install action when the extension is blocked by a conflict', () => {
+      wrapper.vm.info = {
+        installed:              false,
+        installableVersions:    [{ version: '1.0.0' }],
+        installConflictMessage: 'already provided by the bundle',
+      };
+      wrapper.vm.infoVersion = '1.0.0';
+
+      expect(wrapper.vm.panelActions).toStrictEqual([]);
+    });
+
+    it('should not show upgrade action when the upgrade is blocked by a conflict', () => {
+      wrapper.vm.info = {
+        installed:              true,
+        builtin:                false,
+        installedVersion:       '1.0.0',
+        installConflictMessage: 'contains an extension already installed',
+      };
+      wrapper.vm.infoVersion = '1.1.0';
+      const actions = wrapper.vm.panelActions;
+
+      expect(actions.some((action: any) => action.action === 'upgrade')).toBe(false);
+      expect(actions.some((action: any) => action.action === 'uninstall')).toBe(true);
+    });
+
+    it('should still allow downgrade when a conflict blocks the upgrade', () => {
+      wrapper.vm.info = {
+        installed:              true,
+        builtin:                false,
+        installedVersion:       '1.1.0',
+        installConflictMessage: 'contains an extension already installed',
+      };
+      wrapper.vm.infoVersion = '1.0.0';
+
+      expect(wrapper.vm.panelActions.some((action: any) => action.action === 'downgrade')).toBe(true);
+    });
   });
 
   describe('getVersionLabel', () => {
@@ -390,6 +431,16 @@ describe('component: PluginInfoPanel', () => {
       wrapper.vm.info = { incompatibilityMessage: 'incompatibility error' };
 
       expect(wrapper.vm.warningMessages).toContain('incompatibility error');
+    });
+
+    /**
+     * On the card this reason lives only in a hover tooltip, which keyboard and screen
+     * reader users cannot reach, so the panel is the accessible route to it.
+     */
+    it('should include the install conflict reason if present', () => {
+      wrapper.vm.info = { installConflictMessage: 'already provided by the bundle' };
+
+      expect(wrapper.vm.warningMessages).toContain('already provided by the bundle');
     });
 
     it('should include both deprecated and incompatibility messages if both are present', () => {

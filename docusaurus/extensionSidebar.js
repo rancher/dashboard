@@ -241,6 +241,7 @@ const sidebars = {
             'advanced/hooks',
             'advanced/stores',
             'advanced/version-compatibility',
+            'advanced/bundling-extensions',
             'advanced/safe-mode',
             'advanced/yarn-link'
           ]
