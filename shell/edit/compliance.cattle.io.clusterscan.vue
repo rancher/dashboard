@@ -12,7 +12,7 @@ import { allHash } from '@shell/utils/promise';
 import { Checkbox } from '@components/Form/Checkbox';
 import { RadioGroup } from '@components/Form/Radio';
 import { get } from '@shell/utils/object';
-import { _VIEW, _CREATE } from '@shell/config/query-params';
+import { _CREATE } from '@shell/config/query-params';
 import { isValidCron } from 'cron-validator';
 import { fetchSpecsScheduledScanConfig } from '@shell/models/compliance.cattle.io.clusterscan';
 
@@ -111,13 +111,6 @@ export default {
     ...mapGetters({ currentCluster: 'currentCluster', t: 'i18n/t' }),
 
     canBeScheduled() {
-      // check if scan was created and run with an older compliance install that doesn't support scheduling/alerting/warn state
-      if (this.mode === _VIEW) {
-        const warn = get(this.value, 'status.summary.warn');
-
-        return !!warn || warn === 0;
-      }
-
       return this.value.canBeScheduled();
     },
 
