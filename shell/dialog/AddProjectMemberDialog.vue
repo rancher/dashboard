@@ -151,12 +151,14 @@ export default {
         <AsyncButton
           v-if="saveInModal"
           mode="create"
+          :disabled="!member.principalId"
           @click="cb=>saveBindings(cb)"
         />
 
         <button
           v-else
           class="btn role-primary"
+          :disabled="!member.principalId"
           @click="apply"
         >
           {{ t('generic.add') }}

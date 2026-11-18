@@ -253,6 +253,7 @@ export default {
         <SelectPrincipal
           data-testid="cluster-member-select"
           project
+          required
           class="mb-20"
           :mode="mode"
           :retain-selection="true"
