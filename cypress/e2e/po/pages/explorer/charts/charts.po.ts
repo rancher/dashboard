@@ -90,10 +90,6 @@ export class ChartsPage extends PagePo {
     return this.self().find('[data-testid="charts-empty-state-reset-filters"]');
   }
 
-  isChartsTotalVanilla() {
-    return this.chartsTotal().contains('charts in total');
-  }
-
   chartsTotal() {
     return this.self().find('[data-testid="charts-total-message"]');
   }
