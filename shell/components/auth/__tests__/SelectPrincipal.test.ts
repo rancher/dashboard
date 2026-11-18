@@ -137,6 +137,24 @@ describe('component: SelectPrincipal', () => {
     });
   });
 
+  describe('label and placeholder', () => {
+    const mountWithProps = (props: Record<string, unknown>) => shallowMount(SelectPrincipal, {
+      ...defaultMountOptions,
+      props,
+      global: { ...defaultMountOptions.global, stubs: { Principal: true } },
+    });
+
+    it.each([
+      ['a cluster member by default', {}, 'cluster.memberRoles.addClusterMember.labelAdd', 'cluster.memberRoles.addClusterMember.placeholder'],
+      ['what the caller asks for', { selectLabel: 'Add User or Group', selectPlaceholder: 'Search for a user or group' }, 'Add User or Group', 'Search for a user or group'],
+    ])('should ask for %s', (_case, props, label, placeholder) => {
+      const select = mountWithProps(props).findComponent(LabeledSelect);
+
+      expect(select.props('label')).toBe(label);
+      expect(select.props('placeholder')).toBe(placeholder);
+    });
+  });
+
   describe('minSearchLength', () => {
     it('should have a default minSearchLength of 2', async() => {
       const wrapper: VueWrapper<any> = shallowMount(SelectPrincipal, defaultMountOptions);

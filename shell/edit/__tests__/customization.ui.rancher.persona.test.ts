@@ -3,9 +3,12 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import EditPersona from '@shell/edit/customization.ui.rancher.persona.vue';
 import Persona from '@shell/models/customization.ui.rancher.persona';
 import Select from '@shell/components/form/Select.vue';
-import { _CREATE } from '@shell/config/query-params';
+import SelectPrincipal from '@shell/components/auth/SelectPrincipal.vue';
+import Principal from '@shell/components/auth/Principal.vue';
+import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
+import { MANAGEMENT } from '@shell/config/types';
+import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@shell/mixins/child-hook';
 
 describe('view: customization.ui.rancher.persona', () => {
   const createPersona = () => {
@@ -40,7 +43,8 @@ describe('view: customization.ui.rancher.persona', () => {
         $route: {
           name: 'c-cluster-product-resource-create', params: { resource: 'customization.ui.rancher.persona' }, query: { AS: '' }
         },
-        $router: router,
+        $router:     router,
+        $fetchState: { pending: false },
       },
     },
   });
@@ -122,8 +126,8 @@ describe('view: customization.ui.rancher.persona', () => {
     const persona = createPersona();
     const wrapper = createWrapper(persona);
 
-    await wrapper.find('[data-testid="array-list-button"]').trigger('click');
-    await wrapper.find('[data-testid="array-list-input-0"]').setValue('development');
+    await wrapper.find('[data-testid="persona-tags"] [data-testid="array-list-button"]').trigger('click');
+    await wrapper.find('[data-testid="persona-tags"] [data-testid="array-list-input-0"]').setValue('development');
     jest.advanceTimersByTime(100);
     jest.useRealTimers();
 
@@ -235,6 +239,164 @@ describe('view: customization.ui.rancher.persona', () => {
       await (wrapper.vm as any).applyHooks(BEFORE_SAVE_HOOKS, persona);
 
       expect(persona.spec.rules?.[0].apiGroups).toStrictEqual(['']);
+    });
+  });
+
+  describe('users and groups', () => {
+    const ALICE = 'local://u-alice';
+    const DEVOPS = 'github_org://devops';
+    const fresh = { fresh: true };
+
+    // A persona with the model calls the section uses mocked
+    const createAssignable = (assigned: string[] = [ALICE]) => ({
+      ...createPersona(),
+      type:                 'customization.ui.rancher.persona',
+      metadata:             { name: 'app-developer', annotations: { [DESCRIPTION]: 'Builds apps' } as Record<string, string> },
+      spec:                 { displayName: 'App Developer', priority: 5 },
+      assignedPrincipalIds: jest.fn().mockResolvedValue(assigned),
+      assignPrincipals:     jest.fn().mockResolvedValue(undefined),
+      remove:               jest.fn().mockResolvedValue(undefined),
+      $dispatch:            jest.fn().mockResolvedValue(fresh),
+    });
+
+    const createSectionWrapper = (value: ReturnType<typeof createAssignable>, mode: string) => {
+      const dispatch = jest.fn();
+      const wrapper = mount(EditPersona, {
+        props:  { value, mode },
+        global: {
+          provide: { store: { getters: { 'i18n/t': (val: string) => val } } },
+          stubs:   { Principal: true, SelectPrincipal: true },
+          mocks:   {
+            $store: {
+              dispatch,
+              getters: {
+                currentStore:              () => 'current_store',
+                'current_store/schemaFor': jest.fn(),
+                'current_store/all':       jest.fn(),
+                'i18n/t':                  (val: string) => val,
+                'i18n/exists':             jest.fn(),
+              }
+            },
+            $route: {
+              name: 'c-cluster-product-resource-id', params: { resource: 'customization.ui.rancher.persona' }, query: {}
+            },
+            $router:     { applyQuery: jest.fn(), replace: jest.fn() },
+            $fetchState: { pending: false },
+          },
+        },
+      });
+
+      return { wrapper, dispatch };
+    };
+
+    const load = async(wrapper: VueWrapper<any>) => {
+      await (EditPersona as any).fetch.call(wrapper.vm);
+      await nextTick();
+    };
+
+    it('should list the users and groups the persona is assigned to', async() => {
+      const { wrapper } = createSectionWrapper(createAssignable([ALICE, DEVOPS]), _EDIT);
+
+      await load(wrapper);
+
+      expect(wrapper.findAllComponents(Principal).map((p) => p.props('value'))).toStrictEqual([ALICE, DEVOPS]);
+    });
+
+    it('should add a user or group once', async() => {
+      const { wrapper } = createSectionWrapper(createAssignable(), _EDIT);
+
+      await load(wrapper);
+      wrapper.findComponent(SelectPrincipal).vm.$emit('add', DEVOPS);
+      wrapper.findComponent(SelectPrincipal).vm.$emit('add', DEVOPS);
+      await nextTick();
+
+      expect(wrapper.findAllComponents(Principal).map((p) => p.props('value'))).toStrictEqual([ALICE, DEVOPS]);
+    });
+
+    it('should ask for users and groups, not cluster members', () => {
+      const { wrapper } = createSectionWrapper(createAssignable(), _CREATE);
+
+      expect(wrapper.findComponent(SelectPrincipal).props()).toStrictEqual(expect.objectContaining({ selectLabel: '%persona.assignments.add.label%', selectPlaceholder: '%persona.assignments.add.placeholder%' }));
+    });
+
+    it('should assign the listed users and groups after the persona is saved', async() => {
+      const value = createAssignable();
+      const { wrapper } = createSectionWrapper(value, _EDIT);
+
+      await load(wrapper);
+      wrapper.findComponent(SelectPrincipal).vm.$emit('add', DEVOPS);
+      await (wrapper.vm as any).applyHooks(AFTER_SAVE_HOOKS, value);
+
+      expect(value.assignPrincipals).toHaveBeenCalledWith([ALICE, DEVOPS]);
+    });
+
+    it('should not change the assignments when they were never loaded', async() => {
+      const value = createAssignable();
+      const { wrapper } = createSectionWrapper(value, _EDIT);
+
+      await (wrapper.vm as any).applyHooks(AFTER_SAVE_HOOKS, value);
+
+      expect(value.assignPrincipals).not.toHaveBeenCalled();
+    });
+
+    it('should not change the assignments when viewing', async() => {
+      const value = createAssignable();
+      const { wrapper } = createSectionWrapper(value, _VIEW);
+
+      await load(wrapper);
+      await (wrapper.vm as any).applyHooks(AFTER_SAVE_HOOKS, value);
+
+      expect(value.assignPrincipals).not.toHaveBeenCalled();
+    });
+
+    describe('when assigning fails', () => {
+      const failure = new Error('binding failed');
+
+      it('should remove a persona it just created and carry on with an unsaved copy', async() => {
+        const value = createAssignable();
+
+        value.assignPrincipals.mockRejectedValue(failure);
+        const { wrapper, dispatch } = createSectionWrapper(value, _CREATE);
+
+        await expect((wrapper.vm as any).applyHooks(AFTER_SAVE_HOOKS, value)).rejects.toBe(failure);
+
+        expect(value.remove).toHaveBeenCalledTimes(1);
+        expect(dispatch).toHaveBeenCalledWith('management/forgetType', MANAGEMENT.GLOBAL_ROLE);
+        expect(value.$dispatch).toHaveBeenCalledWith('create', {
+          type:     'customization.ui.rancher.persona',
+          metadata: {
+            name: 'app-developer', annotations: { [DESCRIPTION]: 'Builds apps' }, labels: undefined
+          },
+          spec: { displayName: 'App Developer', priority: 5 },
+        });
+        expect(wrapper.emitted('update:value')).toStrictEqual([[fresh]]);
+      });
+
+      it('should say the persona was left behind when it cannot be removed', async() => {
+        const value = createAssignable();
+
+        value.assignPrincipals.mockRejectedValue(failure);
+        value.remove.mockRejectedValue(new Error('remove failed'));
+        const { wrapper, dispatch } = createSectionWrapper(value, _CREATE);
+
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+        await expect((wrapper.vm as any).applyHooks(AFTER_SAVE_HOOKS, value)).rejects.toBe(failure);
+
+        expect(dispatch).toHaveBeenCalledWith('growl/error', { title: '%persona.assignments.orphaned.title%', message: '%persona.assignments.orphaned.message%' });
+        expect(wrapper.emitted('update:value')).toBeUndefined();
+      });
+
+      it('should keep an existing persona', async() => {
+        const value = createAssignable();
+
+        value.assignPrincipals.mockRejectedValue(failure);
+        const { wrapper } = createSectionWrapper(value, _EDIT);
+
+        await load(wrapper);
+        await expect((wrapper.vm as any).applyHooks(AFTER_SAVE_HOOKS, value)).rejects.toBe(failure);
+
+        expect(value.remove).not.toHaveBeenCalled();
+      });
     });
   });
 });
