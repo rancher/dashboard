@@ -37,6 +37,7 @@
     "serialize-javascript": "7.0.5",
     "braces": "3.0.3",
     "decode-uri-component": "0.5.1",
-    "webpack-dev-middleware": "7.4.6"
+    "webpack-dev-middleware": "7.4.6",
+    "**/@vue/language-core/minimatch": "11.0.9"
   }
 }

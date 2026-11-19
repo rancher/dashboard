@@ -75,6 +75,8 @@
     "fast-xml-parser": "5.11.1",
     "basic-ftp": "6.2.2",
     "**/nyc/glob": "14.0.6",
-    "**/nyc/test-exclude/glob": "14.0.6"
+    "**/nyc/test-exclude/glob": "14.0.6",
+    "**/nyc/test-exclude/minimatch": "11.0.9",
+    "**/@percy/cli-doctor/minimatch": "11.0.9"
   }
 }
