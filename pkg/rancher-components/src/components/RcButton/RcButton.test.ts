@@ -139,6 +139,75 @@ describe('rcButton.vue', () => {
     });
   });
 
+  describe('inherit size', () => {
+    const INHERIT_WARNING = '[RcButton] size="inherit" needs variant="ghost" or variant="link". Using size="medium" instead.';
+
+    it.each(['ghost', 'link'] as const)('applies btn-inherit with variant="%s"', (variant) => {
+      const wrapper = mount(RcButton, { props: { variant, size: 'inherit' } });
+
+      expect(wrapper.find('button').classes()).toStrictEqual(expect.arrayContaining(['btn-inherit', `variant-${ variant }`]));
+    });
+
+    it.each(['ghost', 'link'] as const)('does not warn with variant="%s"', (variant) => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      mount(RcButton, { props: { variant, size: 'inherit' } });
+
+      expect(warnSpy).not.toHaveBeenCalledWith(INHERIT_WARNING);
+      warnSpy.mockRestore();
+    });
+
+    it.each([
+      ['primary', 'primary'],
+      ['secondary', 'secondary'],
+      ['tertiary', 'tertiary'],
+      ['no', undefined],
+    ])('warns with %s variant', (_, variant) => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      mount(RcButton, { props: { variant, size: 'inherit' } as Record<string, unknown> });
+
+      expect(warnSpy).toHaveBeenCalledWith(INHERIT_WARNING);
+      warnSpy.mockRestore();
+    });
+
+    it.each([
+      ['primary', 'primary'],
+      ['secondary', 'secondary'],
+      ['tertiary', 'tertiary'],
+      ['no', undefined],
+    ])('falls back to the medium size with %s variant', (_, variant) => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const wrapper = mount(RcButton, { props: { variant, size: 'inherit' } as Record<string, unknown> });
+      const classes = wrapper.find('button').classes();
+
+      expect([classes.includes('btn-medium'), classes.includes('btn-inherit')]).toStrictEqual([true, false]);
+      jest.restoreAllMocks();
+    });
+
+    it.each(['ghost', 'link'] as const)('applies btn-inherit with the deprecated %s prop', (variant) => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const wrapper = mount(RcButton, { props: { [variant]: true, size: 'inherit' } });
+
+      expect(wrapper.find('button').classes()).toStrictEqual(expect.arrayContaining(['btn-inherit', `variant-${ variant }`]));
+      expect(warnSpy).not.toHaveBeenCalledWith(INHERIT_WARNING);
+      warnSpy.mockRestore();
+    });
+
+    it('applies btn-inherit once the variant changes to one that can inherit', async() => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const wrapper = mount(RcButton, { props: { variant: 'primary', size: 'inherit' } });
+
+      await wrapper.setProps({ variant: 'link' });
+
+      expect(wrapper.find('button').classes()).toStrictEqual(expect.arrayContaining(['btn-inherit', 'variant-link']));
+      jest.restoreAllMocks();
+    });
+  });
+
   describe('space key navigation', () => {
     it('triggers click when Space is pressed on a link button', async() => {
       const to = { name: 'some-route' };

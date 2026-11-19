@@ -51,8 +51,19 @@ const preview: Preview = {
       },
     },
     options: {
-      storySort: {
-        order: ['Welcome', 'Foundation', 'Form', 'Components', 'Examples'],
+      storySort: (a, b) => {
+        const order = ['Welcome', 'Foundation', 'Form', 'Components', 'Examples'];
+        const rank = (title) => {
+          const index = order.indexOf(title.split('/')[0]);
+
+          return index === -1 ? order.length : index;
+        };
+
+        if (a.title === b.title) {
+          return 0;
+        }
+
+        return rank(a.title) - rank(b.title) || a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' });
       },
     },
     docs: {

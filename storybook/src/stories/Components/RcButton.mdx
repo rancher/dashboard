@@ -42,6 +42,12 @@ Buttons are available in three sizes: small, medium (default), and large:
 
 <Canvas of={RcButtonStories.AllSizes} />
 
+## Inherit Size
+
+`size="inherit"` takes the size of the surrounding text instead of a fixed height and padding. Used for actions that sit in a sentence, a field header, or inside an input. It needs `variant="ghost"` or `variant="link"`. Any other variant renders at the medium size instead and logs a warning.
+
+<Canvas of={RcButtonStories.InheritSize} />
+
 ## Buttons with Icons
 
 Buttons can include icons on the left, right, or both sides:

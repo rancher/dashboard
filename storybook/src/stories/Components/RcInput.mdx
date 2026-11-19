@@ -1,0 +1,99 @@
+import { Meta, Canvas, Controls } from '@storybook/blocks';
+import * as RcInputStories from './RcInput.stories';
+
+<Meta of={RcInputStories} />
+
+# RcInput
+
+`RcInput` is a single line text input with a label, helper text, and a validation message. Use it for new forms in place of `LabeledInput`.
+
+<Canvas of={RcInputStories.Default} />
+
+<Controls of={RcInputStories.Default} />
+
+## Choosing a component
+
+`RcInput` covers plain text. It also includes variants that build upon `RcInput` as a base:
+
+| Content | Component | Adds |
+|---|---|---|
+| Plain text, email, URL | `RcInput` | `clearable`, `reset-value`, `prefix` and `suffix` slots |
+| A secret | `RcInputPassword` | A show/hide toggle, `v-model:revealed` |
+| A search or filter term | `RcInputSearch` | A search icon. No view mode |
+| A quantity | `RcInputUnit` | A `unit` shown after the value and read as part of its description |
+
+## Sizes
+
+Match the size to the density of the form.
+
+<Canvas of={RcInputStories.Sizes} />
+
+## States
+
+Each type in edit, disabled, and view mode. The field chrome is removed and a rail marks the value in view mode. Labels and values stay in the same place in every mode, so fields in different modes line up in one form.
+
+<Canvas of={RcInputStories.AllStates} />
+
+Mode and disabled state usually come from an enclosing
+[RcFieldGroup](?path=/docs/stories-components-rcfieldgroup--docs) rather than
+from each input. A prop set on the input always wins.
+
+The focus ring stays blue when the input has an error:
+
+<Canvas of={RcInputStories.Focused} />
+
+## Validation
+
+`validation-message` shows under the input, above the helper text. Validation messages include an icon to help signal the `validation-status`. A status of `error` marks the input `aria-invalid`. Messages are hidden in view mode.
+
+<Canvas of={RcInputStories.Validation} />
+
+Validation messages wrap to at most two lines, with the icon inline at the start of the first. A message too long for two lines is replaced by a generic summary of its status and a "Show more" button, which opens the full message in a popover. The popover takes the focus, and Escape, Tab or moving the focus away closes it. Screen readers announce the whole message either way. Aim to keep messages short enough to fit on one line.
+
+<Canvas of={RcInputStories.LongValidationMessage} />
+
+## With vee-validate
+
+Register an input with `useForm` by giving an input a `name`; the form's schema validates the input.
+
+```ts
+const { handleSubmit } = useForm({
+  validationSchema: toTypedSchema(z.object({ name: z.string().min(1, 'Name is required') })),
+});
+```
+
+```html
+<RcInput v-model="name" name="name" label="Name" required />
+```
+
+The `validation-message` prop shows validation messages independent of the form schema/presence of errors. This can be used to show server errors such as a name that is already taken. An input without a `name` does not register for validation with `vee-validate`.
+
+<Canvas of={RcInputStories.WithVeeValidate} />
+
+## Clear and Reset
+
+<Canvas of={RcInputStories.ClearAndReset} />
+
+## Prefix and suffix
+
+Both slots render in every mode and receive `disabled` and `isView`, so content can change between modes without moving the value.
+
+<Canvas of={RcInputStories.PrefixAndSuffix} />
+
+## Attributes and events
+
+Attributes other than `class` and `style` go to the native `<input>`, so `name`, `autocomplete`, `maxlength`, `data-testid` and listeners such as `@blur` reach it. `class` and `style` go on the field.
+
+| Emitted | When |
+|---|---|
+| `update:modelValue` | The value changed. The `.number` and `.trim` modifiers apply. |
+| `clear` | The clear button emptied the input. |
+| `reset` | The Reset link restored `reset-value`. |
+
+A template ref exposes `focus()`, `blur()` and `select()`.
+
+## Accessibility
+
+Give every input a label. Where the context makes a visible label redundant, such as a filter in a table toolbar, give it an `aria-label` instead:
+
+<Canvas of={RcInputStories.WithoutVisibleLabel} />
