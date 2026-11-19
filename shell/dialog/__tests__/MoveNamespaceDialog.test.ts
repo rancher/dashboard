@@ -245,5 +245,61 @@ describe('component: MoveNamespaceDialog', () => {
 
       expect(finish).toHaveBeenCalledWith(false);
     });
+
+    it('should restore the original project and show the error when save fails', async() => {
+      const namespace = createMockNamespace('p-abc123');
+
+      namespace.metadata = {
+        labels:      { 'field.cattle.io/projectId': 'p-abc123' },
+        annotations: { 'field.cattle.io/projectId': 'local:p-abc123' }
+      };
+      namespace.save.mockRejectedValue({ response: { data: { message: 'admission webhook denied the request' } } });
+
+      wrapper = mountComponent({ resources: [namespace] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      wrapper.vm.targetProject = 'p-def456';
+
+      const finish = jest.fn();
+
+      await wrapper.vm.move(finish);
+
+      expect(namespace.setLabel).toHaveBeenLastCalledWith('field.cattle.io/projectId', 'p-abc123');
+      expect(namespace.setAnnotation).toHaveBeenLastCalledWith('field.cattle.io/projectId', 'local:p-abc123');
+      expect(wrapper.vm.errors).toStrictEqual(['admission webhook denied the request']);
+      expect(wrapper.emitted('close')).toBeUndefined();
+    });
+
+    it('should only restore the namespaces that failed to save', async() => {
+      const saved = createMockNamespace('p-abc123');
+      const failed = createMockNamespace('p-abc123');
+
+      failed.save.mockRejectedValue(new Error('Save failed'));
+
+      wrapper = mountComponent({ resources: [saved, failed] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      wrapper.vm.targetProject = 'p-def456';
+
+      await wrapper.vm.move(jest.fn());
+
+      expect(saved.setLabel).toHaveBeenCalledTimes(1);
+      expect(failed.setLabel).toHaveBeenCalledTimes(2);
+      expect(failed.setLabel).toHaveBeenLastCalledWith('field.cattle.io/projectId', undefined);
+    });
+
+    it('should clear previous errors when moving again', async() => {
+      const namespace = createMockNamespace('p-abc123');
+
+      wrapper = mountComponent({ resources: [namespace] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      wrapper.vm.errors = ['old error'];
+      wrapper.vm.targetProject = 'p-def456';
+
+      await wrapper.vm.move(jest.fn());
+
+      expect(wrapper.vm.errors).toStrictEqual([]);
+    });
   });
 });
