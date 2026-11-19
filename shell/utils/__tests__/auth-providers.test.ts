@@ -447,6 +447,12 @@ describe('fx: cloneableAuthConfigFields', () => {
     expect(fields).toStrictEqual({ hostname: 'h' });
   });
 
+  it('should leave out whether the source supports Single Logout', () => {
+    const fields = cloneableAuthConfigFields({ logoutAllSupported: false, clientId: 'abc' }, { logoutAllSupported: { type: 'boolean' }, clientId: { type: 'string' } });
+
+    expect(fields).toStrictEqual({ clientId: 'abc' });
+  });
+
   it('should copy values rather than share them with the source', () => {
     const fields = cloneableAuthConfigFields(source, resourceFields);
 
