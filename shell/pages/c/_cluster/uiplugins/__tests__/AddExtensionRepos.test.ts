@@ -121,18 +121,16 @@ describe('component: AddExtensionReposDialog', () => {
       });
     };
 
-    it('should tell the user the download is happening in the background', async() => {
+    it('should announce nothing up front', async() => {
+      // The Extensions page reports what is downloading in its own banner, so a toast here would
+      // only say it twice
       const dispatch = jest.fn(() => Promise.resolve());
       const wrapper = mountWith(dispatch);
 
       wrapper.vm.reportDownloads(['partner-extensions']);
       await nextTick();
 
-      const growl: any = dispatch.mock.calls.find((c: any) => c[0] === 'growl/info');
-
-      expect(growl).toBeDefined();
-      expect(growl[1].title).toContain('plugins.repoDownload.added.title');
-      expect(growl[1].message).toContain('plugins.repoDownload.added.message');
+      expect(dispatch).not.toHaveBeenCalledWith('growl/info', expect.anything(), expect.anything());
 
       wrapper.unmount();
     });

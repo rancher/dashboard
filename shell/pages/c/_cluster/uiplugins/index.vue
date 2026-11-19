@@ -95,7 +95,6 @@ export default {
       defaultIcon:                    genericPluginSvg,
       reloadRequired:                 false,
       rancherVersion:                 null,
-      dismissedRepos:                 [],
       deferredRepoKeys:               []
     };
   },
@@ -182,12 +181,8 @@ export default {
         .filter((r) => r.state !== 'ready');
     },
 
-    /**
-     * A failed repository stays failed until an admin does something about it, so its banner can
-     * be dismissed. What is still downloading resolves on its own, so it cannot.
-     */
     failedRepos() {
-      return this.pendingRepos.filter((r) => r.state === 'failed' && !this.dismissedRepos.includes(r.id));
+      return this.pendingRepos.filter((r) => r.state === 'failed');
     },
 
     downloadingRepos() {
@@ -442,18 +437,6 @@ export default {
     },
 
     /**
-     * Stop suppressing a repository once it is no longer pending, so that a repository which
-     * recovers and then fails again is reported rather than silently staying dismissed.
-     */
-    pendingRepos(neu) {
-      const stillPending = this.dismissedRepos.filter((id) => neu.some((r) => r.id === id));
-
-      if (stillPending.length !== this.dismissedRepos.length) {
-        this.dismissedRepos = stillPending;
-      }
-    },
-
-    /**
      * A repository's index is built asynchronously, so a repository added from this page has no
      * charts to fetch at the moment it is created. Pick them up when its index arrives over the
      * socket instead of making the user reload the page.
@@ -633,20 +616,6 @@ export default {
       this['hasFeatureFlag'] = hasFeatureFlag;
 
       return hasFeatureFlag;
-    },
-
-    /**
-     * Only the failed repositories are dismissed, so anything still downloading keeps its own,
-     * non-dismissable banner.
-     */
-    async dismissFailedRepos() {
-      this.dismissedRepos = [...this.dismissedRepos, ...this.failedRepos.map((r) => r.id)];
-
-      // The close button is being removed from the page, so move focus somewhere sensible rather
-      // than letting it fall back to <body> and make keyboard users start again (WCAG 2.4.3)
-      await this.$nextTick();
-
-      this.$refs.tabs?.$el?.querySelector('[role="tab"]')?.focus();
     },
 
     tabChanged(f) {
@@ -1563,13 +1532,10 @@ export default {
 
       <Banner
         v-if="!loading && failedRepos.length"
-        ref="failedReposBanner"
         color="error"
         role="alert"
-        :closable="true"
         class="mb-20"
         data-testid="extensions-failed-repos-banner"
-        @close="dismissFailedRepos"
       >
         <div class="pending-repos">
           <span>{{ t('plugins.pendingRepos.failed') }}</span>
@@ -1579,7 +1545,9 @@ export default {
               :key="repo.id"
             >
               <span class="pending-repos__name">{{ repo.name }}</span>
-              <span v-if="repo.message"> &mdash; {{ repo.message }}</span>
+              <!-- Rancher appends ". Will retry after <duration>" to its own message when another
+                   attempt is coming, so the banner does not need to say it a second time -->
+              <span v-if="repo.message"> - {{ repo.message }}</span>
             </li>
           </ul>
         </div>
@@ -1593,8 +1561,8 @@ export default {
         data-testid="extensions-downloading-repos-banner"
       >
         <div class="pending-repos">
-          <span>{{ t('plugins.pendingRepos.downloading') }}</span>
-          <span class="pending-repos__name">{{ downloadingRepoNames }}</span>
+          <div v-clean-html="t('plugins.pendingRepos.downloading', { names: downloadingRepoNames }, true)" />
+          <div v-clean-html="t('plugins.pendingRepos.continue', {}, true)" />
         </div>
       </Banner>
 

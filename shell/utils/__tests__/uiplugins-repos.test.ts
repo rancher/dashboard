@@ -107,9 +107,24 @@ describe('fx: repoDownloadState', () => {
     expect(repoDownloadState(repo)).toStrictEqual({ state: 'failed', message: 'repository not found' });
   });
 
+  it('should keep the retry Rancher wrote into its own message', () => {
+    // Rancher appends this itself in `setConditionWithInterval`, so the message is already enough
+    // to tell the user another attempt is coming - nothing needs to work it out from nextRetryAt
+    const repo = repoOf({
+      status: {
+        nextRetryAt: '2026-11-19T14:32:10Z',
+        conditions:  [{
+          type: 'Downloaded', status: 'False', message: 'fetch: couldn\'t find remote ref "nope". Will retry after 5m55s'
+        }],
+      }
+    });
+
+    expect(repoDownloadState(repo)).toStrictEqual({ state: 'failed', message: 'fetch: couldn\'t find remote ref "nope". Will retry after 5m55s' });
+  });
+
   it('should be failed without a retry scheduled', () => {
-    // Rancher clears nextRetryAt when the retry budget is spent and for non-retriable errors, so
-    // the worst failures are the ones with no retry pending
+    // Rancher clears nextRetryAt when the retry budget is spent and for non-retriable errors, and
+    // leaves the retry off the message too
     const repo = repoOf({
       status: {
         nextRetryAt: undefined,
@@ -119,7 +134,7 @@ describe('fx: repoDownloadState', () => {
       }
     });
 
-    expect(repoDownloadState(repo).state).toBe('failed');
+    expect(repoDownloadState(repo)).toStrictEqual({ state: 'failed', message: 'no such host' });
   });
 
   it('should be ready for a healthy repository', () => {
@@ -169,48 +184,63 @@ describe('fx: notifyRepoDownload', () => {
     };
   };
 
-  it('should open an indeterminate task and close it as a success once the index lands', async() => {
-    const repo = { status: {} as any };
+  it('should say nothing until the index lands, then confirm', async() => {
+    const repo = { status: {} as any, nameDisplay: 'Rancher Extensions' };
     const store = storeWith(repo);
 
     const done = notifyRepoDownload(store, 'repo-1');
 
-    // The task has to go out before we know the outcome, and with no progress value - Rancher
-    // reports nothing between "started" and "index published"
-    expect(store.dispatch).toHaveBeenCalledWith('notifications/add', expect.objectContaining({ id: 'extension-repo-download-repo-1', level: NotificationLevel.Task }));
-    expect(store.dispatch.mock.calls[0][1]).not.toHaveProperty('progress');
+    // Nothing is announced while the download is in flight: the Extensions page reports that
+    // itself, and a notification for work in progress outlives the page that would resolve it
+    expect(store.dispatch).not.toHaveBeenCalled();
 
     repo.status = { indexConfigMapName: 'cm' };
     await done;
 
-    expect(store.dispatch).toHaveBeenCalledWith('notifications/update', expect.objectContaining({ id: 'extension-repo-download-repo-1', level: NotificationLevel.Success }));
+    expect(store.dispatch).toHaveBeenCalledWith('notifications/add', expect.objectContaining({ id: 'extension-repo-download-repo-1', level: NotificationLevel.Success }));
   });
 
-  it('should link the success notification to the extensions page', async() => {
-    const repo = { status: { indexConfigMapName: 'cm' } };
-    const store = storeWith(repo);
-
-    await notifyRepoDownload(store, 'repo-1');
-
-    const update = store.dispatch.mock.calls.find((c: any) => c[0] === 'notifications/update')?.[1];
-
-    expect(update.primaryAction.route).toStrictEqual({ name: 'c-cluster-uiplugins', params: { cluster: 'local' } });
-  });
-
-  it('should close the task as an error carrying Rancher\'s message when the download fails', async() => {
+  it('should keep waiting through a failure, since Rancher retries on its own', async() => {
     const repo = {
-      status: {
+      nameDisplay: 'Partner Extensions',
+      status:      {
         conditions: [{
           type: 'Downloaded', status: 'False', message: 'no such host'
         }]
-      }
+      } as any,
     };
     const store = storeWith(repo);
 
+    const done = notifyRepoDownload(store, 'repo-1');
+
+    // Long enough for a second poll - a failure must not end the wait
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+
+    expect(store.dispatch).not.toHaveBeenCalled();
+
+    repo.status = { indexConfigMapName: 'cm' };
+    await done;
+
+    expect(store.dispatch).toHaveBeenCalledWith('notifications/add', expect.objectContaining({ level: NotificationLevel.Success }));
+  }, 10000);
+
+  it('should name the repository the way the user sees it', async() => {
+    const store = storeWith({ status: { indexConfigMapName: 'cm' }, nameDisplay: 'Rancher Extensions' });
+
+    await notifyRepoDownload(store, 'rancher-ui-plugins');
+
+    const added = store.dispatch.mock.calls.find((c: any) => c[0] === 'notifications/add')?.[1];
+
+    expect(added.message).toBe('plugins.repoDownload.ready.message:Rancher Extensions');
+  });
+
+  it('should link the confirmation to the extensions page', async() => {
+    const store = storeWith({ status: { indexConfigMapName: 'cm' } });
+
     await notifyRepoDownload(store, 'repo-1');
 
-    expect(store.dispatch).toHaveBeenCalledWith('notifications/update', expect.objectContaining({
-      id: 'extension-repo-download-repo-1', level: NotificationLevel.Error, message: 'no such host'
-    }));
+    const added = store.dispatch.mock.calls.find((c: any) => c[0] === 'notifications/add')?.[1];
+
+    expect(added.primaryAction.route).toStrictEqual({ name: 'c-cluster-uiplugins', params: { cluster: 'local' } });
   });
 });
