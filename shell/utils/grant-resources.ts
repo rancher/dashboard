@@ -1,5 +1,7 @@
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
+import { VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import { PolicyRule } from '@shell/types/resources/rbac';
+import { ucFirst } from '@shell/utils/string';
 
 export interface GrantResourceOption {
   kind?: string;
@@ -132,5 +134,74 @@ export function normaliseRuleApiGroups(rules: PolicyRule[] = []): void {
     if (rule.apiGroups) {
       rule.apiGroups = rule.apiGroups.map((group) => (group.trim() === '""' ? '' : group));
     }
+  });
+}
+
+const verbKey = (verb: string) => `has${ ucFirst(verb) }`;
+
+/**
+ * The columns of a read only rules table (the role and persona detail pages): a ticked column per verb, then custom verbs, resources,
+ * non-resource URLs (left out with `nonResourceUrls: false`) and API groups
+ */
+export function grantResourceHeaders({ nonResourceUrls = true } = {}) {
+  const verbHeaders = VERBS.map((verb) => ({
+    name:      verb,
+    key:       ucFirst(verb),
+    value:     verbKey(verb),
+    formatter: 'Checked',
+    align:     'center'
+  }));
+
+  return [
+    ...verbHeaders,
+    {
+      name:      'custom',
+      labelKey:  'tableHeaders.customVerbs',
+      key:       ucFirst('custom'),
+      value:     'hasCustomVerbs',
+      formatter: 'Checked',
+      align:     'center'
+    },
+    {
+      name:      'resources',
+      labelKey:  'tableHeaders.resources',
+      value:     'resources',
+      formatter: 'list',
+    },
+    ...(nonResourceUrls ? [{
+      name:      'url',
+      labelKey:  'tableHeaders.url',
+      value:     'nonResourceURLs',
+      formatter: 'list',
+    }] : []),
+    {
+      name:      'apiGroups',
+      labelKey:  'tableHeaders.apiGroup',
+      value:     'apiGroups',
+      formatter: 'list',
+    }
+  ];
+}
+
+/**
+ * The rows for `grantResourceHeaders`, one per rule. A `*` verb ticks every verb
+ */
+export function grantResourceRows(rules: PolicyRule[] = []) {
+  return rules.map((rule, i) => {
+    const verbs = rule.verbs || [];
+    const row: Record<string, unknown> = {
+      index:           i,
+      apiGroups:       rule.apiGroups || [''],
+      resources:       rule.resources || [],
+      nonResourceURLs: rule.nonResourceURLs || [],
+      verbs,
+      hasCustomVerbs:  verbs.some((verb) => !VERBS.includes(verb)),
+    };
+
+    VERBS.forEach((verb) => {
+      row[verbKey(verb)] = verbs[0] === '*' || verbs.includes(verb);
+    });
+
+    return row;
   });
 }

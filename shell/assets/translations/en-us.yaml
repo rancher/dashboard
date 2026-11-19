@@ -9653,16 +9653,20 @@ persona:
     addLabel: Add Tag
   resourcePermissions:
     label: Resource Permissions
-    description: A user gains this persona if they have the rights in any one of these rules
+    description: A user gains this Persona if they have the rights in any one of these rules
   assignments:
     label: Users & Groups
-    description: A user gains this persona if they, or a group they're in, are listed here
+    description: A user gains this Persona if they, or a group they're in, are listed here
     add:
       label: Add User or Group
       placeholder: Search for a user or group
     orphaned:
       title: Persona left behind
       message: 'The persona "{name}" was created, but its users and groups could not be assigned and the persona could not be removed automatically. Open the personas list to edit or delete it.'
+  detail:
+    assignmentsNote: Users and groups that are manually assigned to this Persona. This does not include users or groups that are associated with this Persona via Resource Permissions
+    noAssignments: No users or groups are assigned this persona
+    noRules: This persona has no resource permissions
 
 action:
   ariaLabel:

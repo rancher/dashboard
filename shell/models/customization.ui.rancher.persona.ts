@@ -38,6 +38,22 @@ export default class Persona extends SteveModel {
     };
   }
 
+  /**
+   * Shown in the detail page's masthead
+   */
+  get details() {
+    const out = this._details;
+    const tags = this.spec?.tags || [];
+
+    out.unshift(
+      { label: this.t('persona.displayName.label'), content: this.spec?.displayName },
+      { label: this.t('persona.priority.label'), content: this.spec?.priority ?? 0 },
+      ...(tags.length ? [{ label: this.t('persona.tags.label'), content: tags.join(', ') }] : []),
+    );
+
+    return out;
+  }
+
   get customValidationRules() {
     return [
       {

@@ -10,14 +10,15 @@ import ArrayList from '@shell/components/form/ArrayList';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
 import Tab from '@shell/components/Tabbed/Tab';
 import Tabbed from '@shell/components/Tabbed';
-import { ucFirst } from '@shell/utils/string';
 import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
 import GrantResources from '@shell/components/auth/GrantResources.vue';
-import { grantResourceOptions, normaliseRuleApiGroups } from '@shell/utils/grant-resources';
+import {
+  grantResourceOptions, grantResourceHeaders, grantResourceRows, normaliseRuleApiGroups
+} from '@shell/utils/grant-resources';
 
-import { SUBTYPE_MAPPING, VERBS } from '@shell/models/management.cattle.io.roletemplate';
+import { SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';
 import Banner from '@components/Banner/Banner.vue';
 
@@ -230,46 +231,10 @@ export default {
     },
     // Detail View
     rules() {
-      return this.createRules(this.value);
+      return grantResourceRows(this.value.rules);
     },
     ruleHeaders() {
-      const verbHeaders = VERBS.map((verb) => ({
-        name:      verb,
-        key:       ucFirst(verb),
-        value:     this.verbKey(verb),
-        formatter: 'Checked',
-        align:     'center'
-      }));
-
-      return [
-        ...verbHeaders,
-        {
-          name:      'custom',
-          labelKey:  'tableHeaders.customVerbs',
-          key:       ucFirst('custom'),
-          value:     'hasCustomVerbs',
-          formatter: 'Checked',
-          align:     'center'
-        },
-        {
-          name:      'resources',
-          labelKey:  'tableHeaders.resources',
-          value:     'resources',
-          formatter: 'list',
-        },
-        {
-          name:      'url',
-          labelKey:  'tableHeaders.url',
-          value:     'nonResourceURLs',
-          formatter: 'list',
-        },
-        {
-          name:      'apiGroups',
-          labelKey:  'tableHeaders.apiGroup',
-          value:     'apiGroups',
-          formatter: 'list',
-        }
-      ];
+      return grantResourceHeaders();
     },
     inheritedRules() {
       return this.createInheritedRules(this.value, [], false);
@@ -290,30 +255,6 @@ export default {
         await this.value.save({ redirectUnauthorized: false });
       }
     },
-    // Detail View
-    verbKey(verb) {
-      return `has${ ucFirst(verb) }`;
-    },
-    createRules(role) {
-      return (role.rules || []).map((rule, i) => {
-        const tableRule = {
-          index:           i,
-          apiGroups:       rule.apiGroups || [''],
-          resources:       rule.resources || [],
-          nonResourceURLs: rule.nonResourceURLs || [],
-          verbs:           rule.verbs,
-        };
-
-        VERBS.forEach((verb) => {
-          const key = this.verbKey(verb);
-
-          tableRule[key] = rule.verbs[0] === '*' || rule.verbs.includes(verb);
-          tableRule.hasCustomVerbs = rule.verbs.some((verb) => !VERBS.includes(verb));
-        });
-
-        return tableRule;
-      });
-    },
     createInheritedRules(parent, res = [], showParent = true) {
       if (!parent.roleTemplateNames) {
         return [];
@@ -327,7 +268,7 @@ export default {
             showParent,
             parent,
             template: rt,
-            rules:    this.createRules(rt)
+            rules:    grantResourceRows(rt.rules)
           });
           // Add inherited
           this.createInheritedRules(rt, res);
