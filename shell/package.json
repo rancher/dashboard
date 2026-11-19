@@ -167,7 +167,7 @@
     "postcss": "8.5.26",
     "@tootallnate/once": "2.0.1",
     "cookie": "0.7.2",
-    "qs": "6.16.0",
+    "qs": "6.16.1",
     "postcss-selector-parser": "7.1.6"
   },
   "nyc": {
