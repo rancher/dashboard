@@ -16,7 +16,11 @@ export interface CellLimits {
   lineClamp?: number;
 }
 
-const props = defineProps<{ limits: CellLimits }>();
+const props = defineProps<{
+  limits: CellLimits;
+  /** Reachable with Tab while its text is cut, showing the tooltip on focus too, for text the page doesn't show whole anywhere else */
+  focusable?: boolean;
+}>();
 
 const box = ref<HTMLElement | null>(null);
 
@@ -57,10 +61,11 @@ onBeforeUnmount(() => stopObserving());
 <template>
   <div
     ref="box"
-    v-clean-tooltip="{ content: cutText, placement: 'auto', popperClass: ['limited-cell-tooltip'] }"
+    v-clean-tooltip="{ content: cutText, placement: 'auto', popperClass: ['limited-cell-tooltip'], triggers: focusable ? ['hover', 'focus'] : undefined }"
     class="limited-cell"
     :class="{ clamped: !!limits.lineClamp }"
     :style="style"
+    :tabindex="focusable && cutText ? 0 : undefined"
   >
     <slot />
   </div>
@@ -75,6 +80,11 @@ onBeforeUnmount(() => stopObserving());
       -webkit-box-orient: vertical;
       overflow: hidden;
       white-space: normal;
+    }
+
+    &:focus-visible {
+      @include focus-outline;
+      outline-offset: 2px;
     }
   }
 </style>

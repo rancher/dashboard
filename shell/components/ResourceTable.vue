@@ -969,6 +969,7 @@ export default {
           <LimitedCell
             class="group-label"
             :limits="{ lineClamp: 1 }"
+            focusable
           >
             <span v-clean-html="thisGroup.ref" />
           </LimitedCell>

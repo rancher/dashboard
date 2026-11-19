@@ -47,4 +47,10 @@ describe('a Group By heading', () => {
     expect(label.props('limits')).toStrictEqual({ lineClamp: 1 });
     expect(label.text()).toBe(LONG);
   });
+
+  it('should be reachable from the keyboard when cut, the only place the list shows the whole value', () => {
+    const label = mountHeading(LONG).findComponent(LimitedCell);
+
+    expect(label.props('focusable')).toBe(true);
+  });
 });
