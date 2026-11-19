@@ -165,7 +165,10 @@ describe('composable: useModal', () => {
       (document.querySelector('.trigger') as HTMLElement).click();
       await nextTick();
 
-      (document.querySelector('.rc-modal-overlay') as HTMLElement).dispatchEvent(new MouseEvent('click'));
+      const background = document.querySelector('.rc-modal-overlay') as HTMLElement;
+
+      background.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+      background.dispatchEvent(new MouseEvent('click'));
       await nextTick();
 
       expect(dialog()).toBeNull();
