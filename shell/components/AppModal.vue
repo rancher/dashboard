@@ -165,8 +165,9 @@ export default defineComponent({
   },
   data() {
     return {
-      hasTitle:      false,
-      titleObserver: null as MutationObserver | null,
+      hasTitle:            false,
+      titleObserver:       null as MutationObserver | null,
+      pressStartedOutside: false,
     };
   },
   mounted() {
@@ -195,9 +196,13 @@ export default defineComponent({
       }
       this.hasTitle = !!titleEl;
     },
+    recordPressOrigin(event: MouseEvent) {
+      this.pressStartedOutside = !(this.$refs.modalRef as HTMLElement).contains(event.target as Node);
+    },
     handleClickOutside(event: MouseEvent) {
       if (
         this.clickToClose &&
+        this.pressStartedOutside &&
         this.$refs.modalRef &&
         !(this.$refs.modalRef as HTMLElement).contains(event.target as Node)
       ) {
@@ -233,6 +238,7 @@ export default defineComponent({
       <div
         class="modal-overlay"
         :data-modal="name"
+        @mousedown.capture="recordPressOrigin"
         @click="handleClickOutside"
       >
         <div

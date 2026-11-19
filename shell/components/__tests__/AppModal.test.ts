@@ -36,8 +36,29 @@ describe('appModal', () => {
 
     expect(overlay).toBeTruthy();
 
+    await overlay?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     await overlay?.dispatchEvent(new Event('click'));
     expect(wrapper.emitted('close')).toBeTruthy();
+  });
+
+  it('does not emit close event when a press inside the modal is released outside it', async() => {
+    const overlay = document.querySelector('.modal-overlay');
+
+    await document.querySelector('.content')?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await overlay?.dispatchEvent(new Event('click'));
+    expect(wrapper.emitted('close')).toBeUndefined();
+  });
+
+  it('does not emit close event when a press inside content that stops mousedown is released outside it', async() => {
+    const overlay = document.querySelector('.modal-overlay');
+    const content = document.querySelector('.content');
+
+    content?.addEventListener('mousedown', (event) => event.stopPropagation());
+
+    await overlay?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await content?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    await overlay?.dispatchEvent(new Event('click'));
+    expect(wrapper.emitted('close')).toBeUndefined();
   });
 
   it('emits close event when escape key is pressed', async() => {
@@ -52,6 +73,7 @@ describe('appModal', () => {
     await wrapper.setProps({ clickToClose: false });
     const overlay = document.querySelector('.modal-overlay');
 
+    await overlay?.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     await overlay?.dispatchEvent(new Event('click'));
     expect(wrapper.emitted('close')).toBeFalsy();
 

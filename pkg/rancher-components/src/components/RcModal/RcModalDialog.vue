@@ -116,8 +116,14 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
+let pressStartedOnBackground = false;
+
+function recordPressOrigin(event: MouseEvent) {
+  pressStartedOnBackground = event.target === event.currentTarget;
+}
+
 function onBackgroundClick() {
-  if (props.clickToClose) {
+  if (props.clickToClose && pressStartedOnBackground) {
     cancel();
   }
 }
@@ -126,6 +132,7 @@ function onBackgroundClick() {
 <template>
   <div
     class="rc-modal-overlay"
+    @mousedown.capture="recordPressOrigin"
     @mousedown.self.prevent
     @click.self="onBackgroundClick"
   >
