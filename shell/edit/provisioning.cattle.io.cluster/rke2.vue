@@ -20,6 +20,7 @@ import {
   DEFAULT_WORKSPACE,
   SECRET,
   HCI,
+  CATALOG,
 } from '@shell/config/types';
 import { _CREATE, _EDIT, _VIEW } from '@shell/config/query-params';
 
@@ -29,6 +30,8 @@ import {
   clone, diff, set, get, isEmpty, mergeWithReplace
 } from '@shell/utils/object';
 import { labelForAddon, initSchedulingCustomization, addonConfigPreserve } from '@shell/utils/cluster';
+import { escapeHtml } from '@shell/utils/string';
+import { NAME as APP_PRODUCT } from '@shell/config/product/apps';
 import { AGENT_CONFIGURATION_TYPES } from '@shell/config/settings';
 
 import { BadgeState } from '@components/BadgeState';
@@ -242,6 +245,7 @@ export default {
        * { [chartName:string]: { chart: json, readme: string, values: json } }
        */
       versionInfo:               {},
+      failedAddonCharts:         {},
       userChartValues:           {},
       userChartValuesTemp:       {},
       addonsRev:                 0,
@@ -525,6 +529,32 @@ export default {
       const versions = this.addonNames.map((name) => this.versionInfo[name]?.chart);
 
       return versions.filter((x) => !!x);
+    },
+
+    unavailableAddonsMessage() {
+      const names = this.addonNames.filter((name) => this.failedAddonCharts[name]);
+
+      if (!names.length) {
+        return '';
+      }
+
+      const repoName = this.chartVersions[names[0]]?.repo;
+      const canRefreshRepo = (this.$store.getters['management/schemaFor'](CATALOG.CLUSTER_REPO)?.resourceMethods || []).includes('PUT');
+      const refresh = repoName && canRefreshRepo ? this.t('cluster.addOns.chartUnavailable.refreshLink', {
+        newTab: this.t('generic.opensInNewTab'),
+        url:    this.$router.resolve({
+          name:   'c-cluster-product-resource-id',
+          params: {
+            cluster: 'local', product: APP_PRODUCT, resource: CATALOG.CLUSTER_REPO, id: repoName
+          }
+        }).href
+      }, true) : this.t('cluster.addOns.chartUnavailable.refreshAdmin', null, true);
+
+      return this.t('cluster.addOns.chartUnavailable.message', {
+        count: names.length,
+        names: escapeHtml(names.map((name) => labelForAddon(this.$store, name)).join(', ')),
+        refresh,
+      }, true);
     },
 
     cloudProviderOptions() {
@@ -838,6 +868,7 @@ export default {
       }
 
       this.versionInfo = {}; // Invalidate cache such that version info relevant to selected kube version is updated
+      this.failedAddonCharts = {};
       // Allow time for addonNames to update... then fetch any missing addons
       this.$nextTick(() => this.initAddons());
       if (this.mode === _CREATE) {
@@ -1668,13 +1699,15 @@ export default {
           });
 
           this.versionInfo[chartName] = res;
+          delete this.failedAddonCharts[chartName];
           const key = this.chartVersionKey(chartName);
 
           if (!this.userChartValues[key]) {
             this.userChartValues[key] = {};
           }
         } catch (e) {
-          console.error(`Failed to fetch or process chart info for ${ chartName }`); // eslint-disable-line no-console
+          console.error(`Failed to fetch or process chart info for ${ chartName }`, e); // eslint-disable-line no-console
+          this.failedAddonCharts[chartName] = true;
         }
       }
     },
@@ -2211,6 +2244,13 @@ export default {
 
         <!-- Cluster Tabs -->
         <h2 v-t="'cluster.tabs.cluster'" />
+        <Banner
+          v-if="unavailableAddonsMessage"
+          color="warning"
+          data-testid="rke2-addon-chart-unavailable"
+        >
+          <span v-clean-html="unavailableAddonsMessage" />
+        </Banner>
         <component
           :is="extensionProvisioningSection"
           v-if="extensionProvisioningSection"
