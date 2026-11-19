@@ -221,7 +221,7 @@ export const providerOfConfig = (getters: Record<string, any>, configName: strin
  */
 const UNCLONED_FIELDS = [
   'id', 'name', 'type', 'baseType', 'links', 'actions', 'created', 'createdTS', 'creatorId', 'uuid', 'annotations', 'labels', 'status',
-  'ownerReferences', 'removed', 'enabled', 'accessMode', 'allowedPrincipalIds',
+  'ownerReferences', 'removed', 'enabled', 'accessMode', 'allowedPrincipalIds', 'logoutAllSupported',
 ];
 
 const SECRET_FIELDS = ['clientSecret', 'privateKey', 'applicationSecret', 'oauthCredential', 'serviceAccountCredential', 'serviceAccountPassword', 'spKey'];
