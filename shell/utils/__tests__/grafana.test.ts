@@ -2,17 +2,20 @@ import {
   getClusterPrefix,
   computeDashboardUrl,
   dashboardExists,
+  allDashboardsExist,
   queryGrafana,
   hasLeader,
   leaderChanges,
   failedProposals,
 } from '@shell/utils/grafana';
 
-import { haveV2Monitoring } from '@shell/utils/monitoring';
+import { haveV2Monitoring, hasEndpointSubsets, fetchMonitoringVersion } from '@shell/utils/monitoring';
 
 jest.mock('@shell/utils/monitoring', () => ({
-  haveV2Monitoring:       jest.fn(),
-  fetchMonitoringVersion: jest.fn(),
+  haveV2Monitoring:            jest.fn(),
+  fetchMonitoringVersion:      jest.fn(),
+  hasEndpointSubsets:          jest.fn(),
+  CATTLE_MONITORING_NAMESPACE: 'cattle-monitoring-system',
 }));
 
 describe('fx: getClusterPrefix', () => {
@@ -188,6 +191,76 @@ describe('dashboardExists', () => {
     const dispatchUrl = store.dispatch.mock.calls[0][1].url;
 
     expect(dispatchUrl).toContain('cattle-project-p-abc123-monitoring');
+  });
+});
+
+describe('allDashboardsExist', () => {
+  const clusterUrls = [
+    '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-containers-1/rancher-workload-pods?orgId=1',
+    '/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-workload?orgId=1',
+  ];
+  const projectUrls = [
+    '/api/v1/namespaces/cattle-project-p-abc123-monitoring/services/http:cattle-project-p-abc123-monitoring-grafana:80/proxy/d/rancher-pod-1/rancher-workload?orgId=1',
+  ];
+
+  const createStore = () => ({
+    getters:  {},
+    dispatch: jest.fn().mockResolvedValue({ status: 200 }),
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (haveV2Monitoring as jest.Mock).mockReturnValue(true);
+    (hasEndpointSubsets as jest.Mock).mockResolvedValue(true);
+    (fetchMonitoringVersion as jest.Mock).mockResolvedValue('');
+  });
+
+  it('should not request any dashboard when the grafana endpoint is missing', async() => {
+    (hasEndpointSubsets as jest.Mock).mockResolvedValue(false);
+    const store = createStore();
+
+    const result = await allDashboardsExist(store, 'c-m-xyz', clusterUrls);
+
+    expect(result).toStrictEqual(false);
+    expect(store.dispatch).toHaveBeenCalledTimes(0);
+    expect(fetchMonitoringVersion).toHaveBeenCalledTimes(0);
+  });
+
+  it('should not look up the grafana endpoint when v2 monitoring is not available', async() => {
+    (haveV2Monitoring as jest.Mock).mockReturnValue(false);
+    const store = createStore();
+
+    const result = await allDashboardsExist(store, 'c-m-xyz', clusterUrls);
+
+    expect(result).toStrictEqual(false);
+    expect(hasEndpointSubsets).toHaveBeenCalledTimes(0);
+    expect(store.dispatch).toHaveBeenCalledTimes(0);
+  });
+
+  it('should look up the rancher-monitoring-grafana endpoint in the given store', async() => {
+    const store = createStore();
+
+    await allDashboardsExist(store, 'c-m-xyz', clusterUrls, 'harvester');
+
+    expect(hasEndpointSubsets).toHaveBeenCalledWith(store, 'cattle-monitoring-system/rancher-monitoring-grafana', 'harvester');
+  });
+
+  it('should look up the project grafana endpoint when a project is given', async() => {
+    const store = createStore();
+
+    await allDashboardsExist(store, 'c-m-xyz', projectUrls, 'cluster', 'p-abc123');
+
+    expect(hasEndpointSubsets).toHaveBeenCalledWith(store, 'cattle-project-p-abc123-monitoring/cattle-project-p-abc123-monitoring-grafana', 'cluster');
+  });
+
+  it('should request every dashboard when the grafana endpoint exists', async() => {
+    const store = createStore();
+
+    const result = await allDashboardsExist(store, 'c-m-xyz', clusterUrls);
+
+    expect(result).toStrictEqual(true);
+    expect(store.dispatch).toHaveBeenCalledTimes(2);
+    expect(store.dispatch).toHaveBeenCalledWith('cluster/request', { url: '/k8s/clusters/c-m-xyz/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy/api/dashboards/uid/rancher-pod-1', redirectUnauthorized: false });
   });
 });
 
