@@ -128,3 +128,45 @@ describe('navigation-guards/authentication: mustChangePassword', () => {
     expect(isLoggedInMock).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('navigation-guards/authentication: authRedirect', () => {
+  beforeEach(() => {
+    isLoggedInMock.mockReset().mockResolvedValue(undefined);
+    findMeMock.mockReset().mockResolvedValue({ id: 'local://user-1', provider: 'local' });
+    notLoggedInMock.mockReset();
+    noAuthMock.mockReset();
+  });
+
+  it.each([
+    {
+      desc:                        'a logged-in load of a page clears the page saved before login',
+      routeName:                   'c-cluster-explorer',
+      expectedAuthRedirectCommits: [['prefs/setAuthRedirect', null]],
+    },
+    {
+      desc:                        'a logged-in load of the index route leaves the page saved before login for index.vue',
+      routeName:                   'index',
+      expectedAuthRedirectCommits: [],
+    },
+  ])('$desc', async({ routeName, expectedAuthRedirectCommits }) => {
+    const store = makeStore({ user: { mustChangePassword: false }, fromHeader: 'true' });
+    const next = jest.fn();
+
+    await authenticate({ name: routeName, query: {} } as any, {} as any, next, { store } as any);
+
+    const authRedirectCommits = store.commit.mock.calls.filter(([type]) => type === 'prefs/setAuthRedirect');
+
+    expect(authRedirectCommits).toStrictEqual(expectedAuthRedirectCommits);
+    expect(next).toHaveBeenCalledWith();
+  });
+
+  it('leaves the page saved before login to notLoggedIn on a load that is not logged in', async() => {
+    const store = makeStore({ user: {}, fromHeader: 'false' });
+    const next = jest.fn();
+
+    await authenticate(to as any, {} as any, next, { store } as any);
+
+    expect(notLoggedInMock).toHaveBeenCalledWith(store, next, to);
+    expect(store.commit).not.toHaveBeenCalledWith('prefs/setAuthRedirect', null);
+  });
+});
