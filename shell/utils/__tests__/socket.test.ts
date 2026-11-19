@@ -86,16 +86,14 @@ describe('socket.js', () => {
         expected: 'wss://example.test/foo',
       },
     ])('$desc', ({ protocol, input, expected }) => {
-      const originalLocation = window.location;
-
-      delete (window as any).location;
-      (window as any).location = { ...originalLocation, protocol };
+      // jsdom's window.location can't be replaced, so stub the `self` that socket.js reads it from
+      const selfSpy = jest.spyOn(window, 'self', 'get').mockReturnValue({ location: { origin: window.location.origin, protocol } } as any);
 
       const socket = new Socket(input);
 
       expect(socket.url).toBe(expected);
 
-      (window as any).location = originalLocation;
+      selfSpy.mockRestore();
     });
   });
 

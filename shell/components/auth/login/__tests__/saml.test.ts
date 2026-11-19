@@ -87,18 +87,9 @@ describe('component: saml login', () => {
   });
 
   describe('signing in', () => {
-    const location = window.location;
-
-    beforeAll(() => {
-      // login() sends the browser to the IdP, which jsdom refuses to do
-      Object.defineProperty(window, 'location', {
-        configurable: true,
-        value:        { origin: 'https://127.0.0.1:8005', href: '' },
-      });
-    });
-
-    afterAll(() => {
-      Object.defineProperty(window, 'location', { configurable: true, value: location });
+    beforeEach(() => {
+      // login() sends the browser to the IdP, which jsdom reports as a not implemented navigation
+      jest.spyOn(console, 'error').mockImplementation(() => {});
     });
 
     it('should hand the cluster-scoped response type to the auth provider untouched', async() => {

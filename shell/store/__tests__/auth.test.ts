@@ -31,7 +31,6 @@ describe('action: redirectTo', () => {
   });
 
   it('should apply the azure specific parameters to a renamed azure config', async() => {
-    jest.spyOn(window, 'window', 'get');
     const store = {
       dispatch: jest.fn((x) => {
         if (x === 'getAuthProvider') return { type: 'azureADProvider', scopes: '' };
@@ -49,7 +48,6 @@ describe('action: redirectTo', () => {
   });
 
   it('should apply the base scopes of a renamed config', async() => {
-    jest.spyOn(window, 'window', 'get');
     const store = {
       dispatch: jest.fn((x) => {
         if (x === 'getAuthProvider') return { type: 'githubProvider', scopes: '' };
