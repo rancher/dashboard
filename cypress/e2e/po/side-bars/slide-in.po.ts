@@ -13,6 +13,6 @@ export default class SlideInPo extends ComponentPo {
   }
 
   closeButton() {
-    return this.self().get('[data-testid="slide-in-panel-close-resource-explain"');
+    return cy.get('[data-testid="rc-drawer-close"]');
   }
 }

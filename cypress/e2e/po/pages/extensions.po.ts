@@ -306,11 +306,11 @@ export default class ExtensionsPagePo extends PagePo {
 
   // ------------------ extension details ------------------
   extensionDetails() {
-    return this.self().getId('extension-details');
+    return cy.getId('slide-in-panel-component');
   }
 
   extensionDetailsBgClick(): Cypress.Chainable {
-    return this.self().getId('extension-details-bg').click();
+    return cy.getId('slide-in-glass').click('left');
   }
 
   extensionDetailsTitle(): Cypress.Chainable<string> {
@@ -322,7 +322,7 @@ export default class ExtensionsPagePo extends PagePo {
   }
 
   extensionDetailsCloseClick(): Cypress.Chainable {
-    return this.extensionDetails().getId('extension-details-close').click();
+    return this.extensionDetails().getId('rc-drawer-close').click();
   }
 
   // ------------------ extension tabs ------------------

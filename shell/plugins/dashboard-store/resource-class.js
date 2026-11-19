@@ -943,13 +943,10 @@ export default class Resource {
   }
 
   showConfiguration(returnFocusSelector, defaultTab) {
-    const onClose = () => this.$ctx.commit('slideInPanel/close', undefined, { root: true });
-
     this.$ctx.commit('slideInPanel/open', {
       component:      ResourceDetailDrawerAsync,
       componentProps: {
         resource:           this,
-        onClose,
         width:              'wide',
         height:             'full',
         closeOnRouteChange: ['name', 'params', 'query'],

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useStore } from 'vuex';
-import DrawerCard from '@shell/components/Drawer/DrawerCard.vue';
+import { RcDrawerCard } from '@components/RcDrawer';
 import { useI18n } from '@shell/composables/useI18n';
 import { authProviderDetails } from '@shell/utils/auth-provider-details';
 
@@ -17,7 +17,7 @@ const details = computed(() => authProviderDetails(props.config, i18n.t, props.n
 </script>
 
 <template>
-  <DrawerCard
+  <RcDrawerCard
     v-if="details.length"
     class="auth-provider-details-card"
   >
@@ -38,7 +38,7 @@ const details = computed(() => authProviderDetails(props.config, i18n.t, props.n
         </dd>
       </div>
     </dl>
-  </DrawerCard>
+  </RcDrawerCard>
 </template>
 
 <style lang="scss" scoped>

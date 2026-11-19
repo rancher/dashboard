@@ -34,3 +34,8 @@ export class OpenAPI {
     });
   }
 }
+
+/**
+ * The cache shared by everything that shows a resource explanation
+ */
+export const openAPI = new OpenAPI();
