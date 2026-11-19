@@ -192,3 +192,32 @@
     }
   }
 }
+
+// A list reordered by dragging (`useDragReorder`), applied while a row is carried: the other rows slide out of the way (`$move` is the
+// TransitionGroup's move class) and the dropped `$row` settles into place
+@mixin drag-reorder-list($row, $move) {
+  cursor: grabbing;
+
+  #{$move} {
+    transition: transform 0.2s $drag-displace-curve;
+  }
+
+  #{$row} {
+    transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
+  }
+}
+
+// A row of such a list, lifted while it's carried (its `held` class)
+@mixin drag-reorder-row {
+  transition: background-color 0.1s ease-in-out;
+  user-select: none;
+
+  &.held {
+    position: relative;
+    z-index: 1;
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    transform: scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+    transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
+  }
+}

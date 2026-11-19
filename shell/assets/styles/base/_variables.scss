@@ -86,3 +86,8 @@ $font-size-h2: 21px;
 $space-s: 10px;
 $space-m: 24px;
 $space-l: 40px;
+
+// Drag reorder (`useDragReorder`): rows making way for the one carried, and the dropped row settling. The side nav's pinned shelf uses
+// the same curves
+$drag-displace-curve: cubic-bezier(0.2, 0, 0, 1);
+$drag-drop-curve: cubic-bezier(0.2, 1, 0.1, 1);

@@ -2,7 +2,7 @@
  * Reorder a list by dragging an item along it. The item is picked up once the pointer travels
  * DRAG_THRESHOLD, so a press is still a click. Escape abandons the drag
  */
-import { onBeforeUnmount, ref } from 'vue';
+import { onBeforeUnmount, ref, Ref } from 'vue';
 
 import { moveInOrder } from '@shell/utils/table-views/views';
 
@@ -20,6 +20,55 @@ export interface DragReorderOptions {
   onCommit: (order: string[]) => void;
   onBegin?: () => void;
   onEnd?: () => void;
+}
+
+/**
+ * The `measure` and `indexAt` of a vertical list for `useDragReorder`: the rows (`rowSelector`, inside `container`) are measured once as
+ * the drag begins, in the container's coordinates, since displaced rows are mid-transition afterwards and the container may scroll
+ */
+export function useListSlots(container: Ref<HTMLElement | null>, rowSelector: string) {
+  let slots: { top: number, bottom: number }[] = [];
+
+  const measure = () => {
+    const scroller = container.value;
+    const rows = scroller?.querySelectorAll(rowSelector) || [];
+    const origin = scroller ? scroller.getBoundingClientRect().top - scroller.scrollTop : 0;
+
+    slots = Array.from(rows).map((el) => {
+      const box = el.getBoundingClientRect();
+
+      return { top: box.top - origin, bottom: box.bottom - origin };
+    });
+  };
+
+  /** Clamped, so dragging past the last row parks the item at the end */
+  const indexAt = (clientY: number) => {
+    const scroller = container.value;
+
+    if (!slots.length || !scroller) {
+      return -1;
+    }
+
+    const y = clientY - scroller.getBoundingClientRect().top + scroller.scrollTop;
+
+    if (y <= slots[0].top) {
+      return 0;
+    }
+
+    if (y >= slots[slots.length - 1].bottom) {
+      return slots.length - 1;
+    }
+
+    return slots.findIndex((slot) => y >= slot.top && y <= slot.bottom);
+  };
+
+  const clear = () => {
+    slots = [];
+  };
+
+  return {
+    measure, indexAt, clear
+  };
 }
 
 /** The click that ends a drag would act on whatever the pointer is over */
