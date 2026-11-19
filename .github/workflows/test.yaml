@@ -31,8 +31,6 @@ env:
   E2E_BUILD_DIST_DIR: dist
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
-  # Generate mode uploads its mocks encrypted to this age public key, to be checked and committed. Empty: not uploaded
-  E2E_MOCKS_RECIPIENT: ""
 
 jobs:
   # Verify licenses.json is up to date with the packages that end up in the
@@ -393,6 +391,7 @@ jobs:
         run: node cypress/support/e2e-modes/mocks.js pack e2e-recordings ${{ matrix.role.username }} "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br"
 
       - name: Check integration mocks for credentials
+        id: mocks-check
         if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
         run: |
           curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
@@ -400,22 +399,14 @@ jobs:
           tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
           node cypress/support/e2e-modes/mocks.js check "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br" --gitleaks "$RUNNER_TEMP/gitleaks"
 
-      - name: Encrypt integration mocks
-        if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-mocks/*.json.br') != '' && env.E2E_MOCKS_RECIPIENT != '' }}
-        run: |
-          curl -sSfL -o "$RUNNER_TEMP/age.tar.gz" https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz
-          echo "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10  $RUNNER_TEMP/age.tar.gz" | sha256sum -c -
-          tar -xzf "$RUNNER_TEMP/age.tar.gz" -C "$RUNNER_TEMP" age/age
-          "$RUNNER_TEMP/age/age" -r "$E2E_MOCKS_RECIPIENT" -o "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br.age" "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br"
-
-      - name: Upload encrypted integration mocks
+      - name: Upload integration mocks
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: ${{ !cancelled() && hashFiles('e2e-mocks/*.age') != '' }}
+        if: ${{ !cancelled() && steps.mocks-check.outcome == 'success' }}
         with:
           name: e2e-mocks-${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}
-          path: e2e-mocks/*.age
+          path: e2e-mocks/*.json.br
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 3
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}
