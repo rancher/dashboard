@@ -1,4 +1,5 @@
 import { configTypeForProvider, configTypeName, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
+import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { LOCAL_AUTH_ID, UNSUPPORTED_AUTH_IDS } from '@shell/utils/auth';
 import { clone } from '@shell/utils/object';
 import { sortBy } from '@shell/utils/sort';
@@ -213,6 +214,22 @@ export const providerOfConfig = (getters: Record<string, any>, configName: strin
   const driver = getters['rancher/byId']('authProvider', configName);
 
   return driver?.type ? providerKey(driver.type) : configName;
+};
+
+/**
+ * The enabled provider that a principal logged in through, when that provider
+ * supports Single Logout. Another provider's Single Logout settings never apply
+ * to the session, so `undefined` is returned for every other principal.
+ */
+export const sloAuthProviderOfPrincipal = <T extends AuthProviderDriver>(authProviders: T[], principalId?: string | null): T | undefined => {
+  if (!principalId) {
+    return undefined;
+  }
+
+  const configName = configNameOfPrincipal(principalId);
+  const provider = authProviders.find((authProvider) => authProvider?.id === configName);
+
+  return provider && SLO_AUTH_PROVIDERS.includes(configTypeForProvider(provider.type)) ? provider : undefined;
 };
 
 /**

@@ -551,4 +551,49 @@ describe('component: Header', () => {
       open.mockRestore();
     });
   });
+  describe('the single logout prompt', () => {
+    const keycloak = {
+      id: 'keycloak', type: 'keyCloakProvider', logoutAllSupported: true, logoutAllEnabled: true, logoutAllForced: false
+    };
+    const openldap = {
+      id: 'openldap', type: 'openLdapProvider', logoutAllSupported: false, logoutAllEnabled: false, logoutAllForced: false
+    };
+    const authProviders = { 'rancher/all': () => [keycloak, openldap] };
+
+    it('should prompt a user of the provider that has single logout set to let the user choose', () => {
+      const wrapper = createWrapper({}, { ...authProviders, 'auth/principalId': 'keycloak_user://alice@example.com' });
+
+      expect((wrapper.vm as any).shouldShowSloLogoutModal).toBe(true);
+    });
+
+    it('should not prompt a user of another provider with the single logout of an unrelated provider', () => {
+      const wrapper = createWrapper({}, { ...authProviders, 'auth/principalId': 'openldap_user://uid=alice,ou=people,dc=example' });
+
+      expect((wrapper.vm as any).shouldShowSloLogoutModal).toBe(false);
+    });
+
+    it('should not prompt a user of the provider when single logout is forced', () => {
+      const wrapper = createWrapper({}, {
+        'rancher/all':      () => [{ ...keycloak, logoutAllForced: true }],
+        'auth/principalId': 'keycloak_user://alice@example.com',
+      });
+
+      expect((wrapper.vm as any).shouldShowSloLogoutModal).toBe(false);
+    });
+
+    it('should pass the provider the user logged in through to the prompt', () => {
+      const wrapper = createWrapper({}, {
+        'rancher/all':      () => [openldap, { ...keycloak, id: 'keycloak-2' }, keycloak],
+        'auth/principalId': 'keycloak_user://alice@example.com',
+      });
+
+      (wrapper.vm as any).showSloModal();
+
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith('management/promptModal', {
+        component:      'SloDialog',
+        componentProps: { authProvider: keycloak },
+        modalWidth:     '600px'
+      });
+    });
+  });
 });
