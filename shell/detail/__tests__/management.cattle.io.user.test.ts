@@ -94,7 +94,7 @@ describe('view: management.cattle.io.user', () => {
     const wrapper = shallowMount(DetailUser, {
       props: {
         value: {
-          id: USER_ID, principalIds, fetchGroupPrincipals: () => Promise.resolve(groups)
+          id: USER_ID, principalIds, fetchGroupPrincipals: () => Promise.resolve(groups), fetchAssignedPersonas: () => Promise.resolve([])
         },
         mode: 'view'
       },

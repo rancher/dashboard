@@ -1,4 +1,7 @@
-import { NORMAN, EXT, MANAGEMENT } from '@shell/config/types';
+import {
+  NORMAN, EXT, MANAGEMENT, CUSTOMIZATION
+} from '@shell/config/types';
+import { PERSONA_LABEL } from '@shell/models/customization.ui.rancher.persona';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import day from 'dayjs';
 import { configNameOfPrincipal, providerOfConfig } from '@shell/utils/auth-providers';
@@ -219,6 +222,48 @@ export default class User extends SteveModel {
       // A user that has never logged in has no UserAttribute
       return {};
     }
+  }
+
+  /**
+   * The personas assigned to the user on the persona edit page (global role bindings with the persona label), directly (one of the
+   * user's principals) or via one of their groups
+   *
+   * @param groupPrincipals the user's groups, from `fetchGroupPrincipals`
+   * @returns each persona with how it's assigned: `direct`, and the names of the `groups`
+   */
+  async fetchAssignedPersonas(groupPrincipals = {}) {
+    const [bindings, personas] = await Promise.all([
+      // Only the persona bindings, filtered on the server. Transient, so the store's global role bindings are left alone
+      this.$dispatch('findLabelSelector', {
+        type:     MANAGEMENT.GLOBAL_ROLE_BINDING,
+        matching: { labelSelector: { matchExpressions: [{ key: PERSONA_LABEL, operator: 'Exists' }] } },
+        opt:      { transient: true },
+      }),
+      this.$dispatch('findAll', { type: CUSTOMIZATION.PERSONA }),
+    ]);
+    const assigned = {};
+
+    (bindings?.data || []).forEach((binding) => {
+      const name = binding.metadata?.labels?.[PERSONA_LABEL];
+      const direct = (this.principalIds || []).includes(binding.userPrincipalName);
+      const group = groupPrincipals[binding.groupPrincipalName];
+
+      if (!direct && !group) {
+        return;
+      }
+
+      const entry = assigned[name] || { direct: false, groups: [] };
+
+      entry.direct = entry.direct || direct;
+      if (group && !entry.groups.includes(group)) {
+        entry.groups.push(group);
+      }
+      assigned[name] = entry;
+    });
+
+    return personas
+      .filter((persona) => assigned[persona.metadata.name])
+      .map((persona) => ({ persona, ...assigned[persona.metadata.name] }));
   }
 
   get canRefreshMemberships() {

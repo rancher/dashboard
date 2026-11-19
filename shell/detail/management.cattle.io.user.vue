@@ -3,8 +3,9 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
-import { MANAGEMENT } from '@shell/config/types';
+import { CUSTOMIZATION, MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
+import Banner from '@components/Banner/Banner.vue';
 import { NAME } from '@shell/config/table-headers';
 
 export default {
@@ -14,7 +15,8 @@ export default {
     Tab,
     ResourceTabs,
     SortableTable,
-    Loading
+    Loading,
+    Banner,
   },
   mixins: [
     CreateEditView
@@ -27,6 +29,14 @@ export default {
 
     if (canSeeGlobalRoles) {
       this.globalBindings = await this.fetchGlobalRoleBindings(this.value.id);
+    }
+
+    // Finding a user's personas needs their persona bindings, the personas and the user's groups
+    const canSeePersonas = [MANAGEMENT.GLOBAL_ROLE_BINDING, CUSTOMIZATION.PERSONA, MANAGEMENT.USER_ATTRIBUTE]
+      .every((type) => !!this.$store.getters[`management/canList`](type));
+
+    if (canSeePersonas) {
+      this.personas = await this.value.fetchAssignedPersonas(this.groupPrincipals);
     }
 
     this.canSeeRoleTemplates = !!this.$store.getters[`management/canList`](MANAGEMENT.ROLE_TEMPLATE);
@@ -115,6 +125,24 @@ export default {
         ]
       },
       grantedViaColumn,
+      personaHeaders: [
+        {
+          name:      'persona',
+          labelKey:  'user.detail.personas.tableHeaders.persona',
+          value:     'displayName',
+          sort:      'displayName',
+          formatter: 'LinkDetail',
+        },
+        {
+          name:     'priority',
+          labelKey: 'user.detail.personas.tableHeaders.priority',
+          value:    'priorityDisplay',
+          sort:     'priority:desc',
+          width:    '20%',
+        },
+      ],
+      // Null when the viewer can't see what's needed to find them
+      personas:            null,
       globalBindings:      null,
       canSeeRoleTemplates: false,
       isAdmin:             false,
@@ -143,6 +171,30 @@ export default {
         cr: [...this.headers.cr.slice(0, 2), this.grantedViaColumn, ...this.headers.cr.slice(2)],
         pr: [...this.headers.pr.slice(0, 3), this.grantedViaColumn, ...this.headers.pr.slice(3)],
       };
+    },
+
+    personaRows() {
+      const direct = this.t('user.detail.generic.direct');
+
+      return (this.personas || []).map(({ persona, direct: isDirect, groups }) => ({
+        id:              persona.id,
+        displayName:     persona.spec?.displayName || persona.metadata.name,
+        priority:        persona.spec?.priority || 0,
+        // As the persona's own page shows it
+        priorityDisplay: persona.spec?.priority || '—',
+        detailLocation:  persona.detailLocation,
+        grantedVia:      [...(isDirect ? [direct] : []), ...groups].join(', '),
+      }));
+    },
+
+    personaTableHeaders() {
+      if (!Object.keys(this.groupPrincipals).length) {
+        return this.personaHeaders;
+      }
+
+      return [...this.personaHeaders, {
+        ...this.grantedViaColumn, value: 'grantedVia', sort: 'grantedVia'
+      }];
     },
 
     clusterBindings() {
@@ -357,6 +409,38 @@ export default {
           </template>
         </SortableTable>
       </Tab>
+      <Tab
+        v-if="personas"
+        label-key="user.detail.personas.label"
+        name="personas"
+        :weight="0"
+      >
+        <div class="tab-content">
+          <Banner
+            color="info"
+            class="tab-note"
+            label-key="user.detail.personas.description"
+            data-testid="user-detail-personas-note"
+          />
+          <SortableTable
+            v-if="personaRows.length"
+            :rows="personaRows"
+            :headers="personaTableHeaders"
+            key-field="id"
+            :table-actions="false"
+            :row-actions="false"
+            :search="false"
+            data-testid="user-detail-personas"
+          />
+          <p
+            v-else
+            class="text-muted"
+            data-testid="user-detail-personas-empty"
+          >
+            {{ t('user.detail.personas.empty') }}
+          </p>
+        </div>
+      </Tab>
     </ResourceTabs>
   </div>
 </template>
@@ -365,6 +449,10 @@ export default {
 .subtext {
   margin-bottom: 10px;
   font-style: italic;
+}
+// Banner's own margin (15px above and below) would add to the tab's padding above it. Two classes, to outrank Banner's scoped rule
+.tab-content .tab-note {
+  margin: 0 0 20px;
 }
 .admin {
   display: flex;

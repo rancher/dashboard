@@ -7994,6 +7994,13 @@ user:
       description: Roles granted to this user for individual projects
       tableHeaders:
         project: Project
+    personas:
+      label: Personas
+      description: Personas that are manually assigned to this user, directly or via one of their groups. This does not include Personas associated with this user via Resource Permissions
+      empty: This user has no Personas assigned
+      tableHeaders:
+        persona: Persona
+        priority: Priority
     generic:
       direct: Direct
       tableHeaders:
