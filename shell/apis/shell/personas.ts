@@ -41,7 +41,9 @@ export class PersonasApiImpl implements PersonasApi {
   public async currentUsersPersonas(): Promise<Persona[]> {
     const [personas, assignedNames] = await Promise.all([this.findPersonas(), this.assignedPersonaNames()]);
 
-    return personas.filter((persona) => assignedNames.includes(persona.metadata.name) || this.isAssociated(persona));
+    return personas
+      .filter((persona) => assignedNames.includes(persona.metadata.name) || this.isAssociated(persona))
+      .sort((a, b) => this.compareImportance(a, b));
   }
 
   public refreshCurrentUsersPersonas(): Promise<Persona[]> {
@@ -55,6 +57,19 @@ export class PersonasApiImpl implements PersonasApi {
    */
   public reset() {
     delete this.assignedNames;
+  }
+
+  /**
+   * Most important first: the highest priority (a persona without one is 0), then by display name
+   */
+  private compareImportance(a: Persona, b: Persona): number {
+    const byPriority = (b.spec?.priority || 0) - (a.spec?.priority || 0);
+
+    if (byPriority) {
+      return byPriority;
+    }
+
+    return (a.spec?.displayName || '').localeCompare(b.spec?.displayName || '');
   }
 
   /**
