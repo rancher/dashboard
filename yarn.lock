@@ -8634,7 +8634,6 @@ eslint-plugin-jest@29.15.2:
 
 "eslint-plugin-local-rules@link:./eslint-plugin-local-rules":
   version "0.0.0"
-  uid ""
 
 "eslint-plugin-local-rules@link:eslint-plugin-local-rules":
   version "0.0.0"
@@ -13269,16 +13268,16 @@ pause-stream@0.0.11:
     through "~2.3"
 
 pbkdf2@^3.1.2, pbkdf2@^3.1.5:
-  version "3.1.5"
-  resolved "https://registry.npmjs.org/pbkdf2/-/pbkdf2-3.1.5.tgz#444a59d7a259a95536c56e80c89de31cc01ed366"
-  integrity sha512-Q3CG/cYvCO1ye4QKkuH7EXxs3VC/rI1/trd+qX2+PolbaKG0H+bgcZzrTt96mMyRtejk+JMCiLUn3y29W8qmFQ==
+  version "3.1.7"
+  resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.1.7.tgz#8c707645f9291f232ba84e24231819eae30402b1"
+  integrity sha512-nS4mvFgVwUrecPTRdpdseM2fwpdfnX0/HibA8DgBRQtihUAzHQYJFU2l+OlEtiXtpqkrMvCPDwyXMUnASDt6Qw==
   dependencies:
     create-hash "^1.2.0"
     create-hmac "^1.1.7"
     ripemd160 "^2.0.3"
     safe-buffer "^5.2.1"
     sha.js "^2.4.12"
-    to-buffer "^1.2.1"
+    to-buffer "^1.2.2"
 
 pend@~1.2.0:
   version "1.2.0"
