@@ -32,7 +32,7 @@ env:
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
   # Generate mode uploads its mocks encrypted to this age public key, to be checked and committed. Empty: not uploaded
-  E2E_MOCKS_RECIPIENT: age1txgjtxtfnt6ysnteclr5dz0qclse5zdgyahjt4epvgce47y58epqxfc24n
+  E2E_MOCKS_RECIPIENT: ""
 
 jobs:
   # Verify licenses.json is up to date with the packages that end up in the
