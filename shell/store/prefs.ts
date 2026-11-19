@@ -183,6 +183,9 @@ export const READ_ANNOUNCEMENTS = create('read-announcements', '', { parseJSON }
 // Hidden banners
 export const HIDE_SUSE_APP_COLLECTION_REPO_BANNER = create('hide-suse-app-collection-repo-banner', false);
 
+// The user's own priority for each of their personas, by persona name. Wins over the persona's own priority
+export const PERSONA_PRIORITIES = create('persona-priorities', {}, { parseJSON });
+
 // --------------------
 
 const cookiePrefix = 'R_';

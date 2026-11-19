@@ -1,11 +1,12 @@
 import { Store } from 'vuex';
-import { PersonasApi } from '@shell/apis/intf/shell';
+import { PersonasApi, PersonaPriorities } from '@shell/apis/intf/shell';
 import { AUTHORIZATION, CUSTOMIZATION, SCHEMA } from '@shell/config/types';
 import Persona, { PERSONA_API_GROUP } from '@shell/models/customization.ui.rancher.persona';
 import SelfSubjectRulesReview from '@shell/models/authorization.k8s.io.selfsubjectrulesreview';
 import { PolicyRule } from '@shell/types/resources/rbac';
 import { Schema } from '@shell/plugins/steve/schema';
 import { STORE } from '@shell/store/store-types';
+import { PERSONA_PRIORITIES } from '@shell/store/prefs';
 
 /**
  * Maps each RBAC verb in a persona rule to the HTTP method that shows the user has it, and which of the schema's method lists holds it.
@@ -40,10 +41,25 @@ export class PersonasApiImpl implements PersonasApi {
 
   public async currentUsersPersonas(): Promise<Persona[]> {
     const [personas, assignedNames] = await Promise.all([this.findPersonas(), this.assignedPersonaNames()]);
+    const priorities = this.currentUsersPersonaPriorities();
 
     return personas
       .filter((persona) => assignedNames.includes(persona.metadata.name) || this.isAssociated(persona))
-      .sort((a, b) => this.compareImportance(a, b));
+      .sort((a, b) => this.compareImportance(a, b, priorities));
+  }
+
+  public currentUsersPersonaPriorities(): PersonaPriorities {
+    return this.store.getters['prefs/get'](PERSONA_PRIORITIES) || {};
+  }
+
+  public async setCurrentUsersPersonaPriorities(priorities: PersonaPriorities): Promise<void> {
+    await this.store.dispatch('prefs/set', { key: PERSONA_PRIORITIES, value: priorities });
+  }
+
+  public async reorderCurrentUsersPersonas(order: string[]): Promise<void> {
+    const personas = await this.findPersonas();
+
+    await this.setCurrentUsersPersonaPriorities(this.prioritiesForOrder(personas, order, this.currentUsersPersonaPriorities()));
   }
 
   public refreshCurrentUsersPersonas(): Promise<Persona[]> {
@@ -60,16 +76,46 @@ export class PersonasApiImpl implements PersonasApi {
   }
 
   /**
-   * Most important first: the highest priority (a persona without one is 0), then by display name
+   * Most important first: the highest priority (the user's own, else the persona's), then by display name
    */
-  private compareImportance(a: Persona, b: Persona): number {
-    const byPriority = (b.spec?.priority || 0) - (a.spec?.priority || 0);
+  private compareImportance(a: Persona, b: Persona, priorities: PersonaPriorities): number {
+    const byPriority = this.effectivePriority(b, priorities) - this.effectivePriority(a, priorities);
 
     if (byPriority) {
       return byPriority;
     }
 
     return (a.spec?.displayName || '').localeCompare(b.spec?.displayName || '');
+  }
+
+  /**
+   * How important a persona is to the user: their own priority for it if they've set one, else the persona's (a persona without one is 0)
+   */
+  private effectivePriority(persona: Persona, priorities: PersonaPriorities): number {
+    return priorities[persona.metadata.name] ?? persona.spec?.priority ?? 0;
+  }
+
+  /**
+   * The user's priorities after they put their personas in `order` (persona names, most important first).
+   *
+   * The listed personas' current priorities are handed out again in the new order, highest first, so the user's priorities stay on the
+   * same scale as the personas' own and a persona without one (e.g. a new one) still lands where its priority puts it. A priority that
+   * would tie with or pass the one above becomes one less than it
+   */
+  private prioritiesForOrder(personas: Persona[], order: string[], priorities: PersonaPriorities): PersonaPriorities {
+    const listed = order
+      .map((name) => personas.find((persona) => persona.metadata.name === name))
+      .filter((persona): persona is Persona => !!persona);
+    const values = listed.map((persona) => this.effectivePriority(persona, priorities)).sort((a, b) => b - a);
+    const out = { ...priorities };
+
+    listed.forEach((persona, i) => {
+      const above = i ? out[listed[i - 1].metadata.name] : undefined;
+
+      out[persona.metadata.name] = above === undefined ? values[i] : Math.min(values[i], above - 1);
+    });
+
+    return out;
   }
 
   /**
