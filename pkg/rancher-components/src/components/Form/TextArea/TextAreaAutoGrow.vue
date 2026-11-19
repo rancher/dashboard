@@ -93,9 +93,9 @@ export default defineComponent({
     },
 
     /**
-     * Recalculate the height when the value is changed programmatically (e.g.
-     * populated from a file) and when the window is resized, not just on user
-     * input. Opt-in to avoid changing the behaviour of existing usages.
+     * Recalculate the height when the window is resized. Despite its name, this
+     * no longer affects value changes: the height always follows the value,
+     * however it changes.
      */
     resizeOnValueChangeAndResizeWindow: {
       type:    Boolean,
@@ -144,12 +144,8 @@ export default defineComponent({
   },
 
   watch: {
-    // Recalculate the height when the value is changed programmatically (e.g.
-    // populated from a file), not just on user input. Opt-in via resizeOnValueChangeAndResizeWindow.
     value() {
-      if (this.resizeOnValueChangeAndResizeWindow) {
-        this.queueResize();
-      }
+      this.queueResize();
     },
 
     $attrs: {
@@ -238,6 +234,11 @@ export default defineComponent({
       }
 
       const contentHeight = this.measureContentHeight(el);
+
+      if (contentHeight === null) {
+        return;
+      }
+
       const neu = Math.max(this.minHeight, Math.min(contentHeight, this.maxHeight));
       const overflows = contentHeight > this.maxHeight;
 
@@ -259,9 +260,14 @@ export default defineComponent({
      * Measures the required content height for the given textarea by mirroring
      * its text into an off-screen div sized to match the textarea's rendering.
      * Returns the border-box height needed to display all content without
-     * scrolling.
+     * scrolling, or null when the textarea has no width to wrap against (e.g.
+     * it is hidden).
      */
-    measureContentHeight(el: HTMLTextAreaElement): number {
+    measureContentHeight(el: HTMLTextAreaElement): number | null {
+      if (!el.clientWidth) {
+        return null;
+      }
+
       const cs = getComputedStyle(el);
 
       let mirror = this.mirror;
