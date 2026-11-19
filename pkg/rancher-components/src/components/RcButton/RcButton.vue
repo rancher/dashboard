@@ -21,7 +21,7 @@ import {
   NavigationProps,
 } from './types';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
-import { warnOnce } from './deprecation';
+import { warnOnce, DEPRECATED_API } from './deprecation';
 
 const buttonVariants: { variant: ButtonVariant, className: string }[] = [
   { variant: 'solid', className: 'variant-primary' },
@@ -104,7 +104,7 @@ const linkProps = computed(() => {
 
 const activeVariantClassName = computed(() => {
   if (props.multiAction) {
-    warnOnce('[RcButton] The "multiAction" prop is deprecated and will be removed in a future version.');
+    warnOnce('[RcButton] The "multiAction" prop is deprecated and will be removed in a future version.', DEPRECATED_API);
 
     return deprecatedVariants.multiAction.className;
   }
@@ -117,7 +117,8 @@ const activeVariantClassName = computed(() => {
 
     warnOnce(
       `[RcButton] The "${ activeProp }" prop is deprecated and will be removed in a future version. ` +
-      `Please use variant="${ replacement }" instead.`
+      `Please use variant="${ replacement }" instead.`,
+      DEPRECATED_API
     );
 
     return deprecatedProp?.className ?? buttonVariants.find(({ variant }) => variant === replacement)?.className ?? 'variant-primary';
@@ -128,7 +129,7 @@ const activeVariantClassName = computed(() => {
   if (deprecated) {
     const advice = deprecated.replacement ? ` Please use variant="${ deprecated.replacement }" with color="primary" instead.` : '';
 
-    warnOnce(`[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version.${ advice }`);
+    warnOnce(`[RcButton] variant="${ props.variant }" is deprecated and will be removed in a future version.${ advice }`, DEPRECATED_API);
 
     return deprecated.className;
   }
@@ -154,7 +155,8 @@ const activeSizeClassName = computed(() => {
   if (activeSize) {
     warnOnce(
       `[RcButton] The "${ activeSize.size }" prop is deprecated and will be removed in a future version. ` +
-      `Please use size="${ activeSize.size }" instead.`
+      `Please use size="${ activeSize.size }" instead.`,
+      DEPRECATED_API
     );
 
     return activeSize.className;

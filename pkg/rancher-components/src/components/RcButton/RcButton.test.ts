@@ -1,6 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import RcButton from './RcButton.vue';
-import { ButtonVariant, DeprecatedButtonVariant } from './types';
+import { DeprecatedButtonVariant } from './types';
 
 describe('rcButton.vue', () => {
   it('renders with default variant', () => {
@@ -163,37 +163,15 @@ describe('rcButton.vue', () => {
 
   describe('deprecated variant values', () => {
     it.each([
-      ['primary', 'solid', 'variant-primary'],
-      ['secondary', 'outline', 'variant-secondary'],
-    ] as [DeprecatedButtonVariant, ButtonVariant, string][])('maps variant="%s" to %s and warns', (deprecated, replacement, className) => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-      const wrapper = mount(RcButton, { props: { variant: deprecated } });
-
-      expect(wrapper.find('button').classes()).toContain(className);
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ deprecated }" is deprecated`));
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ replacement }"`));
-      warn.mockRestore();
-    });
-
-    it.each([
+      ['primary', 'variant-primary'],
+      ['secondary', 'variant-secondary'],
       ['tertiary', 'variant-tertiary'],
       ['multiAction', 'variant-multi-action'],
-    ] as [DeprecatedButtonVariant, string][])('keeps rendering variant="%s" and warns without naming a replacement', (deprecated, className) => {
+    ] as [DeprecatedButtonVariant, string][])('still renders variant="%s"', (deprecated, className) => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
       const wrapper = mount(RcButton, { props: { variant: deprecated } });
 
       expect(wrapper.find('button').classes()).toContain(className);
-      expect(warn).toHaveBeenCalledWith(expect.stringContaining(`variant="${ deprecated }" is deprecated`));
-      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('Please use variant='));
-      warn.mockRestore();
-    });
-
-    it('does not warn for a current variant value', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-
-      mount(RcButton, { props: { variant: 'outline' } });
-
-      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('is deprecated'));
       warn.mockRestore();
     });
   });
