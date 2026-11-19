@@ -2796,4 +2796,45 @@ describe('page: UI plugins/Extensions', () => {
       });
     });
   });
+
+  describe('fetch', () => {
+    /**
+     * `catalog/load` with `reset` rebuilds the chart cache from only the repositories it fetches,
+     * and it skips any repository already marked loaded unless `force` is set. Two reset loads in
+     * a row therefore leave the cache empty: the second clears it and then fetches nothing to put
+     * back. Loads are serialised, so the page must only ask for one.
+     */
+    it('should load the catalog once, forcing the fetch', async() => {
+      const dispatch = jest.fn(() => Promise.resolve([]));
+      const store = {
+        getters: {
+          'prefs/get':            jest.fn(),
+          'catalog/rawCharts':    [],
+          'uiplugins/plugins':    [],
+          'uiplugins/errors':     {},
+          'management/all':       () => [],
+          'management/schemaFor': () => false,
+          'features/get':         () => true,
+        },
+        dispatch,
+      };
+
+      const w = shallowMount(UiPluginsPage, {
+        global: {
+          mocks: { $store: store, t },
+          stubs: { ActionMenu: { template: '<div />' } }
+        }
+      });
+
+      await (w.vm.$options as any).fetch.call(w.vm);
+
+      const loads = dispatch.mock.calls
+        .filter((c: any) => c[0] === 'catalog/load')
+        .map((c: any) => c[1]);
+
+      expect(loads).toStrictEqual([{ reset: true, force: true }]);
+
+      w.unmount();
+    });
+  });
 });

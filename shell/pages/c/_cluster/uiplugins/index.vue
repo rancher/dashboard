@@ -110,8 +110,6 @@ export default {
       }
     }
 
-    hash.load = this.$store.dispatch('catalog/load', { reset: true });
-
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER)) {
       hash.localCluster = this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
     }
@@ -610,7 +608,7 @@ export default {
       }
 
       if ( hasFeatureFlag || forceChartsUpdate ) {
-        this.refreshCharts(forceChartsUpdate);
+        await this.refreshCharts(forceChartsUpdate);
       }
 
       this['hasFeatureFlag'] = hasFeatureFlag;
