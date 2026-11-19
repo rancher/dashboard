@@ -319,14 +319,25 @@ export default class CatalogApp extends SteveModel {
     }
   }
 
+  /**
+   * A function that resolves to the CRD app installed with this app, or to undefined if the CRD app is already gone
+   */
   get relatedResourcesToRemove() {
     return async() => {
       const crd = this.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL]?.replace('=match', '');
 
-      return await this.$dispatch('find', {
-        type: CATALOG.APP,
-        id:   `${ this.metadata.namespace }/${ crd }`
-      });
+      try {
+        return await this.$dispatch('find', {
+          type: CATALOG.APP,
+          id:   `${ this.metadata.namespace }/${ crd }`
+        });
+      } catch (err) {
+        if (err?.status === 404) {
+          return undefined;
+        }
+
+        throw err;
+      }
     };
   }
 
