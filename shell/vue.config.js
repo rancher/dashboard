@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const webpack = require('webpack');
+// Use the app's webpack: a 'yarn link'ed shell would otherwise load its own copy and mix two webpack instances
+const webpack = require(require.resolve('webpack', { paths: [process.cwd(), __dirname] }));
 const { generateDynamicTypeImport } = require('./pkg/auto-import');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const serverMiddlewares = require('./server/server-middleware.js');
