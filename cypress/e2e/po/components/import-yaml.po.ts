@@ -29,4 +29,8 @@ export class ImportYamlPo extends ComponentPo {
   importYamlSortableTable() {
     return new SortableTablePo(this.self());
   }
+
+  background() {
+    return this.self().closest('.rc-modal-overlay');
+  }
 }
