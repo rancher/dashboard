@@ -382,3 +382,113 @@ describe('component: Tabbed, side tab add/remove controls', () => {
     expect(wrapper.emitted('removeTab')).toStrictEqual([[1]]);
   });
 });
+
+describe('component: Tabbed, tab order', () => {
+  type TabDef = { name: string, label?: string, weight?: number };
+
+  const mountWithTabs = async(tabs: TabDef[]) => {
+    const TabsComponent = defineComponent({
+      components: { Tab },
+      data:       () => ({ tabs }),
+      template:   `<Tab v-for="tab in tabs" :key="tab.name" :name="tab.name" :label="tab.label" :weight="tab.weight" />`,
+    });
+
+    const wrapper = mount(Tabbed, {
+      slots:  { default: TabsComponent },
+      global: { ...defaultGlobalMountOptions },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    return wrapper;
+  };
+
+  const tabLabels = (wrapper: VueWrapper<any>) => wrapper.findAll('[role="tab"]').map((tab) => tab.text());
+
+  it('should sort 15 labels with a numeric suffix in natural order', async() => {
+    const labels = Array.from({ length: 15 }, (_, i) => `Rule Group ${ i + 1 }`);
+    const wrapper = await mountWithTabs([...labels].reverse().map((label) => ({ name: label, label })));
+
+    expect(tabLabels(wrapper)).toStrictEqual(labels);
+  });
+
+  it.each([
+    ['a numeric suffix', ['Tab 10', 'Tab 2', 'Tab 1'], ['Tab 1', 'Tab 2', 'Tab 10']],
+    ['numbers mid-string', ['pool10-worker', 'pool2-worker', 'pool1-worker'], ['pool1-worker', 'pool2-worker', 'pool10-worker']],
+    ['multiple numbers', ['v1.10', 'v1.2', 'v10.1'], ['v1.2', 'v1.10', 'v10.1']],
+    ['very large numbers', ['Tab 99999999999', 'Tab 2'], ['Tab 2', 'Tab 99999999999']],
+    ['no numbers', ['Charlie', 'Alpha', 'Bravo'], ['Alpha', 'Bravo', 'Charlie']],
+  ])('should sort labels with %s in natural order', async(_, labels, expected) => {
+    const wrapper = await mountWithTabs(labels.map((label) => ({ name: label, label })));
+
+    expect(tabLabels(wrapper)).toStrictEqual(expected);
+  });
+
+  it('should sort by name in natural order when a tab has no label', async() => {
+    const wrapper = await mountWithTabs([{ name: 'tab10' }, { name: 'tab2' }]);
+
+    expect(tabLabels(wrapper)).toStrictEqual(['tab2', 'tab10']);
+  });
+
+  it('should fall back to name when labels are identical', async() => {
+    const wrapper = await mountWithTabs([
+      { name: 'b', label: 'Same' },
+      { name: 'a', label: 'Same' },
+    ]);
+    const names = wrapper.findAll('[role="presentation"][data-testid]').map((item) => item.attributes('data-testid'));
+
+    expect(names).toStrictEqual(['a', 'b']);
+  });
+
+  it.each([
+    ['count', { count: 1 }, { count: 2 }],
+    ['label', { label: 'Resources' }, { label: 'Resources Renamed' }],
+  ])('should not re-emit changed when a tab %s changes and weights decide the order', async(_, initial, updated) => {
+    const TabsComponent = defineComponent({
+      components: { Tab },
+      data:       () => ({ resources: { label: 'Resources', ...initial } }),
+      template:   `
+        <Tab name="values-yaml" label="Values YAML" :weight="2" />
+        <Tab name="resources" :label="resources.label" :weight="1" :count="resources.count" />
+      `,
+    });
+
+    const wrapper = mount(Tabbed, {
+      props:  { useHash: true },
+      slots:  { default: TabsComponent },
+      global: {
+        ...defaultGlobalMountOptions,
+        mocks: {
+          ...defaultGlobalMountOptions.mocks,
+          $router: { replace: jest.fn(), currentRoute: { _value: { hash: '#values-yaml' } } },
+          $route:  { hash: '#values-yaml' },
+        },
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+    const emittedBefore = wrapper.emitted('changed')?.length;
+
+    Object.assign(wrapper.findComponent(TabsComponent).vm.resources, updated);
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.emitted('changed')?.length).toStrictEqual(emittedBefore);
+  });
+
+  it('should order by weight before label', async() => {
+    const wrapper = await mountWithTabs([
+      {
+        name: 'a', label: 'Tab 1', weight: 1
+      },
+      {
+        name: 'b', label: 'Tab 10', weight: 3
+      },
+      {
+        name: 'c', label: 'Tab 2', weight: 2
+      },
+    ]);
+
+    expect(tabLabels(wrapper)).toStrictEqual(['Tab 10', 'Tab 2', 'Tab 1']);
+  });
+});
