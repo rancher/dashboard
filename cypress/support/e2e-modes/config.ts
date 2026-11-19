@@ -1,4 +1,6 @@
+import * as crypto from 'crypto';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { E2E_MODES, E2EMode } from './modes';
 import { RecordingStore } from './recordings';
@@ -50,8 +52,45 @@ export function e2eRecordingSet(env: NodeJS.ProcessEnv, username: string): strin
   return (env.TEST_RECORDING_SET || username).replace(/[^a-zA-Z0-9_.-]+/g, '-');
 }
 
-export function e2eRecordingsDir(env: NodeJS.ProcessEnv, projectRoot: string): string {
-  return path.resolve(projectRoot, env.TEST_RECORDINGS_DIR || path.join('cypress', 'recordings'));
+const MOCKS_DIR = path.join('cypress', 'integration-mocks');
+const BUNDLE = /\.json\.br$/;
+
+const unpackedBundles = (bundles: string[]): string => {
+  const { unpack } = require('./mocks');
+  const id = crypto.createHash('sha1').update(bundles.map((b) => `${ b }:${ fs.statSync(b).size }:${ fs.statSync(b).mtimeMs }`).join('\n')).digest('hex');
+  const dir = path.join(os.tmpdir(), `e2e-mocks-${ id.substring(0, 12) }`);
+  const done = path.join(dir, '.unpacked');
+
+  if (!fs.existsSync(done)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+    unpack(bundles, dir);
+    fs.writeFileSync(done, bundles.join('\n'));
+  }
+
+  return dir;
+};
+
+/**
+ * Where generate mode writes recordings (TEST_RECORDINGS_DIR, default cypress/recordings) and integration mode replays
+ * them from: the committed mocks in cypress/integration-mocks, unless TEST_RECORDINGS_DIR names a recordings directory,
+ * a directory of mock bundles or one bundle
+ */
+export function e2eRecordingsDir(mode: E2EMode, env: NodeJS.ProcessEnv, projectRoot: string, set: string): string {
+  const configured = env.TEST_RECORDINGS_DIR ? path.resolve(projectRoot, env.TEST_RECORDINGS_DIR) : undefined;
+
+  if (mode !== 'integration') {
+    return configured || path.resolve(projectRoot, 'cypress', 'recordings');
+  }
+
+  const source = configured || path.resolve(projectRoot, MOCKS_DIR);
+
+  if (BUNDLE.test(source)) {
+    return fs.existsSync(source) ? unpackedBundles([source]) : source;
+  }
+
+  const bundles = fs.existsSync(source) && fs.statSync(source).isDirectory() ? fs.readdirSync(source).filter((f) => BUNDLE.test(f) && f.startsWith(`${ set }@`)).sort().map((f) => path.join(source, f)) : [];
+
+  return bundles.length ? unpackedBundles(bundles) : source;
 }
 
 const firstExisting = (paths: string[]) => paths.find((p) => fs.existsSync(p));
@@ -85,7 +124,7 @@ export async function startE2EModeServer(mode: E2EMode, urls: E2EModeUrls, env: 
     mode,
     origin:   urls.origin,
     upstream: urls.upstream,
-    store:    new RecordingStore(e2eRecordingsDir(env, projectRoot)),
+    store:    new RecordingStore(e2eRecordingsDir(mode, env, projectRoot, e2eRecordingSet(env, username))),
     set:      e2eRecordingSet(env, username),
     distDir,
     key:      fs.readFileSync(key),

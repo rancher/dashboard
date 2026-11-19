@@ -31,6 +31,8 @@ env:
   E2E_BUILD_DIST_DIR: dist
   E2E_BUILD_DIST_EMBER_NAME: dist_ember
   E2E_BUILD_DIST_EMBER_DIR: dist_ember
+  # Generate mode uploads its mocks encrypted to this age public key, to be checked and committed. Empty: not uploaded
+  E2E_MOCKS_RECIPIENT: age1txgjtxtfnt6ysnteclr5dz0qclse5zdgyahjt4epvgce47y58epqxfc24n
 
 jobs:
   # Verify licenses.json is up to date with the packages that end up in the
@@ -103,11 +105,8 @@ jobs:
   e2e-plan:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     runs-on: ubuntu-24.04
-    permissions:
-      actions: read
-      contents: read
     outputs:
-      recordings-runs: ${{ steps.plan.outputs.recordings-runs }}
+      mocks: ${{ steps.plan.outputs.mocks }}
       integration: ${{ steps.plan.outputs.matrix }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
@@ -137,10 +136,6 @@ jobs:
         id: plan
         run: node .github/workflows/scripts/e2e-plan.js integration >> "$GITHUB_OUTPUT"
         env:
-          GH_TOKEN: ${{ github.token }}
-          BASE_BRANCH: ${{ github.base_ref || github.ref_name }}
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          HEAD_BRANCH: ${{ github.head_ref }}
           E2E_GROUPS: >-
             {
               "roles": [{ "username": "admin", "tag": "@adminUser" }, { "username": "standard_user", "tag": "@standardUser" }],
@@ -260,7 +255,7 @@ jobs:
           compression-level: 9
 
   e2e-test-integration:
-    if: "!cancelled() && needs.e2e-ui-build.result == 'success' && needs.e2e-plan.outputs.recordings-runs != '' && !contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    if: "!cancelled() && needs.e2e-ui-build.result == 'success' && needs.e2e-plan.outputs.mocks != '' && !contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: [e2e-ui-build, e2e-plan]
     name: e2e-test-integration (${{ matrix.username }}, ${{ matrix.tag }}, ${{ join(matrix.features, ', ') }}, ${{ matrix.shard }}/${{ matrix.shards }})
     strategy:
@@ -288,15 +283,6 @@ jobs:
          name: ${{ env.E2E_BUILD_DIST_NAME }}
          path: ${{ env.E2E_BUILD_DIST_DIR }}
 
-      - name: Restore recordings
-        id: recordings
-        if: ${{ matrix.recordings != '' }}
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: e2e-recordings
-          key: ${{ matrix.recordings }}newest
-          restore-keys: ${{ matrix.recordings }}
-
       - name: Run user tests
         run: |
           yarn e2e:prod
@@ -304,7 +290,7 @@ jobs:
         env:
           TEST_MODE: integration
           TEST_NO_VIDEOS: true
-          TEST_RECORDINGS_DIR: ${{ steps.recordings.outputs.cache-matched-key != '' && 'e2e-recordings' || 'cypress/recordings' }}
+          TEST_RECORDINGS_DIR: ${{ matrix.recordings || 'cypress/recordings' }}
           TEST_DIST_DIR: ${{ env.E2E_BUILD_DIST_DIR }}
           TEST_SKIP: setup
           SPEC_FILE: ${{ matrix.specs }}
@@ -402,25 +388,34 @@ jobs:
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: ${{ matrix.role.username }}
 
-      - name: Save recordings
+      - name: Pack integration mocks
         if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: e2e-recordings
-          key: e2e-recordings/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}/${{ github.run_id }}-${{ github.run_attempt }}
+        run: node cypress/support/e2e-modes/mocks.js pack e2e-recordings ${{ matrix.role.username }} "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br"
 
-      - name: Measure recordings
+      - name: Check integration mocks for credentials
         if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
-        run: node .github/workflows/scripts/e2e-plan.js durations e2e-recordings ${{ matrix.role.username }} > e2e-durations.json
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          node cypress/support/e2e-modes/mocks.js check "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br" --gitleaks "$RUNNER_TEMP/gitleaks"
 
-      - name: Upload recording durations
+      - name: Encrypt integration mocks
+        if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-mocks/*.json.br') != '' && env.E2E_MOCKS_RECIPIENT != '' }}
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/age.tar.gz" https://github.com/FiloSottile/age/releases/download/v1.3.2/age-v1.3.2-linux-amd64.tar.gz
+          echo "cbe24006683f8eb669266162894b9a522a1af52f2665fbc63a4bb032ed26ac10  $RUNNER_TEMP/age.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/age.tar.gz" -C "$RUNNER_TEMP" age/age
+          "$RUNNER_TEMP/age/age" -r "$E2E_MOCKS_RECIPIENT" -o "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br.age" "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br"
+
+      - name: Upload encrypted integration mocks
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
+        if: ${{ !cancelled() && hashFiles('e2e-mocks/*.age') != '' }}
         with:
-          name: e2e-durations-${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}
-          path: e2e-durations.json
+          name: e2e-mocks-${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: e2e-mocks/*.age
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}

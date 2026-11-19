@@ -120,7 +120,8 @@ const withoutDisplayKeys = (text: string): string => {
     return text;
   }
 };
-const writeBody = (text: string) => withoutDisplayKeys(text).replace(EPOCH_MS, '{ts}');
+const { scrubRequestBody } = require('./mocks');
+const writeBody = (text: string) => withoutDisplayKeys(scrubRequestBody(text)).replace(EPOCH_MS, '{ts}');
 const resourceType = (pathname: string) => /^(.*?\/v[13]\/[^/]+)/.exec(pathname)?.[1];
 const startOf = (entry: HarEntry) => Date.parse(entry.startedDateTime);
 const timestamps = (text: string) => Array.from(text.matchAll(EPOCH_MS)).map((m) => m[0]);
