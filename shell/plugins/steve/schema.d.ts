@@ -14,6 +14,14 @@ export interface SchemaAttribute {
   columns: SchemaAttributeColumn[],
   namespaced: boolean
   verbs: SchemaAttributeVerbs[]
+  /**
+   * API group, '' for the core group
+   */
+  group?: string,
+  /**
+   * Plural resource name, as used in RBAC rules
+   */
+  resource?: string,
 }
 
 /**
@@ -24,4 +32,12 @@ export interface SchemaAttribute {
 export interface Schema {
   id: string,
   attributes: SchemaAttribute
+  /**
+   * Methods the user can use on a resource of this type (e.g. GET, PUT, DELETE), from their own access
+   */
+  resourceMethods?: string[],
+  /**
+   * Methods the user can use on the type's collection (GET to list, POST to create), from their own access
+   */
+  collectionMethods?: string[],
 }
