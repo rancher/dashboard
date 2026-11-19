@@ -89,4 +89,11 @@ describe('component: networking.k8s.io.ingress/RulePath', () => {
     expect(select.exists()).toBe(true);
     expect(window.getComputedStyle(select.element).minWidth).toStrictEqual('');
   });
+
+  it('does not make the remove button a submit button, so pressing Enter in the form cannot remove the path', () => {
+    const removeButton = wrapper.find('.rule-path > button');
+
+    expect(removeButton.text()).toStrictEqual('%ingress.rules.removePath%');
+    expect((removeButton.element as HTMLButtonElement).type).toStrictEqual('button');
+  });
 });

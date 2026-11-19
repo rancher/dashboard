@@ -50,6 +50,19 @@ describe('Ingresses', { testIsolation: false, tags: ['@explorer', '@adminUser'] 
     ingressCreatePagePo.resourceDetail().resourceYaml().codeMirror().checkExists();
   });
 
+  it('keeps the rule path when Enter is pressed in Request Host', () => {
+    ingressListPagePo.goTo();
+    ingressListPagePo.baseResourceList().masthead().create();
+
+    const ingressCreatePagePo = new IngressCreateEditPo();
+
+    ingressCreatePagePo.waitForPage(null, 'rules');
+    ingressCreatePagePo.rulePaths(0).should('have.length', 1);
+
+    ingressCreatePagePo.setRuleRequestHostValue(0, 'example.com{enter}');
+    ingressCreatePagePo.rulePaths(0).should('have.length', 1);
+  });
+
   describe('Create/Edit', { tags: ['@adminUser'] }, () => {
     before('set up', () => {
       cy.createE2EResourceName('ingress').then((name) => {
