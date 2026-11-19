@@ -90,6 +90,15 @@ Resource detail pages show a row of cards under the masthead, which Rancher fill
 
 Rancher renders the card itself - the border and the title come from the same component the built-in cards use, and your component is rendered as the body of the card. The component is given the resource being viewed as a `resource` prop.
 
+### Where the card appears
+
+The card is shown on the resource detail page in view mode, alongside the cards Rancher adds itself.
+
+It is not shown:
+
+- while creating or editing a resource
+- on the legacy detail page (`?legacy=true`), which has no row of cards at all - Rancher's own cards are not shown there either. Resource types that have fully moved to the new detail page ignore that flag, so their cards are still shown
+
 Usage example for `'CardLocation.RESOURCE_DETAIL_CARD'`:
 
 ```ts
