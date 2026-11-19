@@ -2655,61 +2655,32 @@ describe('page: UI plugins/Extensions', () => {
         expect(failedBanner(w).exists()).toBe(false);
       });
 
-      it('should let a failure be dismissed, but not a download', async() => {
+      it('should not let either banner be dismissed', async() => {
+        // Both states resolve on their own - Rancher retries a failure without being asked - so
+        // neither is the user's to silence
         const broken = repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL);
         const slow = repoOf('repo-2', false, UI_PLUGINS_REPOS.PARTNERS.URL);
 
         failRepo(broken);
         const { wrapper: w } = await mountWithRepos(reactive([broken, slow]));
 
-        expect(failedBanner(w).attributes('closable')).toBe('true');
+        expect(failedBanner(w).attributes('closable')).toBe('false');
         expect(downloadingBanner(w).attributes('closable')).toBe('false');
-
-        failedBanner(w).trigger('close');
-        await settle(w);
-
-        expect(failedBanner(w).exists()).toBe(false);
-        // Dismissing the failure must not silence the repository that is merely slow
-        expect(downloadingBanner(w).exists()).toBe(true);
       });
 
-      it('should move focus out of the dismissed banner rather than losing it', async() => {
-        // Needs a real document: dismissing removes the focused Close button, and the point of
-        // the test is where the browser ends up afterwards (WCAG 2.4.3)
+      it('should pass Rancher\'s message through with the retry it already contains', async() => {
+        // Rancher appends ". Will retry after <duration>" itself, so the banner must not work the
+        // retry out a second time from nextRetryAt and end up saying it twice
+        const message = 'fetch: couldn\'t find remote ref "nope". Will retry after 5m55s';
         const broken = repoOf('repo-1', false, UI_PLUGINS_REPOS.OFFICIAL.URL);
 
-        failRepo(broken);
+        failRepo(broken, message);
+        broken.status.nextRetryAt = '2026-11-19T14:32:10Z';
+        const { wrapper: w } = await mountWithRepos(reactive([broken]));
 
-        const repos = reactive([broken]);
-        const w = shallowMount(UiPluginsPage, {
-          attachTo: document.body,
-          global:   {
-            mocks: {
-              $store: {
-                getters: {
-                  'prefs/get':         jest.fn(),
-                  'catalog/rawCharts': [],
-                  'uiplugins/plugins': [],
-                  'uiplugins/errors':  {},
-                  'management/all':    () => repos,
-                },
-                dispatch: jest.fn(() => Promise.resolve()),
-              },
-              t,
-            },
-            stubs: {
-              ActionMenu: { template: '<div />' },
-              Tabbed:     { template: '<div><button role="tab">Available</button></div>' },
-            }
-          }
-        });
-
-        await w.setData({ loading: false });
-        await w.vm.dismissFailedRepos();
-
-        expect(document.activeElement).toBe(w.find('[role="tab"]').element);
-
-        w.unmount();
+        expect((w.vm as any).failedRepos).toStrictEqual([{
+          id: 'repo-1', name: 'repo-1', state: 'failed', message
+        }]);
       });
 
       it('should report a repository that fails again after recovering', async() => {
@@ -2718,14 +2689,12 @@ describe('page: UI plugins/Extensions', () => {
         failRepo(repos[0]);
         const { wrapper: w } = await mountWithRepos(repos);
 
-        failedBanner(w).trigger('close');
-        await settle(w);
-        expect(failedBanner(w).exists()).toBe(false);
+        expect(failedBanner(w).exists()).toBe(true);
 
         // The retry succeeds, so the repository drops out of the pending list entirely
         repos[0].status = { indexConfigMapName: 'repo-1-0-abc', downloadTime: '2026-11-12T21:00:00Z' };
         await settle(w);
-        expect(w.vm.dismissedRepos).toStrictEqual([]);
+        expect(failedBanner(w).exists()).toBe(false);
 
         // ...and then it breaks again
         repos[0].status = {};

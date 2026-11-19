@@ -30,7 +30,11 @@ export type RepoDownloadState = {
    * `failed` - Rancher could not produce an index.
    */
   state: 'ready' | 'downloading' | 'failed';
-  /** Rancher's own error text, only set when `state` is `failed`. */
+  /**
+   * Rancher's own error text, only set when `state` is `failed`. It already ends with
+   * ". Will retry after <duration>" whenever another attempt is coming, so callers reporting this
+   * do not need to work the retry out for themselves.
+   */
   message: string;
 };
 
@@ -68,7 +72,8 @@ export function isReportableExtensionRepo(repo: ClusterRepo): boolean {
  *
  * `status.nextRetryAt` looks like the obvious failure signal but is not usable - Rancher clears it
  * both when the retry budget is exhausted and for errors it will not retry, which are exactly the
- * cases that matter most. The download conditions are the reliable source.
+ * cases that matter most. The download conditions are the reliable source, and their message
+ * already carries the retry when there is one.
  */
 export function repoDownloadState(repo: ClusterRepo): RepoDownloadState {
   if (repo?.status?.indexConfigMapName) {
@@ -122,67 +127,52 @@ function repoFromStore(store: any, name: string): ClusterRepo {
 }
 
 /**
- * Follow a repository that has just been added until Rancher has an index for it, reporting
- * progress through the Notification Centre so the user can leave the page and still be told when
- * their extensions are ready.
+ * Confirm through the Notification Centre once a newly added repository's extensions are ready, so
+ * the user can leave the page and still be told.
  *
- * Rancher reports nothing between "started" and "index published", so the task notification is
- * deliberately left without a `progress` value, which renders it as indeterminate.
+ * Only the confirmation is a notification. A repository that is downloading, or that failed, is
+ * reported by the Extensions page itself - saying it twice adds nothing, and a notification for
+ * work still in progress outlives the page that would have resolved it.
  *
  * Runs detached from whatever component started it - it must outlive the dialog that triggers it.
  */
 export async function notifyRepoDownload(store: any, repoName: string): Promise<void> {
-  const t = store.getters['i18n/t'];
-  const notificationId = `extension-repo-download-${ repoName }`;
-
-  await store.dispatch('notifications/add', {
-    id:      notificationId,
-    level:   NotificationLevel.Task,
-    title:   t('plugins.repoDownload.busy.title'),
-    message: t('plugins.repoDownload.busy.message', { name: repoName }),
-  });
-
-  const settled = await waitForRepoDownload(store, repoName);
-
-  if (settled.state === 'ready') {
-    return store.dispatch('notifications/update', {
-      id:            notificationId,
-      level:         NotificationLevel.Success,
-      title:         t('plugins.repoDownload.ready.title'),
-      message:       t('plugins.repoDownload.ready.message', { name: repoName }),
-      primaryAction: {
-        label: t('plugins.repoDownload.ready.action'),
-        route: { name: 'c-cluster-uiplugins', params: { cluster: 'local' } }
-      }
-    });
+  if ((await waitForRepoDownload(store, repoName)).state !== 'ready') {
+    return;
   }
 
-  return store.dispatch('notifications/update', {
-    id:      notificationId,
-    level:   NotificationLevel.Error,
-    title:   t('plugins.repoDownload.failed.title'),
-    message: settled.message || t('plugins.repoDownload.failed.message', { name: repoName }),
+  const t = store.getters['i18n/t'];
+  const repo = store.getters['management/byId'](CATALOG.CLUSTER_REPO, repoName);
+
+  return store.dispatch('notifications/add', {
+    id:            `extension-repo-download-${ repoName }`,
+    level:         NotificationLevel.Success,
+    title:         t('plugins.repoDownload.ready.title'),
+    message:       t('plugins.repoDownload.ready.message', { name: repo?.nameDisplay || repoName }),
+    primaryAction: {
+      label: t('plugins.repoDownload.ready.action'),
+      route: { name: 'c-cluster-uiplugins', params: { cluster: 'local' } }
+    }
   });
 }
 
 /**
- * Resolves once the repository has an index or has reported a failure. A timeout is reported as a
- * failure rather than left hanging, so the user is never stuck looking at a task that never ends.
+ * Resolves once the repository has an index. A failure is not an ending - Rancher retries on its
+ * own, and the Extensions page reports the failure in the meantime - so keep waiting until it
+ * either succeeds or the deadline passes.
  */
 export async function waitForRepoDownload(store: any, repoName: string): Promise<RepoDownloadState> {
   const deadline = Date.now() + REPO_WAIT_TIMEOUT;
-  const t = store.getters['i18n/t'];
 
   while (Date.now() < deadline) {
     const repo = repoFromStore(store, repoName);
-    const current = repo ? repoDownloadState(repo) : null;
 
-    if (current && current.state !== 'downloading') {
-      return current;
+    if (repo && repoDownloadState(repo).state === 'ready') {
+      return { state: 'ready', message: '' };
     }
 
     await new Promise((resolve) => setTimeout(resolve, REPO_WAIT_INTERVAL));
   }
 
-  return { state: 'failed', message: t('plugins.repoDownload.failed.timeout', { name: repoName }) };
+  return { state: 'failed', message: '' };
 }

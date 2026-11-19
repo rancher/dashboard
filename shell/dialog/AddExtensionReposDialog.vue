@@ -7,10 +7,6 @@ import { isRancherPrime } from '@shell/config/version';
 import { RcHeading } from '@components/RcHeading';
 import { notifyRepoDownload } from '@shell/utils/uiplugins-repos';
 
-// The toast explains that the download is happening in the background, so it needs long enough
-// to actually be read
-const GROWL_TIMEOUT = 10000;
-
 export default {
   emits: ['close'],
 
@@ -122,19 +118,14 @@ export default {
 
     /**
      * Adding a repository only queues the work - Rancher still has to clone it and build an index,
-     * which takes anywhere from seconds to minutes. Say so, and then follow each repository in the
-     * Notification Centre so the user can leave the page and still be told when it is ready.
+     * which takes anywhere from seconds to minutes. Follow each repository so the user can leave
+     * the page and still be told through the Notification Centre once it is ready. The Extensions
+     * page reports the waiting and any failure itself, so nothing is announced up front.
      */
     reportDownloads(added) {
       if (!added.length) {
         return;
       }
-
-      this.$store.dispatch('growl/info', {
-        title:   this.t('plugins.repoDownload.added.title', { count: added.length }),
-        message: this.t('plugins.repoDownload.added.message', { count: added.length }),
-        timeout: GROWL_TIMEOUT,
-      }, { root: true });
 
       // Deliberately not awaited - this outlives the dialog, so it has to swallow its own errors
       // rather than surface as an unhandled rejection

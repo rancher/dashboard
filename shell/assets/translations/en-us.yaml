@@ -1614,6 +1614,7 @@ catalog:
       rancher-partner-charts: Partners
       rancher-rke2-charts: RKE2
       rancher-ui-plugins: Rancher Extensions
+      partner-extensions: Partner Extensions
       suse-application-collection: SUSE App Collection
 
     target:
@@ -6225,31 +6226,14 @@ plugins:
     title: Add Extensions repositories
     prompt: Enable additional repositories to access more extensions
   pendingRepos:
-    downloading: 'Extensions from these repositories are not available yet. They are still being downloaded and will appear automatically once they are ready:'
-    failed: 'Extensions from these repositories are not available. Rancher could not download them:'
+    downloading: 'The extensions from the following repositories are being downloaded: <b>{names}</b> - this might take a few minutes.'
+    continue: <b>You can continue using Rancher</b> and we will notify you when the extensions are ready to be used.
+    failed: 'The extensions from the following repositories could not be downloaded:'
   repoDownload:
-    added:
-      title: |-
-        {count, plural,
-        one {Repository Added}
-        other {Repositories Added}
-        }
-      message: |-
-        {count, plural,
-        one {The selected repository has been added and its extensions are now being downloaded - depending on your connection, this might take a few minutes. You can continue using Rancher and we will notify you once the extensions are ready to be used.}
-        other {The selected repositories have been added and their extensions are now being downloaded - depending on your connection, this might take a few minutes. You can continue using Rancher and we will notify you once the extensions are ready to be used.}
-        }
-    busy:
-      title: Downloading extensions
-      message: 'Rancher is downloading the extensions from "{name}". This might take a few minutes.'
     ready:
-      title: Extensions ready
-      message: 'The extensions from "{name}" are ready to be used.'
-      action: View extensions
-    failed:
-      title: Could not download extensions
-      message: 'Rancher could not download the extensions from "{name}".'
-      timeout: 'Rancher is taking longer than expected to download the extensions from "{name}". Check the repository for errors.'
+      title: Extensions ready!
+      message: 'All the extensions from the "{name}" repository have been successfully downloaded and are now ready to be used.'
+      action: View Extensions
   setup:
     installed: Already installed
     uninstalled: Already uninstalled
