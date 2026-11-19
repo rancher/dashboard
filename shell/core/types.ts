@@ -156,6 +156,16 @@ export type Action = {
 
 /** Definition of a panel (options that can be passed when defining an extension panel enhancement) */
 export type Panel = {
+  /**
+   * Order of this panel amongst the other extension panels in the same location, highest first.
+   * Defaults to 0.
+   *
+   * Panels of equal weight registered by the same extension keep the order they were added in.
+   * Across extensions the tie falls back to the order the extensions happened to load in, which
+   * an extension can't control - give a panel a distinct weight to place it relative to another
+   * extension's panel
+   */
+  weight?: number;
   component: Function;
 };
 
@@ -164,6 +174,16 @@ export type Card = {
   label?: string;
   labelKey?: string;
   component: Function;
+  /**
+   * Order of this card amongst the other extension cards in the same location, highest first.
+   * Defaults to 0.
+   *
+   * Cards of equal weight registered by the same extension keep the order they were added in.
+   * Across extensions the tie falls back to the order the extensions happened to load in, which
+   * an extension can't control - give a card a distinct weight to place it relative to another
+   * extension's card
+   */
+  weight?: number;
 };
 
 /** Definition of a tab (options that can be passed when defining an extension tab enhancement) */

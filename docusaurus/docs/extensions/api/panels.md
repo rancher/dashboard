@@ -47,6 +47,7 @@ _Arguments_
 | Key | Type | Description |
 |---|---|---|
 |`component`| Function | Component to be rendered as content on the "detail view" Masthead component |
+|`weight` *(From Rancher version v2.17.0)*| Number | Optional. Order of the panel amongst the other extension panels in the same location, highest first. Defaults to `0`. Panels of equal weight registered by the same extension keep the order they were added in; across extensions the tie falls back to extension load order, so give a panel a distinct weight to place it relative to another extension's panel |
 
 Usage example for `'PanelLocation.DETAILS_MASTHEAD'`:
 
@@ -72,6 +73,7 @@ plugin.addPanel(
 | Key | Type | Description |
 |---|---|---|
 |`component`| Function | Component to be rendered as content on the "detail view" detailTop component |
+|`weight` *(From Rancher version v2.17.0)*| Number | Optional. Order of the panel amongst the other extension panels in the same location, highest first. Defaults to `0`. Panels of equal weight registered by the same extension keep the order they were added in; across extensions the tie falls back to extension load order, so give a panel a distinct weight to place it relative to another extension's panel |
 
 Usage example for `'PanelLocation.DETAIL_TOP'`:
 
@@ -79,7 +81,10 @@ Usage example for `'PanelLocation.DETAIL_TOP'`:
 plugin.addPanel(
   PanelLocation.DETAIL_TOP,
   { resource: ['catalog.cattle.io.clusterrepo'] },
-  { component: () => import('./DetailTopComponent.vue') }
+  {
+    component: () => import('./DetailTopComponent.vue'),
+    weight:    100
+  }
 );
 ```
 
@@ -97,6 +102,7 @@ plugin.addPanel(
 | Key | Type | Rancher Version | Description |
 |---|---|---|---|
 |`component`| Function | v2.7.2 | Component to be rendered as content above a table on a "list view" |
+|`weight` *(From Rancher version v2.17.0)*| Number | v2.17.0 | Optional. Order of the panel amongst the other extension panels in the same location, highest first. Defaults to `0`. Panels of equal weight registered by the same extension keep the order they were added in; across extensions the tie falls back to extension load order, so give a panel a distinct weight to place it relative to another extension's panel |
 
 Usage example for `'PanelLocation.RESOURCE_LIST'`:
 
@@ -124,6 +130,7 @@ plugin.addPanel(
 | Key | Type | Description |
 |---|---|---|
 |`component`| Function | Component to be rendered as content above a table on a "list view" |
+|`weight` *(From Rancher version v2.17.0)*| Number | Optional. Order of the panel amongst the other extension panels in the same location, highest first. Defaults to `0`. Panels of equal weight registered by the same extension keep the order they were added in; across extensions the tie falls back to extension load order, so give a panel a distinct weight to place it relative to another extension's panel |
 
 Usage example for `'PanelLocation.ABOUT_TOP'`:
 
