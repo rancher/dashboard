@@ -1,5 +1,5 @@
 import { Store } from 'vuex';
-import { PersonasApi, PersonaPriorities } from '@shell/apis/intf/shell';
+import { CurrentUsersPersonasOptions, PersonasApi, PersonaPreferences } from '@shell/apis/intf/shell';
 import { AUTHORIZATION, CUSTOMIZATION, SCHEMA } from '@shell/config/types';
 import Persona, { PERSONA_API_GROUP } from '@shell/models/customization.ui.rancher.persona';
 import SelfSubjectRulesReview from '@shell/models/authorization.k8s.io.selfsubjectrulesreview';
@@ -39,33 +39,54 @@ export class PersonasApiImpl implements PersonasApi {
     this.store = store;
   }
 
-  public async currentUsersPersonas(): Promise<Persona[]> {
+  public async currentUsersPersonas({ includeDisabled = false }: CurrentUsersPersonasOptions = {}): Promise<Persona[]> {
     const [personas, assignedNames] = await Promise.all([this.findPersonas(), this.assignedPersonaNames()]);
-    const priorities = this.currentUsersPersonaPriorities();
+    const preferences = this.currentUsersPersonaPreferences();
 
     return personas
       .filter((persona) => assignedNames.includes(persona.metadata.name) || this.isAssociated(persona))
-      .sort((a, b) => this.compareImportance(a, b, priorities));
+      .filter((persona) => includeDisabled || !preferences[persona.metadata.name]?.disabled)
+      .sort((a, b) => this.compareImportance(a, b, preferences));
   }
 
-  public currentUsersPersonaPriorities(): PersonaPriorities {
+  public currentUsersPersonaPreferences(): PersonaPreferences {
     return this.store.getters['prefs/get'](PERSONA_PRIORITIES) || {};
   }
 
-  public async setCurrentUsersPersonaPriorities(priorities: PersonaPriorities): Promise<void> {
-    await this.store.dispatch('prefs/set', { key: PERSONA_PRIORITIES, value: priorities });
+  public async setCurrentUsersPersonaPreferences(preferences: PersonaPreferences): Promise<void> {
+    await this.store.dispatch('prefs/set', { key: PERSONA_PRIORITIES, value: preferences });
   }
 
   public async reorderCurrentUsersPersonas(order: string[]): Promise<void> {
     const personas = await this.findPersonas();
 
-    await this.setCurrentUsersPersonaPriorities(this.prioritiesForOrder(personas, order, this.currentUsersPersonaPriorities()));
+    await this.setCurrentUsersPersonaPreferences(this.preferencesForOrder(personas, order, this.currentUsersPersonaPreferences()));
   }
 
-  public refreshCurrentUsersPersonas(): Promise<Persona[]> {
+  public async setCurrentUsersPersonaEnabled(name: string, enabled: boolean): Promise<void> {
+    const preferences = { ...this.currentUsersPersonaPreferences() };
+    const preference = { ...preferences[name] };
+
+    if (enabled) {
+      delete preference.disabled;
+    } else {
+      preference.disabled = true;
+    }
+
+    preferences[name] = preference;
+
+    // An entry with nothing left in it is no preference at all
+    if (!Object.keys(preference).length) {
+      delete preferences[name];
+    }
+
+    await this.setCurrentUsersPersonaPreferences(preferences);
+  }
+
+  public refreshCurrentUsersPersonas(options?: CurrentUsersPersonasOptions): Promise<Persona[]> {
     this.reset();
 
-    return this.currentUsersPersonas();
+    return this.currentUsersPersonas(options);
   }
 
   /**
@@ -78,8 +99,8 @@ export class PersonasApiImpl implements PersonasApi {
   /**
    * Most important first: the highest priority (the user's own, else the persona's), then by display name
    */
-  private compareImportance(a: Persona, b: Persona, priorities: PersonaPriorities): number {
-    const byPriority = this.effectivePriority(b, priorities) - this.effectivePriority(a, priorities);
+  private compareImportance(a: Persona, b: Persona, preferences: PersonaPreferences): number {
+    const byPriority = this.effectivePriority(b, preferences) - this.effectivePriority(a, preferences);
 
     if (byPriority) {
       return byPriority;
@@ -91,28 +112,30 @@ export class PersonasApiImpl implements PersonasApi {
   /**
    * How important a persona is to the user: their own priority for it if they've set one, else the persona's (a persona without one is 0)
    */
-  private effectivePriority(persona: Persona, priorities: PersonaPriorities): number {
-    return priorities[persona.metadata.name] ?? persona.spec?.priority ?? 0;
+  private effectivePriority(persona: Persona, preferences: PersonaPreferences): number {
+    return preferences[persona.metadata.name]?.priority ?? persona.spec?.priority ?? 0;
   }
 
   /**
-   * The user's priorities after they put their personas in `order` (persona names, most important first).
+   * The user's preferences after they put their personas in `order` (persona names, most important first). Only the priorities change.
    *
    * The listed personas' current priorities are handed out again in the new order, highest first, so the user's priorities stay on the
    * same scale as the personas' own and a persona without one (e.g. a new one) still lands where its priority puts it. A priority that
    * would tie with or pass the one above becomes one less than it
    */
-  private prioritiesForOrder(personas: Persona[], order: string[], priorities: PersonaPriorities): PersonaPriorities {
+  private preferencesForOrder(personas: Persona[], order: string[], preferences: PersonaPreferences): PersonaPreferences {
     const listed = order
       .map((name) => personas.find((persona) => persona.metadata.name === name))
       .filter((persona): persona is Persona => !!persona);
-    const values = listed.map((persona) => this.effectivePriority(persona, priorities)).sort((a, b) => b - a);
-    const out = { ...priorities };
+    const values = listed.map((persona) => this.effectivePriority(persona, preferences)).sort((a, b) => b - a);
+    const out = { ...preferences };
 
     listed.forEach((persona, i) => {
-      const above = i ? out[listed[i - 1].metadata.name] : undefined;
+      const name = persona.metadata.name;
+      const above = i ? out[listed[i - 1].metadata.name].priority : undefined;
+      const priority = above === undefined ? values[i] : Math.min(values[i], above - 1);
 
-      out[persona.metadata.name] = above === undefined ? values[i] : Math.min(values[i], above - 1);
+      out[name] = { ...out[name], priority };
     });
 
     return out;

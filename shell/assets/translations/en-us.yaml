@@ -6291,13 +6291,13 @@ prefs:
     ember: Cluster Manager
   personas:
     label: Personas
-    description: Your personas, most important at the top. Where only one persona can apply, the one at the top is used.
+    description: Your personas, most important at the top. Where only one persona can apply, the one at the top is used. Untick a persona to stop it applying to you.
     empty: You have no personas
     reorder: Drag to reorder
     moveKeys: '{modifier}+Up Arrow or {modifier}+Down Arrow moves it'
     moved: '{label} moved to position {position} of {total}'
-    reset: Reset to Default Order
-    resetDone: Personas reset to the default order
+    reset: Reset to Default
+    resetDone: Personas reset to the default order, all turned on
   displaySettings:
     title: Display Settings
     detail: Change the way information is displayed in the UI.
