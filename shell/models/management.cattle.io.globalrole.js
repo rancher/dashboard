@@ -5,6 +5,7 @@ import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
+import { PERSONA_API_GROUP } from '@shell/models/customization.ui.rancher.persona';
 
 const BASE = 'user-base';
 const USER = 'user';
@@ -23,6 +24,13 @@ export default class GlobalRole extends SteveDescriptionModel {
         type:       'array',
       },
     ];
+  }
+
+  /**
+   * A Persona's own global role: the persona page creates it, owned by the persona, and binds the persona's users and groups to it
+   */
+  get isPersonaRole() {
+    return (this.metadata?.ownerReferences || []).some((owner) => owner.kind === 'Persona' && owner.apiVersion?.startsWith(`${ PERSONA_API_GROUP }/`));
   }
 
   get details() {
