@@ -3,23 +3,18 @@ import { set } from '@shell/utils/object';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 import { GlobalRoleBinding } from '@shell/types/resources/global-role-binding';
-
-export interface PersonaRule {
-  apiGroups?: string[];
-  resources?: string[];
-  verbs?: string[];
-}
+import { PolicyRule } from '@shell/types/resources/rbac';
 
 export interface PersonaSpec {
   displayName: string;
   priority: number;
   tags?: string[];
-  rules?: PersonaRule[];
+  rules?: PolicyRule[];
 }
 
 type GlobalRoleBindingModel = GlobalRoleBinding & { remove: (opt?: object) => Promise<void> };
 
-const PERSONA_API_GROUP = 'customization.ui.rancher';
+export const PERSONA_API_GROUP = 'customization.ui.rancher';
 
 /**
  * Labels the global role bindings that assign a persona, so they can be found without fetching every binding

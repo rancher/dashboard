@@ -6,13 +6,14 @@ import Select from '@shell/components/form/Select';
 import LabeledInput from '@components/Form/LabeledInput/LabeledInput.vue';
 import { useI18n } from '@shell/composables/useI18n';
 import { VERBS } from '@shell/models/management.cattle.io.roletemplate';
-import type { GrantResourceOption, GrantResourceRule } from '@shell/utils/grant-resources';
+import type { GrantResourceOption } from '@shell/utils/grant-resources';
+import type { PolicyRule } from '@shell/types/resources/rbac';
 
 const props = withDefaults(defineProps<{
-  value: GrantResourceRule[];
+  value: PolicyRule[];
   mode: string;
   resourceOptions: GrantResourceOption[];
-  defaultRule: GrantResourceRule;
+  defaultRule: PolicyRule;
   disabled?: boolean;
   showNonResourceUrls?: boolean;
   resourceRequired?: boolean;
@@ -24,13 +25,13 @@ const props = withDefaults(defineProps<{
   initialEmptyRow:     true,
 });
 
-const emit = defineEmits<{(e: 'update:value', value: GrantResourceRule[]): void}>();
+const emit = defineEmits<{(e: 'update:value', value: PolicyRule[]): void}>();
 
 const { t } = useI18n(useStore());
 
 const ruleClass = computed(() => `col ${ props.showNonResourceUrls ? 'span-3' : 'span-4' }`);
 
-function setRule(key: string, rule: GrantResourceRule, event: any) {
+function setRule(key: string, rule: PolicyRule, event: any) {
   switch (key) {
   case 'apiGroups':
     if (event || (event === '')) {
@@ -61,11 +62,11 @@ function setRule(key: string, rule: GrantResourceRule, event: any) {
   }
 }
 
-function getRule(key: keyof GrantResourceRule, rule: GrantResourceRule) {
+function getRule(key: keyof PolicyRule, rule: PolicyRule) {
   return rule[key]?.[0] || undefined;
 }
 
-function updateSelectValue(rule: GrantResourceRule, key: 'verbs', event: any) {
+function updateSelectValue(rule: PolicyRule, key: 'verbs', event: any) {
   rule[key] = event.label ? event.value : event;
 }
 </script>

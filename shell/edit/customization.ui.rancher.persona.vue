@@ -13,7 +13,8 @@ import Loading from '@shell/components/Loading.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
 import { MANAGEMENT } from '@shell/config/types';
-import { grantResourceOptions, normaliseRuleApiGroups, GrantResourceRule } from '@shell/utils/grant-resources';
+import { grantResourceOptions, normaliseRuleApiGroups } from '@shell/utils/grant-resources';
+import { PolicyRule } from '@shell/types/resources/rbac';
 
 export default defineComponent({
   name: 'EditPersona',
@@ -54,7 +55,7 @@ export default defineComponent({
       ],
       defaultRule: {
         apiGroups: [''], resources: [], verbs: []
-      } as GrantResourceRule,
+      } as PolicyRule,
       // null until the persona's assignments are loaded, so a failed load never saves an empty list over them
       principalIds: null as string[] | null,
     };
@@ -144,11 +145,11 @@ export default defineComponent({
     },
 
     rules: {
-      get(): GrantResourceRule[] {
+      get(): PolicyRule[] {
         return this.value.spec.rules || [];
       },
 
-      set(rules: GrantResourceRule[]) {
+      set(rules: PolicyRule[]) {
         this.value.spec.rules = rules;
       }
     },

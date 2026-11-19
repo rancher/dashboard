@@ -81,6 +81,8 @@ export const RBAC = {
   CLUSTER_ROLE_BINDING: 'rbac.authorization.k8s.io.clusterrolebinding',
 };
 
+export const AUTHORIZATION = { SELF_SUBJECT_RULES_REVIEW: 'authorization.k8s.io.selfsubjectrulesreview' };
+
 export const WORKLOAD = 'workload';
 export const WORKLOAD_DASHBOARD = 'workload-dashboard';
 

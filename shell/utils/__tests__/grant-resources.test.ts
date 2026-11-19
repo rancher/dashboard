@@ -1,5 +1,6 @@
-import { grantResourceOptions, normaliseRuleApiGroups, GrantResourceRule } from '@shell/utils/grant-resources';
+import { grantResourceOptions, normaliseRuleApiGroups } from '@shell/utils/grant-resources';
 import { SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
+import { PolicyRule } from '@shell/types/resources/rbac';
 
 describe('utils: grant-resources', () => {
   describe('grantResourceOptions', () => {
@@ -61,7 +62,7 @@ describe('utils: grant-resources', () => {
       [['apps'], ['apps']],
       [[''], ['']],
     ])('should map API groups %p to %p', (apiGroups, expected) => {
-      const rules: GrantResourceRule[] = [{
+      const rules: PolicyRule[] = [{
         apiGroups, resources: ['pods'], verbs: ['get']
       }];
 
@@ -71,7 +72,7 @@ describe('utils: grant-resources', () => {
     });
 
     it('should leave a rule without API groups alone', () => {
-      const rules: GrantResourceRule[] = [{ resources: ['pods'], verbs: ['get'] }];
+      const rules: PolicyRule[] = [{ resources: ['pods'], verbs: ['get'] }];
 
       normaliseRuleApiGroups(rules);
 

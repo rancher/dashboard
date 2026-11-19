@@ -77,6 +77,9 @@ export const RBAC: {
     ROLE_BINDING: string;
     CLUSTER_ROLE_BINDING: string;
 };
+export const AUTHORIZATION: {
+    SELF_SUBJECT_RULES_REVIEW: string;
+};
 export const WORKLOAD: 'workload';
 export const WORKLOAD_DASHBOARD: 'workload-dashboard';
 export const WORKLOAD_TYPES: {

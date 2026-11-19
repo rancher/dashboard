@@ -2,14 +2,14 @@ import { mount, VueWrapper } from '@vue/test-utils';
 import GrantResources from '@shell/components/auth/GrantResources.vue';
 import Select from '@shell/components/form/Select.vue';
 import { _CREATE } from '@shell/config/query-params';
-import type { GrantResourceRule } from '@shell/utils/grant-resources';
+import type { PolicyRule } from '@shell/types/resources/rbac';
 
 describe('component: GrantResources', () => {
-  const createRule = (): GrantResourceRule => ({
+  const createRule = (): PolicyRule => ({
     apiGroups: [''], resources: [], verbs: []
   });
 
-  const createWrapper = (rules: GrantResourceRule[], props = {}) => mount(GrantResources, {
+  const createWrapper = (rules: PolicyRule[], props = {}) => mount(GrantResources, {
     props: {
       value:           rules,
       mode:            _CREATE,

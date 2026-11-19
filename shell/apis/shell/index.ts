@@ -1,12 +1,13 @@
 import { Store } from 'vuex';
 import {
-  ModalApi, ShellApi, SlideInApi, NotificationApi, SystemApi, ProxyApi
+  ModalApi, ShellApi, SlideInApi, NotificationApi, SystemApi, ProxyApi, PersonasApi
 } from '@shell/apis/intf/shell';
 import { ModalApiImpl } from './modal';
 import { SlideInApiImpl } from './slide-in';
 import { NotificationApiImpl } from './notifications';
 import { SystemApiImpl } from './system';
 import { ProxyApiImpl } from './proxy';
+import { PersonasApiImpl } from './personas';
 
 export class ShellApiImpl implements ShellApi {
   private modalApi: ModalApi;
@@ -14,6 +15,7 @@ export class ShellApiImpl implements ShellApi {
   private notificationApi: NotificationApi;
   private systemApi: SystemApi;
   private proxyApi: ProxyApi;
+  private personasApi: PersonasApi;
 
   constructor(store: Store<any>) {
     this.modalApi = new ModalApiImpl(store);
@@ -21,6 +23,7 @@ export class ShellApiImpl implements ShellApi {
     this.notificationApi = new NotificationApiImpl(store);
     this.systemApi = new SystemApiImpl(store);
     this.proxyApi = new ProxyApiImpl(store);
+    this.personasApi = new PersonasApiImpl(store);
   }
 
   get modal(): ModalApi {
@@ -41,5 +44,9 @@ export class ShellApiImpl implements ShellApi {
 
   get proxy(): ProxyApi {
     return this.proxyApi;
+  }
+
+  get personas(): PersonasApi {
+    return this.personasApi;
   }
 }

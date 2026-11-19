@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { GrantResourceRule } from '@shell/utils/grant-resources';
+import type { PolicyRule } from '@shell/types/resources/rbac';
 
 const props = defineProps<{
-  value?: GrantResourceRule[] | null;
+  value?: PolicyRule[] | null;
 }>();
 
 const lines = computed(() => (props.value || []).map((rule) => {

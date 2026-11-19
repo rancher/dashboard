@@ -1,12 +1,5 @@
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
-
-export interface GrantResourceRule {
-  apiGroups?: string[];
-  resources?: string[];
-  verbs?: string[];
-  nonResourceURLs?: string[];
-  resourceNames?: string[];
-}
+import { PolicyRule } from '@shell/types/resources/rbac';
 
 export interface GrantResourceOption {
   kind?: string;
@@ -134,7 +127,7 @@ export function grantResourceOptions(t: (key: string) => string, scopes: SCOPED_
 /**
  * k8s documentation shows the core API group as "" - store it as an empty string
  */
-export function normaliseRuleApiGroups(rules: GrantResourceRule[] = []): void {
+export function normaliseRuleApiGroups(rules: PolicyRule[] = []): void {
   rules.forEach((rule) => {
     if (rule.apiGroups) {
       rule.apiGroups = rule.apiGroups.map((group) => (group.trim() === '""' ? '' : group));
