@@ -11,8 +11,6 @@ import { set } from '@shell/utils/object';
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { compatibleVersionsFor, APP_UPGRADE_STATUS } from '@shell/store/catalog';
 
-const removedCrdApps = new Map();
-
 export default class CatalogApp extends SteveModel {
   showMasthead(mode) {
     return mode === _VIEW;
@@ -322,28 +320,23 @@ export default class CatalogApp extends SteveModel {
   }
 
   /**
-   * A function that resolves to the CRD app installed with this app. If the CRD app is already gone it resolves to the
-   * same stand-in every time, and removing the stand-in does nothing
+   * A function that resolves to the CRD app installed with this app, or to undefined if the CRD app is already gone
    */
   get relatedResourcesToRemove() {
     return async() => {
       const crd = this.spec?.chart?.metadata?.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL]?.replace('=match', '');
-      const id = `${ this.metadata.namespace }/${ crd }`;
 
       try {
-        return await this.$dispatch('find', { type: CATALOG.APP, id });
+        return await this.$dispatch('find', {
+          type: CATALOG.APP,
+          id:   `${ this.metadata.namespace }/${ crd }`
+        });
       } catch (err) {
-        if (err?.status !== 404) {
-          throw err;
+        if (err?.status === 404) {
+          return undefined;
         }
 
-        if (!removedCrdApps.has(id)) {
-          removedCrdApps.set(id, {
-            id, type: CATALOG.APP, nameDisplay: crd, remove: () => Promise.resolve()
-          });
-        }
-
-        return removedCrdApps.get(id);
+        throw err;
       }
     };
   }

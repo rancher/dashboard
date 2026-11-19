@@ -111,28 +111,11 @@ describe('component: PromptRemove', () => {
         expect(wrapper.findComponent(Checkbox).props('value')).toBe(true);
       });
 
-      it('should list the CRD app with the app', async() => {
+      it('should list only the app', async() => {
         await openPrompt(findCrdApp);
         await setDeleteCrd(true);
-
-        expect(toRemoveNames()).toStrictEqual(['rancher-logging', 'rancher-logging-crd']);
-      });
-
-      it('should take the CRD app back out of the list when the box is unticked', async() => {
-        await openPrompt(findCrdApp);
-        await setDeleteCrd(true);
-        await setDeleteCrd(false);
 
         expect(toRemoveNames()).toStrictEqual(['rancher-logging']);
-      });
-
-      it('should list the CRD app once when the box is ticked again', async() => {
-        await openPrompt(findCrdApp);
-        await setDeleteCrd(true);
-        await setDeleteCrd(false);
-        await setDeleteCrd(true);
-
-        expect(toRemoveNames()).toStrictEqual(['rancher-logging', 'rancher-logging-crd']);
       });
 
       it('should uninstall the app when Delete is pressed', async() => {
@@ -180,6 +163,40 @@ describe('component: PromptRemove', () => {
         await openPrompt({ resolves: crdApp });
         await setDeleteCrd(true);
         await setDeleteCrd(false);
+
+        expect(toRemoveNames()).toStrictEqual(['rancher-logging']);
+      });
+
+      it('should not look the CRD app up when the box is unticked', async() => {
+        await openPrompt({ resolves: crdApp });
+        await setDeleteCrd(true);
+        dispatch.mockClear();
+        await setDeleteCrd(false);
+
+        expect(dispatch.mock.calls).toStrictEqual([]);
+      });
+
+      it('should list the CRD app once when the box is ticked again', async() => {
+        await openPrompt({ resolves: crdApp });
+        await setDeleteCrd(true);
+        await setDeleteCrd(false);
+        await setDeleteCrd(true);
+
+        expect(toRemoveNames()).toStrictEqual(['rancher-logging', 'rancher-logging-crd']);
+      });
+
+      it('should not list the CRD app when the box is unticked before the CRD app is found', async() => {
+        let resolveFind = (_: any) => {};
+
+        await openPrompt({
+          resolves: new Promise((resolve) => {
+            resolveFind = resolve;
+          })
+        });
+        wrapper.findComponent(Checkbox).vm.$emit('update:value', true);
+        await setDeleteCrd(false);
+        resolveFind(crdApp);
+        await flushPromises();
 
         expect(toRemoveNames()).toStrictEqual(['rancher-logging']);
       });

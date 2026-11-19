@@ -194,10 +194,8 @@ describe('class CatalogApp', () => {
   });
 
   describe('relatedResourcesToRemove', () => {
-    const notFound = { status: 404, code: 'NotFound' };
-
-    const createApp = (dispatch: jest.Mock, namespace = 'compliance-operator-system') => new CatalogApp({
-      metadata: { name: 'rancher-compliance', namespace },
+    const createApp = (dispatch: jest.Mock) => new CatalogApp({
+      metadata: { name: 'rancher-compliance', namespace: 'compliance-operator-system' },
       spec:     { chart: { metadata: { annotations: { [CATALOG_ANNOTATIONS.AUTO_INSTALL]: 'rancher-compliance-crd=match' } } } }
     }, { dispatch });
 
@@ -218,39 +216,10 @@ describe('class CatalogApp', () => {
       expect(res).toBe(crdApp);
     });
 
-    it('should resolve to a stand-in for the CRD app when it has already been removed', async() => {
-      const dispatch = jest.fn().mockRejectedValue(notFound);
+    it('should resolve to undefined when the CRD app has already been removed', async() => {
+      const dispatch = jest.fn().mockRejectedValue({ status: 404, code: 'NotFound' });
 
-      const res = await createApp(dispatch).relatedResourcesToRemove();
-
-      expect(res).toStrictEqual(expect.objectContaining({
-        id: 'compliance-operator-system/rancher-compliance-crd', type: 'catalog.cattle.io.app', nameDisplay: 'rancher-compliance-crd'
-      }));
-    });
-
-    it('should resolve to the same stand-in each time, so it can be found again to be taken back out', async() => {
-      const dispatch = jest.fn().mockRejectedValue(notFound);
-
-      const first = await createApp(dispatch).relatedResourcesToRemove();
-      const second = await createApp(dispatch).relatedResourcesToRemove();
-
-      expect(second).toBe(first);
-    });
-
-    it('should resolve to a stand-in of its own for an app in another namespace', async() => {
-      const dispatch = jest.fn().mockRejectedValue(notFound);
-
-      await createApp(dispatch).relatedResourcesToRemove();
-      const other = await createApp(dispatch, 'other-namespace').relatedResourcesToRemove();
-
-      expect(other.id).toBe('other-namespace/rancher-compliance-crd');
-    });
-
-    it('should resolve when the stand-in is removed', async() => {
-      const dispatch = jest.fn().mockRejectedValue(notFound);
-      const standIn = await createApp(dispatch).relatedResourcesToRemove();
-
-      await expect(standIn.remove()).resolves.toBeUndefined();
+      await expect(createApp(dispatch).relatedResourcesToRemove()).resolves.toBeUndefined();
     });
 
     it.each([

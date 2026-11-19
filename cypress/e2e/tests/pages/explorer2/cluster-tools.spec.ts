@@ -217,24 +217,17 @@ describe('Cluster Tools', { tags: ['@explorer2', '@adminUser'] }, () => {
 
         const promptRemove = new PromptRemove();
         const promptCard = new CardPo('[data-testid="card"].prompt-remove');
-        const crdAppsListed = (count: number) => promptCard.self().find('b').should(($names) => {
-          expect($names.toArray().filter((name) => name.textContent === CRD_CHART.crd)).to.have.length(count);
-        });
 
         promptRemove.checkbox().set();
         cy.wait('@findCrdApp').its('response.statusCode').should('eq', 404);
-        crdAppsListed(1);
         promptRemove.checkbox().isChecked();
         promptCard.self().find('.text-error').should('not.exist');
+        promptCard.self().find('b').should(($names) => {
+          const names = $names.toArray().map((name) => name.textContent);
 
-        promptRemove.checkbox().set();
-        crdAppsListed(0);
-        promptRemove.checkbox().isUnchecked();
-
-        promptRemove.checkbox().set();
-        crdAppsListed(1);
-        promptRemove.checkbox().isChecked();
-        promptCard.self().find('.text-error').should('not.exist');
+          expect(names).to.include(CRD_CHART.id);
+          expect(names).not.to.include(CRD_CHART.crd);
+        });
 
         promptRemove.remove();
         cy.wait('@chartUninstall').its('response.statusCode').should('eq', 201);
