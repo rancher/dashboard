@@ -2,7 +2,7 @@ import { init } from '@shell/config/product/explorer';
 import { NODE as NODE_COL } from '@shell/config/table-headers';
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import Link from '@shell/components/formatter/Link.vue';
-import { CRD, POD } from '@shell/config/types';
+import { CRD, FLEET, HELM, POD } from '@shell/config/types';
 import { get } from '@shell/utils/object';
 import { fieldValue, stringifyValue } from '@shell/utils/table-views/fields';
 import type { TableViewRow } from '@shell/types/table-views';
@@ -43,6 +43,21 @@ describe('product: explorer', () => {
     }).toStrictEqual({
       name: NODE_COL.name, labelKey: NODE_COL.labelKey, sort: NODE_COL.sort, formatter: 'LinkName', formatterOpts: NODE_COL.formatterOpts, skipSelect: undefined
     });
+  });
+
+  it.each([
+    FLEET.GIT_REPO,
+    FLEET.HELM_OP,
+    HELM.PROJECTHELMCHART,
+  ])('should hide the default masthead of the %s list, which renders its own', (type) => {
+    const commit = initExplorer();
+    const options = commit.mock.calls
+      .filter(([name, value]) => name === 'type-map/configureType' && value.match === type)
+      .map(([, value]) => value);
+
+    expect(options).toStrictEqual([{
+      showListMasthead: false, match: type, product: 'explorer'
+    }]);
   });
 
   describe.each([

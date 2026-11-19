@@ -287,6 +287,10 @@ export default class ProvCluster extends SteveModel {
     return this.mgmt?.isHostedKubernetesProvider;
   }
 
+  get isGenericImportedHostedProvider() {
+    return this.mgmt?.isGenericImportedHostedProvider;
+  }
+
   get providerConfig() {
     if ( this.isRke2 ) {
       return this.spec.rkeConfig;

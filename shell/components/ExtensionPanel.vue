@@ -19,8 +19,16 @@ export default {
       default: ''
     },
   },
-  data() {
-    return { extensionData: getApplicableExtensionEnhancements(this, this.type, this.location, this.$route) };
+  computed: {
+    extensionData() {
+      const panels = getApplicableExtensionEnhancements(this, this.type, this.location, this.$route);
+
+      // Panels are ordered by `weight`, highest first. `weight` comes from a third party and
+      // isn't type checked, so coerce it - anything that isn't a number counts as 0 rather than
+      // making the comparison NaN, which would reorder other extensions' panels. The sort is
+      // stable, so panels of equal weight keep the order the extension registered them in
+      return panels.sort((a, b) => (Number(b.weight) || 0) - (Number(a.weight) || 0));
+    },
   },
 };
 </script>

@@ -19,8 +19,16 @@ export default class ClusterProjectMembersPo extends PagePo {
     super(ClusterProjectMembersPo.createPath(clusterId, tabId));
   }
 
+  clusterMembershipTab() {
+    return cy.get('[data-testid="tab-panel-cluster-membership"]');
+  }
+
+  clusterMemberAddButton() {
+    return cy.get('[data-testid="button-cluster-member-add"]');
+  }
+
   triggerAddClusterOrProjectMemberAction() {
-    return cy.get(`[data-testid="button-cluster-member-add"]`).click();
+    return this.clusterMemberAddButton().click();
   }
 
   triggerAddProjectMemberAction(projectLabel: string) {

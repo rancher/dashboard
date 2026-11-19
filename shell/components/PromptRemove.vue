@@ -283,14 +283,18 @@ export default {
       return Promise.all(promises);
     },
 
-    async chartAddCrdToRemove() {
-      try {
-        const res = await this.toRemove[0].relatedResourcesToRemove();
+    async chartAddCrdToRemove(deleteCrd) {
+      if (!deleteCrd) {
+        this.toRemove.splice(1);
 
-        if (!this.toRemove.includes(res)) {
-          this.toRemove.push(res);
-        } else if (!this.chartsDeleteCrd) {
-          this.toRemove.pop(res);
+        return;
+      }
+
+      try {
+        const crdApp = await this.toRemove[0].relatedResourcesToRemove();
+
+        if (crdApp && this.chartsDeleteCrd) {
+          this.toRemove.push(crdApp);
         }
       } catch (err) {
         this.error = err;

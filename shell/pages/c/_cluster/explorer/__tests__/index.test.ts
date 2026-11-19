@@ -40,9 +40,15 @@ interface MockGetters {
  */
 type DashboardMountOptions = {
   global: {
-    stubs: Record<string, boolean>;
+    stubs: Record<string, boolean | object>;
     mocks: {
       $router?: { push: (route: unknown) => void };
+      /**
+       * Only the extension card tests supply these. Left out everywhere else, which is the
+       * no-extensions-installed case the rest of the suite runs in.
+       */
+      $extension?: { getUIConfig: () => unknown[] };
+      $route?: { params: object, query: object, hash: string, name: string, meta: object };
       $store: {
         dispatch: jest.Mock;
         getters: MockGetters;
@@ -479,6 +485,93 @@ describe('page: cluster dashboard', () => {
       expect([wrapper.vm.ramReserved.total, wrapper.vm.ramReserved.useful]).toStrictEqual([12 * GiB, 4 * GiB]);
       expect(wrapper.vm.podsUsed).toStrictEqual({ total: 200, useful: 20 });
       expect([wrapper.vm.cpuUsed, wrapper.vm.ramUsed]).toStrictEqual([null, null]);
+    });
+  });
+
+  describe('extension cards', () => {
+    /**
+     * A card as the extension manager hands it back - an empty locationConfig matches any route.
+     *
+     * `weight` is deliberately `unknown` - extensions written in javascript, or built against an
+     * older shell, are not type checked against `Card`, so any value can arrive here.
+     */
+    const card = (label: string, weight?: unknown) => ({
+      label,
+      weight,
+      locationConfig: {},
+      component:      { template: '<div />' },
+    });
+
+    /** Mount the dashboard over a set of registered cards and report the order they render in */
+    const renderedCardLabels = (cards: object[]): string[] => {
+      const options = createMountOptions();
+
+      // The real SimpleBox is shallow rendered, so its slot - which holds the card title - is not.
+      // Swap in a stub that renders the slot so the assertion can read the rendered order.
+      options.global.stubs.SimpleBox = { template: '<div class="test-card"><slot /></div>' };
+      options.global.mocks.$route = {
+        params: {}, query: {}, hash: '', name: 'c-cluster-explorer', meta: {}
+      };
+      options.global.mocks.$extension = { getUIConfig: () => cards };
+
+      const wrapper = shallowMount(Dashboard, options);
+
+      return wrapper.findAll('.test-card h3').map((w) => w.text());
+    };
+
+    it('should render cards with a higher weight first', () => {
+      expect(renderedCardLabels([
+        card('light', 1),
+        card('heavy', 10),
+        card('negative', -1),
+      ])).toStrictEqual(['heavy', 'light', 'negative']);
+    });
+
+    it('should treat a card with no weight as weight zero', () => {
+      expect(renderedCardLabels([
+        card('negative', -1),
+        card('unweighted'),
+        card('heavy', 10),
+      ])).toStrictEqual(['heavy', 'unweighted', 'negative']);
+    });
+
+    it('should keep the order cards of the same weight were added in', () => {
+      expect(renderedCardLabels([
+        card('first', 5),
+        card('second', 5),
+        card('third', 5),
+      ])).toStrictEqual(['first', 'second', 'third']);
+    });
+
+    it('should keep the order cards were added in when none of them have a weight', () => {
+      expect(renderedCardLabels([
+        card('first'),
+        card('second'),
+        card('third'),
+      ])).toStrictEqual(['first', 'second', 'third']);
+    });
+
+    it('should order a numeric string weight by its numeric value', () => {
+      expect(renderedCardLabels([
+        card('string-ten', '10'),
+        card('five', 5),
+      ])).toStrictEqual(['string-ten', 'five']);
+    });
+
+    it('should not let one bad weight reorder other extensions cards', () => {
+      expect(renderedCardLabels([
+        card('five', 5),
+        card('junk', 'high'),
+        card('one', 1),
+        card('ten', 10),
+        card('three', 3),
+      ])).toStrictEqual(['ten', 'five', 'three', 'one', 'junk']);
+    });
+
+    it('should render no card container when no extension registered a card', () => {
+      const wrapper = shallowMount(Dashboard, createMountOptions());
+
+      expect(wrapper.find('.extension-card-container').exists()).toBe(false);
     });
   });
 });

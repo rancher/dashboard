@@ -4,6 +4,7 @@ import { useInSummary } from '@shell/components/TableOfContents/composables';
 import { computed, inject, useTemplateRef } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { sortableNumericSuffix } from '@shell/utils/sort';
 
 export default {
   name: 'Tab',
@@ -109,6 +110,10 @@ export default {
       }
 
       return this.name;
+    },
+
+    labelSort() {
+      return sortableNumericSuffix(this.baseLabelDisplay);
     },
 
     labelDisplay() {

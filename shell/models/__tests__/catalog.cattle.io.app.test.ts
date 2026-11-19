@@ -192,4 +192,44 @@ describe('class CatalogApp', () => {
       expect(catalogApp.valuesLoaded).toBe(true);
     });
   });
+
+  describe('relatedResourcesToRemove', () => {
+    const createApp = (dispatch: jest.Mock) => new CatalogApp({
+      metadata: { name: 'rancher-compliance', namespace: 'compliance-operator-system' },
+      spec:     { chart: { metadata: { annotations: { [CATALOG_ANNOTATIONS.AUTO_INSTALL]: 'rancher-compliance-crd=match' } } } }
+    }, { dispatch });
+
+    it('should look up the CRD app named by the auto-install annotation, in the namespace of the app', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+
+      await createApp(dispatch).relatedResourcesToRemove();
+
+      expect(dispatch).toHaveBeenCalledWith('find', { type: 'catalog.cattle.io.app', id: 'compliance-operator-system/rancher-compliance-crd' });
+    });
+
+    it('should resolve to the CRD app when it exists', async() => {
+      const crdApp = { id: 'compliance-operator-system/rancher-compliance-crd' };
+      const dispatch = jest.fn().mockResolvedValue(crdApp);
+
+      const res = await createApp(dispatch).relatedResourcesToRemove();
+
+      expect(res).toBe(crdApp);
+    });
+
+    it('should resolve to undefined when the CRD app has already been removed', async() => {
+      const dispatch = jest.fn().mockRejectedValue({ status: 404, code: 'NotFound' });
+
+      await expect(createApp(dispatch).relatedResourcesToRemove()).resolves.toBeUndefined();
+    });
+
+    it.each([
+      ['forbidden', { status: 403, code: 'Forbidden' }],
+      ['a network failure', new Error('Network Error')],
+      ['no error at all', undefined],
+    ])('should reject when finding the CRD app fails with %s', async(_, error) => {
+      const dispatch = jest.fn().mockRejectedValue(error);
+
+      await expect(createApp(dispatch).relatedResourcesToRemove()).rejects.toBe(error);
+    });
+  });
 });

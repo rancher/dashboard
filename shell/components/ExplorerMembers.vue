@@ -58,7 +58,7 @@ export default {
     // the cluster binding load on BOTH - otherwise `management/findAll` throws "Unknown schema".
     const mgmtClusterRoleTemplateBindingSchema = this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING);
 
-    this['normanClusterRTBSchema'] = clusterRoleTemplateBindingSchema;
+    const clusterMembershipPermissions = this.loadClusterMembershipPermissions();
 
     if (clusterRoleTemplateBindingSchema && mgmtClusterRoleTemplateBindingSchema) {
       Promise.all([
@@ -104,7 +104,7 @@ export default {
       hydration.mgmtRoleTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE });
     }
 
-    await allHash(hydration);
+    await Promise.all([allHash(hydration), clusterMembershipPermissions]);
   },
 
   data() {
@@ -123,7 +123,7 @@ export default {
         }
       },
       resource:                          MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING,
-      normanClusterRTBSchema:            null,
+      canEditClusterMembers:             false,
       normanClusterRoleTemplateBindings: [],
       projectRoleTemplateBindings:       [],
       projects:                          [],
@@ -271,9 +271,6 @@ export default {
     isLocal() {
       return this.$store.getters['currentCluster'].isLocal;
     },
-    canEditClusterMembers() {
-      return this.normanClusterRTBSchema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
-    },
     isHarvester() {
       return this.$store.getters['currentProduct'].inStore === HARVESTER;
     },
@@ -283,6 +280,16 @@ export default {
     // read each project's `resourcePermissions` for the per-project answer.
     async loadProjectMembershipPermissions() {
       this.projectMembershipPermissions = await fetchProjectMembershipPermissions(this.$store);
+    },
+    async loadClusterMembershipPermissions() {
+      try {
+        const cluster = await this.$store.dispatch('management/request', { url: `${ this.currentCluster.links.self }?checkPermissions=${ MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING }` });
+
+        this.canEditClusterMembers = !!cluster?.resourcePermissions?.[MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]?.create;
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn(`cluster membership permission check failed for ${ this.currentCluster?.id }, hiding Add (fail-closed):`, e);
+      }
     },
     canAddProjectMember(group) {
       return !!this.projectMembershipPermissions[this.getMgmtProjectId(group)]?.create;
