@@ -541,7 +541,12 @@ function check(file, { env = process.env, gitleaks } = {}) {
     try {
       execFileSync(gitleaks, ['dir', path.join(dir, 'files'), '--no-banner', '--report-format', 'json', '--report-path', report, '--exit-code', '0'], { stdio: ['ignore', 'ignore', 'inherit'] });
       JSON.parse(fs.readFileSync(report, 'utf8'))
-        .filter((f) => !isPublic(enclosingString(fs.readFileSync(f.File, 'utf8'), f.Secret || f.Match)))
+        .filter((f) => {
+          const text = fs.readFileSync(f.File, 'utf8');
+          const value = enclosingString(text, f.Secret || f.Match);
+
+          return !isPublic(value) && !isAddonChecksum(text, value);
+        })
         .forEach((f) => findings.push({
           check: 'gitleaks', rule: f.RuleID, where: `${ path.relative(path.join(dir, 'files'), f.File) }:${ f.StartLine }`, length: (f.Secret || f.Match).length
         }));
@@ -564,6 +569,8 @@ const enclosingString = (text, part) => {
 
   return start < 0 || end < 0 ? part : text.substring(start + 1, end);
 };
+
+const isAddonChecksum = (text, value) => /^[0-9a-f]{64}$/.test(value) && text.includes(`"checksum":"${ value }"`) && text.includes('"type":"k3s.cattle.io.addon"');
 
 const recordedSeconds = (har) => {
   const { entries } = har.log;
@@ -607,6 +614,8 @@ if (require.main === module) {
   } else if (command === 'check') {
     const gitleaks = option('--gitleaks');
     let total = 0;
+
+    console.log(`Environment variables that may be credentials: ${ secretVariables(process.env).map(([name]) => name).join(', ') || 'none' }`);
 
     args.forEach((file) => {
       const findings = check(file, { gitleaks });
