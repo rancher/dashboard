@@ -9,7 +9,7 @@ import CopyCode from '@shell/components/CopyCode';
 import { Banner } from '@components/Banner';
 import {
   LOCAL, LOGGED_OUT, TIMED_OUT, IS_SSO, _FLAGGED,
-  IS_SLO, IS_SESSION_IDLE
+  IS_SLO, IS_SESSION_IDLE, PROVIDER
 } from '@shell/config/query-params';
 import { Checkbox } from '@components/Form/Checkbox';
 import { RcButton } from '@components/RcButton';
@@ -252,7 +252,7 @@ export default {
     this.hasLocal = hasLocal;
 
     const rememberedId = this.rememberedProviderId();
-    const initial = resolveInitialProvider(providerOptions, rememberedId);
+    const initial = resolveInitialProvider(providerOptions, rememberedId, this.requestedProviderId());
 
     this.selectedProviderId = initial?.id || null;
     // Only reflect the checkbox as ticked when the saved provider still exists;
@@ -329,6 +329,16 @@ export default {
      */
     rememberedProviderId() {
       return this.hasProviderList ? getRememberedProviderId() : null;
+    },
+
+    /**
+     * The provider a link to this page asks for. A repeated parameter arrives as
+     * an array and is ignored.
+     */
+    requestedProviderId() {
+      const value = this.$route.query[PROVIDER];
+
+      return typeof value === 'string' ? value : null;
     },
 
     /**
