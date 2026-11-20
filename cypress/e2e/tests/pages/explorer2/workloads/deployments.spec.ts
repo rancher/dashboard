@@ -588,10 +588,178 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       const dialog = openRedeployDialog();
 
       dialog.simulateRedeployError(getRedeployEndpoint());
+      dialog.cancel().shouldBeClosed();
     }));
 
     after(() => {
       cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`, false);
+    });
+  });
+
+  describe('Rollback', () => {
+    const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
+    const apiResource = 'apps.deployments';
+    const revisionAnnotation = 'deployment.kubernetes.io/revision';
+    const changeCauseAnnotation = 'kubernetes.io/change-cause';
+    const descriptionAnnotation = 'field.cattle.io/description';
+    let namespace: string;
+
+    const deploymentId = (name: string) => `${ namespace }/${ name }`;
+
+    // Revisions only differ by this env var, so no image has to be pulled
+    const templateRevision = (deployment: any) => deployment.spec.template.spec.containers[0].env[0].value;
+
+    const createDeployment = (name: string, annotations?: Record<string, string>) => {
+      return cy.createRancherResource('v1', apiResource, JSON.stringify({
+        apiVersion: 'apps/v1',
+        kind:       'Deployment',
+        metadata:   {
+          name, namespace, annotations
+        },
+        spec: {
+          replicas: 0,
+          selector: { matchLabels: { app: name } },
+          template: {
+            metadata: { labels: { app: name } },
+            spec:     { containers: [{ ...SMALL_CONTAINER, env: [{ name: 'TEMPLATE_REVISION', value: '1' }] }] }
+          }
+        }
+      }));
+    };
+
+    // waitForRancherResource resolves false when it gives up instead of failing, so each wait asserts its result
+    const waitForDeployment = (name: string, testFn: (deployment: any) => boolean) => {
+      return cy.waitForRancherResource('v1', apiResource, deploymentId(name), (resp: any) => testFn(resp.body)).should('eq', true);
+    };
+
+    const waitForRevision = (name: string, revision: string) => {
+      return waitForDeployment(name, (deployment) => deployment.metadata.annotations?.[revisionAnnotation] === revision && deployment.status?.observedGeneration === deployment.metadata.generation);
+    };
+
+    const updateDeployment = (name: string, update: (deployment: any) => void) => {
+      return cy.getRancherResource('v1', apiResource, deploymentId(name)).then((resp: any) => {
+        const deployment = resp.body;
+
+        update(deployment);
+        cy.setRancherResource('v1', apiResource, deploymentId(name), deployment);
+      });
+    };
+
+    const createSecondRevision = (name: string, annotations: Record<string, string>) => {
+      waitForRevision(name, '1');
+      updateDeployment(name, (deployment) => {
+        deployment.spec.template.spec.containers[0].env[0].value = '2';
+        deployment.metadata.annotations = { ...deployment.metadata.annotations, ...annotations };
+      });
+      waitForRevision(name, '2');
+    };
+
+    const navToDeployments = (name: string) => {
+      WorkloadsDeploymentsListPagePo.navTo();
+      deploymentsListPage.waitForPage();
+      deploymentsListPage.sortableTable().filter(name);
+    };
+
+    const rollBackFromList = (name: string, revisionNumber: number) => {
+      navToDeployments(name);
+      deploymentsListPage.list().actionMenu(name).getMenuItem('Rollback').click();
+
+      deploymentsListPage.rollbackDialog().shouldBeVisible().selectRevision(revisionNumber).rollBack();
+      deploymentsListPage.rollbackDialog().shouldBeClosed();
+
+      waitForDeployment(name, (deployment) => templateRevision(deployment) === String(revisionNumber));
+    };
+
+    const getAnnotations = (name: string) => {
+      return cy.getRancherResource('v1', apiResource, deploymentId(name)).then((resp: any) => resp.body.metadata.annotations || {});
+    };
+
+    before(() => {
+      cy.createE2EResourceName('rollback').then((name) => {
+        namespace = name;
+        cy.createNamespace(namespace);
+      });
+    });
+
+    it('keeps annotations added or edited after the target revision', () => {
+      cy.createE2EResourceName('rollback-annotations').then((name) => {
+        createDeployment(name, { [descriptionAnnotation]: 'description v1', custom: 'value' });
+        createSecondRevision(name, { [descriptionAnnotation]: 'description v2', 'added-later': 'yes' });
+
+        rollBackFromList(name, 1);
+
+        getAnnotations(name).then((annotations) => {
+          expect(annotations[descriptionAnnotation]).to.equal('description v2');
+          expect(annotations.custom).to.equal('value');
+          expect(annotations['added-later']).to.equal('yes');
+        });
+      });
+    });
+
+    it('restores the change cause of the target revision', () => {
+      cy.createE2EResourceName('rollback-change-cause').then((name) => {
+        createDeployment(name, { [changeCauseAnnotation]: 'deploy v1' });
+        createSecondRevision(name, { [changeCauseAnnotation]: 'deploy v2' });
+
+        rollBackFromList(name, 1);
+
+        getAnnotations(name).then((annotations) => {
+          expect(annotations[changeCauseAnnotation]).to.equal('deploy v1');
+        });
+
+        // The controller copies the change cause onto the ReplicaSet of the new revision
+        cy.waitForRancherResource('v1', 'apps.replicasets', namespace, (resp: any) => (resp.body.data || []).some((rs: any) => rs.metadata.labels?.app === name &&
+            rs.metadata.annotations?.[revisionAnnotation] === '3' &&
+            rs.metadata.annotations?.[changeCauseAnnotation] === 'deploy v1'
+        )).should('eq', true);
+      });
+    });
+
+    it('removes the change cause when the target revision has none', () => {
+      cy.createE2EResourceName('rollback-no-change-cause').then((name) => {
+        createDeployment(name, { custom: 'value' });
+        createSecondRevision(name, { [changeCauseAnnotation]: 'deploy v2' });
+
+        rollBackFromList(name, 1);
+
+        getAnnotations(name).then((annotations) => {
+          expect(annotations).to.not.have.property(changeCauseAnnotation);
+          expect(annotations.custom).to.equal('value');
+        });
+      });
+    });
+
+    it('rolls back a paused deployment with no annotations from the detail page', () => {
+      cy.createE2EResourceName('rollback-paused').then((name) => {
+        createDeployment(name);
+        createSecondRevision(name, {});
+
+        // While paused the controller does not add the revision annotation back for a new template
+        updateDeployment(name, (deployment) => {
+          deployment.spec.paused = true;
+          deployment.spec.template.spec.containers[0].env[0].value = '3';
+          delete deployment.metadata.annotations;
+        });
+        waitForDeployment(name, (deployment) => Object.keys(deployment.metadata.annotations || {}).length === 0);
+
+        navToDeployments(name);
+        deploymentsListPage.sortableTable().detailsPageLinkWithName(name).click();
+
+        const detailPage = new WorkloadsDeploymentsDetailsPagePo(name, localCluster, undefined, namespace);
+
+        detailPage.waitForPage();
+        detailPage.waitForMastheadTitle(name);
+        detailPage.openMastheadActionMenu().getMenuItem('Rollback').click();
+
+        detailPage.rollbackDialog().shouldBeVisible().selectRevision(1).rollBack();
+        detailPage.rollbackDialog().shouldBeClosed();
+
+        waitForDeployment(name, (deployment) => templateRevision(deployment) === '1');
+      });
+    });
+
+    after(() => {
+      cy.deleteNamespace([namespace]);
     });
   });
 });
