@@ -35,6 +35,18 @@ describe('fx: walk', () => {
 
     expect(inFunctions).toStrictEqual({ outer: false, inner: true });
   });
+
+  it('should give the nodes each node is inside, outermost first', () => {
+    const ancestors: Record<string, string[]> = {};
+
+    walk(parse('a(b);'), (node: any, _: boolean, inside: any[]) => {
+      if (node.type === 'Identifier') {
+        ancestors[node.name] = inside.map((n) => n.type);
+      }
+    });
+
+    expect(ancestors).toStrictEqual({ a: ['Program', 'ExpressionStatement', 'CallExpression'], b: ['Program', 'ExpressionStatement', 'CallExpression'] });
+  });
 });
 
 describe('fx: isMember', () => {

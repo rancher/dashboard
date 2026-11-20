@@ -208,6 +208,64 @@ describe('fx: rancherRequireCompat', () => {
     });
   });
 
+  describe('with a require() that runs after its file loads', () => {
+    beforeEach(() => {
+      warn.mockClear();
+    });
+
+    it('should warn that it loads with the file, at the call, and point to import()', () => {
+      const code = `try {\n  require('./throws');\n} catch (e) {}\n`;
+
+      transform(code);
+
+      expect(warn).toHaveBeenCalledWith(`require('./throws') in a try loads its module with this file under yarn dev, so an error the module throws stops the dashboard instead of reaching the code around the call. Use import() to load the module when it is needed.`, code.indexOf('require('));
+    });
+
+    it.each([
+      ['in a function', `const load = () => require('./a');`, `require('./a') in a function`],
+      ['in a method', `export default { get a() { return require('a-package'); } };`, `require('a-package') in a function`],
+      ['in an if', `if (enabled) {\n  require('./a');\n}`, `require('./a') in a condition`],
+      ['in a ternary', `const a = enabled ? require('./a') : null;`, `require('./a') in a condition`],
+      ['after a logical operator', `const a = enabled && require('./a');`, `require('./a') in a condition`],
+      ['in a catch', `try {\n  load();\n} catch (e) {\n  require('./fallback');\n}`, `require('./fallback') in a condition`],
+      ['with a path built from a template', `function load(name) {\n  return require(\`./models/\${ name }\`);\n}`, `require(\`./models/\${ name }\`) in a function`],
+    ])('should warn about a require() %s', (_, code, described) => {
+      transform(code);
+
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`^${ described.replace(/[$()[\]{}.*?+|\\^]/g, '\\$&') } loads its module`)), code.indexOf('require('));
+    });
+
+    it('should warn about each one at its own position', () => {
+      const code = `function a() {\n  return require('./a');\n}\ntry {\n  require('./b');\n} catch (e) {}\n`;
+
+      transform(code);
+
+      expect(warn).toHaveBeenCalledTimes(2);
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^require\('\.\/a'\) in a function /), code.indexOf(`require('./a')`));
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^require\('\.\/b'\) in a try /), code.indexOf(`require('./b')`));
+    });
+
+    it.each([
+      ['at the top of the file', `const a = require('./a');`],
+      ['in the test of a condition', `if (require('./a').enabled) {\n  run();\n}`],
+      ['in a finally', `try {\n  run();\n} finally {\n  require('./a');\n}`],
+      ['of an asset', `const icon = () => require('./icon.svg');`],
+      ['of json', `try {\n  require('./package.json');\n} catch (e) {}`],
+      ['of a template path to assets', `const icon = (name) => require(\`./icons/\${ name }.svg\`);`],
+      ['by a method of another object', `const load = () => store.require('./a');`],
+    ])('should not warn about a require() %s', (_, code) => {
+      transform(code);
+
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('should not warn in a build, where the call loads the module when it runs', () => {
+      transform(`try {\n  require('./throws');\n} catch (e) {}\n`, `${ ROOT }/pkg/thing/index.ts`, 'build');
+
+      expect(warn).not.toHaveBeenCalled();
+    });
+  });
+
   describe('in a build', () => {
     let root: string;
 

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { isFunction, walk } from './ast.mjs';
 import {
   MAY_BE_COMMONJS, REQUIRE_FILE, isCommonJS, withoutEmptyExports, wrapCommonJS
 } from './commonjs.mjs';
@@ -56,6 +57,69 @@ function parseCode(context, code) {
   }
 }
 
+const RUNS_SOMETIMES = {
+  IfStatement:           (node, child) => child !== node.test,
+  ConditionalExpression: (node, child) => child !== node.test,
+  LogicalExpression:     (node, child) => child === node.right,
+  SwitchCase:            (node, child) => child !== node.test,
+  CatchClause:           () => true,
+  ForStatement:          (node, child) => child !== node.init,
+  ForInStatement:        (node, child) => child === node.body,
+  ForOfStatement:        (node, child) => child === node.body,
+  WhileStatement:        (node, child) => child === node.body,
+  DoWhileStatement:      (node, child) => child === node.body,
+};
+
+function laterThanLoad(call, ancestors) {
+  for (let i = ancestors.length - 1; i >= 0; i--) {
+    const node = ancestors[i];
+    const child = ancestors[i + 1] || call;
+
+    if (isFunction(node)) {
+      return 'in a function';
+    }
+
+    if (node.type === 'TryStatement' && child === node.block) {
+      return 'in a try';
+    }
+
+    if (RUNS_SOMETIMES[node.type]?.(node, child)) {
+      return 'in a condition';
+    }
+  }
+
+  return undefined;
+}
+
+function requiredPath(call) {
+  const [arg] = call.arguments;
+
+  if (call.callee.type !== 'Identifier' || call.callee.name !== 'require') {
+    return undefined;
+  }
+
+  if (arg?.type === 'Literal' && typeof arg.value === 'string') {
+    return arg.value;
+  }
+
+  return arg?.type === 'TemplateLiteral' ? arg.quasis[arg.quasis.length - 1].value.cooked : undefined;
+}
+
+function requiresRunLater(code, program) {
+  const found = [];
+
+  walk(program, (node, _, ancestors) => {
+    const required = node.type === 'CallExpression' ? requiredPath(node) : undefined;
+    const where = required !== undefined && !REQUIRED_AS_VALUE.test(cleanId(required)) && laterThanLoad(node, ancestors);
+
+    if (where) {
+      found.push({ call: code.slice(node.start, node.end).replace(/\s+/g, ' '), where, start: node.start });
+    }
+  });
+
+  return found;
+}
+
 function applyAlias(aliases, source) {
   const alias = aliases.find(({ find }) => (typeof find === 'string' ? source === find || source.startsWith(`${ find }/`) : find.test(source)));
 
@@ -72,8 +136,9 @@ function applyAlias(aliases, source) {
  *
  * The dev server serves native ES modules, which cannot load a module when a call runs, so there each required module
  * is imported, and loads, with the file that requires it, and a CommonJS `.js` or `.ts` file becomes an ES module that
- * runs its code in a function of `(module, exports)`, as `wrapCommonJS` describes. Only code in the app's pkg folder
- * is changed.
+ * runs its code in a function of `(module, exports)`, as `wrapCommonJS` describes. A `require()` of a module inside a
+ * function, a `try` or a condition runs there before the code around it, so the dev server warns about each one at its
+ * file and line. Only code in the app's pkg folder is changed.
  *
  * @param {{ root: string }} options the app's root directory
  */
@@ -126,12 +191,18 @@ export function rancherRequireCompat({ root }) {
       }
 
       const build = config.command === 'build';
-      const program = !build && SCRIPT_FILE.test(file) && !CLASSIC_WORKER.test(id) && MAY_BE_COMMONJS.test(code) ? parseCode(this, code) : undefined;
-      const commonJS = program !== undefined && isCommonJS(program);
+      const requires = code.includes('require(');
+      const mayBeCommonJS = SCRIPT_FILE.test(file) && MAY_BE_COMMONJS.test(code);
+      const program = !build && !CLASSIC_WORKER.test(id) && (requires || mayBeCommonJS) ? parseCode(this, code) : undefined;
+      const commonJS = program !== undefined && mayBeCommonJS && isCommonJS(program);
 
-      if (!commonJS && !code.includes('require(')) {
+      if (!commonJS && !requires) {
         return;
       }
+
+      (program ? requiresRunLater(code, program) : []).forEach(({ call, where, start }) => {
+        this.warn(`${ call } ${ where } loads its module with this file under yarn dev, so an error the module throws stops the dashboard instead of reaching the code around the call. Use import() to load the module when it is needed.`, start);
+      });
 
       const imports = new Map();
       const contexts = [];
