@@ -40,13 +40,14 @@ const CLAMPED: CellLimits = {
   minWidth: 100, maxWidth: 300, lineClamp: 3
 };
 
-const mountCell = (text: string, limits: CellLimits = CLAMPED) => mount(LimitedCell, {
-  props:  { limits },
+const mountCell = (text: string, limits: CellLimits = CLAMPED, focusable = false) => mount(LimitedCell, {
+  props:  { limits, focusable },
   slots:  { default: () => text },
   global: {
     directives: {
-      'clean-tooltip': (el: HTMLElement, binding: { value: { content: string } }) => {
+      'clean-tooltip': (el: HTMLElement, binding: { value: { content: string, triggers?: string[] } }) => {
         el.setAttribute('data-tooltip', binding.value.content);
+        el.setAttribute('data-triggers', String(binding.value.triggers));
       }
     }
   }
@@ -128,6 +129,35 @@ describe('component: LimitedCell', () => {
     await resize(wrapper.element);
 
     expect(wrapper.attributes('data-tooltip')).toBe('');
+  });
+
+  it('should take keyboard focus while cut when focusable, and show its tooltip on focus too', async() => {
+    const wrapper = mountCell('A long description', CLAMPED, true);
+
+    layOut(wrapper.element as HTMLElement, { scrollHeight: 90, clientHeight: 54 });
+    await resize(wrapper.element);
+
+    expect(wrapper.attributes('tabindex')).toBe('0');
+    expect(wrapper.attributes('data-triggers')).toBe('hover,focus');
+  });
+
+  it('should stay out of the Tab order while the text fits, even when focusable', async() => {
+    const wrapper = mountCell('Short note', CLAMPED, true);
+
+    layOut(wrapper.element as HTMLElement, {});
+    await resize(wrapper.element);
+
+    expect(wrapper.attributes('tabindex')).toBeUndefined();
+  });
+
+  it('should never take keyboard focus unless focusable', async() => {
+    const wrapper = mountCell('A long description');
+
+    layOut(wrapper.element as HTMLElement, { scrollHeight: 90, clientHeight: 54 });
+    await resize(wrapper.element);
+
+    expect(wrapper.attributes('tabindex')).toBeUndefined();
+    expect(wrapper.attributes('data-triggers')).toBe('undefined');
   });
 
   it('should stop watching the cell once it goes', () => {
