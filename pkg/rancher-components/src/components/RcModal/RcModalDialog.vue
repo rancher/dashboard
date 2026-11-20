@@ -116,8 +116,18 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
+let pressStartedOnBackground = false;
+
+function onPress(event: MouseEvent) {
+  pressStartedOnBackground = event.target === event.currentTarget;
+
+  if (pressStartedOnBackground) {
+    event.preventDefault();
+  }
+}
+
 function onBackgroundClick() {
-  if (props.clickToClose) {
+  if (props.clickToClose && pressStartedOnBackground) {
     cancel();
   }
 }
@@ -126,7 +136,7 @@ function onBackgroundClick() {
 <template>
   <div
     class="rc-modal-overlay"
-    @mousedown.self.prevent
+    @mousedown.capture="onPress"
     @click.self="onBackgroundClick"
   >
     <div
