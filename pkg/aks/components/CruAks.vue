@@ -216,8 +216,10 @@ export default defineComponent({
     const store = this.$store as Store<any>;
     // This setting is used by RKE1 AKS GKE and EKS - rke2/k3s have a different mechanism for fetching supported versions
     const supportedVersionRange = store.getters['management/byId'](MANAGEMENT.SETTING, SETTING.UI_SUPPORTED_K8S_VERSIONS)?.value;
+    const isImport = this.$route?.query?.mode === _IMPORT;
 
     return {
+      isImport,
       NETWORKING_AUTH_MODES,
       PRIVATE_REGISTRY_CONTEXT,
       normanCluster:          { name: '', importedConfig: { privateRegistryURL: null } } as any,
@@ -234,7 +236,7 @@ export default defineComponent({
 
       loadingLocations: false,
 
-      fvFormRuleSets: this.isImport ? [{
+      fvFormRuleSets: isImport ? [{
         path:  'name',
         rules: ['nameRequired', 'clusterNameChars', 'clusterNameStartEnd', 'clusterNameLength'],
       },
@@ -282,10 +284,6 @@ export default defineComponent({
           delete this.normanCluster.importedConfig.privateRegistryPullSecrets;
         }
       }
-    },
-
-    isImport() {
-      return this.$route?.query?.mode === _IMPORT;
     },
 
     isImportedCluster() {
