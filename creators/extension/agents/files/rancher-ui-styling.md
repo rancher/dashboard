@@ -134,8 +134,8 @@ Reach for these before writing `color: var(--error)` in a scoped block — one c
 
 ## Theming & dark mode
 
-- The app writes `theme-light` or `theme-dark` onto `<body>` (`shell/mixins/brand.js`, driven by the `theme` preference, which supports `auto`). A brand class such as `classic` may sit alongside it.
-- Themes are layered in `app.scss` as: `modern` → `light` → `dark` → `suse`. **`_modern.scss` defines the defaults under `BODY, .theme-light` and `BODY, .theme-dark`** — it is the live token set. `_light.scss` / `_dark.scss` only override inside `.classic`, the legacy brand.
+- The app writes `theme-light` or `theme-dark` onto `<body>` (`shell/mixins/brand.js`, driven by the `theme` preference, which supports `auto`). Rancher Prime adds the `suse` brand class alongside it.
+- Themes are layered in `app.scss` as: `modern` → `suse`. **`_modern.scss` defines the defaults under `BODY, .theme-light` and `BODY, .theme-dark`** and is the live token set. `_suse.scss` layers the Rancher Prime brand (`.suse`) on top.
 - **The correct dark-mode selector in a scoped component style is `body.theme-dark &`.** Not `@media (prefers-color-scheme: dark)` — the user's explicit preference beats the OS one, and the media query ignores it.
 
 ```scss

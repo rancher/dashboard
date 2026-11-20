@@ -5,7 +5,7 @@ import {
   compare, formatEntries, missingPrimitives, parseBaseline
 } from './color-lint-diff.mjs';
 
-const THEME = 'shell/assets/styles/themes/_light.scss';
+const THEME = 'shell/assets/styles/themes/_modern.scss';
 const BUTTON = 'shell/components/Button.vue';
 
 const baseline = [

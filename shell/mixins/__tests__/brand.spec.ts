@@ -2,8 +2,13 @@ import { mount } from '@vue/test-utils';
 import { MANAGEMENT } from '@shell/config/types';
 import Brand from '@shell/mixins/brand';
 
+jest.mock('@shell/utils/require-asset', () => ({
+  ...jest.requireActual('@shell/utils/require-asset'),
+  requireJson: (path: string) => jest.requireActual(path.replace(/^~shell\//, '@shell/')),
+}));
+
 describe('brandMixin', () => {
-  const createWrapper = () => {
+  const createWrapper = (brand?: string) => {
     const Component = {
       template: '<div></div>',
       mixins:   [Brand],
@@ -35,6 +40,8 @@ describe('brandMixin', () => {
             return [];
           }
         },
+        'management/brand': brand,
+        'prefs/theme':      'light',
       }
     };
 
@@ -63,6 +70,23 @@ describe('brandMixin', () => {
           load: 'multi', redirectUnauthorized: false, url: `/v1/${ MANAGEMENT.SETTING }s`
         }
       });
+    });
+  });
+
+  describe('body classes', () => {
+    afterEach(() => {
+      document.body.className = '';
+    });
+
+    it.each([
+      ['the removed classic brand', 'classic', 'theme-light overflow-hidden dashboard-body'],
+      ['the suse brand', 'suse', 'overflow-hidden dashboard-body suse theme-light'],
+    ])('applies the theme classes for %s', (_, brand, expected) => {
+      const { wrapper } = createWrapper(brand);
+
+      expect(document.body.className).toStrictEqual(expected);
+
+      wrapper.unmount();
     });
   });
 });
