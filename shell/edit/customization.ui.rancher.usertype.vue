@@ -113,7 +113,7 @@ export default defineComponent({
         // The global role's owner reference to the user type removes the role and any bindings already made with it
         await this.value.remove();
       } catch (cleanupErr) {
-        console.error('Failed to remove the userType after assigning it failed:', cleanupErr); // eslint-disable-line no-console
+        console.error('Failed to remove the user type after assigning it failed:', cleanupErr); // eslint-disable-line no-console
 
         this.$store.dispatch('growl/error', {
           title:   this.t('userType.assignments.orphaned.title'),

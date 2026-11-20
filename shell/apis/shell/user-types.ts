@@ -227,7 +227,7 @@ export class UserTypesApiImpl implements UserTypesApi {
       return await this.store.dispatch(`${ STORE.MANAGEMENT }/findAll`, { type: CUSTOMIZATION.USER_TYPE });
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn('Unable to list userTypes, the current user is treated as having none', e);
+      console.warn('Unable to list user types, the current user is treated as having none', e);
 
       return [];
     }
@@ -265,7 +265,7 @@ export class UserTypesApiImpl implements UserTypesApi {
       delete this.assignedNames;
 
       // eslint-disable-next-line no-console
-      console.warn('Unable to find the userTypes assigned to the current user', e);
+      console.warn('Unable to find the user types assigned to the current user', e);
 
       return [];
     }
