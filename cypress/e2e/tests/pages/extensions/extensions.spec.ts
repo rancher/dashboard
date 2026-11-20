@@ -22,6 +22,9 @@ const UNAUTHENTICATED_EXTENSION_NAME = 'uk-locale';
 const EXTENSION_NAME = 'clock';
 const UI_PLUGINS_PARTNERS_REPO_URL = 'https://github.com/rancher/partner-extensions';
 const UI_PLUGINS_PARTNERS_REPO_NAME = 'partner-extensions';
+// What the Repositories list shows for the repo, from `catalog.repo.name."partner-extensions"`.
+// The list is matched on the display name, the API on the resource name.
+const UI_PLUGINS_PARTNERS_REPO_DISPLAY_NAME = 'Partner Extensions';
 const GIT_REPO_NAME = 'rancher-plugin-examples';
 // Namespace the ui-plugin-operator installs extension helm apps into - used to check/clean install
 // state via the API rather than relying on the UI alone.
@@ -284,11 +287,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     appRepoList.sortableTable().checkLoadingIndicatorNotVisible();
     appRepoList.sortableTable().noRowsShouldNotExist();
     appRepoList.sortableTable().rowNames().then((names: any) => {
-      if (names.includes(UI_PLUGINS_PARTNERS_REPO_NAME)) {
+      if (names.includes(UI_PLUGINS_PARTNERS_REPO_DISPLAY_NAME)) {
         // Ensure the row exists before opening action menu
-        appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_NAME).should('be.visible');
+        appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_DISPLAY_NAME).should('be.visible');
 
-        const actionMenu = appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_NAME);
+        const actionMenu = appRepoList.list().actionMenu(UI_PLUGINS_PARTNERS_REPO_DISPLAY_NAME);
 
         actionMenu.getMenuItem('Delete').click();
         const promptRemove = new PromptRemove();
@@ -296,6 +299,11 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
         return promptRemove.remove();
       }
     });
+
+    // The banner under test only appears while the partners repository is missing, so assert the
+    // precondition here. The lookup above is by display name and silently does nothing when it
+    // does not match, which otherwise surfaces much later as "the banner never appeared".
+    appRepoList.sortableTable().rowElementWithName(UI_PLUGINS_PARTNERS_REPO_DISPLAY_NAME).should('not.exist');
 
     // Now go to extensions (by nav, not page load....)
     appRepoList.navToMenuEntry('Extensions');
