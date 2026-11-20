@@ -100,6 +100,18 @@ export const WORKLOAD_TYPES = {
 };
 
 /**
+ * Workload types whose list queries ask for `includeAssociatedData`, embedding pods in
+ * `metadata.associatedData` so health can be computed without the global pod store.
+ */
+export const WORKLOAD_TYPES_WITH_ASSOCIATED_DATA = [
+  WORKLOAD_TYPES.DEPLOYMENT,
+  WORKLOAD_TYPES.REPLICA_SET,
+  WORKLOAD_TYPES.DAEMON_SET,
+  WORKLOAD_TYPES.STATEFUL_SET,
+  WORKLOAD_TYPES.JOB,
+];
+
+/**
  * Kube Workload Kinds
  */
 export const WORKLOAD_KINDS = {

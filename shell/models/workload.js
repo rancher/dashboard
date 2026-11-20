@@ -1,7 +1,7 @@
 import { findBy, insertAt } from '@shell/utils/array';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@shell/config/labels-annotations';
 import {
-  WORKLOAD_TYPES, SERVICE, INGRESS, POD, GATEWAY_API
+  WORKLOAD_TYPES, WORKLOAD_TYPES_WITH_ASSOCIATED_DATA, SERVICE, INGRESS, POD, GATEWAY_API
 } from '@shell/config/types';
 import { set } from '@shell/utils/object';
 import day from 'dayjs';
@@ -690,6 +690,19 @@ export default class Workload extends WorkloadService {
     return this.podSelector ? parse(this.podSelector) : null;
   }
 
+  /**
+   * True when server-side pagination is enabled for this workload type and the list query
+   * embeds pods under `metadata.associatedData`, so health must be computed from that
+   * rather than the global pod store.
+   */
+  get hasPaginatedWorkloadHealth() {
+    if (!WORKLOAD_TYPES_WITH_ASSOCIATED_DATA.includes(this.type)) {
+      return false;
+    }
+
+    return !!this.$getters['paginationEnabled']?.({ id: this.type });
+  }
+
   calcPodGauges(pods) {
     const out = { };
     let refPods = pods;
@@ -731,7 +744,10 @@ export default class Workload extends WorkloadService {
   }
 
   get podGauges() {
-    return this.calcPodGauges(this.pods);
+    // Under SSP, pods are embedded in `metadata.associatedData` and `calcPodGauges` reads
+    // them from there. Pass an empty list so the global pod store isn't touched when the
+    // embedded data is missing (e.g. 0-pod workloads or rows that haven't loaded yet).
+    return this.calcPodGauges(this.hasPaginatedWorkloadHealth ? [] : this.pods);
   }
 
   // Job Specific
