@@ -36,8 +36,6 @@ const EXTRA = args.scenarios ? JSON.parse(fs.readFileSync(args.scenarios, 'utf8'
 const THEMES = {
   light:           'theme-light',
   dark:            'theme-dark',
-  'classic light': 'classic theme-light',
-  'classic dark':  'classic theme-dark',
   'SUSE light':    'suse theme-light',
   'SUSE dark':     'suse theme-dark',
 };
@@ -726,10 +724,10 @@ async function setTheme(page, classes) {
   await page.evaluate((c) => {
     const apply = () => {
       const wanted = c.split(' ');
-      const current = ['theme-light', 'theme-dark', 'classic', 'suse'].filter((name) => document.body.classList.contains(name));
+      const current = ['theme-light', 'theme-dark', 'suse'].filter((name) => document.body.classList.contains(name));
 
       if (current.sort().join(' ') !== [...wanted].sort().join(' ')) {
-        document.body.classList.remove('theme-light', 'theme-dark', 'classic', 'suse');
+        document.body.classList.remove('theme-light', 'theme-dark', 'suse');
         document.body.classList.add(...wanted);
       }
     };
@@ -743,7 +741,7 @@ async function setTheme(page, classes) {
 }
 
 async function themeShown(page) {
-  const classes = await page.evaluate(() => ['theme-light', 'theme-dark', 'classic', 'suse'].filter((name) => document.body.classList.contains(name)).sort().join(' '));
+  const classes = await page.evaluate(() => ['theme-light', 'theme-dark', 'suse'].filter((name) => document.body.classList.contains(name)).sort().join(' '));
 
   return Object.keys(THEMES).find((theme) => THEMES[theme].split(' ').sort().join(' ') === classes);
 }
