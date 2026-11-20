@@ -12,34 +12,43 @@ describe('Modal dismissal', { tags: ['@components', '@adminUser'] }, () => {
 
   let namespaceName: string;
 
+  const ensureNamespace = (name: string) => cy.request({ url: `${ Cypress.env('api') }/v1/namespaces/${ name }`, failOnStatusCode: false })
+    .then((resp) => {
+      if (resp.status === 404) {
+        cy.createNamespace(name);
+      }
+    });
+
   before(() => {
-    cy.login();
     cy.createE2EResourceName('modal-dismissal').then((name) => {
       namespaceName = name;
-      cy.createNamespace(name);
     });
   });
 
   after(() => {
-    cy.login();
-    cy.deleteRancherResource('v1', 'namespaces', namespaceName, false);
+    if (namespaceName) {
+      cy.login();
+      cy.deleteRancherResource('v1', 'namespaces', namespaceName, false);
+    }
   });
 
   describe('delete confirmation', () => {
     beforeEach(() => {
       cy.login();
+      ensureNamespace(namespaceName);
       projectsNamespacesPage.goTo();
       projectsNamespacesPage.waitForPage();
+      projectsNamespacesPage.list().resourceTable().sortableTable().filter(namespaceName);
       projectsNamespacesPage.list().resourceTable().sortableTable().rowActionMenuOpen(namespaceName)
         .getMenuItem('Delete')
         .click();
       promptRemove().checkVisible();
     });
 
-    it('stays open when a press inside it is released on the background', () => {
+    it('stays open, keeping the typed name, when a press on its text is released on the background', () => {
       promptRemove().confirm('modal-dismissal');
 
-      promptRemove().confirmField().self().realMouseDown();
+      promptRemove().confirmText().realMouseDown();
       promptRemove().background().realMouseUp({ position: 'topLeft' });
 
       promptRemove().checkVisible();
