@@ -76,7 +76,7 @@ function build_pkg() {
   pushd pkg/${PKG}
 
   if [ ! -f ./vite.config.mjs ] && [ -f ./vue.config.js ] && ! { [ "$(grep -cv '^[[:space:]]*$' ./vue.config.js)" = 1 ] && grep -qE "^module\.exports = require\('(\./\.shell|@rancher/shell)/pkg/vue\.config(\.js)?'\)\(__dirname\);?$" ./vue.config.js; }; then
-    echo "vue.config.js is no longer used: packages are built with Vite. Move its configuration to vite.config.mjs, or run the extension creator with --migrate"
+    echo "vue.config.js is no longer used: packages are built with Vite. Move its configuration to vite.config.mjs, or run the extension creator with --update (--migrate for an extension still on Vue 2)"
     popd
     return 1
   fi
