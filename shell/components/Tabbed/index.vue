@@ -18,7 +18,7 @@ export default {
 
   components: { Tab },
 
-  emits: ['changed', 'addTab', 'removeTab'],
+  emits: ['changed', 'addTab', 'removeTab', 'cloneTab'],
 
   props: {
     defaultTab: {
@@ -37,6 +37,11 @@ export default {
     },
 
     showTabsAddRemove: {
+      type:    Boolean,
+      default: false
+    },
+
+    showTabsClone: {
       type:    Boolean,
       default: false
     },
@@ -373,6 +378,12 @@ export default {
 
       this.$emit('removeTab', activeTabIndex);
     },
+
+    tabCloneClicked() {
+      const activeTabIndex = findIndex(this.tabs, (tab) => tab.active);
+
+      this.$emit('cloneTab', activeTabIndex);
+    },
   },
 };
 </script>
@@ -457,9 +468,9 @@ export default {
           @click.prevent
         >(None)</a>
       </div>
-      <!-- A tablist may only own tabs, so the add/remove controls go outside the ul -->
+      <!-- A tablist may only own tabs, so the pool controls go outside the ul -->
       <div
-        v-if="sideTabs && showTabsAddRemove"
+        v-if="sideTabs && (showTabsAddRemove || showTabsClone)"
         class="tab-list-footer"
         role="presentation"
       >
@@ -474,6 +485,19 @@ export default {
             <i class="icon icon-plus" />
           </button>
           <button
+            v-if="showTabsClone"
+            v-clean-tooltip="t('tabs.cloneItem')"
+            type="button"
+            class="btn bg-transparent"
+            :disabled="!sortedTabs.length"
+            data-testid="tab-list-clone"
+            :aria-label="t('tabs.cloneItem')"
+            @click="tabCloneClicked"
+          >
+            <i class="icon icon-copy" />
+          </button>
+          <button
+            v-if="showTabsAddRemove"
             type="button"
             class="btn bg-transparent"
             :disabled="!sortedTabs.length"
