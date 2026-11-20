@@ -1,6 +1,6 @@
 # Auto-generated color lint baseline. Do not edit by hand.
 # Regenerate with: yarn lint:colors:baseline
-# Total colors: 502
+# Total colors: 524
 pkg/rancher-components/src/components/RcButtonSplit/RcButtonSplit.vue:149: rgba(255, 255, 255, 0.3)
 pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:486: #F5F7FA
 pkg/rancher-components/src/components/RcCodeMirror/RcCodeMirror.vue:487: #E0E0E0
@@ -40,6 +40,28 @@ pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:191: #3D9
 pkg/rancher-components/src/components/RcCodeMirror/extensions/theme.ts:197: #3D98D3
 pkg/rancher-components/src/components/RcDropdown/RcDropdown.vue:275: rgba(0, 0, 0, 0.15)
 pkg/rancher-components/src/components/RcDropdown/RcDropdown.vue:275: rgba(0, 0, 0, 0.25)
+shell/assets/styles/base/_color-classic.scss:5: #141419
+shell/assets/styles/base/_color-classic.scss:8: #6C6C76
+shell/assets/styles/base/_color-classic.scss:11: #B6B6C2
+shell/assets/styles/base/_color-classic.scss:14: #DCDEE7
+shell/assets/styles/base/_color-classic.scss:17: #EEEFF4
+shell/assets/styles/base/_color-classic.scss:20: #F4F5FA
+shell/assets/styles/base/_color-classic.scss:23: #FFFFFF
+shell/assets/styles/base/_color-classic.scss:28: #3D98D3
+shell/assets/styles/base/_color-classic.scss:30: #3D98D3
+shell/assets/styles/base/_color-classic.scss:33: #5D995D
+shell/assets/styles/base/_color-classic.scss:34: #DAC342
+shell/assets/styles/base/_color-classic.scss:35: #F64747
+shell/assets/styles/base/_color-classic.scss:36: #3D98D3
+shell/assets/styles/base/_color-classic.scss:43: rgba(#3D98D3, .5)
+shell/assets/styles/base/_color-classic.scss:45: #DCDEE7
+shell/assets/styles/base/_color-classic.scss:47: #025937
+shell/assets/styles/base/_color-classic.scss:48: #008657
+shell/assets/styles/base/_color-classic.scss:49: #30BA78
+shell/assets/styles/base/_color-classic.scss:50: #42D29F
+shell/assets/styles/base/_color-classic.scss:51: #83E1BE
+shell/assets/styles/base/_color-classic.scss:52: #C0EFDE
+shell/assets/styles/base/_color-classic.scss:53: #EAFAF4
 shell/assets/styles/base/_color.scss:13: #1F67DB
 shell/assets/styles/base/_color.scss:14: #DFE6F2
 shell/assets/styles/base/_color.scss:15: #297DB4

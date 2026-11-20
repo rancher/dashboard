@@ -37,6 +37,7 @@
       {"expression":"rgba(var(--sizzle-3), 1)","inputs":{"--sizzle-3":"--color-blue-315"},"file":"shell/assets/styles/themes/_modern.scss","themes":["modern light","modern dark","suse light","suse dark"]}
     ],
     "--color-blue-349-a50": [
+      {"expression":"rgba(#3D98D3, .5)","inputs":{"#3D98D3":"--color-blue-349"},"file":"shell/assets/styles/base/_color-classic.scss"},
       {"expression":"rgba(#3D98D3, .5)","inputs":{"#3D98D3":"--color-blue-349"},"file":"shell/assets/styles/themes/_modern.scss"}
     ],
     "--color-blue-361": [
