@@ -2,6 +2,8 @@ import { mount, shallowMount } from '@vue/test-utils';
 import RoleDetailEdit from '@shell/components/auth/RoleDetailEdit.vue';
 import { SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
 import { MANAGEMENT } from '@shell/config/types';
+import { _CREATE } from '@shell/config/query-params';
+import CruResource from '@shell/components/CruResource.vue';
 
 describe('component: RoleDetailEdit', () => {
   it('does not have validation errors when the role has no displayName', () => {
@@ -119,6 +121,107 @@ describe('component: RoleDetailEdit', () => {
       .filter((value: any) => value?.resourceName === resourceName);
 
     expect(matchingValues).toStrictEqual([{ resourceName, apiGroupValue: '' }]);
+  });
+
+  it('should not stop CruResource offering YAML when creating a role', () => {
+    const wrapper = shallowMount(RoleDetailEdit, {
+      props: {
+        mode:  _CREATE,
+        value: {
+          type:     MANAGEMENT.GLOBAL_ROLE,
+          rules:    [],
+          subtype:  SUBTYPE_MAPPING.GLOBAL.id,
+          metadata: { name: '' },
+        },
+      },
+
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $route:      { name: 'anything', query: {} },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
+              'store/customisation/': jest.fn()
+            }
+          }
+        },
+      },
+    });
+
+    expect(wrapper.findComponent(CruResource).props('canYaml')).toBe(true);
+  });
+
+  it('should pass its own errors to CruResource when the page passes an errors attribute', async() => {
+    const wrapper = shallowMount(RoleDetailEdit, {
+      props: {
+        value: {
+          type:     MANAGEMENT.GLOBAL_ROLE,
+          rules:    [],
+          subtype:  SUBTYPE_MAPPING.GLOBAL.id,
+          metadata: { name: 'global-role' },
+        },
+      },
+      attrs: { errors: [] },
+
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $route:      { name: 'anything', query: {} },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
+              'store/customisation/': jest.fn()
+            }
+          }
+        },
+      },
+    });
+    const error = { code: 'MissingRequired', fieldName: 'name' };
+
+    wrapper.findComponent(CruResource).vm.$emit('error', [error]);
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.findComponent(CruResource).props('errors')).toStrictEqual([error]);
+  });
+
+  it('should send CruResource back to the list it was opened from', () => {
+    const wrapper = shallowMount(RoleDetailEdit, {
+      props: {
+        mode:  _CREATE,
+        value: {
+          type:     MANAGEMENT.GLOBAL_ROLE,
+          rules:    [],
+          subtype:  SUBTYPE_MAPPING.GLOBAL.id,
+          metadata: { name: '' },
+        },
+      },
+      attrs: { 'done-route': 'somewhere-else' },
+
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $route:      { name: 'c-cluster-auth-roles-resource-create', query: {} },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
+              'store/customisation/': jest.fn()
+            }
+          }
+        },
+      },
+    });
+
+    expect(wrapper.findComponent(CruResource).props('doneRoute')).toBe('c-cluster-auth-roles-resource');
   });
 
   describe('resourceOptions', () => {

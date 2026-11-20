@@ -1059,6 +1059,32 @@ describe('class: Resource', () => {
     });
   });
 
+  describe('getter: canSaveYaml', () => {
+    it.each([
+      [['GET', 'PUT'], true],
+      [['GET', 'blocked-PUT'], false],
+    ])('given schema resource methods %p should return %p', (resourceMethods, expected) => {
+      const resource = new Resource({ type: 'test-type' }, { getters: { schemaFor: () => ({ resourceMethods }) } });
+
+      expect(resource.canSaveYaml).toBe(expected);
+    });
+  });
+
+  describe('getter: canEditYaml', () => {
+    it.each([
+      [true, true, true],
+      [true, false, false],
+      [false, true, false],
+    ])('given canSaveYaml %p and canUpdate %p should return %p', (canSaveYaml, canUpdate, expected) => {
+      const resource = new Resource({ type: 'test-type' }, {});
+
+      jest.spyOn(resource, 'canSaveYaml', 'get').mockReturnValue(canSaveYaml);
+      jest.spyOn(resource, 'canUpdate', 'get').mockReturnValue(canUpdate);
+
+      expect(resource.canEditYaml).toBe(expected);
+    });
+  });
+
   describe('getter: modelValidationRules', () => {
     it('should pass translationKey to formRulesGenerator as "key" option', () => {
       const mockT = (key: string, args?: any) => {

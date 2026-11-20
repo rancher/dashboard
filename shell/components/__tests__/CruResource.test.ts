@@ -382,3 +382,37 @@ describe('component: CruResource', () => {
     expect(wrapper.find('h1, h2, h3, h4, h5, h6').exists()).toBe(false);
   });
 });
+
+describe('component: CruResource edit as YAML button', () => {
+  const ALLOWED = { resourceMethods: ['GET', 'PUT'] };
+  const BLOCKED = { resourceMethods: ['GET', 'blocked-PUT'] };
+
+  it.each([
+    ['show', 'the resource can save its YAML', { canSaveYaml: true }, BLOCKED, true],
+    ['hide', 'the resource cannot save its YAML', { canSaveYaml: false }, ALLOWED, false],
+    ['show', 'a plain resource has a schema that allows PUT', {}, ALLOWED, true],
+    ['hide', 'a plain resource has a schema that blocks PUT', {}, BLOCKED, false],
+  ])('should %s the button when %s', (_action, _when, resource, schema, expected) => {
+    const wrapper = mount(CruResource, {
+      props:  { mode: _CREATE, resource },
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': () => schema,
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  jest.fn(),
+              'i18n/exists':             jest.fn(),
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: {} },
+          $router: { applyQuery: jest.fn() },
+        },
+      }
+    });
+
+    expect(wrapper.find('[data-testid="form-yaml"]').exists()).toBe(expected);
+  });
+});

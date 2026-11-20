@@ -391,6 +391,8 @@ export default {
     dropKeys(m, newMetadataKeys);
     dropCattleKeys(m.annotations);
     dropCattleKeys(m.labels);
+    dropCattleKeys(m.annotations, controllerKeys);
+    dropCattleKeys(m.labels, controllerKeys);
 
     m.name = '';
 
@@ -476,6 +478,8 @@ const newMetadataKeys = [
   'uid',
 ];
 
+const controllerKeys = /^(lifecycle|authz\.management)\.cattle\.io\//;
+
 function dropUnderscores(obj) {
   for ( const k in obj ) {
     if ( k.startsWith('__') ) {
@@ -490,13 +494,13 @@ function dropUnderscores(obj) {
   }
 }
 
-function dropCattleKeys(obj) {
+function dropCattleKeys(obj, pattern = /(^|field\.)cattle\.io(\/.*|$)/) {
   if ( !obj ) {
     return;
   }
 
   Object.keys(obj).forEach((key) => {
-    if ( !!key.match(/(^|field\.)cattle\.io(\/.*|$)/) ) {
+    if ( pattern.test(key) ) {
       delete obj[key];
     }
   });
