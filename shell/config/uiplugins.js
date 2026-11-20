@@ -158,6 +158,11 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
   case EXTENSIONS_INCOMPATIBILITY_TYPES.EXTENSIONS_API_MISSING:
     !requiredVersion ? passed = false : passed = true;
     break;
+  case EXTENSIONS_INCOMPATIBILITY_TYPES.HOST:
+    if (requiredVersion && requiredVersion !== currentVersion) {
+      passed = false;
+    }
+    break;
   default:
     if (requiredVersion && !semver.satisfies(currentVersion, requiredVersion)) {
       passed = false;
