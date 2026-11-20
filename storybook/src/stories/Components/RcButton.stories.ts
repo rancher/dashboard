@@ -17,7 +17,7 @@ const meta: Meta<typeof RcButton> = {
           multiAction: 'multiAction (deprecated)',
         }
       },
-      description: 'Determines the shape of the button. Solid for main actions, outline for supporting actions, link for navigation and ghost for transparent buttons. The values primary, secondary, tertiary and multiAction are deprecated, see the Deprecated Variants story.'
+      description: 'Determines the shape of the button. Solid for main actions, outline for supporting actions, link for navigation, and ghost for transparent buttons or ones that carry their own styling where they are used. The values primary, secondary, tertiary and multiAction are deprecated, see the Deprecated Variants story.'
     },
     color: {
       options:     ['primary', 'destructive'] as ButtonColor[],
