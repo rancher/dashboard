@@ -59,6 +59,34 @@ export class AuthProviderPo extends PagePo {
     return cy.getId('auth-config-create-title');
   }
 
+  /**
+   * The page heading, "Authentication Providers".
+   */
+  title() {
+    return cy.get('.auth-config-header h1');
+  }
+
+  /**
+   * Every provider row on the list, the local one included.
+   */
+  providerRows() {
+    return cy.get('[data-testid^="auth-config-row-"]');
+  }
+
+  /**
+   * The status badge on every provider row, e.g. "Active" or "Inactive".
+   */
+  statusBadges() {
+    return this.providerRows().find('.rc-status-badge');
+  }
+
+  /**
+   * The first row for a provider that is not enabled, whose badge reads "Inactive".
+   */
+  inactiveProviderRow() {
+    return this.providerRows().filter(':has(.rc-status-badge.none)').first();
+  }
+
   providerSearch() {
     return cy.getId('add-auth-provider-search');
   }
