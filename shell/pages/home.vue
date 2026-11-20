@@ -256,9 +256,9 @@ export default defineComponent({
       };
       const ordered = this.configurableTables ? [create, importExisting, manage] : [manage, importExisting, create];
       const variants: Record<string, ButtonVariant> = this.configurableTables ? {
-        create: 'secondary', import: 'secondary', manage: 'primary'
+        create: 'outline', import: 'outline', manage: 'solid'
       } : {
-        manage: 'secondary', import: 'primary', create: 'primary'
+        manage: 'outline', import: 'solid', create: 'solid'
       };
 
       return ordered.filter((action) => action.shown).map((action) => ({ ...action, variant: variants[action.key] }));

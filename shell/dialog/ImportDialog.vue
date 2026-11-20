@@ -180,7 +180,7 @@ export default {
       <div class="import-controls">
         <FileSelector
           :aria-label="t('generic.readFromFileArea', { area: t('import.title') })"
-          variant="secondary"
+          variant="outline"
           :label="t('generic.readFromFile')"
           @selected="onFileSelected"
         />
@@ -230,7 +230,7 @@ export default {
     >
       <RcButton
         ref="closeButton"
-        variant="primary"
+        variant="solid"
         size="large"
         data-testid="import-yaml-close"
         @click="close"

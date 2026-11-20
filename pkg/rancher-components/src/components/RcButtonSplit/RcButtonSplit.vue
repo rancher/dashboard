@@ -15,10 +15,12 @@
 import { RcButton } from '@components/RcButton';
 import { RcDropdown, RcDropdownItem, RcDropdownTrigger } from '@components/RcDropdown';
 import RcIcon from '@components/RcIcon/RcIcon.vue';
-import { ButtonVariant, ButtonSize, IconProps } from '@components/RcButton/types';
+import {
+  ButtonVariant, DeprecatedButtonVariant, ButtonColor, ButtonSize, IconProps
+} from '@components/RcButton/types';
 import type { Placement } from 'floating-vue';
 
-type RcButtonSplitVariant = Exclude<ButtonVariant, 'link' | 'ghost' | 'multiAction'>;
+type RcButtonSplitVariant = Exclude<ButtonVariant | DeprecatedButtonVariant, 'link' | 'ghost' | 'multiAction'>;
 
 type RcButtonSplitItem = {
   id: string;
@@ -28,6 +30,7 @@ type RcButtonSplitItem = {
 type RcButtonSplitProps = {
   disabled?: boolean;
   variant?: RcButtonSplitVariant;
+  color?: ButtonColor;
   size?: ButtonSize;
   ariaLabel?: string;
   ariaLabelTrigger?: string;
@@ -41,7 +44,8 @@ withDefaults(
   defineProps<RcButtonSplitProps>(),
   {
     disabled:          false,
-    variant:           'primary',
+    variant:           'solid',
+    color:             'primary',
     size:              'medium',
     ariaLabel:         undefined,
     ariaLabelTrigger:  undefined,
@@ -71,6 +75,7 @@ const emit = defineEmits<{
         :aria-label="ariaLabel"
         :disabled="disabled"
         :variant="variant"
+        :color="color"
         :size="size"
         :left-icon="leftIcon"
         :right-icon="rightIcon"
@@ -96,6 +101,7 @@ const emit = defineEmits<{
         :aria-label="ariaLabelTrigger"
         :disabled="disabled"
         :variant="variant"
+        :color="color"
         :size="size"
       >
         <RcIcon
