@@ -232,8 +232,9 @@ export default {
       const templateBindings = this.$store.getters['management/all'](MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING );
       const userTemplateBindings = templateBindings.filter((binding) => this.isBoundToUser(binding, userId));
 
-      // Upfront load projects
+      // Upfront load projects, and their clusters for the Cluster column
       userTemplateBindings.map((b) => this.$store.dispatch('management/find', { type: MANAGEMENT.PROJECT, id: b.projectId }));
+      [...new Set(userTemplateBindings.map((b) => b.clusterId))].map((id) => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id }));
 
       return userTemplateBindings;
     },

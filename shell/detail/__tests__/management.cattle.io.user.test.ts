@@ -13,6 +13,7 @@ interface Binding {
   groupPrincipalName?: string;
   globalRoleName?: string;
   clusterName?: string;
+  clusterId?: string;
   projectId?: string;
   metadata?: { creationTimestamp: string };
 }
@@ -27,6 +28,7 @@ interface UserDetail {
   $nextTick: () => Promise<void>;
   globalBindings: { id: string, hasBound: boolean, grantedVia: string[] }[];
   clusterBindings: Binding[];
+  projectBindings: Binding[];
   isAdmin: boolean;
   tableHeaders: { gp: Column[], cr: Column[], pr: Column[] };
 }
@@ -50,6 +52,8 @@ const grb = (globalRoleName: string, subject: Binding): Binding => ({
 });
 
 describe('view: management.cattle.io.user', () => {
+  let dispatch: jest.Mock;
+
   /**
    * Mount the page and run its fetch, as the page does before it renders the tabs
    */
@@ -60,7 +64,7 @@ describe('view: management.cattle.io.user', () => {
     groups = { [OPS_GROUP]: 'ops' } as Record<string, string>,
     stubs = { ResourceTabs: { template: '<div />' } } as Record<string, object>,
   } = {}): Promise<UserDetail> => {
-    const dispatch = jest.fn((action: string, opt: { type?: string, resource?: object }) => {
+    dispatch = jest.fn((action: string, opt: { type?: string, resource?: object }) => {
       if (action === 'rancher/clone') {
         return Promise.resolve({ ...opt.resource });
       }
@@ -191,5 +195,32 @@ describe('view: management.cattle.io.user', () => {
 
     // Cluster rows (direct, group), then project rows (group, direct)
     expect(rows).toStrictEqual([true, false, false, true]);
+  });
+
+  it('loads the clusters of the user\'s project roles, so the Cluster column can name them', async() => {
+    const vm = await load({
+      projectRoleBindings: [
+        {
+          userName: USER_ID, projectId: 'c-1/p-1', clusterId: 'c-1'
+        },
+        {
+          userName: USER_ID, projectId: 'c-1/p-2', clusterId: 'c-1'
+        },
+        {
+          groupPrincipalName: OPS_GROUP, projectId: 'c-2/p-3', clusterId: 'c-2'
+        },
+        {
+          groupPrincipalName: OTHER_GROUP, projectId: 'c-3/p-4', clusterId: 'c-3'
+        },
+      ]
+    });
+
+    expect(vm.projectBindings).toHaveLength(3);
+
+    const clustersLoaded = dispatch.mock.calls
+      .filter(([action, opt]) => action === 'management/find' && opt.type === MANAGEMENT.CLUSTER)
+      .map(([, opt]) => opt.id);
+
+    expect(clustersLoaded).toStrictEqual(['c-1', 'c-2']);
   });
 });
