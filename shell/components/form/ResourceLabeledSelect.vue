@@ -93,7 +93,7 @@ export default defineComponent({
       this.paginate = false;
       break;
     case RESOURCE_LABEL_SELECT_MODE.DYNAMIC:
-      this.paginate = this.$store.getters[`${ this.validInStore }/paginationEnabled`](this.resourceType);
+      this.paginate = this.$store.getters[`${ this.validInStore }/paginationEnabled`]({ id: this.resourceType, context: this.context });
       break;
     }
 
