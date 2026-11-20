@@ -22,7 +22,7 @@ const meta: Meta<typeof RcButton> = {
     color: {
       options:     ['primary', 'destructive'] as ButtonColor[],
       control:     { type: 'select' },
-      description: 'Colors the button independently of its shape. Applies to the solid and outline variants; link and ghost ignore it. Destructive marks an irreversible action.'
+      description: 'Colors the button independently of its shape. Applies to the solid and outline variants, and pairing it with link or ghost logs a console warning. Destructive marks an irreversible action.'
     },
     size: {
       options:     ['small', 'medium', 'large'] as ButtonSize[],
@@ -151,7 +151,7 @@ export const Colors: Story = {
   parameters: {
     controls: { disabled: true },
     docs:     {
-      description: { story: 'Color applies to the solid and outline variants; link and ghost ignore it. Destructive marks an irreversible action, solid for the primary confirm and outline for the quieter form.' },
+      description: { story: 'Color applies to the solid and outline variants, and pairing it with link or ghost logs a console warning. Destructive marks an irreversible action, solid for the primary confirm and outline for the quieter form.' },
       source:      {
         code: `<RcButton variant="solid" color="primary">Save</RcButton>
 <RcButton variant="solid" color="destructive">Delete</RcButton>
