@@ -1,4 +1,4 @@
-import Persona, { PERSONA_LABEL } from '@shell/models/customization.ui.rancher.persona';
+import UserType, { USER_TYPE_LABEL } from '@shell/models/customization.ui.rancher.usertype';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 
 const PRINCIPALS: Record<string, { id: string, principalType: string }> = {
@@ -8,9 +8,9 @@ const PRINCIPALS: Record<string, { id: string, principalType: string }> = {
 };
 
 /**
- * A persona whose store dispatch answers the actions the model uses. `bindings` are the persona's labelled global role bindings
+ * A user type whose store dispatch answers the actions the model uses. `bindings` are the user type's labelled global role bindings
  */
-function personaWithStore({ bindings = [] as any[], findRole = (): Promise<any> => Promise.resolve({ id: 'persona-dev' }) } = {}) {
+function userTypeWithStore({ bindings = [] as any[], findRole = (): Promise<any> => Promise.resolve({ id: 'usertype-dev' }) } = {}) {
   const created: any[] = [];
   const dispatch = jest.fn((action: string, args: any) => {
     switch (action) {
@@ -32,8 +32,8 @@ function personaWithStore({ bindings = [] as any[], findRole = (): Promise<any> 
     return Promise.reject(new Error(`unexpected action ${ action }`));
   });
 
-  const persona = new Persona({
-    type:     'customization.ui.rancher.persona',
+  const userType = new UserType({
+    type:     'customization.ui.rancher.usertype',
     metadata: { name: 'dev', uid: 'uid-1' },
     spec:     { displayName: 'Developer', priority: 0 }
   }, {
@@ -41,7 +41,7 @@ function personaWithStore({ bindings = [] as any[], findRole = (): Promise<any> 
   });
 
   return {
-    persona, dispatch, created
+    userType, dispatch, created
   };
 }
 
@@ -49,21 +49,21 @@ function binding(fields: object) {
   return { ...fields, remove: jest.fn().mockResolvedValue(undefined) };
 }
 
-describe('class Persona', () => {
+describe('class UserType', () => {
   describe('applyDefaults', () => {
     it('should set the spec defaults when there is no spec', () => {
-      const persona = new Persona({ metadata: { name: 'test' } });
+      const userType = new UserType({ metadata: { name: 'test' } });
 
-      persona.applyDefaults();
+      userType.applyDefaults();
 
-      expect(persona.spec).toStrictEqual({
+      expect(userType.spec).toStrictEqual({
         displayName: '', priority: 0, tags: []
       });
     });
 
-    it('should give each persona its own tags list', () => {
-      const first = new Persona({ metadata: { name: 'first' } });
-      const second = new Persona({ metadata: { name: 'second' } });
+    it('should give each user type its own tags list', () => {
+      const first = new UserType({ metadata: { name: 'first' } });
+      const second = new UserType({ metadata: { name: 'second' } });
 
       first.applyDefaults();
       first.spec.tags?.push('development');
@@ -102,11 +102,11 @@ describe('class Persona', () => {
         displayName: 'Ops', priority: 0, tags: []
       }],
     ])('should keep existing spec values with %s', (_, spec, expected) => {
-      const persona = new Persona({ metadata: { name: 'test' }, spec });
+      const userType = new UserType({ metadata: { name: 'test' }, spec });
 
-      persona.applyDefaults();
+      userType.applyDefaults();
 
-      expect(persona.spec).toStrictEqual(expected);
+      expect(userType.spec).toStrictEqual(expected);
     });
   });
 
@@ -126,81 +126,81 @@ describe('class Persona', () => {
         apiGroups: [''], resources: [], verbs: ['get']
       }], ['validation.roleTemplate.roleTemplateRules.missingOneResource']],
     ])('should validate the resource permissions with %s', (_, rules, expected) => {
-      const persona = new Persona({
-        type:     'customization.ui.rancher.persona',
+      const userType = new UserType({
+        type:     'customization.ui.rancher.usertype',
         metadata: { name: 'test' },
         spec:     {
           displayName: 'Test', priority: 0, rules
         }
       }, ctx);
 
-      expect(persona.customValidationErrors(persona)).toStrictEqual(expected);
+      expect(userType.customValidationErrors(userType)).toStrictEqual(expected);
     });
   });
 
   describe('globalRoleName', () => {
-    it('should name the global role after the persona', () => {
-      const { persona } = personaWithStore();
+    it('should name the global role after the user type', () => {
+      const { userType } = userTypeWithStore();
 
-      expect(persona.globalRoleName).toBe('persona-dev');
+      expect(userType.globalRoleName).toBe('usertype-dev');
     });
   });
 
   describe('ensureGlobalRole', () => {
     it('should return the existing global role without creating one', async() => {
-      const { persona, created } = personaWithStore();
+      const { userType, created } = userTypeWithStore();
 
-      const role = await persona.ensureGlobalRole();
+      const role = await userType.ensureGlobalRole();
 
-      expect(role).toStrictEqual({ id: 'persona-dev' });
+      expect(role).toStrictEqual({ id: 'usertype-dev' });
       expect(created).toHaveLength(0);
     });
 
     it('should create the global role through steve when it does not exist', async() => {
-      const { persona, created } = personaWithStore({ findRole: () => Promise.reject({ status: 404 }) }); // eslint-disable-line prefer-promise-reject-errors
+      const { userType, created } = userTypeWithStore({ findRole: () => Promise.reject({ status: 404 }) }); // eslint-disable-line prefer-promise-reject-errors
 
-      await persona.ensureGlobalRole();
+      await userType.ensureGlobalRole();
 
       expect(created).toHaveLength(1);
       expect(created[0]).toStrictEqual(expect.objectContaining({
         type:     MANAGEMENT.GLOBAL_ROLE,
         metadata: {
-          name:            'persona-dev',
+          name:            'usertype-dev',
           ownerReferences: [{
-            apiVersion: 'customization.ui.rancher/v1', kind: 'Persona', name: 'dev', uid: 'uid-1'
+            apiVersion: 'customization.ui.rancher/v1', kind: 'UserType', name: 'dev', uid: 'uid-1'
           }]
         },
-        displayName: 'Persona: Developer',
+        displayName: 'User Type: Developer',
         rules:       [{
-          apiGroups: ['customization.ui.rancher'], resources: ['personas'], resourceNames: ['dev'], verbs: ['assume']
+          apiGroups: ['customization.ui.rancher'], resources: ['usertypes'], resourceNames: ['dev'], verbs: ['have']
         }]
       }));
       expect(created[0]._save).toHaveBeenCalledTimes(1);
     });
 
     it('should not create a global role when finding it fails for another reason', async() => {
-      const { persona, created } = personaWithStore({ findRole: () => Promise.reject({ status: 403 }) }); // eslint-disable-line prefer-promise-reject-errors
+      const { userType, created } = userTypeWithStore({ findRole: () => Promise.reject({ status: 403 }) }); // eslint-disable-line prefer-promise-reject-errors
 
-      await expect(persona.ensureGlobalRole()).rejects.toStrictEqual({ status: 403 });
+      await expect(userType.ensureGlobalRole()).rejects.toStrictEqual({ status: 403 });
       expect(created).toHaveLength(0);
     });
   });
 
   describe('assignedPrincipalIds', () => {
-    it('should find the bindings labelled with the persona, without touching the store', async() => {
-      const { persona, dispatch } = personaWithStore();
+    it('should find the bindings labelled with the user type, without touching the store', async() => {
+      const { userType, dispatch } = userTypeWithStore();
 
-      await persona.assignedPrincipalIds();
+      await userType.assignedPrincipalIds();
 
       expect(dispatch).toHaveBeenCalledWith('management/findLabelSelector', {
         type:     MANAGEMENT.GLOBAL_ROLE_BINDING,
-        matching: { labelSelector: { matchLabels: { [PERSONA_LABEL]: 'dev' } } },
+        matching: { labelSelector: { matchLabels: { [USER_TYPE_LABEL]: 'dev' } } },
         opt:      { transient: true },
       }, { root: true });
     });
 
     it('should return the user and group principal of each binding', async() => {
-      const { persona } = personaWithStore({
+      const { userType } = userTypeWithStore({
         bindings: [
           binding({ userPrincipalName: 'local://u-alice' }),
           binding({ groupPrincipalName: 'github_org://devops' }),
@@ -208,7 +208,7 @@ describe('class Persona', () => {
         ]
       });
 
-      expect(await persona.assignedPrincipalIds()).toStrictEqual(['local://u-alice', 'github_org://devops']);
+      expect(await userType.assignedPrincipalIds()).toStrictEqual(['local://u-alice', 'github_org://devops']);
     });
   });
 
@@ -217,15 +217,15 @@ describe('class Persona', () => {
       const kept = binding({ groupPrincipalName: 'github_org://devops' });
       const removed = binding({ userPrincipalName: 'local://u-alice' });
       const noPrincipal = binding({ userName: 'u-bob' });
-      const { persona, created } = personaWithStore({ bindings: [kept, removed, noPrincipal] });
+      const { userType, created } = userTypeWithStore({ bindings: [kept, removed, noPrincipal] });
 
-      await persona.assignPrincipals(['github_org://devops', 'github_user://123']);
+      await userType.assignPrincipals(['github_org://devops', 'github_user://123']);
 
       expect(created).toHaveLength(1);
       expect(created[0]).toStrictEqual(expect.objectContaining({
         type:              MANAGEMENT.GLOBAL_ROLE_BINDING,
-        metadata:          { generateName: 'grb-', labels: { [PERSONA_LABEL]: 'dev' } },
-        globalRoleName:    'persona-dev',
+        metadata:          { generateName: 'grb-', labels: { [USER_TYPE_LABEL]: 'dev' } },
+        globalRoleName:    'usertype-dev',
         userPrincipalName: 'github_user://123',
       }));
       expect(created[0]._save).toHaveBeenCalledWith({ redirectUnauthorized: false });
@@ -235,9 +235,9 @@ describe('class Persona', () => {
     });
 
     it('should bind a group principal as a group', async() => {
-      const { persona, created } = personaWithStore();
+      const { userType, created } = userTypeWithStore();
 
-      await persona.assignPrincipals(['github_org://devops']);
+      await userType.assignPrincipals(['github_org://devops']);
 
       const groupBinding = created.find((c) => c.type === MANAGEMENT.GLOBAL_ROLE_BINDING);
 
@@ -246,9 +246,9 @@ describe('class Persona', () => {
     });
 
     it('should look the principal up with its id encoded in the url', async() => {
-      const { persona, dispatch } = personaWithStore();
+      const { userType, dispatch } = userTypeWithStore();
 
-      await persona.assignPrincipals(['local://u-alice']);
+      await userType.assignPrincipals(['local://u-alice']);
 
       expect(dispatch).toHaveBeenCalledWith('rancher/find', {
         type: NORMAN.PRINCIPAL,

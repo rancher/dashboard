@@ -308,7 +308,7 @@ export const UI: {
     TABLE_CONFIGURATION: string;
 };
 export const CUSTOMIZATION: {
-    PERSONA: string;
+    USER_TYPE: string;
 };
 export const VIRTUAL_TYPES: {
     CLUSTER_MEMBERS: string;

@@ -154,7 +154,7 @@ export function init(store) {
     }
   });
 
-  configureType(CUSTOMIZATION.PERSONA, {
+  configureType(CUSTOMIZATION.USER_TYPE, {
     isCreatable: true,
     isEditable:  true,
     isRemovable: true,
@@ -175,7 +175,7 @@ export function init(store) {
   mapType(NORMAN.SPOOFED.GROUP_PRINCIPAL, store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2));
   weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
   weightType(MANAGEMENT.OIDC_CLIENT, 90, true);
-  weightType(CUSTOMIZATION.PERSONA, 80, true);
+  weightType(CUSTOMIZATION.USER_TYPE, 80, true);
 
   virtualType({
     labelKey:   'auth.roleTemplate',
@@ -219,7 +219,7 @@ export function init(store) {
     NORMAN.SPOOFED.GROUP_PRINCIPAL,
     ROLES_VIRTUAL_TYPE,
     MANAGEMENT.OIDC_CLIENT,
-    CUSTOMIZATION.PERSONA
+    CUSTOMIZATION.USER_TYPE
   ]);
 
   headers(NORMAN.SPOOFED.GROUP_PRINCIPAL, [
@@ -255,7 +255,7 @@ export function init(store) {
     AGE
   ]);
 
-  headers(CUSTOMIZATION.PERSONA, [
+  headers(CUSTOMIZATION.USER_TYPE, [
     DISPLAY_NAME,
     SIMPLE_NAME,
     {

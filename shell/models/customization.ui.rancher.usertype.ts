@@ -5,7 +5,7 @@ import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 import { GlobalRoleBinding } from '@shell/types/resources/global-role-binding';
 import { PolicyRule } from '@shell/types/resources/rbac';
 
-export interface PersonaSpec {
+export interface UserTypeSpec {
   displayName: string;
   priority: number;
   tags?: string[];
@@ -14,23 +14,23 @@ export interface PersonaSpec {
 
 type GlobalRoleBindingModel = GlobalRoleBinding & { remove: (opt?: object) => Promise<void> };
 
-export const PERSONA_API_GROUP = 'customization.ui.rancher';
+export const CUSTOMIZATION_API_GROUP = 'customization.ui.rancher';
 
 /**
- * Labels the global role bindings that assign a persona, so they can be found without fetching every binding
+ * Labels the global role bindings that assign a user type, so they can be found without fetching every binding
  */
-export const PERSONA_LABEL = `${ PERSONA_API_GROUP }/persona`;
+export const USER_TYPE_LABEL = `${ CUSTOMIZATION_API_GROUP }/usertype`;
 
-export default class Persona extends SteveModel {
+export default class UserType extends SteveModel {
   declare type: string;
   declare metadata: RancherKubeMetadata;
-  declare spec: PersonaSpec;
+  declare spec: UserTypeSpec;
 
   applyDefaults() {
     set(this, 'spec', { ...this.createDefaultSpec(), ...this.spec });
   }
 
-  private createDefaultSpec(): PersonaSpec {
+  private createDefaultSpec(): UserTypeSpec {
     return {
       displayName: '',
       priority:    0,
@@ -46,9 +46,9 @@ export default class Persona extends SteveModel {
     const tags = this.spec?.tags || [];
 
     out.unshift(
-      { label: this.t('persona.displayName.label'), content: this.spec?.displayName },
-      { label: this.t('persona.priority.label'), content: this.spec?.priority ?? 0 },
-      ...(tags.length ? [{ label: this.t('persona.tags.label'), content: tags.join(', ') }] : []),
+      { label: this.t('userType.displayName.label'), content: this.spec?.displayName },
+      { label: this.t('userType.priority.label'), content: this.spec?.priority ?? 0 },
+      ...(tags.length ? [{ label: this.t('userType.tags.label'), content: tags.join(', ') }] : []),
     );
 
     return out;
@@ -66,14 +66,14 @@ export default class Persona extends SteveModel {
   }
 
   /**
-   * The global role that assigns this persona: users and groups bound to it have the persona
+   * The global role that assigns this user type: users and groups bound to it have the user type
    */
   get globalRoleName(): string {
-    return `persona-${ this.metadata.name }`;
+    return `usertype-${ this.metadata.name }`;
   }
 
   /**
-   * Find this persona's global role, or create it. The persona must be saved first, the role's owner reference needs its uid
+   * Find this user type's global role, or create it. The user type must be saved first, the role's owner reference needs its uid
    */
   async ensureGlobalRole() {
     try {
@@ -89,18 +89,18 @@ export default class Persona extends SteveModel {
       metadata: {
         name:            this.globalRoleName,
         ownerReferences: [{
-          apiVersion: `${ PERSONA_API_GROUP }/v1`,
-          kind:       'Persona',
+          apiVersion: `${ CUSTOMIZATION_API_GROUP }/v1`,
+          kind:       'UserType',
           name:       this.metadata.name,
           uid:        this.metadata.uid,
         }],
       },
-      displayName: `Persona: ${ this.spec.displayName }`,
+      displayName: `User Type: ${ this.spec.displayName }`,
       rules:       [{
-        apiGroups:     [PERSONA_API_GROUP],
-        resources:     ['personas'],
+        apiGroups:     [CUSTOMIZATION_API_GROUP],
+        resources:     ['usertypes'],
         resourceNames: [this.metadata.name],
-        verbs:         ['assume'],
+        verbs:         ['have'],
       }],
     }, { root: true });
 
@@ -111,7 +111,7 @@ export default class Persona extends SteveModel {
   }
 
   /**
-   * The principal ids (users and groups) bound to this persona's global role
+   * The principal ids (users and groups) bound to this user type's global role
    */
   async assignedPrincipalIds(): Promise<string[]> {
     const bindings = await this.findBindings();
@@ -120,7 +120,7 @@ export default class Persona extends SteveModel {
   }
 
   /**
-   * Bind exactly the given principals (users and groups) to this persona's global role, creating the role if needed
+   * Bind exactly the given principals (users and groups) to this user type's global role, creating the role if needed
    */
   async assignPrincipals(principalIds: string[]) {
     await this.ensureGlobalRole();
@@ -140,7 +140,7 @@ export default class Persona extends SteveModel {
       type:     MANAGEMENT.GLOBAL_ROLE_BINDING,
       metadata: {
         generateName: 'grb-',
-        labels:       { [PERSONA_LABEL]: this.metadata.name },
+        labels:       { [USER_TYPE_LABEL]: this.metadata.name },
       },
       globalRoleName: this.globalRoleName,
       ...(principal.principalType === 'group' ? { groupPrincipalName: principal.id } : { userPrincipalName: principal.id }),
@@ -152,10 +152,10 @@ export default class Persona extends SteveModel {
   }
 
   private async findBindings(): Promise<GlobalRoleBindingModel[]> {
-    // Transient, so this persona's bindings don't replace the global role bindings already in the store
+    // Transient, so this user type's bindings don't replace the global role bindings already in the store
     const res = await this.$dispatch('management/findLabelSelector', {
       type:     MANAGEMENT.GLOBAL_ROLE_BINDING,
-      matching: { labelSelector: { matchLabels: { [PERSONA_LABEL]: this.metadata.name } } },
+      matching: { labelSelector: { matchLabels: { [USER_TYPE_LABEL]: this.metadata.name } } },
       opt:      { transient: true },
     }, { root: true });
 

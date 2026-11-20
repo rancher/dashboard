@@ -1,13 +1,13 @@
 import { Store } from 'vuex';
 import {
-  ModalApi, ShellApi, SlideInApi, NotificationApi, SystemApi, ProxyApi, PersonasApi
+  ModalApi, ShellApi, SlideInApi, NotificationApi, SystemApi, ProxyApi, UserTypesApi
 } from '@shell/apis/intf/shell';
 import { ModalApiImpl } from './modal';
 import { SlideInApiImpl } from './slide-in';
 import { NotificationApiImpl } from './notifications';
 import { SystemApiImpl } from './system';
 import { ProxyApiImpl } from './proxy';
-import { PersonasApiImpl } from './personas';
+import { UserTypesApiImpl } from './user-types';
 
 export class ShellApiImpl implements ShellApi {
   private modalApi: ModalApi;
@@ -15,7 +15,7 @@ export class ShellApiImpl implements ShellApi {
   private notificationApi: NotificationApi;
   private systemApi: SystemApi;
   private proxyApi: ProxyApi;
-  private personasApi: PersonasApi;
+  private userTypesApi: UserTypesApi;
 
   constructor(store: Store<any>) {
     this.modalApi = new ModalApiImpl(store);
@@ -23,7 +23,7 @@ export class ShellApiImpl implements ShellApi {
     this.notificationApi = new NotificationApiImpl(store);
     this.systemApi = new SystemApiImpl(store);
     this.proxyApi = new ProxyApiImpl(store);
-    this.personasApi = new PersonasApiImpl(store);
+    this.userTypesApi = new UserTypesApiImpl(store);
   }
 
   get modal(): ModalApi {
@@ -46,7 +46,7 @@ export class ShellApiImpl implements ShellApi {
     return this.proxyApi;
   }
 
-  get personas(): PersonasApi {
-    return this.personasApi;
+  get userTypes(): UserTypesApi {
+    return this.userTypesApi;
   }
 }

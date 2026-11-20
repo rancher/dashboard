@@ -1,15 +1,15 @@
 import { Store } from 'vuex';
-import { CurrentUsersPersonasOptions, PersonasApi, PersonaPreferences } from '@shell/apis/intf/shell';
+import { CurrentUserTypesOptions, UserTypesApi, UserTypePreferences } from '@shell/apis/intf/shell';
 import { AUTHORIZATION, CUSTOMIZATION, SCHEMA } from '@shell/config/types';
-import Persona, { PERSONA_API_GROUP } from '@shell/models/customization.ui.rancher.persona';
+import UserType, { CUSTOMIZATION_API_GROUP } from '@shell/models/customization.ui.rancher.usertype';
 import SelfSubjectRulesReview from '@shell/models/authorization.k8s.io.selfsubjectrulesreview';
 import { PolicyRule } from '@shell/types/resources/rbac';
 import { Schema } from '@shell/plugins/steve/schema';
 import { STORE } from '@shell/store/store-types';
-import { PERSONA_PRIORITIES } from '@shell/store/prefs';
+import { USER_TYPE_PREFERENCES } from '@shell/store/prefs';
 
 /**
- * Maps each RBAC verb in a persona rule to the HTTP method that shows the user has it, and which of the schema's method lists holds it.
+ * Maps each RBAC verb in a user type rule to the HTTP method that shows the user has it, and which of the schema's method lists holds it.
  *
  * Steve fills a schema's `resourceMethods` (a single resource) and `collectionMethods` (the type's collection) from the signed in user's
  * own access, in any namespace. So, for example, a user who can create deployments has `POST` in the deployment schema's
@@ -29,9 +29,9 @@ const VERB_METHODS: Record<string, { methods: 'resourceMethods' | 'collectionMet
 const ANY = '*';
 
 /**
- * Shell implementation of the `PersonasApi`
+ * Shell implementation of the `UserTypesApi`
  */
-export class PersonasApiImpl implements PersonasApi {
+export class UserTypesApiImpl implements UserTypesApi {
   private store: Store<any>;
   private assignedNames?: Promise<string[]>;
 
@@ -39,32 +39,32 @@ export class PersonasApiImpl implements PersonasApi {
     this.store = store;
   }
 
-  public async currentUsersPersonas({ includeDisabled = false }: CurrentUsersPersonasOptions = {}): Promise<Persona[]> {
-    const [personas, assignedNames] = await Promise.all([this.findPersonas(), this.assignedPersonaNames()]);
-    const preferences = this.currentUsersPersonaPreferences();
+  public async currentUserTypes({ includeDisabled = false }: CurrentUserTypesOptions = {}): Promise<UserType[]> {
+    const [userTypes, assignedNames] = await Promise.all([this.findUserTypes(), this.assignedUserTypeNames()]);
+    const preferences = this.currentUserTypePreferences();
 
-    return personas
-      .filter((persona) => assignedNames.includes(persona.metadata.name) || this.isAssociated(persona))
-      .filter((persona) => includeDisabled || !preferences[persona.metadata.name]?.disabled)
+    return userTypes
+      .filter((userType) => assignedNames.includes(userType.metadata.name) || this.isAssociated(userType))
+      .filter((userType) => includeDisabled || !preferences[userType.metadata.name]?.disabled)
       .sort((a, b) => this.compareImportance(a, b, preferences));
   }
 
-  public currentUsersPersonaPreferences(): PersonaPreferences {
-    return this.store.getters['prefs/get'](PERSONA_PRIORITIES) || {};
+  public currentUserTypePreferences(): UserTypePreferences {
+    return this.store.getters['prefs/get'](USER_TYPE_PREFERENCES) || {};
   }
 
-  public async setCurrentUsersPersonaPreferences(preferences: PersonaPreferences): Promise<void> {
-    await this.store.dispatch('prefs/set', { key: PERSONA_PRIORITIES, value: preferences });
+  public async setCurrentUserTypePreferences(preferences: UserTypePreferences): Promise<void> {
+    await this.store.dispatch('prefs/set', { key: USER_TYPE_PREFERENCES, value: preferences });
   }
 
-  public async reorderCurrentUsersPersonas(order: string[]): Promise<void> {
-    const personas = await this.findPersonas();
+  public async reorderCurrentUserTypes(order: string[]): Promise<void> {
+    const userTypes = await this.findUserTypes();
 
-    await this.setCurrentUsersPersonaPreferences(this.preferencesForOrder(personas, order, this.currentUsersPersonaPreferences()));
+    await this.setCurrentUserTypePreferences(this.preferencesForOrder(userTypes, order, this.currentUserTypePreferences()));
   }
 
-  public async setCurrentUsersPersonaEnabled(name: string, enabled: boolean): Promise<void> {
-    const preferences = { ...this.currentUsersPersonaPreferences() };
+  public async setCurrentUserTypeEnabled(name: string, enabled: boolean): Promise<void> {
+    const preferences = { ...this.currentUserTypePreferences() };
     const preference = { ...preferences[name] };
 
     if (enabled) {
@@ -80,26 +80,26 @@ export class PersonasApiImpl implements PersonasApi {
       delete preferences[name];
     }
 
-    await this.setCurrentUsersPersonaPreferences(preferences);
+    await this.setCurrentUserTypePreferences(preferences);
   }
 
-  public refreshCurrentUsersPersonas(options?: CurrentUsersPersonasOptions): Promise<Persona[]> {
+  public refreshCurrentUserTypes(options?: CurrentUserTypesOptions): Promise<UserType[]> {
     this.reset();
 
-    return this.currentUsersPersonas(options);
+    return this.currentUserTypes(options);
   }
 
   /**
-   * Forget the personas assigned to the user, so the next request fetches them. Called on log out
+   * Forget the user types assigned to the user, so the next request fetches them. Called on log out
    */
   public reset() {
     delete this.assignedNames;
   }
 
   /**
-   * Most important first: the highest priority (the user's own, else the persona's), then by display name
+   * Most important first: the highest priority (the user's own, else the user type's), then by display name
    */
-  private compareImportance(a: Persona, b: Persona, preferences: PersonaPreferences): number {
+  private compareImportance(a: UserType, b: UserType, preferences: UserTypePreferences): number {
     const byPriority = this.effectivePriority(b, preferences) - this.effectivePriority(a, preferences);
 
     if (byPriority) {
@@ -110,28 +110,28 @@ export class PersonasApiImpl implements PersonasApi {
   }
 
   /**
-   * How important a persona is to the user: their own priority for it if they've set one, else the persona's (a persona without one is 0)
+   * How important a user type is to the user: their own priority for it if they've set one, else the user type's (a user type without one is 0)
    */
-  private effectivePriority(persona: Persona, preferences: PersonaPreferences): number {
-    return preferences[persona.metadata.name]?.priority ?? persona.spec?.priority ?? 0;
+  private effectivePriority(userType: UserType, preferences: UserTypePreferences): number {
+    return preferences[userType.metadata.name]?.priority ?? userType.spec?.priority ?? 0;
   }
 
   /**
-   * The user's preferences after they put their personas in `order` (persona names, most important first). Only the priorities change.
+   * The user's preferences after they put their user types in `order` (user type names, most important first). Only the priorities change.
    *
-   * The listed personas' current priorities are handed out again in the new order, highest first, so the user's priorities stay on the
-   * same scale as the personas' own and a persona without one (e.g. a new one) still lands where its priority puts it. A priority that
+   * The listed user types' current priorities are handed out again in the new order, highest first, so the user's priorities stay on the
+   * same scale as the user types' own and a user type without one (e.g. a new one) still lands where its priority puts it. A priority that
    * would tie with or pass the one above becomes one less than it
    */
-  private preferencesForOrder(personas: Persona[], order: string[], preferences: PersonaPreferences): PersonaPreferences {
+  private preferencesForOrder(userTypes: UserType[], order: string[], preferences: UserTypePreferences): UserTypePreferences {
     const listed = order
-      .map((name) => personas.find((persona) => persona.metadata.name === name))
-      .filter((persona): persona is Persona => !!persona);
-    const values = listed.map((persona) => this.effectivePriority(persona, preferences)).sort((a, b) => b - a);
+      .map((name) => userTypes.find((userType) => userType.metadata.name === name))
+      .filter((userType): userType is UserType => !!userType);
+    const values = listed.map((userType) => this.effectivePriority(userType, preferences)).sort((a, b) => b - a);
     const out = { ...preferences };
 
-    listed.forEach((persona, i) => {
-      const name = persona.metadata.name;
+    listed.forEach((userType, i) => {
+      const name = userType.metadata.name;
       const above = i ? out[listed[i - 1].metadata.name].priority : undefined;
       const priority = above === undefined ? values[i] : Math.min(values[i], above - 1);
 
@@ -142,10 +142,10 @@ export class PersonasApiImpl implements PersonasApi {
   }
 
   /**
-   * Is the persona associated with the user via resource permissions: do they have the rights in any one of its rules
+   * Is the user type associated with the user via resource permissions: do they have the rights in any one of its rules
    */
-  private isAssociated(persona: Persona): boolean {
-    return (persona.spec?.rules || []).some((rule) => this.hasRule(rule));
+  private isAssociated(userType: UserType): boolean {
+    return (userType.spec?.rules || []).some((rule) => this.hasRule(rule));
   }
 
   /**
@@ -222,29 +222,29 @@ export class PersonasApiImpl implements PersonasApi {
     return methods.includes(verbMethod.method) || methods.includes(`blocked-${ verbMethod.method }`);
   }
 
-  private async findPersonas(): Promise<Persona[]> {
+  private async findUserTypes(): Promise<UserType[]> {
     try {
-      return await this.store.dispatch(`${ STORE.MANAGEMENT }/findAll`, { type: CUSTOMIZATION.PERSONA });
+      return await this.store.dispatch(`${ STORE.MANAGEMENT }/findAll`, { type: CUSTOMIZATION.USER_TYPE });
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn('Unable to list personas, the current user is treated as having none', e);
+      console.warn('Unable to list userTypes, the current user is treated as having none', e);
 
       return [];
     }
   }
 
   /**
-   * The names of the personas assigned to the user, by an admin binding them (or a group they're in) to the persona's global role
+   * The names of the user types assigned to the user, by an admin binding them (or a group they're in) to the user type's global role
    */
-  private assignedPersonaNames(): Promise<string[]> {
+  private assignedUserTypeNames(): Promise<string[]> {
     if (!this.assignedNames) {
-      this.assignedNames = this.fetchAssignedPersonaNames();
+      this.assignedNames = this.fetchAssignedUserTypeNames();
     }
 
     return this.assignedNames;
   }
 
-  private async fetchAssignedPersonaNames(): Promise<string[]> {
+  private async fetchAssignedUserTypeNames(): Promise<string[]> {
     try {
       // The review needs a namespace. Global role rules are cluster wide, so they're returned for any
       const review: SelfSubjectRulesReview = await this.store.dispatch(`${ STORE.MANAGEMENT }/create`, {
@@ -254,9 +254,9 @@ export class PersonasApiImpl implements PersonasApi {
 
       await review.save();
 
-      // Only explicit rules count, wildcards (e.g. an admin's) don't assign a persona
+      // Only explicit rules count, wildcards (e.g. an admin's) don't assign a user type
       const names = (review.status?.resourceRules || [])
-        .filter((rule) => rule.verbs?.includes('assume') && rule.apiGroups?.includes(PERSONA_API_GROUP) && rule.resources?.includes('personas'))
+        .filter((rule) => rule.verbs?.includes('have') && rule.apiGroups?.includes(CUSTOMIZATION_API_GROUP) && rule.resources?.includes('usertypes'))
         .flatMap((rule) => rule.resourceNames || []);
 
       return [...new Set(names)];
@@ -265,7 +265,7 @@ export class PersonasApiImpl implements PersonasApi {
       delete this.assignedNames;
 
       // eslint-disable-next-line no-console
-      console.warn('Unable to find the personas assigned to the current user', e);
+      console.warn('Unable to find the userTypes assigned to the current user', e);
 
       return [];
     }

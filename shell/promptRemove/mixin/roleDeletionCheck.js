@@ -74,7 +74,7 @@ export default {
           return map;
         }, {});
 
-        // A binding made with one of a user's principals (e.g. by a persona) has no userName
+        // A binding made with one of a user's principals (e.g. by a user type) has no userName
         const userIdByPrincipal = users.data?.reduce((map, user) => {
           (user.principalIds || []).forEach((principalId) => {
             map[principalId] = user.id;

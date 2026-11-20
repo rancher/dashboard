@@ -31,12 +31,12 @@ export default {
       this.globalBindings = await this.fetchGlobalRoleBindings(this.value.id);
     }
 
-    // Finding a user's personas needs their persona bindings, the personas and the user's groups
-    const canSeePersonas = [MANAGEMENT.GLOBAL_ROLE_BINDING, CUSTOMIZATION.PERSONA, MANAGEMENT.USER_ATTRIBUTE]
+    // Finding a user's user types needs their user type bindings, the user types and the user's groups
+    const canSeeUserTypes = [MANAGEMENT.GLOBAL_ROLE_BINDING, CUSTOMIZATION.USER_TYPE, MANAGEMENT.USER_ATTRIBUTE]
       .every((type) => !!this.$store.getters[`management/canList`](type));
 
-    if (canSeePersonas) {
-      this.personas = await this.value.fetchAssignedPersonas(this.groupPrincipals);
+    if (canSeeUserTypes) {
+      this.userTypes = await this.value.fetchAssignedUserTypes(this.groupPrincipals);
     }
 
     this.canSeeRoleTemplates = !!this.$store.getters[`management/canList`](MANAGEMENT.ROLE_TEMPLATE);
@@ -125,24 +125,24 @@ export default {
         ]
       },
       grantedViaColumn,
-      personaHeaders: [
+      userTypeHeaders: [
         {
-          name:      'persona',
-          labelKey:  'user.detail.personas.tableHeaders.persona',
+          name:      'userType',
+          labelKey:  'user.detail.userTypes.tableHeaders.userType',
           value:     'displayName',
           sort:      'displayName',
           formatter: 'LinkDetail',
         },
         {
           name:     'priority',
-          labelKey: 'user.detail.personas.tableHeaders.priority',
+          labelKey: 'user.detail.userTypes.tableHeaders.priority',
           value:    'priorityDisplay',
           sort:     'priority:desc',
           width:    '20%',
         },
       ],
       // Null when the viewer can't see what's needed to find them
-      personas:            null,
+      userTypes:           null,
       globalBindings:      null,
       canSeeRoleTemplates: false,
       isAdmin:             false,
@@ -173,26 +173,26 @@ export default {
       };
     },
 
-    personaRows() {
+    userTypeRows() {
       const direct = this.t('user.detail.generic.direct');
 
-      return (this.personas || []).map(({ persona, direct: isDirect, groups }) => ({
-        id:              persona.id,
-        displayName:     persona.spec?.displayName || persona.metadata.name,
-        priority:        persona.spec?.priority || 0,
-        // As the persona's own page shows it
-        priorityDisplay: persona.spec?.priority || '—',
-        detailLocation:  persona.detailLocation,
+      return (this.userTypes || []).map(({ userType, direct: isDirect, groups }) => ({
+        id:              userType.id,
+        displayName:     userType.spec?.displayName || userType.metadata.name,
+        priority:        userType.spec?.priority || 0,
+        // As the user type's own page shows it
+        priorityDisplay: userType.spec?.priority || '—',
+        detailLocation:  userType.detailLocation,
         grantedVia:      [...(isDirect ? [direct] : []), ...groups].join(', '),
       }));
     },
 
-    personaTableHeaders() {
+    userTypeTableHeaders() {
       if (!Object.keys(this.groupPrincipals).length) {
-        return this.personaHeaders;
+        return this.userTypeHeaders;
       }
 
-      return [...this.personaHeaders, {
+      return [...this.userTypeHeaders, {
         ...this.grantedViaColumn, value: 'grantedVia', sort: 'grantedVia'
       }];
     },
@@ -207,7 +207,7 @@ export default {
   },
   methods: {
     isBoundToUser(binding, userId) {
-      // A binding made with one of the user's principals (e.g. by a persona) has no userName
+      // A binding made with one of the user's principals (e.g. by a user type) has no userName
       return binding.userName === userId ||
         (this.value.principalIds || []).includes(binding.userPrincipalName) ||
         !!this.groupPrincipals[binding.groupPrincipalName];
@@ -410,34 +410,34 @@ export default {
         </SortableTable>
       </Tab>
       <Tab
-        v-if="personas"
-        label-key="user.detail.personas.label"
-        name="personas"
+        v-if="userTypes"
+        label-key="user.detail.userTypes.label"
+        name="userTypes"
         :weight="0"
       >
         <div class="tab-content">
           <Banner
             color="info"
             class="tab-note"
-            label-key="user.detail.personas.description"
-            data-testid="user-detail-personas-note"
+            label-key="user.detail.userTypes.description"
+            data-testid="user-detail-user-types-note"
           />
           <SortableTable
-            v-if="personaRows.length"
-            :rows="personaRows"
-            :headers="personaTableHeaders"
+            v-if="userTypeRows.length"
+            :rows="userTypeRows"
+            :headers="userTypeTableHeaders"
             key-field="id"
             :table-actions="false"
             :row-actions="false"
             :search="false"
-            data-testid="user-detail-personas"
+            data-testid="user-detail-user-types"
           />
           <p
             v-else
             class="text-muted"
-            data-testid="user-detail-personas-empty"
+            data-testid="user-detail-user-types-empty"
           >
-            {{ t('user.detail.personas.empty') }}
+            {{ t('user.detail.userTypes.empty') }}
           </p>
         </div>
       </Tab>

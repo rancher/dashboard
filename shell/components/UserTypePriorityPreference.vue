@@ -1,13 +1,13 @@
 <script setup lang="ts">
 /**
- * The signed in user's personas, most important first, which they can reorder (by dragging a row's grip, or Alt+Up / Down on a row), turn
+ * The signed in user's user types, most important first, which they can reorder (by dragging a row's grip, or Alt+Up / Down on a row), turn
  * off and on (a row is a checkbox, as the table views' columns), or put back to the default. Each change is saved straight away, as other
  * preferences are
  */
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useShell } from '@shell/apis';
-import type { PersonaPreferences } from '@shell/apis/intf/shell';
+import type { UserTypePreferences } from '@shell/apis/intf/shell';
 import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
 import DragGrip from '@shell/components/DragGrip.vue';
@@ -15,21 +15,21 @@ import { useDragReorder, useListSlots } from '@shell/composables/useDragReorder'
 import { useI18n } from '@shell/composables/useI18n';
 import { isMac } from '@shell/utils/platform';
 import { moveInOrder } from '@shell/utils/table-views/views';
-import Persona from '@shell/models/customization.ui.rancher.persona';
+import UserType from '@shell/models/customization.ui.rancher.usertype';
 
 const { t } = useI18n(useStore());
-const personasApi = useShell().personas;
+const userTypesApi = useShell().userTypes;
 
 /** Null until loaded. Disabled ones included */
-const personas = ref<Persona[] | null>(null);
-const preferences = ref<PersonaPreferences>({});
+const userTypes = ref<UserType[] | null>(null);
+const preferences = ref<UserTypePreferences>({});
 const list = ref<HTMLElement | null>(null);
 
 const hasOwnPreferences = computed(() => !!Object.keys(preferences.value).length);
 
-const isEnabled = (persona: Persona) => !preferences.value[persona.metadata.name]?.disabled;
+const isEnabled = (userType: UserType) => !preferences.value[userType.metadata.name]?.disabled;
 
-/** Said by a screen reader: where a moved persona went, which the focus, left on the row, doesn't show */
+/** Said by a screen reader: where a moved user type went, which the focus, left on the row, doesn't show */
 const announcement = ref('');
 
 /** Cleared first, so saying the same thing twice is heard twice */
@@ -39,25 +39,25 @@ const announce = async(message: string) => {
   announcement.value = message;
 };
 
-const moveKeysHint = computed(() => t('prefs.personas.moveKeys', { modifier: isMac ? 'Option' : 'Alt' }));
+const moveKeysHint = computed(() => t('prefs.userTypes.moveKeys', { modifier: isMac ? 'Option' : 'Alt' }));
 
-const names = computed(() => (personas.value || []).map((persona) => persona.metadata.name));
+const names = computed(() => (userTypes.value || []).map((userType) => userType.metadata.name));
 
-const slots = useListSlots(list, '[data-persona]');
+const slots = useListSlots(list, '[data-user-type]');
 
-const showPersonas = async() => {
-  personas.value = await personasApi.currentUsersPersonas({ includeDisabled: true });
-  preferences.value = personasApi.currentUsersPersonaPreferences();
+const showUserTypes = async() => {
+  userTypes.value = await userTypesApi.currentUserTypes({ includeDisabled: true });
+  preferences.value = userTypesApi.currentUserTypePreferences();
 };
 
-const toggle = async(persona: Persona) => {
-  await personasApi.setCurrentUsersPersonaEnabled(persona.metadata.name, !isEnabled(persona));
-  await showPersonas();
+const toggle = async(userType: UserType) => {
+  await userTypesApi.setCurrentUserTypeEnabled(userType.metadata.name, !isEnabled(userType));
+  await showUserTypes();
 };
 
 const save = async(order: string[]) => {
-  await personasApi.reorderCurrentUsersPersonas(order);
-  await showPersonas();
+  await userTypesApi.reorderCurrentUserTypes(order);
+  await showUserTypes();
 };
 
 const { heldId, order: dragOrder, start: armDrag } = useDragReorder({
@@ -70,18 +70,18 @@ const { heldId, order: dragOrder, start: armDrag } = useDragReorder({
 });
 
 /** Mid-drag the rows follow the pointer, not the saved order */
-const shownPersonas = computed(() => {
-  const all = personas.value || [];
+const shownUserTypes = computed(() => {
+  const all = userTypes.value || [];
 
   if (!dragOrder.value) {
     return all;
   }
 
-  return dragOrder.value.map((name) => all.find((persona) => persona.metadata.name === name)).filter((persona): persona is Persona => !!persona);
+  return dragOrder.value.map((name) => all.find((userType) => userType.metadata.name === name)).filter((userType): userType is UserType => !!userType);
 });
 
 /** Empty content hides the tooltip once a row is picked up */
-const reorderTip = computed(() => ({ content: heldId.value ? '' : t('prefs.personas.reorder'), placement: 'left' }));
+const reorderTip = computed(() => ({ content: heldId.value ? '' : t('prefs.userTypes.reorder'), placement: 'left' }));
 
 const startDrag = (name: string, event: MouseEvent) => {
   if (event.button !== 0) {
@@ -94,8 +94,8 @@ const startDrag = (name: string, event: MouseEvent) => {
 };
 
 /** The keyboard's way to reorder: one place up or down */
-const move = async(persona: Persona, step: number) => {
-  const from = names.value.indexOf(persona.metadata.name);
+const move = async(userType: UserType, step: number) => {
+  const from = names.value.indexOf(userType.metadata.name);
   const to = from + step;
 
   if (to < 0 || to >= names.value.length) {
@@ -103,97 +103,97 @@ const move = async(persona: Persona, step: number) => {
   }
 
   await save(moveInOrder(names.value, from, to));
-  announce(t('prefs.personas.moved', {
-    label: persona.spec.displayName, position: to + 1, total: names.value.length
+  announce(t('prefs.userTypes.moved', {
+    label: userType.spec.displayName, position: to + 1, total: names.value.length
   }));
 
   // Moving the row takes it out of the page for a moment, which drops its focus
   await nextTick();
-  list.value?.querySelector<HTMLElement>(`[data-persona="${ persona.metadata.name }"]`)?.focus();
+  list.value?.querySelector<HTMLElement>(`[data-user-type="${ userType.metadata.name }"]`)?.focus();
 };
 
-/** Back to the personas' own order, all enabled */
+/** Back to the user types' own order, all enabled */
 const reset = async() => {
-  await personasApi.setCurrentUsersPersonaPreferences({});
-  await showPersonas();
-  announce(t('prefs.personas.resetDone'));
+  await userTypesApi.setCurrentUserTypePreferences({});
+  await showUserTypes();
+  announce(t('prefs.userTypes.resetDone'));
 };
 
 /**
- * Preferences for personas that were deleted, or that the user no longer has, are dropped before the list is shown
+ * Preferences for user types that were deleted, or that the user no longer has, are dropped before the list is shown
  */
 onMounted(async() => {
-  const mine = await personasApi.currentUsersPersonas({ includeDisabled: true });
-  const mineNames = mine.map((persona) => persona.metadata.name);
-  const saved = personasApi.currentUsersPersonaPreferences();
+  const mine = await userTypesApi.currentUserTypes({ includeDisabled: true });
+  const mineNames = mine.map((userType) => userType.metadata.name);
+  const saved = userTypesApi.currentUserTypePreferences();
   const kept = Object.fromEntries(Object.entries(saved).filter(([name]) => mineNames.includes(name)));
 
   if (Object.keys(kept).length !== Object.keys(saved).length) {
-    await personasApi.setCurrentUsersPersonaPreferences(kept);
+    await userTypesApi.setCurrentUserTypePreferences(kept);
   }
 
-  await showPersonas();
+  await showUserTypes();
 });
 </script>
 
 <template>
-  <div data-testid="prefs__personas">
+  <div data-testid="prefs__user-types">
     <div
       class="sr-only"
       role="status"
       aria-live="polite"
-      data-testid="prefs__personas-announcement"
+      data-testid="prefs__user-types-announcement"
     >
       {{ announcement }}
     </div>
-    <p>{{ t('prefs.personas.description') }}</p>
+    <p>{{ t('prefs.userTypes.description') }}</p>
     <i
-      v-if="!personas"
+      v-if="!userTypes"
       class="icon icon-spinner icon-spin mt-10"
     />
     <p
-      v-else-if="!personas.length"
+      v-else-if="!userTypes.length"
       class="text-muted mt-10"
-      data-testid="prefs__personas-empty"
+      data-testid="prefs__user-types-empty"
     >
-      {{ t('prefs.personas.empty') }}
+      {{ t('prefs.userTypes.empty') }}
     </p>
     <template v-else>
       <div
         ref="list"
-        class="persona-list mt-10"
+        class="usertype-list mt-10"
         :class="{ 'is-reordering': !!heldId }"
       >
         <TransitionGroup
-          name="persona-row"
+          name="usertype-row"
           tag="ol"
-          :aria-label="t('prefs.personas.label')"
+          :aria-label="t('prefs.userTypes.label')"
         >
           <li
-            v-for="persona in shownPersonas"
-            :key="persona.metadata.name"
-            :data-persona="persona.metadata.name"
-            :data-testid="`prefs__personas-row-${ persona.metadata.name }`"
-            :class="{ 'persona-row': true, held: heldId === persona.metadata.name, enabled: isEnabled(persona) }"
+            v-for="userType in shownUserTypes"
+            :key="userType.metadata.name"
+            :data-user-type="userType.metadata.name"
+            :data-testid="`prefs__user-types-row-${ userType.metadata.name }`"
+            :class="{ 'usertype-row': true, held: heldId === userType.metadata.name, enabled: isEnabled(userType) }"
             role="checkbox"
-            :aria-checked="isEnabled(persona)"
+            :aria-checked="isEnabled(userType)"
             :aria-description="moveKeysHint"
             tabindex="0"
-            @click="toggle(persona)"
-            @keydown.space.prevent="toggle(persona)"
-            @keydown.enter.prevent="toggle(persona)"
-            @keydown.alt.up.prevent.stop="move(persona, -1)"
-            @keydown.alt.down.prevent.stop="move(persona, 1)"
+            @click="toggle(userType)"
+            @keydown.space.prevent="toggle(userType)"
+            @keydown.enter.prevent="toggle(userType)"
+            @keydown.alt.up.prevent.stop="move(userType, -1)"
+            @keydown.alt.down.prevent.stop="move(userType, 1)"
           >
             <DragGrip
               v-clean-tooltip="reorderTip"
-              :data-testid="`prefs__personas-handle-${ persona.metadata.name }`"
-              @mousedown="startDrag(persona.metadata.name, $event)"
+              :data-testid="`prefs__user-types-handle-${ userType.metadata.name }`"
+              @mousedown="startDrag(userType.metadata.name, $event)"
             />
-            <span>{{ persona.spec.displayName }}</span>
-            <span class="persona-check">
+            <span>{{ userType.spec.displayName }}</span>
+            <span class="usertype-check">
               <RcIcon
-                v-if="isEnabled(persona)"
+                v-if="isEnabled(userType)"
                 type="checkmark"
                 size="inherit"
               />
@@ -206,17 +206,17 @@ onMounted(async() => {
         variant="secondary"
         size="small"
         class="mt-10"
-        data-testid="prefs__personas-reset"
+        data-testid="prefs__user-types-reset"
         @click="reset"
       >
-        {{ t('prefs.personas.reset') }}
+        {{ t('prefs.userTypes.reset') }}
       </RcButton>
     </template>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  .persona-list {
+  .usertype-list {
     max-width: 400px;
 
     ol {
@@ -224,12 +224,12 @@ onMounted(async() => {
     }
 
     &.is-reordering {
-      @include drag-reorder-list('.persona-row', '.persona-row-move');
+      @include drag-reorder-list('.usertype-row', '.usertype-row-move');
     }
   }
 
   // Each row a bordered card, so they read as things to pick up and move
-  .persona-row {
+  .usertype-row {
     @include drag-reorder-row;
 
     display: flex;
@@ -255,7 +255,7 @@ onMounted(async() => {
       @include focus-outline;
     }
 
-    .persona-check {
+    .usertype-check {
       display: flex;
       align-items: center;
       margin-left: auto;

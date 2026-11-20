@@ -383,7 +383,7 @@ export const UI = {
   TABLE_CONFIGURATION: 'ui.cattle.io.tableconfiguration',
 };
 
-export const CUSTOMIZATION = { PERSONA: 'customization.ui.rancher.persona' };
+export const CUSTOMIZATION = { USER_TYPE: 'customization.ui.rancher.usertype' };
 
 export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',

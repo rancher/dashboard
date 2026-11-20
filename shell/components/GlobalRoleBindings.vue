@@ -69,8 +69,8 @@ export default {
         };
 
         this.allRoles.forEach((role) => {
-          // Personas are assigned on the persona page, which labels the bindings it makes; one made here wouldn't be seen there
-          if (role.isPersonaRole) {
+          // User types are assigned on the user type page, which labels the bindings it makes; one made here wouldn't be seen there
+          if (role.isUserTypeRole) {
             return;
           }
 

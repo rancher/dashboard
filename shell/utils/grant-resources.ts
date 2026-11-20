@@ -140,7 +140,7 @@ export function normaliseRuleApiGroups(rules: PolicyRule[] = []): void {
 const verbKey = (verb: string) => `has${ ucFirst(verb) }`;
 
 /**
- * The columns of a read only rules table (the role and persona detail pages): a ticked column per verb, then custom verbs, resources,
+ * The columns of a read only rules table (the role and user type detail pages): a ticked column per verb, then custom verbs, resources,
  * non-resource URLs (left out with `nonResourceUrls: false`) and API groups
  */
 export function grantResourceHeaders({ nonResourceUrls = true } = {}) {

@@ -10,7 +10,7 @@ import { MANAGEMENT } from '@shell/config/types';
 import { grantResourceHeaders, grantResourceRows } from '@shell/utils/grant-resources';
 
 export default defineComponent({
-  name: 'DetailPersona',
+  name: 'DetailUserType',
 
   emits: ['input'],
 
@@ -46,7 +46,7 @@ export default defineComponent({
     },
 
     ruleHeaders() {
-      // Persona rules have no non-resource URLs
+      // User type rules have no non-resource URLs
       return grantResourceHeaders({ nonResourceUrls: false });
     },
 
@@ -70,27 +70,27 @@ export default defineComponent({
     <Tab
       v-if="canSeeAssignments"
       name="assignments"
-      :label="t('persona.assignments.label', {}, true)"
+      :label="t('userType.assignments.label', {}, true)"
       :weight="2"
     >
       <div class="tab-content">
         <Banner
           color="info"
           class="tab-note"
-          label-key="persona.detail.assignmentsNote"
-          data-testid="persona-detail-assignments-note"
+          label-key="userType.detail.assignmentsNote"
+          data-testid="usertype-detail-assignments-note"
         />
         <p
           v-if="!principalIds.length"
           class="text-muted"
-          data-testid="persona-detail-no-assignments"
+          data-testid="usertype-detail-no-assignments"
         >
-          {{ t('persona.detail.noAssignments') }}
+          {{ t('userType.detail.noAssignments') }}
         </p>
         <ul
           v-else
           class="assignments"
-          data-testid="persona-detail-assignments"
+          data-testid="usertype-detail-assignments"
         >
           <li
             v-for="id in principalIds"
@@ -103,15 +103,15 @@ export default defineComponent({
     </Tab>
     <Tab
       name="resource-permissions"
-      :label="t('persona.resourcePermissions.label')"
+      :label="t('userType.resourcePermissions.label')"
       :weight="1"
     >
       <div class="tab-content">
         <Banner
           color="info"
           class="tab-note"
-          label-key="persona.resourcePermissions.description"
-          data-testid="persona-detail-rules-note"
+          label-key="userType.resourcePermissions.description"
+          data-testid="usertype-detail-rules-note"
         />
         <SortableTable
           v-if="ruleRows.length"
@@ -121,14 +121,14 @@ export default defineComponent({
           :table-actions="false"
           :row-actions="false"
           :search="false"
-          data-testid="persona-detail-rules"
+          data-testid="usertype-detail-rules"
         />
         <p
           v-else
           class="text-muted"
-          data-testid="persona-detail-no-rules"
+          data-testid="usertype-detail-no-rules"
         >
-          {{ t('persona.detail.noRules') }}
+          {{ t('userType.detail.noRules') }}
         </p>
       </div>
     </Tab>

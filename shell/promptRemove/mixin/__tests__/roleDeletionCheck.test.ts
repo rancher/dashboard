@@ -20,22 +20,22 @@ describe('mixin: roleDeletionCheck', () => {
       $store:  { dispatch: jest.fn((action: string, { url }: { url: string }) => Promise.resolve({ data: url.endsWith(MANAGEMENT.USER) ? users : bindings })) },
     };
 
-    await (roleDeletionCheck as any).methods.handleRoleDeletionCheck.call(ctx, [{ id: 'persona-dev' }], MANAGEMENT.GLOBAL_ROLE, '');
+    await (roleDeletionCheck as any).methods.handleRoleDeletionCheck.call(ctx, [{ id: 'usertype-dev' }], MANAGEMENT.GLOBAL_ROLE, '');
 
     return ctx;
   };
 
   it('should count a user bound to the role by one of their principals', async() => {
-    const ctx = await check([{ globalRoleName: 'persona-dev', userPrincipalName: 'github_user://123' }]);
+    const ctx = await check([{ globalRoleName: 'usertype-dev', userPrincipalName: 'github_user://123' }]);
 
     expect(ctx.warning).toBe('rbac.globalRoles.usersBound:1');
   });
 
   it('should count a user bound by name and by principal once', async() => {
     const ctx = await check([
-      { globalRoleName: 'persona-dev', userName: 'u-alice' },
-      { globalRoleName: 'persona-dev', userPrincipalName: 'local://u-alice' },
-      { globalRoleName: 'persona-dev', userPrincipalName: 'local://u-bob' },
+      { globalRoleName: 'usertype-dev', userName: 'u-alice' },
+      { globalRoleName: 'usertype-dev', userPrincipalName: 'local://u-alice' },
+      { globalRoleName: 'usertype-dev', userPrincipalName: 'local://u-bob' },
     ]);
 
     expect(ctx.warning).toBe('rbac.globalRoles.usersBound:2');

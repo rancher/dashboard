@@ -21,7 +21,7 @@ const DEFAULT_RULE: PolicyRule = {
 };
 
 export default defineComponent({
-  name: 'EditPersona',
+  name: 'EditUserType',
 
   emits: ['input', 'update:value'],
 
@@ -51,14 +51,14 @@ export default defineComponent({
           path: 'metadata.name', rules: ['subDomain'], translationKey: 'nameNsDescription.name.label'
         },
         {
-          path: 'spec.displayName', rules: ['required'], translationKey: 'persona.displayName.label'
+          path: 'spec.displayName', rules: ['required'], translationKey: 'userType.displayName.label'
         },
         {
-          path: 'spec.priority', rules: ['requiredInt', 'isInteger'], translationKey: 'persona.priority.label'
+          path: 'spec.priority', rules: ['requiredInt', 'isInteger'], translationKey: 'userType.priority.label'
         },
       ],
       defaultRule:  DEFAULT_RULE,
-      // null until the persona's assignments are loaded, so a failed load never saves an empty list over them
+      // null until the user type's assignments are loaded, so a failed load never saves an empty list over them
       principalIds: null as string[] | null,
     };
   },
@@ -105,19 +105,19 @@ export default defineComponent({
     },
 
     /**
-     * The persona was created but its assignments failed. Copies the user create page (management.cattle.io.user.vue):
+     * The user type was created but its assignments failed. Copies the user create page (management.cattle.io.user.vue):
      * remove what was created so the form stays a create form and saving again starts clean
      */
     async rollBackCreate() {
       try {
-        // The global role's owner reference to the persona removes the role and any bindings already made with it
+        // The global role's owner reference to the user type removes the role and any bindings already made with it
         await this.value.remove();
       } catch (cleanupErr) {
-        console.error('Failed to remove the persona after assigning it failed:', cleanupErr); // eslint-disable-line no-console
+        console.error('Failed to remove the userType after assigning it failed:', cleanupErr); // eslint-disable-line no-console
 
         this.$store.dispatch('growl/error', {
-          title:   this.t('persona.assignments.orphaned.title'),
-          message: this.t('persona.assignments.orphaned.message', { name: this.value.metadata.name }, true),
+          title:   this.t('userType.assignments.orphaned.title'),
+          message: this.t('userType.assignments.orphaned.message', { name: this.value.metadata.name }, true),
         });
 
         return;
@@ -126,10 +126,10 @@ export default defineComponent({
       // The removed global role is still cached, and saving again would take it as there and not create it
       await this.$store.dispatch('management/forgetType', MANAGEMENT.GLOBAL_ROLE);
 
-      // Carry on with a new, unsaved persona holding what was entered, so the next save creates it again. The saved one is
+      // Carry on with a new, unsaved user type holding what was entered, so the next save creates it again. The saved one is
       // still in the store, where watch events for its removal keep updating it
       const { type, metadata, spec } = JSON.parse(JSON.stringify(this.value));
-      const persona = await this.value.$dispatch('create', {
+      const userType = await this.value.$dispatch('create', {
         type,
         metadata: {
           name: metadata.name, annotations: metadata.annotations, labels: metadata.labels
@@ -137,7 +137,7 @@ export default defineComponent({
         spec,
       });
 
-      this.$emit('update:value', persona);
+      this.$emit('update:value', userType);
     },
   },
 
@@ -188,7 +188,7 @@ export default defineComponent({
           :value="value"
           :mode="mode"
           :namespaced="false"
-          description-placeholder="persona.description.placeholder"
+          description-placeholder="userType.description.placeholder"
           :rules="{ name: fvGetAndReportPathRules('metadata.name'), description: [] }"
           @update:value="$emit('input', $event)"
         />
@@ -199,11 +199,11 @@ export default defineComponent({
         <LabeledInput
           v-model:value="value.spec.displayName"
           :mode="mode"
-          :label="t('persona.displayName.label')"
-          :placeholder="t('persona.displayName.placeholder')"
+          :label="t('userType.displayName.label')"
+          :placeholder="t('userType.displayName.placeholder')"
           :required="true"
           :rules="fvGetAndReportPathRules('spec.displayName')"
-          data-testid="persona-display-name"
+          data-testid="usertype-display-name"
         />
       </div>
       <div class="col span-3">
@@ -211,19 +211,19 @@ export default defineComponent({
           v-model:value="priority"
           type="number"
           :mode="mode"
-          :label="t('persona.priority.label')"
-          :tooltip="t('persona.priority.tooltip')"
+          :label="t('userType.priority.label')"
+          :tooltip="t('userType.priority.tooltip')"
           :required="true"
           :rules="fvGetAndReportPathRules('spec.priority')"
-          data-testid="persona-priority"
+          data-testid="usertype-priority"
         />
       </div>
     </div>
     <div class="row mt-40">
       <div class="col span-12">
-        <h3>{{ t('persona.resourcePermissions.label') }}</h3>
+        <h3>{{ t('userType.resourcePermissions.label') }}</h3>
         <p class="mb-10">
-          {{ t('persona.resourcePermissions.description') }}
+          {{ t('userType.resourcePermissions.description') }}
         </p>
         <Error
           :value="rules"
@@ -237,22 +237,22 @@ export default defineComponent({
           :default-rule="defaultRule"
           :show-non-resource-urls="false"
           :initial-empty-row="false"
-          data-testid="persona-resource-permissions"
+          data-testid="usertype-resource-permissions"
         />
       </div>
     </div>
     <div class="row mt-40">
       <div class="col span-6">
-        <h3>{{ t('persona.assignments.label', {}, true) }}</h3>
+        <h3>{{ t('userType.assignments.label', {}, true) }}</h3>
         <p class="mb-10">
-          {{ t('persona.assignments.description', {}, true) }}
+          {{ t('userType.assignments.description', {}, true) }}
         </p>
         <ArrayList
           v-if="principalIds"
           v-model:value="principalIds"
           :mode="mode"
           :protip="false"
-          data-testid="persona-assignments"
+          data-testid="usertype-assignments"
         >
           <template #value="{row}">
             <Principal :value="row.value" />
@@ -260,8 +260,8 @@ export default defineComponent({
           <template #add>
             <SelectPrincipal
               :mode="mode"
-              :select-label="t('persona.assignments.add.label')"
-              :select-placeholder="t('persona.assignments.add.placeholder')"
+              :select-label="t('userType.assignments.add.label')"
+              :select-placeholder="t('userType.assignments.add.placeholder')"
               @add="addPrincipal"
             />
           </template>
@@ -273,13 +273,13 @@ export default defineComponent({
         <ArrayList
           v-model:value="value.spec.tags"
           :mode="mode"
-          :title="t('persona.tags.label')"
-          :a11y-label="t('persona.tags.label')"
-          :add-label="t('persona.tags.addLabel')"
+          :title="t('userType.tags.label')"
+          :a11y-label="t('userType.tags.label')"
+          :add-label="t('userType.tags.addLabel')"
           :protip="false"
           :show-header="true"
           :value-label="''"
-          data-testid="persona-tags"
+          data-testid="usertype-tags"
         />
       </div>
     </div>
