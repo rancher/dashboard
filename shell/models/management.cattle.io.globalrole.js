@@ -5,6 +5,7 @@ import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
+import { CUSTOMIZATION_API_GROUP } from '@shell/models/customization.ui.rancher.usertype';
 
 const BASE = 'user-base';
 const USER = 'user';
@@ -23,6 +24,13 @@ export default class GlobalRole extends SteveDescriptionModel {
         type:       'array',
       },
     ];
+  }
+
+  /**
+   * A user type's own global role: the user type page creates it, owned by the user type, and binds the user type's users and groups to it
+   */
+  get isUserTypeRole() {
+    return (this.metadata?.ownerReferences || []).some((owner) => owner.kind === 'UserType' && owner.apiVersion?.startsWith(`${ CUSTOMIZATION_API_GROUP }/`));
   }
 
   get details() {

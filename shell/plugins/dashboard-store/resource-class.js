@@ -646,6 +646,9 @@ export default class Resource {
     return this.$ctx.rootState?.$extension || this.$ctx.rootState?.$plugin;
   }
 
+  /**
+   * @returns {object[]}
+   */
   get customValidationRules() {
     return [
       /**
@@ -2064,6 +2067,9 @@ export default class Resource {
     return owners;
   }
 
+  /**
+   * @returns {{ label: string, content: any, formatter?: string, formatterOpts?: object }[]}
+   */
   get details() {
     return this._details;
   }

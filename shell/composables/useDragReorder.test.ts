@@ -1,7 +1,7 @@
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, ref } from 'vue';
 import { mount } from '@vue/test-utils';
 
-import { DragReorderOptions, useDragReorder } from '@shell/composables/useDragReorder';
+import { DragReorderOptions, useDragReorder, useListSlots } from '@shell/composables/useDragReorder';
 
 // A list of four whose items sit 10 apart along the axis, so the pointer at 25 is over the third
 function setup(overrides: Partial<DragReorderOptions> = {}) {
@@ -158,5 +158,47 @@ describe('useDragReorder', () => {
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 25, clientY: 999 }));
 
     expect(drag.order.value).toStrictEqual(['b', 'c', 'a', 'd']);
+  });
+});
+
+describe('useListSlots', () => {
+  const withBox = <T extends Element>(el: T, top: number, bottom: number) => Object.assign(el, { getBoundingClientRect: () => ({ top, bottom }) });
+
+  // A list at 100 on the page whose three rows are 10 high
+  const list = (rowCount = 3) => {
+    const container = withBox(document.createElement('ol'), 100, 100 + rowCount * 10);
+
+    for (let i = 0; i < rowCount; i++) {
+      container.appendChild(withBox(document.createElement('li'), 100 + i * 10, 110 + i * 10));
+    }
+
+    return container;
+  };
+
+  it.each([
+    ['before the first row', 95, 0],
+    ['inside a row', 115, 1],
+    ['past the last row', 200, 2],
+  ])('should place the pointer %s', (_, clientY, expected) => {
+    const slots = useListSlots(ref(list()), 'li');
+
+    slots.measure();
+
+    expect(slots.indexAt(clientY)).toBe(expected);
+  });
+
+  it('should place the pointer nowhere with no rows, once cleared, or once the list is gone', () => {
+    const empty = useListSlots(ref(list(0)), 'li');
+    const cleared = useListSlots(ref(list()), 'li');
+    const container = ref<HTMLElement | null>(list());
+    const gone = useListSlots(container, 'li');
+
+    empty.measure();
+    cleared.measure();
+    cleared.clear();
+    gone.measure();
+    container.value = null;
+
+    expect([empty.indexAt(105), cleared.indexAt(105), gone.indexAt(105)]).toStrictEqual([-1, -1, -1]);
   });
 });

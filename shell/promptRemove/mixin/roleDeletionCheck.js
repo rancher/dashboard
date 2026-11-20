@@ -74,12 +74,21 @@ export default {
           return map;
         }, {});
 
+        // A binding made with one of a user's principals (e.g. by a user type) has no userName
+        const userIdByPrincipal = users.data?.reduce((map, user) => {
+          (user.principalIds || []).forEach((principalId) => {
+            map[principalId] = user.id;
+          });
+
+          return map;
+        }, {});
+
         if (request.data && request.data.length) {
           rolesToRemove.forEach((toRemove) => {
             const usedRoles = request.data.filter((item) => item[propToMatch] === toRemove.id);
 
             if (usedRoles.length) {
-              const uniqueUsers = [...new Set(usedRoles.map((item) => item.userName).filter((user) => userMap[user]))];
+              const uniqueUsers = [...new Set(usedRoles.map((item) => item.userName || userIdByPrincipal[item.userPrincipalName]).filter((user) => userMap[user]))];
 
               if (uniqueUsers.length) {
                 numberOfRolesWithBinds++;

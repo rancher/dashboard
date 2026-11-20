@@ -93,4 +93,28 @@ describe('page: prefs should', () => {
 
     expect(options[index].label).toBe(expected);
   });
+
+  it.each([
+    ['shown', undefined, true],
+    ['hidden in single product mode', { productName: 'harvester' }, false],
+  ])('the user types section is %s', (_, singleProduct, shown) => {
+    const wrapper = shallowMount(Preferences, {
+      global: {
+        mocks: {
+          $store: {
+            getters: {
+              'prefs/options':        () => [],
+              'prefs/get':            jest.fn().mockReturnValue('YYYY-MM-DD HH:mm:ss'),
+              'management/schemaFor': jest.fn(),
+              isSingleProduct:        singleProduct,
+              'i18n/t':               jest.fn(),
+            }
+          }
+        },
+        stubs: { UserTypePriorityPreference: { name: 'UserTypePriorityPreference', template: '<div data-testid="user-types" />' } },
+      },
+    });
+
+    expect(wrapper.find('[data-testid="user-types"]').exists()).toBe(shown);
+  });
 });

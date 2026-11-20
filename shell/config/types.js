@@ -81,6 +81,8 @@ export const RBAC = {
   CLUSTER_ROLE_BINDING: 'rbac.authorization.k8s.io.clusterrolebinding',
 };
 
+export const AUTHORIZATION = { SELF_SUBJECT_RULES_REVIEW: 'authorization.k8s.io.selfsubjectrulesreview' };
+
 export const WORKLOAD = 'workload';
 export const WORKLOAD_DASHBOARD = 'workload-dashboard';
 
@@ -380,6 +382,8 @@ export const UI = {
   NAV_LINK:            'ui.cattle.io.navlink',
   TABLE_CONFIGURATION: 'ui.cattle.io.tableconfiguration',
 };
+
+export const CUSTOMIZATION = { USER_TYPE: 'customization.ui.rancher.usertype' };
 
 export const VIRTUAL_TYPES = {
   CLUSTER_MEMBERS:    'cluster-members',

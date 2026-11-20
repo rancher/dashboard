@@ -1,6 +1,6 @@
 import { shallowMount } from '@vue/test-utils';
 import DetailUser from '@shell/detail/management.cattle.io.user.vue';
-import { MANAGEMENT } from '@shell/config/types';
+import { CUSTOMIZATION, MANAGEMENT } from '@shell/config/types';
 
 const USER_ID = 'u-alice';
 const OPS_GROUP = 'openldap_group://cn=ops,ou=Groups,dc=example,dc=test';
@@ -10,6 +10,7 @@ const DIRECT = '%user.detail.generic.direct%';
 
 interface Binding {
   userName?: string;
+  userPrincipalName?: string;
   groupPrincipalName?: string;
   globalRoleName?: string;
   clusterName?: string;
@@ -22,6 +23,12 @@ interface Column {
   value: string | ((row: Binding) => string);
 }
 
+interface AssignedUserType {
+  userType: { id: string, metadata: { name: string }, spec: { displayName?: string, priority?: number }, detailLocation: object };
+  direct: boolean;
+  groups: string[];
+}
+
 interface UserDetail {
   $el: HTMLElement;
   $nextTick: () => Promise<void>;
@@ -29,6 +36,9 @@ interface UserDetail {
   clusterBindings: Binding[];
   isAdmin: boolean;
   tableHeaders: { gp: Column[], cr: Column[], pr: Column[] };
+  userTypes: AssignedUserType[] | null;
+  userTypeRows: object[];
+  userTypeTableHeaders: Column[];
 }
 
 const globalRoles = [
@@ -58,7 +68,11 @@ describe('view: management.cattle.io.user', () => {
     clusterRoleBindings = [] as Binding[],
     projectRoleBindings = [] as Binding[],
     groups = { [OPS_GROUP]: 'ops' } as Record<string, string>,
+    principalIds = [] as string[],
     stubs = { ResourceTabs: { template: '<div />' } } as Record<string, object>,
+    userTypes = [] as AssignedUserType[],
+    fetchAssignedUserTypes = jest.fn(() => Promise.resolve(userTypes)),
+    canList = (_type: string): boolean => true,
   } = {}): Promise<UserDetail> => {
     const dispatch = jest.fn((action: string, opt: { type?: string, resource?: object }) => {
       if (action === 'rancher/clone') {
@@ -82,7 +96,7 @@ describe('view: management.cattle.io.user', () => {
     const getters = {
       'i18n/t':             (key: string) => key,
       'i18n/exists':        () => true,
-      'management/canList': () => true,
+      'management/canList': canList,
       'management/all':     (type: string) => ({
         [MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING]: clusterRoleBindings,
         [MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING]: projectRoleBindings,
@@ -90,7 +104,12 @@ describe('view: management.cattle.io.user', () => {
     };
 
     const wrapper = shallowMount(DetailUser, {
-      props:  { value: { id: USER_ID, fetchGroupPrincipals: () => Promise.resolve(groups) }, mode: 'view' },
+      props: {
+        value: {
+          id: USER_ID, principalIds, fetchGroupPrincipals: () => Promise.resolve(groups), fetchAssignedUserTypes
+        },
+        mode: 'view'
+      },
       global: {
         mocks: {
           $store:      { getters, dispatch },
@@ -161,6 +180,30 @@ describe('view: management.cattle.io.user', () => {
     expect(vm.tableHeaders.gp.map((h) => h.name)).not.toContain('grantedVia');
   });
 
+  it('shows a global role bound to one of the user\'s principals (no user name) as direct', async() => {
+    const vm = await load({
+      principalIds:       ['local://u-alice', 'github_user://123'],
+      globalRoleBindings: [
+        grb('clusters-create', { userName: USER_ID }),
+        grb('users-manage', { userPrincipalName: 'github_user://123' }),
+      ]
+    });
+
+    expect(boundRoles(vm)).toStrictEqual([
+      { id: 'users-manage', grantedVia: [DIRECT] },
+      { id: 'clusters-create', grantedVia: [DIRECT] },
+    ]);
+  });
+
+  it('ignores a global role bound to another user\'s principal', async() => {
+    const vm = await load({
+      principalIds:       ['local://u-alice'],
+      globalRoleBindings: [grb('users-manage', { userPrincipalName: 'local://u-bob' })]
+    });
+
+    expect(boundRoles(vm)).toStrictEqual([]);
+  });
+
   it('shows cluster roles bound to the user\'s groups with the group in the Granted Via column', async() => {
     const direct = { userName: USER_ID, clusterName: 'c-1' };
     const viaGroup = { groupPrincipalName: OPS_GROUP, clusterName: 'c-2' };
@@ -191,5 +234,66 @@ describe('view: management.cattle.io.user', () => {
 
     // Cluster rows (direct, group), then project rows (group, direct)
     expect(rows).toStrictEqual([true, false, false, true]);
+  });
+
+  describe('user types tab', () => {
+    const assigned = (name: string, priority: number | undefined, direct: boolean, groups: string[] = []): AssignedUserType => ({
+      userType: {
+        id: name, metadata: { name }, spec: { displayName: name.toUpperCase(), priority }, detailLocation: { name }
+      },
+      direct,
+      groups,
+    });
+
+    it('should list each user type with a link, its priority (a dash when 0 or unset) and how it\'s granted', async() => {
+      const vm = await load({ userTypes: [assigned('dev', 5, true, ['ops']), assigned('ops', 0, false, ['ops']), assigned('none', undefined, true)] });
+
+      expect(vm.userTypeRows).toStrictEqual([
+        {
+          id: 'dev', displayName: 'DEV', priority: 5, priorityDisplay: 5, detailLocation: { name: 'dev' }, grantedVia: `${ DIRECT }, ops`
+        },
+        {
+          id: 'ops', displayName: 'OPS', priority: 0, priorityDisplay: '—', detailLocation: { name: 'ops' }, grantedVia: 'ops'
+        },
+        {
+          id: 'none', displayName: 'NONE', priority: 0, priorityDisplay: '—', detailLocation: { name: 'none' }, grantedVia: DIRECT
+        },
+      ]);
+    });
+
+    it('should only show the Granted Via column when the user has groups', async() => {
+      const columns = (vm: UserDetail) => vm.userTypeTableHeaders.map((h) => h.name);
+
+      expect(columns(await load({ userTypes: [assigned('dev', 1, true)] }))).toContain('grantedVia');
+      expect(columns(await load({ groups: {}, userTypes: [assigned('dev', 1, true)] }))).not.toContain('grantedVia');
+    });
+
+    it('should look the user types up with the user\'s groups', async() => {
+      const fetchAssignedUserTypes = jest.fn(() => Promise.resolve([]));
+
+      await load({ fetchAssignedUserTypes });
+
+      expect(fetchAssignedUserTypes).toHaveBeenCalledWith({ [OPS_GROUP]: 'ops' });
+    });
+
+    it.each([MANAGEMENT.GLOBAL_ROLE_BINDING, CUSTOMIZATION.USER_TYPE, MANAGEMENT.USER_ATTRIBUTE])('should hide the tab when the viewer can\'t list %s', async(hidden) => {
+      const fetchAssignedUserTypes = jest.fn(() => Promise.resolve([]));
+      const vm = await load({ fetchAssignedUserTypes, canList: (type: string) => type !== hidden });
+
+      expect(vm.userTypes).toBeNull();
+      expect(fetchAssignedUserTypes).not.toHaveBeenCalled();
+    });
+
+    it('should say when the user has no user types', async() => {
+      const vm = await load({
+        stubs: {
+          ResourceTabs: { template: '<div><slot /></div>' }, Tab: { template: '<div><slot /></div>' }, SortableTable: SortableTableStub
+        }
+      });
+
+      await vm.$nextTick();
+
+      expect(vm.$el.querySelector('[data-testid="user-detail-user-types-empty"]')?.textContent).toContain('user.detail.userTypes.empty');
+    });
   });
 });

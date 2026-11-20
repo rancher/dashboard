@@ -7,7 +7,8 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 
 import TableViewQueryInput from '@shell/components/TableViews/TableViewQueryInput.vue';
-import { useDragReorder } from '@shell/composables/useDragReorder';
+import DragGrip from '@shell/components/DragGrip.vue';
+import { useDragReorder, useListSlots } from '@shell/composables/useDragReorder';
 import { useI18n } from '@shell/composables/useI18n';
 import { validateQuery } from '@shell/utils/table-views/query';
 import { NO_GROUPING, isViewModified } from '@shell/utils/table-views/views';
@@ -81,8 +82,6 @@ const columnsPanel = ref<HTMLElement | null>(null);
 const groupPanel = ref<HTMLElement | null>(null);
 
 const queryFocused = ref(false);
-
-const columnSlots = ref<{ top: number, bottom: number }[] | null>(null);
 
 /**
  * Said by a screen reader: what a command in the menu changed, which the focus, left on the command,
@@ -213,43 +212,7 @@ const selectAllColumns = () => {
   announce(t('tableViews.columns.allShown', { count: columnFields.value.length }));
 };
 
-/**
- * Measured once as the drag begins, in the panel's coordinates: displaced rows are mid-transition
- * afterwards, and the panel may scroll
- */
-const captureColumnSlots = () => {
-  const scroller = columnsPanel.value;
-  const rows = scroller?.querySelectorAll('[data-col-id]') || [];
-  const origin = scroller ? scroller.getBoundingClientRect().top - scroller.scrollTop : 0;
-
-  columnSlots.value = Array.from(rows).map((el) => {
-    const box = el.getBoundingClientRect();
-
-    return { top: box.top - origin, bottom: box.bottom - origin };
-  });
-};
-
-/** Clamped, so dragging past the last row parks the column at the end */
-const columnIndexAt = (clientY: number) => {
-  const slots = columnSlots.value || [];
-  const scroller = columnsPanel.value;
-
-  if (!slots.length || !scroller) {
-    return -1;
-  }
-
-  const y = clientY - scroller.getBoundingClientRect().top + scroller.scrollTop;
-
-  if (y <= slots[0].top) {
-    return 0;
-  }
-
-  if (y >= slots[slots.length - 1].bottom) {
-    return slots.length - 1;
-  }
-
-  return slots.findIndex((slot) => y >= slot.top && y <= slot.bottom);
-};
+const columnSlots = useListSlots(columnsPanel, '[data-col-id]');
 
 /** Locked columns hold the head of the list, so nothing may be carried above them */
 const firstMovableIndex = (order: string[]) => {
@@ -265,13 +228,11 @@ const firstMovableIndex = (order: string[]) => {
 const { heldId: heldColumnId, order: columnDragOrder, start: armColumnDrag } = useDragReorder({
   axis:         'y',
   initialOrder: () => orderedColumnFields.value.map((f) => f.id),
-  measure:      captureColumnSlots,
-  indexAt:      columnIndexAt,
+  measure:      columnSlots.measure,
+  indexAt:      columnSlots.indexAt,
   firstMovable: firstMovableIndex,
-  onEnd:        () => {
-    columnSlots.value = null;
-  },
-  onCommit: (order) => update({ columnOrder: order }),
+  onEnd:        columnSlots.clear,
+  onCommit:     (order) => update({ columnOrder: order }),
 });
 
 const startColumnDrag = (id: string, event: MouseEvent) => {
@@ -501,10 +462,10 @@ watch(groupPanel, (panel) => {
                           v-clean-tooltip="lockedTip"
                           class="icon icon-lock column-handle"
                         />
-                        <span
+                        <DragGrip
                           v-else
                           v-clean-tooltip="reorderTip"
-                          class="column-handle grip"
+                          class="column-handle"
                           :data-testid="`table-views-col-handle-${ field.id }`"
                           @mousedown="startColumnDrag(field.id, $event)"
                         />
@@ -629,12 +590,8 @@ watch(groupPanel, (panel) => {
 .menu-panel {
   // Only while a row is carried: the popper is positioned after mounting, which FLIP would animate
   // as every row sliding in
-  .is-reordering .column-row-move {
-    transition: transform 0.2s $drag-displace-curve;
-  }
-
   .is-reordering {
-    cursor: grabbing;
+    @include drag-reorder-list('.column-row', '.column-row-move');
 
     [dropdown-menu-item],
     [dropdown-menu-item]:hover,
@@ -643,43 +600,12 @@ watch(groupPanel, (panel) => {
     }
   }
 
-  .is-reordering .column-row {
-    transition: background-color 0.1s ease-in-out, transform 0.33s $drag-drop-curve, box-shadow 0.33s $drag-drop-curve;
-  }
-
   .column-row {
-    transition: background-color 0.1s ease-in-out;
-    user-select: none;
+    @include drag-reorder-row;
+
     .column-handle {
       font-size: 14px;
       cursor: grab;
-    }
-
-    .grip {
-      color: var(--muted);
-    }
-
-    // The icon font has no grip glyph
-    .grip {
-      position: relative;
-      display: inline-block;
-      // The lock's width, so every label starts in the same place
-      width: 14px;
-      height: 12px;
-
-      &::before,
-      &::after {
-        content: '';
-        position: absolute;
-        left: 1px;
-        right: 1px;
-        height: 1.5px;
-        border-radius: 1px;
-        background: currentColor;
-      }
-
-      &::before { top: 3.5px; }
-      &::after { top: 7px; }
     }
 
     &.shown {
@@ -693,16 +619,6 @@ watch(groupPanel, (panel) => {
       cursor: default;
 
       .column-handle { cursor: default; }
-    }
-
-    // Lifted the way the app bar's pinned shelf lifts a row
-    &.held {
-      position: relative;
-      z-index: 1;
-      background: color-mix(in srgb, var(--primary) 14%, transparent);
-      transform: scale(1.02);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
-      transition: transform 0.2s $drag-displace-curve, box-shadow 0.2s $drag-displace-curve, background-color 0.2s $drag-displace-curve;
     }
   }
 }

@@ -7,6 +7,7 @@ import BackRoute from '@shell/mixins/back-link';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import { Checkbox } from '@components/Form/Checkbox';
 import LandingPagePreference from '@shell/components/LandingPagePreference';
+import UserTypePriorityPreference from '@shell/components/UserTypePriorityPreference.vue';
 import {
   mapPref, THEME, KEYMAP, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC, SHOW_PRE_RELEASE,
   VIEW_IN_API, ALL_NAMESPACES, THEME_SHORTCUT, PLUGIN_DEVELOPER, SCALE_POOL_PROMPT
@@ -22,7 +23,7 @@ import { RcHeading } from '@components/RcHeading';
 
 export default {
   components: {
-    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, LocaleSelector, TabTitle, RcSeparator, RcHeading
+    BackLink, ButtonGroup, LabeledSelect, Checkbox, LandingPagePreference, UserTypePriorityPreference, LocaleSelector, TabTitle, RcSeparator, RcHeading
   },
   mixins: [BackRoute],
   data() {
@@ -239,6 +240,18 @@ export default {
       <LandingPagePreference
         data-testid="prefs__landingPagePreference"
       />
+    </div>
+    <!-- User Types -->
+    <div
+      v-if="!isSingleProduct"
+      class="mt-10 mb-10"
+    >
+      <RcSeparator />
+      <RcHeading
+        v-t="'prefs.userTypes.label'"
+        :size="4"
+      />
+      <UserTypePriorityPreference />
     </div>
     <!-- Display Settings -->
     <div class="mt-10 mb-10">

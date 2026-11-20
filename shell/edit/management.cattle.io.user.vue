@@ -307,6 +307,7 @@ export default {
       <GlobalRoleBindings
         ref="grb"
         :user-id="value.id || liveValue.id"
+        :user-principal-ids="value.principalIds || liveValue?.principalIds"
         :mode="mode"
         :real-mode="realMode"
         type="user"

@@ -47,6 +47,22 @@ export default {
     appendToBody: {
       type:    Boolean,
       default: true
+    },
+
+    /**
+     * Overrides the select's label (default: adding a cluster member)
+     */
+    selectLabel: {
+      type:    String,
+      default: null
+    },
+
+    /**
+     * Overrides the select's placeholder (default: searching for a cluster or project member)
+     */
+    selectPlaceholder: {
+      type:    String,
+      default: null
     }
   },
 
@@ -91,10 +107,18 @@ export default {
     },
 
     label() {
+      if (this.selectLabel) {
+        return this.selectLabel;
+      }
+
       return this.retainSelection ? this.t('cluster.memberRoles.addClusterMember.labelSelect') : this.t('cluster.memberRoles.addClusterMember.labelAdd');
     },
 
     placeholder() {
+      if (this.selectPlaceholder) {
+        return this.selectPlaceholder;
+      }
+
       return this.project ? this.t('projectMembers.projectPermissions.searchForMember') : this.t('cluster.memberRoles.addClusterMember.placeholder');
     }
   },

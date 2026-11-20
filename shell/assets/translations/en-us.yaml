@@ -6291,6 +6291,15 @@ prefs:
     label: Login Landing Page
     vue: Cluster Explorer
     ember: Cluster Manager
+  userTypes:
+    label: User Types
+    description: Your user types, most important at the top. Where only one user type can apply, the one at the top is used. Untick a user type to stop it applying to you.
+    empty: You have no user types
+    reorder: Drag to reorder
+    moveKeys: '{modifier}+Up Arrow or {modifier}+Down Arrow moves it'
+    moved: '{label} moved to position {position} of {total}'
+    reset: Reset to Default
+    resetDone: User types reset to the default order, all turned on
   displaySettings:
     title: Display Settings
     detail: Change the way information is displayed in the UI.
@@ -7856,6 +7865,7 @@ tableHeaders:
   project: Project
   protocol: Protocol
   provider: Provider
+  priority: Priority
   priorityLevel: Priority Level
   publicPorts: Public Ports
   queues: Queues
@@ -7882,6 +7892,7 @@ tableHeaders:
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource
+  resourcePermissions: Resource Permissions
   resources: Resources
   resourcesReady: Resources Ready
   restarts: Restarts
@@ -7985,6 +7996,13 @@ user:
       description: Roles granted to this user for individual projects
       tableHeaders:
         project: Project
+    userTypes:
+      label: User Types
+      description: User Types that are manually assigned to this user, directly or via one of their groups. This does not include User Types associated with this user via Resource Permissions
+      empty: This user has no User Types assigned
+      tableHeaders:
+        userType: User Type
+        priority: Priority
     generic:
       direct: Direct
       tableHeaders:
@@ -8980,6 +8998,11 @@ typeLabel:
       one { OIDC App }
       other { OIDC Apps }
     }
+  customization.ui.rancher.usertype: |-
+    {count, plural,
+      one { User Type }
+      other { User Types }
+    }
   management.cattle.io.token: |-
     {count, plural,
       one { API Key }
@@ -9627,6 +9650,35 @@ oidcclient:
     detailLabel: Token Expiration (seconds)
     label: Token Expiration
     placeholder:  Duration (in seconds) the token containing user authentication information is valid
+
+userType:
+  displayName:
+    label: Display Name
+    placeholder: e.g. App Developer
+  description:
+    placeholder: Who this user type is for
+  priority:
+    label: Priority
+    tooltip: When only one user type can apply, the one with the highest priority is used. Ties are broken by display name
+  tags:
+    label: Tags
+    addLabel: Add Tag
+  resourcePermissions:
+    label: Resource Permissions
+    description: A user gains this User Type if they have the rights in any one of these rules
+  assignments:
+    label: Users & Groups
+    description: A user gains this User Type if they, or a group they're in, are listed here
+    add:
+      label: Add User or Group
+      placeholder: Search for a user or group
+    orphaned:
+      title: User Type left behind
+      message: 'The user type "{name}" was created, but its users and groups could not be assigned and the user type could not be removed automatically. Open the user types list to edit or delete it.'
+  detail:
+    assignmentsNote: Users and groups that are manually assigned to this User Type. This does not include users or groups that are associated with this User Type via Resource Permissions
+    noAssignments: No users or groups are assigned this user type
+    noRules: This user type has no resource permissions
 
 action:
   ariaLabel:

@@ -1206,6 +1206,7 @@ export const actions = {
     });
 
     sideNavService.reset();
+    this.$shell.userTypes.reset();
 
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });

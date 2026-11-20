@@ -1,5 +1,6 @@
 import User from '@shell/models/management.cattle.io.user';
-import { MANAGEMENT } from '@shell/config/types';
+import { USER_TYPE_LABEL } from '@shell/models/customization.ui.rancher.usertype';
+import { CUSTOMIZATION, MANAGEMENT } from '@shell/config/types';
 
 describe('class User', () => {
   const labels: Record<string, string> = {
@@ -91,6 +92,78 @@ describe('class User', () => {
       const find = jest.fn().mockRejectedValue(new Error('not found'));
 
       expect(await createWithStore({ find }).fetchGroupPrincipals()).toStrictEqual({});
+    });
+  });
+
+  describe('fetchAssignedUserTypes', () => {
+    const OPS_GROUP = 'github_team://1';
+    const OTHER_GROUP = 'github_team://2';
+    const MY_PRINCIPAL = 'github_user://10';
+
+    const userType = (name: string) => ({ metadata: { name } });
+    const binding = (userType: string, principal: { userPrincipalName?: string, groupPrincipalName?: string }) => ({ metadata: { labels: { [USER_TYPE_LABEL]: userType } }, ...principal });
+
+    const createWithBindings = (bindings: object[], userTypes = [userType('dev'), userType('ops'), userType('other')]) => {
+      const dispatch = jest.fn((action: string) => Promise.resolve(action === 'findLabelSelector' ? { data: bindings } : userTypes));
+      const user = new (User as unknown as new (data: object, ctx: object) => User)({ id: 'u-alice', principalIds: ['local://u-alice', MY_PRINCIPAL] }, {
+        rootGetters, getters: {}, dispatch
+      });
+
+      return { user, dispatch };
+    };
+
+    const assigned = (result: { userType: { metadata: { name: string } }, direct: boolean, groups: string[] }[]) => result.map(({ userType, direct, groups }) => ({
+      name: userType.metadata.name, direct, groups
+    }));
+
+    it('should find a user type bound to one of the user\'s principals as direct', async() => {
+      const { user } = createWithBindings([binding('dev', { userPrincipalName: MY_PRINCIPAL })]);
+
+      expect(assigned(await user.fetchAssignedUserTypes({}))).toStrictEqual([{
+        name: 'dev', direct: true, groups: []
+      }]);
+    });
+
+    it('should find a user type bound to one of the user\'s groups, by the group\'s name', async() => {
+      const { user } = createWithBindings([binding('ops', { groupPrincipalName: OPS_GROUP })]);
+
+      expect(assigned(await user.fetchAssignedUserTypes({ [OPS_GROUP]: 'ops-team' }))).toStrictEqual([{
+        name: 'ops', direct: false, groups: ['ops-team']
+      }]);
+    });
+
+    it('should list a user type bound both ways once, with every way', async() => {
+      const { user } = createWithBindings([
+        binding('dev', { userPrincipalName: MY_PRINCIPAL }),
+        binding('dev', { groupPrincipalName: OPS_GROUP }),
+      ]);
+
+      expect(assigned(await user.fetchAssignedUserTypes({ [OPS_GROUP]: 'ops-team' }))).toStrictEqual([{
+        name: 'dev', direct: true, groups: ['ops-team']
+      }]);
+    });
+
+    it('should ignore bindings to another user\'s principal or another group, and bindings for an unknown user type', async() => {
+      const { user } = createWithBindings([
+        binding('dev', { userPrincipalName: 'github_user://99' }),
+        binding('ops', { groupPrincipalName: OTHER_GROUP }),
+        binding('gone', { userPrincipalName: MY_PRINCIPAL }),
+      ]);
+
+      expect(await user.fetchAssignedUserTypes({ [OPS_GROUP]: 'ops-team' })).toStrictEqual([]);
+    });
+
+    it('should ask for the user type bindings by label, without keeping them in the store', async() => {
+      const { user, dispatch } = createWithBindings([]);
+
+      await user.fetchAssignedUserTypes({});
+
+      expect(dispatch).toHaveBeenCalledWith('findLabelSelector', {
+        type:     MANAGEMENT.GLOBAL_ROLE_BINDING,
+        matching: { labelSelector: { matchExpressions: [{ key: USER_TYPE_LABEL, operator: 'Exists' }] } },
+        opt:      { transient: true },
+      });
+      expect(dispatch).toHaveBeenCalledWith('findAll', { type: CUSTOMIZATION.USER_TYPE });
     });
   });
 });

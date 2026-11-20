@@ -4,11 +4,13 @@ import { ModalApi } from '@shell/apis/intf/shell-api/modal';
 import { SlideInApi } from '@shell/apis/intf/shell-api/slide-in';
 import { SystemApi } from '@shell/apis/intf/shell-api/system';
 import { ProxyApi } from '@shell/apis/intf/shell-api/proxy';
+import { UserTypesApi } from '@shell/apis/intf/shell-api/user-types';
 
 export * from '@shell/types/notifications';
 export * from '@shell/apis/intf/shell-api/modal';
 export * from '@shell/apis/intf/shell-api/slide-in';
 export * from '@shell/apis/intf/shell-api/system';
+export * from '@shell/apis/intf/shell-api/user-types';
 
 /**
  * @internal
@@ -39,4 +41,10 @@ export interface ShellApi {
    * Provides access to the proxy API which can be used to make http requests via Rancher
    */
   get proxy(): ProxyApi;
+
+  /**
+   * Provides access to the User Types API, responsible for the signed in user's user types: which they have, in what order, and which they've
+   * turned off
+   */
+  get userTypes(): UserTypesApi;
 }

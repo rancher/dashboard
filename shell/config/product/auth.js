@@ -1,5 +1,5 @@
 import { DSL } from '@shell/store/type-map';
-import { MANAGEMENT, NORMAN } from '@shell/config/types';
+import { CUSTOMIZATION, MANAGEMENT, NORMAN } from '@shell/config/types';
 import { uniq } from '@shell/utils/array';
 import {
   GROUP_NAME, GROUP_ROLE_NAME,
@@ -154,6 +154,15 @@ export function init(store) {
     }
   });
 
+  configureType(CUSTOMIZATION.USER_TYPE, {
+    isCreatable: true,
+    isEditable:  true,
+    isRemovable: true,
+    showAge:     true,
+    showState:   false,
+    canYaml:     true,
+  });
+
   configureType(NORMAN.SPOOFED.GROUP_PRINCIPAL, {
     isCreatable:      false,
     showAge:          false,
@@ -166,6 +175,7 @@ export function init(store) {
   mapType(NORMAN.SPOOFED.GROUP_PRINCIPAL, store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2));
   weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
   weightType(MANAGEMENT.OIDC_CLIENT, 90, true);
+  weightType(CUSTOMIZATION.USER_TYPE, 80, true);
 
   virtualType({
     labelKey:   'auth.roleTemplate',
@@ -208,7 +218,8 @@ export function init(store) {
     USERS_VIRTUAL_TYPE,
     NORMAN.SPOOFED.GROUP_PRINCIPAL,
     ROLES_VIRTUAL_TYPE,
-    MANAGEMENT.OIDC_CLIENT
+    MANAGEMENT.OIDC_CLIENT,
+    CUSTOMIZATION.USER_TYPE
   ]);
 
   headers(NORMAN.SPOOFED.GROUP_PRINCIPAL, [
@@ -241,6 +252,27 @@ export function init(store) {
     SIMPLE_NAME,
     RBAC_BUILTIN,
     RBAC_DEFAULT,
+    AGE
+  ]);
+
+  headers(CUSTOMIZATION.USER_TYPE, [
+    DISPLAY_NAME,
+    SIMPLE_NAME,
+    {
+      name:     'priority',
+      labelKey: 'tableHeaders.priority',
+      value:    'spec.priority',
+      sort:     ['spec.priority'],
+      width:    100,
+    },
+    {
+      name:      'resourcePermissions',
+      labelKey:  'tableHeaders.resourcePermissions',
+      value:     'spec.rules',
+      formatter: 'RbacRules',
+      sort:      false,
+      search:    false,
+    },
     AGE
   ]);
 }

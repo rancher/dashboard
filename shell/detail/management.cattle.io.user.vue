@@ -3,8 +3,9 @@ import CreateEditView from '@shell/mixins/create-edit-view';
 import Tab from '@shell/components/Tabbed/Tab';
 import ResourceTabs from '@shell/components/form/ResourceTabs';
 import SortableTable from '@shell/components/SortableTable';
-import { MANAGEMENT } from '@shell/config/types';
+import { CUSTOMIZATION, MANAGEMENT } from '@shell/config/types';
 import Loading from '@shell/components/Loading';
+import Banner from '@components/Banner/Banner.vue';
 import { NAME } from '@shell/config/table-headers';
 
 export default {
@@ -14,7 +15,8 @@ export default {
     Tab,
     ResourceTabs,
     SortableTable,
-    Loading
+    Loading,
+    Banner,
   },
   mixins: [
     CreateEditView
@@ -27,6 +29,14 @@ export default {
 
     if (canSeeGlobalRoles) {
       this.globalBindings = await this.fetchGlobalRoleBindings(this.value.id);
+    }
+
+    // Finding a user's user types needs their user type bindings, the user types and the user's groups
+    const canSeeUserTypes = [MANAGEMENT.GLOBAL_ROLE_BINDING, CUSTOMIZATION.USER_TYPE, MANAGEMENT.USER_ATTRIBUTE]
+      .every((type) => !!this.$store.getters[`management/canList`](type));
+
+    if (canSeeUserTypes) {
+      this.userTypes = await this.value.fetchAssignedUserTypes(this.groupPrincipals);
     }
 
     this.canSeeRoleTemplates = !!this.$store.getters[`management/canList`](MANAGEMENT.ROLE_TEMPLATE);
@@ -115,6 +125,24 @@ export default {
         ]
       },
       grantedViaColumn,
+      userTypeHeaders: [
+        {
+          name:      'userType',
+          labelKey:  'user.detail.userTypes.tableHeaders.userType',
+          value:     'displayName',
+          sort:      'displayName',
+          formatter: 'LinkDetail',
+        },
+        {
+          name:     'priority',
+          labelKey: 'user.detail.userTypes.tableHeaders.priority',
+          value:    'priorityDisplay',
+          sort:     'priority:desc',
+          width:    '20%',
+        },
+      ],
+      // Null when the viewer can't see what's needed to find them
+      userTypes:           null,
       globalBindings:      null,
       canSeeRoleTemplates: false,
       isAdmin:             false,
@@ -145,6 +173,30 @@ export default {
       };
     },
 
+    userTypeRows() {
+      const direct = this.t('user.detail.generic.direct');
+
+      return (this.userTypes || []).map(({ userType, direct: isDirect, groups }) => ({
+        id:              userType.id,
+        displayName:     userType.spec?.displayName || userType.metadata.name,
+        priority:        userType.spec?.priority || 0,
+        // As the user type's own page shows it
+        priorityDisplay: userType.spec?.priority || '—',
+        detailLocation:  userType.detailLocation,
+        grantedVia:      [...(isDirect ? [direct] : []), ...groups].join(', '),
+      }));
+    },
+
+    userTypeTableHeaders() {
+      if (!Object.keys(this.groupPrincipals).length) {
+        return this.userTypeHeaders;
+      }
+
+      return [...this.userTypeHeaders, {
+        ...this.grantedViaColumn, value: 'grantedVia', sort: 'grantedVia'
+      }];
+    },
+
     clusterBindings() {
       return this.canSeeRoleTemplates ? this.fetchClusterRoles(this.value.id) : null;
     },
@@ -155,7 +207,10 @@ export default {
   },
   methods: {
     isBoundToUser(binding, userId) {
-      return binding.userName === userId || !!this.groupPrincipals[binding.groupPrincipalName];
+      // A binding made with one of the user's principals (e.g. by a user type) has no userName
+      return binding.userName === userId ||
+        (this.value.principalIds || []).includes(binding.userPrincipalName) ||
+        !!this.groupPrincipals[binding.groupPrincipalName];
     },
 
     grantedVia(binding) {
@@ -354,6 +409,38 @@ export default {
           </template>
         </SortableTable>
       </Tab>
+      <Tab
+        v-if="userTypes"
+        label-key="user.detail.userTypes.label"
+        name="userTypes"
+        :weight="0"
+      >
+        <div class="tab-content">
+          <Banner
+            color="info"
+            class="tab-note"
+            label-key="user.detail.userTypes.description"
+            data-testid="user-detail-user-types-note"
+          />
+          <SortableTable
+            v-if="userTypeRows.length"
+            :rows="userTypeRows"
+            :headers="userTypeTableHeaders"
+            key-field="id"
+            :table-actions="false"
+            :row-actions="false"
+            :search="false"
+            data-testid="user-detail-user-types"
+          />
+          <p
+            v-else
+            class="text-muted"
+            data-testid="user-detail-user-types-empty"
+          >
+            {{ t('user.detail.userTypes.empty') }}
+          </p>
+        </div>
+      </Tab>
     </ResourceTabs>
   </div>
 </template>
@@ -362,6 +449,10 @@ export default {
 .subtext {
   margin-bottom: 10px;
   font-style: italic;
+}
+// Banner's own margin (15px above and below) would add to the tab's padding above it. Two classes, to outrank Banner's scoped rule
+.tab-content .tab-note {
+  margin: 0 0 20px;
 }
 .admin {
   display: flex;
