@@ -24,6 +24,7 @@ import { ref, watch } from 'vue';
 import { useClickOutside } from '@shell/composables/useClickOutside';
 import { focusedFromKeyboard, useDropdownContext } from '@components/RcDropdown/useDropdownContext';
 import { useSubmenuPlacement } from '@components/RcDropdown/useSubmenuPlacement';
+import { useCloseWhenHidden } from '@components/RcDropdown/useCloseWhenHidden';
 
 import type { Placement } from 'floating-vue';
 
@@ -89,6 +90,11 @@ provideDropdownContext();
 
 const popperContainer = ref<HTMLElement | null>(null);
 const dropdownTarget = ref<HTMLElement | null>(null);
+const dropdown = ref<{ $el?: Element } | null>(null);
+
+// The trigger can be scrolled out of view while the menu is open; close the menu then instead of
+// leaving it over whatever covers the trigger, like the page header
+useCloseWhenHidden(isMenuOpen, () => props.referenceNode?.() || dropdown.value?.$el, () => showMenu(false));
 
 watch(() => props.open, (open) => {
   if (open === isMenuOpen.value) {
@@ -178,6 +184,7 @@ const applyShow = () => {
 
 <template>
   <v-dropdown
+    ref="dropdown"
     no-auto-focus
     :triggers="[]"
     :shown="isMenuOpen"
