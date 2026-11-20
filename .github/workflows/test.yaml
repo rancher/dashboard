@@ -376,6 +376,7 @@ jobs:
         env:
           TEST_MODE: integration
           TEST_NO_VIDEOS: true
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           TEST_RECORDINGS_DIR: ${{ matrix.recordings || 'cypress/recordings' }}
           TEST_DIST_DIR: ${{ env.E2E_BUILD_DIST_DIR }}
           TEST_SKIP: setup

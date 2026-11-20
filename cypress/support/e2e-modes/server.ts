@@ -44,6 +44,8 @@ interface RecordedSocket {
 const SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS'];
 const PREFERENCE_SAVES = [/^\/v1\/userpreferences/, /^\/v3\/preferences/];
 const EPOCH_MS = /(?<!\d)1[5-9]\d{11,}(?!\d)/g;
+const DYNAMIC_TOKEN = /(?<!\d)1[5-9]\d{11,}(?!\d)|\bc-m-[a-z0-9]{8}\b/g;
+const HELM_OPERATION_PATH = /^(\/v1\/catalog\.cattle\.io\.operations\/[^/]+\/)(helm-operation-[a-z0-9]+)/;
 const HOP_BY_HOP = ['connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade'];
 const NOT_FORWARDED = [...HOP_BY_HOP, 'host', 'accept-encoding', 'if-none-match', 'if-modified-since'];
 const NOT_REPLAYED = [...HOP_BY_HOP, 'content-length', 'content-encoding', 'date'];
@@ -122,11 +124,11 @@ const withoutDisplayKeys = (text: string): string => {
     return text;
   }
 };
-const { scrubRequestBody } = require('./mocks');
-const writeBody = (text: string) => withoutDisplayKeys(scrubRequestBody(text)).replace(EPOCH_MS, '{ts}');
+const { PLACEHOLDER, PLACEHOLDER_B64, scrubRequestBody } = require('./mocks');
+const writeBody = (text: string) => withoutDisplayKeys(scrubRequestBody(text)).replace(DYNAMIC_TOKEN, '{ts}');
 const resourceType = (pathname: string) => /^(.*?\/v[13]\/[^/]+)/.exec(pathname)?.[1];
 const startOf = (entry: HarEntry) => Date.parse(entry.startedDateTime);
-const timestamps = (text: string) => Array.from(text.matchAll(EPOCH_MS)).map((m) => m[0]);
+const dynamicTokens = (text: string) => Array.from(text.matchAll(DYNAMIC_TOKEN)).map((m) => m[0]);
 const toBuffer = (data: RawData): Buffer => (Array.isArray(data) ? Buffer.concat(data) : Buffer.from(data as Buffer));
 const CLOSE_OPCODE = 8;
 const closeCode = (code: number) => ((!code || code === 1005 || code === 1006) ? 1000 : code);
@@ -242,6 +244,7 @@ class Spec {
   readonly byPath = new Map<string, HarEntry[]>();
   readonly others = new Map<string, HarEntry[]>();
   readonly aliases = new Map<string, string>();
+  readonly writtenSecrets = new Map<string, string>();
   readonly nextTest = new Map<string, string>();
   readonly servedEarly = new Map<string, Map<string, number>>();
   readonly priorWrite = new Map<HarEntry, HarEntry | undefined>();
@@ -925,6 +928,18 @@ export class RecordReplayServer {
     const method = req.method || 'GET';
     const scope = this.scope;
     const pathAndQuery = `${ url.pathname }${ url.search }`;
+
+    // Match real Rancher's auth check for cy.session() validate pings so an empty browser
+    // session doesn't skip login() and leave the CSRF cookie unset.
+    if (method === 'GET' && url.pathname === '/v1/management.cattle.io.users' && url.search === '?pagesize=1' && !`${ req.headers.cookie || '' }`.includes('R_SESS=')) {
+      res.writeHead(401, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({
+        type: 'error', status: 401, code: 'Unauthorized', message: 'must authenticate'
+      }));
+
+      return;
+    }
+
     const key = keyFor(method, pathAndQuery);
     const written = SAFE_METHODS.includes(method) ? undefined : writeBody(body.toString('utf8'));
     const entry = this.lookup(key, scope, written) || (method === 'GET' ? this.similar(pathAndQuery, scope) : undefined);
@@ -935,6 +950,9 @@ export class RecordReplayServer {
 
     if (entry && type && written !== undefined) {
       scope.lastWrites.set(type, entry);
+    }
+    if (written !== undefined) {
+      this.learnWrittenSecrets(url.pathname, body);
     }
 
     if (!entry) {
@@ -970,6 +988,15 @@ export class RecordReplayServer {
         }
         headers[lower] = existing === undefined ? rewritten : ([] as string[]).concat(existing, rewritten);
       });
+
+      if (method === 'POST' && url.pathname === '/v1-public/login' && entry.response.status >= 200 && entry.response.status < 300) {
+        const cookies = ([] as string[]).concat(headers['set-cookie'] || []);
+
+        if (!cookies.some((c) => c.startsWith('CSRF='))) {
+          cookies.push(`CSRF=${ PLACEHOLDER }; Path=/; Secure; SameSite=Lax`);
+          headers['set-cookie'] = cookies;
+        }
+      }
 
       res.writeHead(entry.response.status, entry.response.statusText, headers);
       res.end(this.responseBody(entry));
@@ -1009,6 +1036,24 @@ export class RecordReplayServer {
     const candidates = this.spec?.byPath.get(pathKey('GET', pathAndQuery));
 
     if (!candidates?.length) {
+      const opMatch = HELM_OPERATION_PATH.exec(pathAndQuery.split('?')[0]);
+
+      if (opMatch) {
+        const [, prefix, liveOp] = opMatch;
+        const fromSpec = Array.from(this.spec?.all.entries() || []).find(([k]) => k.startsWith(`GET ${ prefix }helm-operation-`))?.[1];
+        const fallback = fromSpec?.[fromSpec.length - 1] || Array.from(this.global().entries()).find(([k]) => k.startsWith(`GET ${ prefix }helm-operation-`))?.[1];
+
+        if (fallback) {
+          const recMatch = HELM_OPERATION_PATH.exec(new URL(fallback.request.url).pathname);
+
+          if (recMatch && recMatch[2] !== liveOp) {
+            this.spec?.aliases.set(recMatch[2], liveOp);
+          }
+
+          return fallback;
+        }
+      }
+
       return undefined;
     }
 
@@ -1111,6 +1156,71 @@ export class RecordReplayServer {
     return this.globalIndex;
   }
 
+  private learnWrittenSecrets(pathname: string, body: Buffer) {
+    const written = this.spec?.writtenSecrets;
+
+    if (!written || !body.length || body.length > MAX_TEXT || !/\/v[13]\/secrets\b/.test(pathname)) {
+      return;
+    }
+
+    try {
+      const json = JSON.parse(body.toString('utf8'));
+
+      if (json?.data && typeof json.data === 'object') {
+        Object.entries(json.data).forEach(([k, v]) => {
+          if (typeof v === 'string' && v.length) {
+            written.set(k, v);
+          }
+        });
+      }
+      if (json?.stringData && typeof json.stringData === 'object') {
+        Object.entries(json.stringData).forEach(([k, v]) => {
+          if (typeof v === 'string' && v.length) {
+            written.set(k, Buffer.from(v, 'utf8').toString('base64'));
+          }
+        });
+      }
+    } catch {}
+  }
+
+  private restoreWrittenSecrets(text: string): string {
+    const written = this.spec?.writtenSecrets;
+
+    if (!written?.size || (!text.includes(PLACEHOLDER_B64) && !text.includes(PLACEHOLDER))) {
+      return text;
+    }
+
+    try {
+      const json = JSON.parse(text);
+      let changed = false;
+      const walk = (node: any) => {
+        if (!node || typeof node !== 'object') {
+          return;
+        }
+        if (Array.isArray(node)) {
+          node.forEach(walk);
+
+          return;
+        }
+        if (node.data && typeof node.data === 'object' && !Array.isArray(node.data)) {
+          Object.entries(node.data).forEach(([k, v]) => {
+            if (v === PLACEHOLDER_B64 && written.has(k)) {
+              node.data[k] = written.get(k);
+              changed = true;
+            }
+          });
+        }
+        Object.values(node).forEach(walk);
+      };
+
+      walk(json);
+
+      return changed ? JSON.stringify(json) : text;
+    } catch {
+      return text;
+    }
+  }
+
   private learnAliases(pathAndQuery: string, body: Buffer, entry: HarEntry) {
     const aliases = this.spec?.aliases;
 
@@ -1118,20 +1228,20 @@ export class RecordReplayServer {
       return;
     }
 
-    const live = timestamps(`${ decode(pathAndQuery) }\n${ body.length <= MAX_TEXT ? body.toString('utf8') : '' }`);
+    const live = dynamicTokens(`${ decode(pathAndQuery) }\n${ body.length <= MAX_TEXT ? body.toString('utf8') : '' }`);
 
     if (!live.length) {
       return;
     }
 
-    const recorded = timestamps(`${ decode(pathOf(entry.request.url)) }\n${ entry.request.postData?.text || '' }`);
+    const recorded = dynamicTokens(`${ decode(pathOf(entry.request.url)) }\n${ entry.request.postData?.text || '' }`);
 
     if (recorded.length !== live.length) {
       return;
     }
 
     recorded.forEach((r, i) => {
-      if (r !== live[i] && !aliases.has(r)) {
+      if (r !== live[i]) {
         aliases.set(r, live[i]);
       }
     });
@@ -1148,7 +1258,12 @@ export class RecordReplayServer {
     const aliases = this.spec?.aliases;
 
     if (aliases?.size) {
-      out = out.replace(EPOCH_MS, (m) => aliases.get(m) || m);
+      out = out.replace(DYNAMIC_TOKEN, (m) => aliases.get(m) || m);
+      aliases.forEach((live, recorded) => {
+        if (recorded.startsWith('helm-operation-') && out.includes(recorded)) {
+          out = out.split(recorded).join(live);
+        }
+      });
     }
 
     return out;
@@ -1164,7 +1279,8 @@ export class RecordReplayServer {
 
     const revision = entry.response.content._revision;
     const text = body.toString('utf8');
-    const rewritten = this.rewrite(revision ? text.replace(`"revision":"${ REVISION }"`, `"revision":"${ revision }"`) : text, entry);
+    const withRevision = revision ? text.replace(`"revision":"${ REVISION }"`, `"revision":"${ revision }"`) : text;
+    const rewritten = this.restoreWrittenSecrets(this.rewrite(withRevision, entry));
 
     return rewritten === text ? body : Buffer.from(rewritten);
   }
