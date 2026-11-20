@@ -245,6 +245,7 @@ class StevePaginationUtils extends NamespaceProjectFilters {
     [POD]: [
       { field: 'spec.containers.image' },
       { field: 'spec.nodeName' },
+      { field: 'status.podIP' },
       { field: POD_RESTART_FIELD },
       { field: POD_LAST_RESTART_FIELD },
     ],
@@ -511,6 +512,16 @@ class StevePaginationUtils extends NamespaceProjectFilters {
           // Use the same mechanism as local sorting to flip logic for asc/des
           const { field, reverse } = parseField(s.field);
           const asc = reverse ? !s.asc : s.asc;
+          // Steve expects desc IP sorts as ip(-field), not -ip(field)
+          const ipMatch = field.match(/^ip\((.+)\)$/);
+
+          if (ipMatch) {
+            const inner = ipMatch[1].replace(/^-/, '');
+
+            this.validateField(validateFields, schema, inner);
+
+            return asc ? `ip(${ inner })` : `ip(-${ inner })`;
+          }
 
           this.validateField(validateFields, schema, field);
 
