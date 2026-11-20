@@ -157,6 +157,23 @@ describe('aks provisioning form', () => {
   });
 
   it.each([
+    ['there is no route', undefined],
+    ['the route has no query', {}],
+    ['the route has no mode', { query: {} }],
+  ])('should not require a cluster to register when %s', async(_, route) => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(CruAks, {
+      props:  { value: {}, mode: _CREATE },
+      global: { ...setup.global, mocks: { ...setup.global.mocks, $route: route } }
+    });
+
+    await setCredential(wrapper, { clusterName: '', resourceLocation: 'eastus' });
+    await wrapper.setData({ normanCluster: { name: 'my-cluster' } });
+
+    expect(wrapper.vm.fvFormIsValid).toBe(true);
+  });
+
+  it.each([
     ['1.26', '1.26.3', '1.26.3'],
     ['1.26.2', '1.26.3', '1.26.2'],
     ['1.28.2', '1.26.3', '1.28.2'],
