@@ -2081,6 +2081,11 @@ cluster:
       secureBoot: Secure Boot
       enableEfi: Booting in EFI mode
       installGuestAgent: Install guest agent
+      os:
+        label: Operating System
+        linux: Linux
+        windows: Windows
+        windowsInfo: Windows machines join the cluster as workers only. The image must be a sysprepped Windows Server image with Cloudbase-Init, the QEMU guest agent and the Containers feature installed. Set the pool's hostname length limit to 15 (NetBIOS) and use the Calico CNI. Harvester CSI volumes cannot be mounted on Windows nodes.
       tokenExpirationWarning: 'Warning: [[Harvester]] Cloud Credentials use an underlying authentication token that may have an expiry time - please see the following <a href="https://harvesterhci.io/kb/renew_harvester_cloud_credentials" target="_blank" rel="noopener nofollow">knowledge base article</a> for possible implications on management operations.'
   description:
     label: Cluster Description

@@ -48,6 +48,9 @@ const STORAGE_NETWORK = 'storage-network.settings.harvesterhci.io';
 const HARVESTER_CPU_MODEL = 'harvester-system/node-cpu-model-configuration';
 
 // init qemu guest agent
+export const OS_LINUX = 'linux';
+export const OS_WINDOWS = 'windows';
+
 export const QGA_JSON = {
   package_update: true,
   packages:       ['qemu-guest-agent'],
@@ -291,6 +294,7 @@ export default {
       this.getAvailableVGpuDevices();
       this.fetchHasHostDeviceInfo().then((supported) => supported && this.getAvailablePciDevices());
       this.fetchHasStorageOptions();
+      this.fetchHasMachineOS();
 
       this.update();
     } catch (e) {
@@ -398,11 +402,28 @@ export default {
       hasHostDeviceInfo:  false,
       cpuModelConfigMap:  null,
       hasStorageOptions:  false,
+      hasMachineOS:       false,
     };
   },
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
+
+    isWindows() {
+      return this.value.os === OS_WINDOWS;
+    },
+
+    osOptions() {
+      return [
+        { label: this.t('cluster.credential.harvester.os.linux'), value: OS_LINUX },
+        { label: this.t('cluster.credential.harvester.os.windows'), value: OS_WINDOWS },
+      ];
+    },
+
+    osDisabled() {
+      // The OS of an existing pool cannot change: Rancher fixes the pool's machineOS at creation.
+      return this.disabled || !!(this.isEdit && this.value.id);
+    },
 
     cpuModelOptions() {
       const defaultOption = { label: this.t('generic.default'), value: '' };
@@ -657,6 +678,14 @@ export default {
     networkData(neu) {
       this.$refs.networkYamlEditor.refresh();
       this.value.networkData = base64Encode(neu);
+    },
+
+    isWindows(neu) {
+      // The guest agent install stanza (packages + systemctl) is cloud-init only; Windows images ship the agent.
+      if (neu && this.installAgent) {
+        this.installAgent = false;
+        this.updateAgent(false);
+      }
     },
 
     userData(neu) {
@@ -1196,6 +1225,22 @@ export default {
       }
     },
 
+    /**
+     * The guest OS field only exists in the HarvesterConfig schema when Rancher ships a node driver that supports
+     * Windows machines (the `harvester-os` flag). Choosing Windows also marks the machine pool as a Windows pool.
+     */
+    async fetchHasMachineOS() {
+      try {
+        const schema = this.$store.getters['management/schemaFor'](HCI.HARVESTER_CONFIG);
+
+        await schema?.fetchResourceFields?.();
+
+        this.hasMachineOS = !!this.$store.getters['management/pathExistsInSchema'](HCI.HARVESTER_CONFIG, 'os');
+      } catch (e) {
+        this.hasMachineOS = false;
+      }
+    },
+
     removeVolume(vol) {
       this.vol = vol;
       removeObject(this.disks, vol);
@@ -1447,7 +1492,8 @@ export default {
         userDataYaml = `#cloud-config\n${ userDataYaml }`;
       }
 
-      this.$refs.userDataYamlEditor.updateValue(userDataYaml);
+      // The editor is only rendered once the advanced section is expanded; choosing Windows can call this before.
+      this.$refs.userDataYamlEditor?.updateValue(userDataYaml);
       this['userData'] = userDataYaml;
     },
 
@@ -1536,6 +1582,28 @@ export default {
           />
         </div>
       </div>
+
+      <template v-if="hasMachineOS">
+        <div class="row mt-20">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model:value="value.os"
+              data-testid="harvester-machine-os"
+              :mode="mode"
+              :options="osOptions"
+              :disabled="osDisabled"
+              :placeholder="t('cluster.credential.harvester.os.linux')"
+              label-key="cluster.credential.harvester.os.label"
+            />
+          </div>
+        </div>
+        <Banner
+          v-if="isWindows"
+          color="info"
+          class="mt-10"
+          :label="t('cluster.credential.harvester.os.windowsInfo')"
+        />
+      </template>
 
       <div class="row mt-20">
         <div class="col span-6">
@@ -1888,6 +1956,7 @@ export default {
           />
 
           <Checkbox
+            v-if="!isWindows"
             v-model:value="installAgent"
             class="check"
             type="checkbox mb-20"
