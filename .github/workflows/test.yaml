@@ -320,8 +320,8 @@ jobs:
         if: ${{ hashFiles('e2e-mocks/*.json.br') != '' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MOCKS_TAG: ${{ github.event_name == 'pull_request' && format('e2e-mocks-pr-{0}', github.event.pull_request.number) || format('e2e-mocks-{0}', github.ref_name) }}
-          MOCKS_REF: ${{ github.event_name == 'pull_request' && format('PR #{0} ({1})', github.event.pull_request.number, github.head_ref) || github.ref_name }}
+          MOCKS_TAG: "${{ github.event_name == 'pull_request' && format('e2e-mocks-pr-{0}', github.event.pull_request.number) || format('e2e-mocks-{0}', github.ref_name) }}"
+          MOCKS_REF: "${{ github.event_name == 'pull_request' && format('PR {0} ({1})', github.event.pull_request.number, github.head_ref) || github.ref_name }}"
         run: |
           if gh release view "$MOCKS_TAG" >/dev/null 2>&1; then
             gh release upload "$MOCKS_TAG" e2e-mocks/*.json.br --clobber
