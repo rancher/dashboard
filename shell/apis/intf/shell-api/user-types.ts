@@ -1,4 +1,31 @@
-import UserType from '@shell/models/customization.ui.rancher.usertype';
+import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
+import { PolicyRule } from '@shell/types/resources/rbac';
+
+/**
+ * What a user type holds (its `spec`)
+ */
+export interface UserTypeSpec {
+  displayName: string;
+  /**
+   * How important the user type is, when only one can apply: higher is more important
+   */
+  priority: number;
+  tags?: string[];
+  /**
+   * Resource permissions: a user with the rights in any one of these rules is associated with the user type
+   */
+  rules?: PolicyRule[];
+}
+
+/**
+ * A user type (`customization.ui.rancher.usertype`), as the User Types API returns it
+ */
+export interface UserTypeResource {
+  id: string;
+  type: string;
+  metadata: RancherKubeMetadata;
+  spec: UserTypeSpec;
+}
 
 /**
  * The user's own preference for one of their user types
@@ -57,12 +84,12 @@ export interface UserTypesApi {
    * User types assigned by an admin are fetched once, the first time they're asked for. Use `refreshCurrentUserTypes` to fetch them again.
    * User types associated via resource permissions are checked on every call
    */
-  currentUserTypes(options?: CurrentUserTypesOptions): Promise<UserType[]>;
+  currentUserTypes(options?: CurrentUserTypesOptions): Promise<UserTypeResource[]>;
 
   /**
    * As `currentUserTypes`, fetching the user types assigned by an admin again
    */
-  refreshCurrentUserTypes(options?: CurrentUserTypesOptions): Promise<UserType[]>;
+  refreshCurrentUserTypes(options?: CurrentUserTypesOptions): Promise<UserTypeResource[]>;
 
   /**
    * The signed in user's own preferences for their user types (priority, disabled), by user type name, stored as a user preference

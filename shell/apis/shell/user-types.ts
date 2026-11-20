@@ -1,7 +1,7 @@
 import { Store } from 'vuex';
-import { CurrentUserTypesOptions, UserTypesApi, UserTypePreferences } from '@shell/apis/intf/shell';
+import { CurrentUserTypesOptions, UserTypesApi, UserTypePreferences, UserTypeResource } from '@shell/apis/intf/shell';
 import { AUTHORIZATION, CUSTOMIZATION, SCHEMA } from '@shell/config/types';
-import UserType, { CUSTOMIZATION_API_GROUP } from '@shell/models/customization.ui.rancher.usertype';
+import { CUSTOMIZATION_API_GROUP } from '@shell/models/customization.ui.rancher.usertype';
 import SelfSubjectRulesReview from '@shell/models/authorization.k8s.io.selfsubjectrulesreview';
 import { PolicyRule } from '@shell/types/resources/rbac';
 import { Schema } from '@shell/plugins/steve/schema';
@@ -39,7 +39,7 @@ export class UserTypesApiImpl implements UserTypesApi {
     this.store = store;
   }
 
-  public async currentUserTypes({ includeDisabled = false }: CurrentUserTypesOptions = {}): Promise<UserType[]> {
+  public async currentUserTypes({ includeDisabled = false }: CurrentUserTypesOptions = {}): Promise<UserTypeResource[]> {
     const [userTypes, assignedNames] = await Promise.all([this.findUserTypes(), this.assignedUserTypeNames()]);
     const preferences = this.currentUserTypePreferences();
 
@@ -83,7 +83,7 @@ export class UserTypesApiImpl implements UserTypesApi {
     await this.setCurrentUserTypePreferences(preferences);
   }
 
-  public refreshCurrentUserTypes(options?: CurrentUserTypesOptions): Promise<UserType[]> {
+  public refreshCurrentUserTypes(options?: CurrentUserTypesOptions): Promise<UserTypeResource[]> {
     this.reset();
 
     return this.currentUserTypes(options);
@@ -99,7 +99,7 @@ export class UserTypesApiImpl implements UserTypesApi {
   /**
    * Most important first: the highest priority (the user's own, else the user type's), then by display name
    */
-  private compareImportance(a: UserType, b: UserType, preferences: UserTypePreferences): number {
+  private compareImportance(a: UserTypeResource, b: UserTypeResource, preferences: UserTypePreferences): number {
     const byPriority = this.effectivePriority(b, preferences) - this.effectivePriority(a, preferences);
 
     if (byPriority) {
@@ -112,7 +112,7 @@ export class UserTypesApiImpl implements UserTypesApi {
   /**
    * How important a user type is to the user: their own priority for it if they've set one, else the user type's (a user type without one is 0)
    */
-  private effectivePriority(userType: UserType, preferences: UserTypePreferences): number {
+  private effectivePriority(userType: UserTypeResource, preferences: UserTypePreferences): number {
     return preferences[userType.metadata.name]?.priority ?? userType.spec?.priority ?? 0;
   }
 
@@ -123,10 +123,10 @@ export class UserTypesApiImpl implements UserTypesApi {
    * same scale as the user types' own and a user type without one (e.g. a new one) still lands where its priority puts it. A priority that
    * would tie with or pass the one above becomes one less than it
    */
-  private preferencesForOrder(userTypes: UserType[], order: string[], preferences: UserTypePreferences): UserTypePreferences {
+  private preferencesForOrder(userTypes: UserTypeResource[], order: string[], preferences: UserTypePreferences): UserTypePreferences {
     const listed = order
       .map((name) => userTypes.find((userType) => userType.metadata.name === name))
-      .filter((userType): userType is UserType => !!userType);
+      .filter((userType): userType is UserTypeResource => !!userType);
     const values = listed.map((userType) => this.effectivePriority(userType, preferences)).sort((a, b) => b - a);
     const out = { ...preferences };
 
@@ -144,7 +144,7 @@ export class UserTypesApiImpl implements UserTypesApi {
   /**
    * Is the user type associated with the user via resource permissions: do they have the rights in any one of its rules
    */
-  private isAssociated(userType: UserType): boolean {
+  private isAssociated(userType: UserTypeResource): boolean {
     return (userType.spec?.rules || []).some((rule) => this.hasRule(rule));
   }
 
@@ -222,7 +222,7 @@ export class UserTypesApiImpl implements UserTypesApi {
     return methods.includes(verbMethod.method) || methods.includes(`blocked-${ verbMethod.method }`);
   }
 
-  private async findUserTypes(): Promise<UserType[]> {
+  private async findUserTypes(): Promise<UserTypeResource[]> {
     try {
       return await this.store.dispatch(`${ STORE.MANAGEMENT }/findAll`, { type: CUSTOMIZATION.USER_TYPE });
     } catch (e) {

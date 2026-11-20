@@ -9,7 +9,7 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useShell } from '@shell/apis';
-import type { UserTypePreferences } from '@shell/apis/intf/shell';
+import type { UserTypePreferences, UserTypeResource } from '@shell/apis/intf/shell';
 import { RcButton } from '@components/RcButton';
 import { RcIcon } from '@components/RcIcon';
 import DragGrip from '@shell/components/DragGrip.vue';
@@ -17,19 +17,18 @@ import { useDragReorder, useListSlots } from '@shell/composables/useDragReorder'
 import { useI18n } from '@shell/composables/useI18n';
 import { isMac } from '@shell/utils/platform';
 import { moveInOrder } from '@shell/utils/table-views/views';
-import UserType from '@shell/models/customization.ui.rancher.usertype';
 
 const { t } = useI18n(useStore());
 const userTypesApi = useShell().userTypes;
 
-/** Null until loaded. Disabled ones included. Shallow: each load replaces the list, and a deep ref would unwrap the models' class type */
-const userTypes = shallowRef<UserType[] | null>(null);
+/** Null until loaded. Disabled ones included. Shallow: each load replaces the list */
+const userTypes = shallowRef<UserTypeResource[] | null>(null);
 const preferences = ref<UserTypePreferences>({});
 const list = ref<HTMLElement | null>(null);
 
 const hasOwnPreferences = computed(() => !!Object.keys(preferences.value).length);
 
-const isEnabled = (userType: UserType) => !preferences.value[userType.metadata.name]?.disabled;
+const isEnabled = (userType: UserTypeResource) => !preferences.value[userType.metadata.name]?.disabled;
 
 /** Said by a screen reader: where a moved user type went, which the focus, left on the row, doesn't show */
 const announcement = ref('');
@@ -52,7 +51,7 @@ const showUserTypes = async() => {
   preferences.value = userTypesApi.currentUserTypePreferences();
 };
 
-const toggle = async(userType: UserType) => {
+const toggle = async(userType: UserTypeResource) => {
   await userTypesApi.setCurrentUserTypeEnabled(userType.metadata.name, !isEnabled(userType));
   await showUserTypes();
 };
@@ -79,7 +78,7 @@ const shownUserTypes = computed(() => {
     return all;
   }
 
-  return dragOrder.value.map((name) => all.find((userType) => userType.metadata.name === name)).filter((userType): userType is UserType => !!userType);
+  return dragOrder.value.map((name) => all.find((userType) => userType.metadata.name === name)).filter((userType): userType is UserTypeResource => !!userType);
 });
 
 /** Empty content hides the tooltip once a row is picked up */
@@ -96,7 +95,7 @@ const startDrag = (name: string, event: MouseEvent) => {
 };
 
 /** The keyboard's way to reorder: one place up or down */
-const move = async(userType: UserType, step: number) => {
+const move = async(userType: UserTypeResource, step: number) => {
   const from = names.value.indexOf(userType.metadata.name);
   const to = from + step;
 
