@@ -59,6 +59,14 @@ export class IngressCreateEditPo extends BaseDetailPagePo {
     new LabeledInputPo(item.find('#host .labeled-input').type(value));
   }
 
+  rulePaths(arrayListIndex: number) {
+    return this.rulesList().arrayListItem(arrayListIndex).find('.rule-path');
+  }
+
+  removeRulePath(arrayListIndex: number, pathIndex: number) {
+    this.rulePaths(arrayListIndex).eq(pathIndex).contains('button', 'Remove').click();
+  }
+
   setPathTypeByLabel(arrayListIndex: number, value: string) {
     const item = this.rulesList().arrayListItem(arrayListIndex);
     const select = new LabeledSelectPo(item.find('.col:nth-of-type(1) .unlabeled-select'));

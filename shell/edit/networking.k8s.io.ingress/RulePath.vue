@@ -109,8 +109,7 @@ export default {
     focus() {
       this.$refs.first.focus();
     },
-    remove(ev) {
-      ev.preventDefault();
+    remove() {
       this.$emit('remove');
     }
   }
@@ -183,6 +182,7 @@ export default {
       />
     </div>
     <button
+      type="button"
       class="btn btn-sm role-link col"
       @click="remove"
     >
