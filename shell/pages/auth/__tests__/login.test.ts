@@ -559,7 +559,7 @@ describe('page: login', () => {
 
       await runFetch(wrapper);
 
-      expect(wrapper.vm.selectedProvider.id).toBe('okta-corp');
+      expect((wrapper.vm.selectedProvider as any).id).toBe('okta-corp');
       expect((wrapper.vm.providers as any[])[wrapper.vm.selectedProviderIndex].id).toBe('okta-corp');
     });
 
