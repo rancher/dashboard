@@ -51,4 +51,4 @@ const sendNotification = () => shellApi.notification.send(NotificationLevel.Succ
 | [Modal API](./shell-api/interfaces/ModalApi) | Responsible for interacting with modals | <img src={require('/img/modal.png').default} alt="modal example" width="500" /> |
 | [Notification API](./shell-api/interfaces/NotificationApi) | Responsible for interacting with the Rancher UI Notification Center | <img src={require('/img/notification.png').default} alt="notification example" width="500" /> |
 | [System API](./shell-api/interfaces/SystemApi) | API for system related information | <img src={require('/img/system.png').default} alt="system example" width="500" /> |
-| [User Types API](./shell-api/interfaces/UserTypesApi) | Finds the user types of the signed in user, most important first | `const userTypes = await this.$shell.userTypes.currentUserTypes();` |
+| [User Types API](./shell-api/interfaces/UserTypesApi) | Responsible for the signed in user's user types: which they have, in what order, and which they've turned off | `const userTypes = await this.$shell.userTypes.currentUserTypes();` |

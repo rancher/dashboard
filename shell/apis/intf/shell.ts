@@ -43,7 +43,8 @@ export interface ShellApi {
   get proxy(): ProxyApi;
 
   /**
-   * Provides access to the User Types API which can be used to find the user types of the signed in user
+   * Provides access to the User Types API, responsible for the signed in user's user types: which they have, in what order, and which they've
+   * turned off
    */
   get userTypes(): UserTypesApi;
 }

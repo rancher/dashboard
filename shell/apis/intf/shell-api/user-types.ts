@@ -27,13 +27,17 @@ export interface CurrentUserTypesOptions {
 }
 
 /**
- * User Types API, which finds the user types of the signed in user
+ * User Types API, responsible for the signed in user's user types: which they have, in what order, and which they've turned off
  *
  * A user has a user type when either
- * - it's assigned to them by an admin, directly or via one of their groups (a binding to the user type's global role)
- * - it's associated with them via resource permissions (they have the rights in any one of the user type's rules, in the current cluster)
+ * - it's assigned to them by an admin, directly or via one of their groups (a binding to the user type's global role). Only that
+ *   explicit assignment counts: an admin's wildcard rules don't give them every user type
+ * - it's associated with them via resource permissions: they have the rights in any one of the user type's rules, checked against
+ *   the schemas of the cluster they're in, so the result can change from one cluster to the next
  *
- * and they haven't disabled it.
+ * and they haven't turned it off (see `setCurrentUserTypeEnabled`).
+ *
+ * The user must be able to list user types. When they can't, they have none.
  *
  * Usage example:
  * ```ts
@@ -47,10 +51,11 @@ export interface CurrentUserTypesOptions {
 export interface UserTypesApi {
   /**
    * The signed in user's user types, most important first: highest priority first, then by display name. A user type's priority is the user's
-   * own for it if they've set one (`currentUserTypePreferences`), else its `spec.priority` (a user type without one is `0`). User types the
-   * user has disabled are left out, unless `includeDisabled` is set
+   * own for it if they've set one (`currentUserTypePreferences`), else its `spec.priority`. User types the user has disabled are left out,
+   * unless `includeDisabled` is set
    *
-   * User types assigned by an admin are fetched once, the first time they're asked for. Use `refreshCurrentUserTypes` to fetch them again
+   * User types assigned by an admin are fetched once, the first time they're asked for. Use `refreshCurrentUserTypes` to fetch them again.
+   * User types associated via resource permissions are checked on every call
    */
   currentUserTypes(options?: CurrentUserTypesOptions): Promise<UserType[]>;
 
