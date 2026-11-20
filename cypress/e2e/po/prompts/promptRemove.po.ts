@@ -15,6 +15,10 @@ export default class PromptRemove extends ComponentPo {
     return this.confirmField().set(text);
   }
 
+  confirmText() {
+    return this.self().find('.confirm-text');
+  }
+
   remove() {
     return this.self().getId('prompt-remove-confirm-button').click();
   }
