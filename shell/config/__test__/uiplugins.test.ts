@@ -134,6 +134,20 @@ describe('uiPlugins Config methods', () => {
       expect(shouldNotLoadPlugin(incompatibleApiPlugin, compatibleEnv, [])).toBe('plugins.error.host');
     });
 
+    it('should return false if HOST application value is rancher-manager', () => {
+      const { shouldNotLoadPlugin } = require('./../uiplugins');
+
+      const hostPlugin = {
+        ...basePluginResource,
+        metadata: {
+          [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>=1.0.0',
+          [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST]:    'rancher-manager'
+        }
+      };
+
+      expect(shouldNotLoadPlugin(hostPlugin, compatibleEnv, [])).toBe(false);
+    });
+
     it('should return "plugins.error.kubeVersion" if incompatible', () => {
       const { shouldNotLoadPlugin } = require('./../uiplugins');
 
@@ -279,6 +293,17 @@ describe('uiPlugins Config methods', () => {
       expect(result.isVersionCompatible).toBe(false);
       expect(result.versionIncompatibilityData.type).toBe(EXTENSIONS_INCOMPATIBILITY_TYPES.HOST);
       expect(result.versionIncompatibilityData.required).toBe('rancher-dummy-host');
+    });
+
+    it('should return "isVersionCompatible" true when HOST_APP is rancher-manager', () => {
+      const { isSupportedChartVersion } = require('./../uiplugins');
+
+      const annotations = { [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>=1.0.0 < 5.0.0', [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_HOST]: 'rancher-manager' };
+      const data = { ...versionData, version: { annotations } };
+      const result = isSupportedChartVersion(data, true);
+
+      expect(result.isVersionCompatible).toBe(true);
+      expect(result.versionIncompatibilityData).toStrictEqual({});
     });
 
     it('should return incompatibility object for Prime only extension running in non-prime env', () => {
