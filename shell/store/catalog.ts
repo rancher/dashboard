@@ -370,6 +370,128 @@ export const mutations: MutationTree<CatalogState> = {
   }
 };
 
+/**
+ * The body of the `load` action. Module level so that the action can funnel every call through
+ * `loadQueue` and nothing can reach it without being serialised.
+ */
+async function runLoad(ctx: CatalogContext, { force, reset, repoKeys = [] }: { force?: boolean, reset?: boolean, repoKeys?: string[] } = {}) {
+  const {
+    state, getters, rootGetters, commit, dispatch
+  } = ctx;
+
+  let promises: Record<string, Promise<any>> = {};
+  // Installing an app? This is fine (in cluster store)
+  // Fetching list of cluster templates? This is fine (in management store)
+  // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
+
+  const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
+
+  if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
+    promises.cluster = dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO }, { root: true });
+  }
+
+  if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.REPO) ) {
+    promises.namespaced = dispatch(`${ inStore }/findAll`, { type: CATALOG.REPO }, { root: true });
+  }
+
+  const hash = await allHash(promises);
+
+  // As per comment above, when there are no clusters this will be management. Store it such that it can be used for those cases
+  commit('setInStore', inStore);
+  hash.cluster = hash.cluster?.filter((repo: any) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
+
+  commit('setRepos', hash);
+
+  const repos: any[] = getters['repos'];
+  const loaded = [];
+
+  promises = {};
+
+  for ( const repo of repos ) {
+    let shouldLoad = false;
+
+    if (repoKeys.length) {
+      // If repoKeys are explicitly provided (e.g. refreshing a single repo from the UI),
+      // we ONLY want to load the repos in that array. We intentionally ignore `!getters.isLoaded(repo)`
+      // here so we don't accidentally fetch other unrelated repos just because they haven't loaded yet.
+      shouldLoad = repoKeys.includes(repo._key);
+    } else {
+      // Default behavior: load if explicitly forced, OR if the repo hasn't been loaded into state yet.
+      shouldLoad = force === true || !getters.isLoaded(repo);
+    }
+
+    if ( shouldLoad && repo.canLoad ) {
+      console.info('Loading index for repo', repo.name, `(${ repo._key })`); // eslint-disable-line no-console
+      promises[repo._key] = repo.followLink('index');
+    }
+  }
+
+  const res = await allHashSettled(promises);
+  const charts: Record<string, any> = reset ? {} : { ...state.charts };
+  let versionInfos: Record<string, any> | null = null;
+
+  if (reset) {
+    versionInfos = {};
+  } else if (repoKeys.length) {
+    versionInfos = { ...state.versionInfos };
+  }
+
+  const errors = [];
+
+  for ( const key of Object.keys(res) ) {
+    const obj = res[key];
+    const repo = findBy(repos, '_key', key);
+
+    if ( obj.status === 'rejected' ) {
+      errors.push(stringify(obj.reason));
+      continue;
+    }
+
+    // We are targeting specific repos. To prevent duplicate chart versions from appearing,
+    // we must remove the old charts for this specific repo before appending the newly fetched ones,
+    // but ONLY if the fetch was successful.
+    if (repoKeys.length && repoKeys.includes(key)) {
+      for (const chartKey in charts) {
+        if (charts[chartKey].repoKey === key) {
+          delete charts[chartKey];
+        }
+      }
+
+      // Also clear out cached version info for this repo so we don't display stale READMEs/values
+      const repoType = repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace';
+      const repoName = repo.metadata.name;
+      const versionPrefix = `${ repoType }/${ repoName }/`;
+
+      for (const versionKey in versionInfos) {
+        if (versionKey.startsWith(versionPrefix)) {
+          delete versionInfos[versionKey];
+        }
+      }
+    }
+
+    for ( const k in obj.value.entries ) {
+      for ( const entry of obj.value.entries[k] ) {
+        addChart(ctx, charts, entry, repo);
+      }
+    }
+
+    loaded.push(repo);
+  }
+
+  commit('setCharts', {
+    charts,
+    errors,
+    loaded,
+  });
+
+  if (versionInfos) {
+    commit('setVersions', versionInfos);
+  }
+}
+
+/** Serialises `load` calls - see the action's comment for why. */
+let loadQueue: Promise<any> = Promise.resolve();
+
 export const actions = {
   /**
    * force: Always refresh catalog's helm repo by re-fetching index.yaml
@@ -379,120 +501,19 @@ export const actions = {
    * repoKeys: Optional array of specific repo keys (IDs) to refresh. When provided, only these specific
    * repos will be fetched, and only their existing charts will be cleared from the cache to avoid
    * duplicate chart entries or wiping out unrelated chart data.
+   *
+   * Loads are serialised. They each decide which repos to fetch when they start and a `reset` one
+   * rebuilds `charts` from only what it fetched, so two running at once let the slower one commit
+   * last and discard whatever the other found - which, when a repo is indexed while a `reset` load
+   * is in flight, silently drops that repo's charts until something else triggers a load.
    */
-  async load(ctx: CatalogContext, { force, reset, repoKeys = [] }: { force?: boolean, reset?: boolean, repoKeys?: string[] } = {}) {
-    const {
-      state, getters, rootGetters, commit, dispatch
-    } = ctx;
+  load(ctx: CatalogContext, opt: { force?: boolean, reset?: boolean, repoKeys?: string[] } = {}) {
+    // Keep the chain going regardless of how the previous load ended
+    loadQueue = loadQueue
+      .catch(() => undefined)
+      .then(() => runLoad(ctx, opt));
 
-    let promises: Record<string, Promise<any>> = {};
-    // Installing an app? This is fine (in cluster store)
-    // Fetching list of cluster templates? This is fine (in management store)
-    // Installing a cluster template? This isn't fine (in cluster store as per installing app, but if there is no cluster we need to default to management)
-
-    const inStore = rootGetters['currentCluster'] ? rootGetters['currentProduct'].inStore : 'management';
-
-    if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.CLUSTER_REPO) ) {
-      promises.cluster = dispatch(`${ inStore }/findAll`, { type: CATALOG.CLUSTER_REPO }, { root: true });
-    }
-
-    if ( rootGetters[`${ inStore }/schemaFor`](CATALOG.REPO) ) {
-      promises.namespaced = dispatch(`${ inStore }/findAll`, { type: CATALOG.REPO }, { root: true });
-    }
-
-    const hash = await allHash(promises);
-
-    // As per comment above, when there are no clusters this will be management. Store it such that it can be used for those cases
-    commit('setInStore', inStore);
-    hash.cluster = hash.cluster?.filter((repo: any) => !(repo?.metadata?.annotations?.[CATALOG_ANNOTATIONS.HIDDEN_REPO] === 'true'));
-
-    commit('setRepos', hash);
-
-    const repos: any[] = getters['repos'];
-    const loaded = [];
-
-    promises = {};
-
-    for ( const repo of repos ) {
-      let shouldLoad = false;
-
-      if (repoKeys.length) {
-        // If repoKeys are explicitly provided (e.g. refreshing a single repo from the UI),
-        // we ONLY want to load the repos in that array. We intentionally ignore `!getters.isLoaded(repo)`
-        // here so we don't accidentally fetch other unrelated repos just because they haven't loaded yet.
-        shouldLoad = repoKeys.includes(repo._key);
-      } else {
-        // Default behavior: load if explicitly forced, OR if the repo hasn't been loaded into state yet.
-        shouldLoad = force === true || !getters.isLoaded(repo);
-      }
-
-      if ( shouldLoad && repo.canLoad ) {
-        console.info('Loading index for repo', repo.name, `(${ repo._key })`); // eslint-disable-line no-console
-        promises[repo._key] = repo.followLink('index');
-      }
-    }
-
-    const res = await allHashSettled(promises);
-    const charts: Record<string, any> = reset ? {} : { ...state.charts };
-    let versionInfos: Record<string, any> | null = null;
-
-    if (reset) {
-      versionInfos = {};
-    } else if (repoKeys.length) {
-      versionInfos = { ...state.versionInfos };
-    }
-
-    const errors = [];
-
-    for ( const key of Object.keys(res) ) {
-      const obj = res[key];
-      const repo = findBy(repos, '_key', key);
-
-      if ( obj.status === 'rejected' ) {
-        errors.push(stringify(obj.reason));
-        continue;
-      }
-
-      // We are targeting specific repos. To prevent duplicate chart versions from appearing,
-      // we must remove the old charts for this specific repo before appending the newly fetched ones,
-      // but ONLY if the fetch was successful.
-      if (repoKeys.length && repoKeys.includes(key)) {
-        for (const chartKey in charts) {
-          if (charts[chartKey].repoKey === key) {
-            delete charts[chartKey];
-          }
-        }
-
-        // Also clear out cached version info for this repo so we don't display stale READMEs/values
-        const repoType = repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace';
-        const repoName = repo.metadata.name;
-        const versionPrefix = `${ repoType }/${ repoName }/`;
-
-        for (const versionKey in versionInfos) {
-          if (versionKey.startsWith(versionPrefix)) {
-            delete versionInfos[versionKey];
-          }
-        }
-      }
-
-      for ( const k in obj.value.entries ) {
-        for ( const entry of obj.value.entries[k] ) {
-          addChart(ctx, charts, entry, repo);
-        }
-      }
-
-      loaded.push(repo);
-    }
-
-    commit('setCharts', {
-      charts,
-      errors,
-      loaded,
-    });
-
-    if (versionInfos) {
-      commit('setVersions', versionInfos);
-    }
+    return loadQueue;
   },
 
   async loadRepo(ctx: CatalogContext, { repoName }: { repoName: string }) {

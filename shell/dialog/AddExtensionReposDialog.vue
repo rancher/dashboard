@@ -5,6 +5,7 @@ import { CATALOG } from '@shell/config/types';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import { isRancherPrime } from '@shell/config/version';
 import { RcHeading } from '@components/RcHeading';
+import { notifyRepoDownload } from '@shell/utils/uiplugins-repos';
 
 export default {
   emits: ['close'],
@@ -73,6 +74,7 @@ export default {
     async doAddRepos(btnCb) {
       this.errors = [];
       const promises = [];
+      const names = [];
 
       for (const key in this.addRepos) {
         if (this.addRepos[key]) {
@@ -85,26 +87,52 @@ export default {
             }
           });
 
+          names.push(this.reposInfo[key].name);
           promises.push(pluginCR.save());
         }
       }
 
+      const added = [];
+
       if (promises.length) {
         const res = await Promise.allSettled(promises);
 
-        res.forEach((result) => {
+        res.forEach((result, i) => {
           if (result.status === 'rejected') {
             console.error(result.reason); // eslint-disable-line no-console
 
             this.errors.push(result.reason);
+          } else {
+            added.push(names[i]);
           }
         });
       }
+
+      this.reportDownloads(added);
 
       this.done();
       this.$emit('close');
 
       btnCb(true);
+    },
+
+    /**
+     * Adding a repository only queues the work - Rancher still has to clone it and build an index,
+     * which takes anywhere from seconds to minutes. Follow each repository so the user can leave
+     * the page and still be told through the Notification Centre once it is ready. The Extensions
+     * page reports the waiting and any failure itself, so nothing is announced up front.
+     */
+    reportDownloads(added) {
+      if (!added.length) {
+        return;
+      }
+
+      // Deliberately not awaited - this outlives the dialog, so it has to swallow its own errors
+      // rather than surface as an unhandled rejection
+      added.forEach((name) => {
+        notifyRepoDownload(this.$store, name)
+          .catch((e) => console.error('Failed to report extension repository download', e)); // eslint-disable-line no-console
+      });
     },
   }
 };
