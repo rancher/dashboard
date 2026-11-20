@@ -111,6 +111,7 @@ describe('class: Workload', () => {
       });
 
       workload.save = save;
+      Object.defineProperty(workload, 'canUpdate', { get: () => true });
 
       return workload;
     };
@@ -186,6 +187,117 @@ describe('class: Workload', () => {
       await workload[method]().catch(() => {});
 
       expect(workload.spec.replicas).toStrictEqual(7);
+    });
+  });
+
+  describe.each([
+    ['scaleUp', 2, 3],
+    ['scaleDown', 2, 1],
+  ] as const)('method: %s by patching', (method, replicas, expected) => {
+    const view = 'https://rancher/k8s/clusters/c-1/apis/apps/v1/namespaces/default/deployments/test-workload';
+    const mockPod = { metadata: { name: 'pod-1', namespace: 'default' } };
+
+    const patch = 'https://rancher/v1/apps.deployments/default/test-workload';
+
+    const createWorkload = (dispatch: jest.Mock, { links = { view } as Record<string, string>, canUpdate = false } = {}) => {
+      const workload = new Workload({
+        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        metadata: { name: 'test-workload', namespace: 'default' },
+        links,
+        spec:     { replicas }
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch,
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      workload.save = jest.fn();
+      Object.defineProperty(workload, 'canUpdate', { get: () => canUpdate });
+      Object.defineProperty(workload, 'pods', { get: () => [mockPod] });
+
+      return workload;
+    };
+
+    it('should patch the replica count through the scale subresource without patch or update', async() => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const workload = createWorkload(dispatch);
+
+      await workload[method]();
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt: {
+          url:     `${ view }/scale`,
+          method:  'patch',
+          headers: { 'content-type': 'application/strategic-merge-patch+json' },
+          data:    { spec: { replicas: expected } },
+        },
+        type: WORKLOAD_TYPES.DEPLOYMENT,
+      });
+      expect(workload.save).not.toHaveBeenCalled();
+      expect(workload.spec.replicas).toStrictEqual(expected);
+    });
+
+    it.each([
+      ['without update', false],
+      ['instead of saving when it can also update', true],
+    ])('should patch the workload itself through the view link %s', async(_, canUpdate) => {
+      const dispatch = jest.fn().mockResolvedValue({});
+      const workload = createWorkload(dispatch, { links: { view, patch }, canUpdate });
+
+      await workload[method]();
+
+      expect(dispatch).toHaveBeenCalledWith('request', {
+        opt: {
+          url:     view,
+          method:  'patch',
+          headers: { 'content-type': 'application/strategic-merge-patch+json' },
+          data:    { spec: { replicas: expected } },
+        },
+        type: WORKLOAD_TYPES.DEPLOYMENT,
+      });
+      expect(workload.save).not.toHaveBeenCalled();
+    });
+
+    it('should go back to the previous replica count when the patch fails', async() => {
+      const workload = createWorkload(jest.fn().mockRejectedValue({ _status: 500 }));
+
+      await workload[method]().catch(() => {});
+
+      expect(workload.spec.replicas).toStrictEqual(replicas);
+    });
+
+    it('should keep scaling when the scale subresource is forbidden', async() => {
+      const workload = createWorkload(jest.fn().mockRejectedValue({ _status: 403 }));
+
+      await workload[method]().catch(() => {});
+
+      expect(workload.podsCard?.props.showScaling).toBe(true);
+    });
+  });
+
+  describe('getter: canScale', () => {
+    it.each([
+      [WORKLOAD_TYPES.DEPLOYMENT, true],
+      [WORKLOAD_TYPES.STATEFUL_SET, true],
+      [WORKLOAD_TYPES.REPLICA_SET, true],
+      [WORKLOAD_TYPES.REPLICATION_CONTROLLER, true],
+      [WORKLOAD_TYPES.DAEMON_SET, false],
+      [WORKLOAD_TYPES.JOB, false],
+      [WORKLOAD_TYPES.CRON_JOB, false],
+    ])('should offer scaling on %s: %s, without update permission', (type, expected) => {
+      const workload = new Workload({
+        type,
+        metadata: { name: 'test', namespace: 'default' },
+        spec:     {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+
+      Object.defineProperty(workload, 'canUpdate', { get: () => false });
+
+      expect(workload.canScale).toBe(expected);
     });
   });
 
@@ -485,9 +597,9 @@ describe('class: Workload', () => {
       expect(card).toBeNull();
     });
 
-    it('should return null when pods is undefined', () => {
+    it('should return null for non-scalable type when pods is undefined', () => {
       const workload = new Workload({
-        type:     WORKLOAD_TYPES.DEPLOYMENT,
+        type:     WORKLOAD_TYPES.DAEMON_SET,
         metadata: { name: 'test', namespace: 'default' },
         spec:     {}
       }, {
@@ -503,7 +615,7 @@ describe('class: Workload', () => {
       expect(card).toBeNull();
     });
 
-    it('should hide scaling when canUpdate is false', () => {
+    it('should show scaling when canUpdate is false', () => {
       const workload = new Workload({
         type:     WORKLOAD_TYPES.DEPLOYMENT,
         metadata: { name: 'test', namespace: 'default' },
@@ -519,7 +631,7 @@ describe('class: Workload', () => {
 
       const card = workload.podsCard;
 
-      expect(card?.props.showScaling).toBe(false);
+      expect(card?.props.showScaling).toBe(true);
     });
   });
 

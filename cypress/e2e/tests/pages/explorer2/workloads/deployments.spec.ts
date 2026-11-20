@@ -128,11 +128,14 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       cy.waitForResourceState('v1', 'apps.deployments', `${ scaleTestNamespace }/${ scaleTestDeploymentName }`);
       const workloadDetailsPage = new WorkloadsDeploymentsDetailsPagePo(scaleTestDeploymentName, localCluster, 'apps.deployment' as any, scaleTestNamespace);
 
-      // Intercept scaling calls and alias them based on the desired replica count in the request body
-      cy.intercept('PUT', `/v1/apps.deployments/${ scaleTestNamespace }/${ scaleTestDeploymentName }`, (req) => {
-        if (req.body.spec?.replicas === 2) {
+      // Intercept scaling calls and alias them based on the desired replica count in the request body. Admins patch the
+      // workload through its view link (the strategic merge body may arrive unparsed)
+      cy.intercept('PATCH', `/apis/apps/v1/namespaces/${ scaleTestNamespace }/deployments/${ scaleTestDeploymentName }`, (req) => {
+        const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+
+        if (body.spec?.replicas === 2) {
           req.alias = 'scaleUp';
-        } else if (req.body.spec?.replicas === 1) {
+        } else if (body.spec?.replicas === 1) {
           req.alias = 'scaleDown';
         }
       });

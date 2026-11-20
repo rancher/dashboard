@@ -1,10 +1,9 @@
 <script>
 import ProgressBarMulti from '@shell/components/ProgressBarMulti';
 import PlusMinus from '@shell/components/form/PlusMinus';
-import { POD, SCALABLE_WORKLOAD_TYPES } from '@shell/config/types';
+import { POD } from '@shell/config/types';
 import { ucFirst } from '@shell/utils/string';
 
-const SCALABLE_TYPES = Object.values(SCALABLE_WORKLOAD_TYPES);
 const INVALID_TYPES = [POD];
 
 export default {
@@ -44,7 +43,7 @@ export default {
     },
 
     canScale() {
-      return !!SCALABLE_TYPES.includes(this.row.type) && this.row.canUpdate;
+      return !!this.row.canScale;
     },
 
     canShow() {
