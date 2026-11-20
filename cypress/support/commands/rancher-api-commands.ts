@@ -1774,6 +1774,7 @@ Cypress.Commands.add('installChart', (repo: string, chartId: string, chartName: 
 /**
  * Runs `callback` when `chartKey` is present in the filtered catalog index (the list the Charts UI uses).
  * Throws error if the chart is missing from the unfiltered index — that points to catalog publish or sync, not compatibility filtering.
+ * Pass `allowMissingFromCatalog` for charts that are legitimately not shipped on every chart branch; those skip instead of failing.
  * If the chart is in the unfiltered index but not the filtered index, skips when Cypress env `allowFilteredCatalogSkip`
  * is enabled; otherwise throws error.
  */
@@ -1781,10 +1782,17 @@ export function runTestWhenChartAvailable(
   repo: string,
   chartKey: string,
   mochaContext: { skip: () => void },
-  callback: () => void
+  callback: () => void,
+  options: { allowMissingFromCatalog?: boolean } = {}
 ) {
   cy.checkChartPresence(repo, chartKey).then(({ inFiltered, inUnfiltered }) => {
     if (!inUnfiltered) {
+      if (options.allowMissingFromCatalog) {
+        cy.log(`Skipping: chart '${ chartKey }' is not published to this environment's chart branch`);
+
+        return mochaContext.skip();
+      }
+
       throw new Error(`Chart '${ chartKey }' is missing from the unfiltered catalog index. This looks like a publishing/sync issue, not due to version compatibility filtering.`);
     }
 
