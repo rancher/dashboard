@@ -89,11 +89,41 @@ describe('component: networking.k8s.io.ingress/RulePath', () => {
     expect(select.exists()).toBe(true);
     expect(window.getComputedStyle(select.element).minWidth).toStrictEqual('');
   });
+});
 
-  it('does not make the remove button a submit button, so pressing Enter in the form cannot remove the path', () => {
-    const removeButton = wrapper.find('.rule-path > button');
+describe('component: networking.k8s.io.ingress/RulePath in a form', () => {
+  let form: HTMLFormElement;
+  let submit: jest.Mock;
+  let wrapper: VueWrapper<any>;
 
-    expect(removeButton.text()).toStrictEqual('%ingress.rules.removePath%');
-    expect((removeButton.element as HTMLButtonElement).type).toStrictEqual('button');
+  beforeEach(() => {
+    form = document.createElement('form');
+    submit = jest.fn((event: Event) => event.preventDefault());
+    form.addEventListener('submit', submit);
+    document.body.appendChild(form);
+
+    wrapper = mount(RulePath, {
+      props: {
+        value: pathWithServicePort(), serviceTargets, ingress,
+      },
+      attachTo: form,
+    });
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
+    form.remove();
+  });
+
+  it('does not give the form a default button, so pressing Enter in a field cannot click Remove', () => {
+    expect(wrapper.find('.rule-path > button').text()).toStrictEqual('%ingress.rules.removePath%');
+    expect(form.querySelector(':default')).toBeNull();
+  });
+
+  it('asks to be removed when Remove is clicked, without submitting the form', async() => {
+    await wrapper.find('.rule-path > button').trigger('click');
+
+    expect(wrapper.emitted('remove')).toStrictEqual([[]]);
+    expect(submit).toHaveBeenCalledTimes(0);
   });
 });
