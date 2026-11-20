@@ -3,7 +3,7 @@ import { set } from '@shell/utils/object';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
 import { RancherKubeMetadata } from '@shell/types/rancher/steve.api';
 import { GlobalRoleBinding } from '@shell/types/resources/global-role-binding';
-import { UserTypeSpec } from '@shell/apis/intf/shell-api/user-types';
+import { UserTypeResource, UserTypeSpec } from '@shell/apis/intf/shell-api/user-types';
 
 type GlobalRoleBindingModel = GlobalRoleBinding & { remove: (opt?: object) => Promise<void> };
 
@@ -14,7 +14,8 @@ export const CUSTOMIZATION_API_GROUP = 'customization.ui.rancher';
  */
 export const USER_TYPE_LABEL = `${ CUSTOMIZATION_API_GROUP }/usertype`;
 
-export default class UserType extends SteveModel {
+export default class UserType extends SteveModel implements UserTypeResource {
+  declare id: string;
   declare type: string;
   declare metadata: RancherKubeMetadata;
   declare spec: UserTypeSpec;
