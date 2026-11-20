@@ -44,6 +44,8 @@ describe('Charts', { testIsolation: false, tags: ['@charts', '@adminUser'] }, ()
         opaGatekeeper.selectContraintSubtype('k8srequiredlabels').click();
         opaGatekeeper.saveCreateForm().expectToBeEnabled();
       }, { allowMissingFromCatalog: true });
+      // allowMissingFromCatalog is set to true to skip tests if the chart is not available in the catalog
+      // linked to issue https://github.com/rancher/dashboard/issues/19923 since opa-gatekeeper is not available in the catalog in current envs
     });
   });
 
@@ -71,6 +73,8 @@ describe('Charts', { testIsolation: false, tags: ['@charts', '@adminUser'] }, ()
               expect(elementRect.bottom).to.eq(viewportHeight);
             });
           }, { allowMissingFromCatalog: true });
+          // allowMissingFromCatalog is set to true to skip tests if the chart is not available in the catalog
+          // linked to issue https://github.com/rancher/dashboard/issues/19923 since opa-gatekeeper is not available in the catalog in current envs
         });
       });
     });
