@@ -90,58 +90,57 @@ export default {
     }
   },
 
-  data() {
-    const params = { ...this.$route.params };
-
-    // Determine if the current product has a topLevelProduct defined, and if so,
-    // use that for the formRoute instead of the current route's product.
-    // This allows resources from extensions (new product registration) to use the correct route for creation,
-    // which may be different from the route of the resource list.
-    let currPluginName = '';
-    let formRoute;
-    let overrideCreateLocationByExtension = false;
-    // `data()` runs during the very first render, which is before Vue assigns `__vue_app__`,
-    // so the `$extension`/`$plugin` compat shim in `@shell/pkg/auto-import` cannot have run
-    // yet when this component is bundled into an extension loaded on an older Rancher.
-    // Fall through to `{}` there: with no plugins to inspect the non-override branch below
-    // is correct, which is what Rancher without V2 product registration needs anyway.
-    const plugins = this.$extension?.getPlugins?.() || {};
-    const currentProductId = this.$store.getters['productId'];
-
-    Object.keys(plugins).forEach((key) => {
-      if (plugins[key].productNames.includes(currentProductId)) {
-        currPluginName = key;
-      }
-    });
-
-    if (isProductPrefixedTopLevel(plugins[currPluginName], currentProductId)) {
-      // override create route for extension resource lists
-      formRoute = { name: `${ this.$route.name }-create`, params: { ...params, product: currentProductId } };
-      overrideCreateLocationByExtension = true;
-    } else {
-      // this was the original logic before the topLevelProduct override was added
-      formRoute = { name: `${ this.$route.name }-create`, params };
-    }
-
-    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](this.resource);
-
-    const yamlRoute = {
-      name:  `${ this.$route.name }-create`,
-      params,
-      query: { [AS]: _YAML },
-    };
-
-    return {
-      overrideCreateLocationByExtension,
-      formRoute,
-      yamlRoute,
-      hasEditComponent,
-    };
-  },
-
   computed: {
     get,
     ...mapGetters(['isExplorer', 'currentCluster']),
+
+    createRouteName() {
+      return `${ this.$route.name }-create`;
+    },
+
+    /**
+     * Has an extension registered the current product as a product-prefixed top level product?
+     * Those route from the product root, so the create route has to be built differently from
+     * the one a core resource list uses.
+     *
+     * The `$extension` read stays guarded. When this component is bundled into an extension
+     * running on Rancher 2.11-2.13 the host only injects `$plugin`, and the compat shim in
+     * `@shell/pkg/auto-import` runs while extensions load - which is before `vueApp.mount()`,
+     * so its first attempt finds no `__vue_app__` and it falls back to a 100ms poll. A render
+     * that lands inside that window still sees no `$extension`. Falling through to `{}` is the
+     * right answer there: with no plugins to inspect there is no override, which is also what
+     * a Rancher without V2 product registration needs.
+     */
+    overrideCreateLocationByExtension() {
+      const plugins = this.$extension?.getPlugins?.() || {};
+      const productId = this.$store.getters['productId'];
+      // Last match wins, matching the original forEach
+      const pluginName = Object.keys(plugins).filter((key) => plugins[key]?.productNames?.includes(productId)).pop();
+
+      return isProductPrefixedTopLevel(plugins[pluginName], productId);
+    },
+
+    formRoute() {
+      const params = { ...this.$route.params };
+
+      if (this.overrideCreateLocationByExtension) {
+        return { name: this.createRouteName, params: { ...params, product: this.$store.getters['productId'] } };
+      }
+
+      return { name: this.createRouteName, params };
+    },
+
+    yamlRoute() {
+      return {
+        name:   this.createRouteName,
+        params: { ...this.$route.params },
+        query:  { [AS]: _YAML },
+      };
+    },
+
+    hasEditComponent() {
+      return this.$store.getters['type-map/hasCustomEdit'](this.resource);
+    },
 
     resourceName() {
       if (this.schema) {
