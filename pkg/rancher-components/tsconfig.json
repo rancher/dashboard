@@ -14,7 +14,6 @@
     "allowJs": true,
     "checkJs": false,
     "types": [
-      "webpack-env",
       "jest"
     ],
     "paths": {
@@ -39,6 +38,7 @@
     ]
   },
   "include": [
+    "../../shell/types/vite-env.d.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "src/**/*.vue",

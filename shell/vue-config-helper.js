@@ -70,7 +70,7 @@ function proxyPrimeOpts(target) {
 
       res.setHeader('content-length', output.length );
       res.setHeader('content-type', 'application/json' );
-      res.setHeader('transfer-encoding', '');
+      res.removeHeader('transfer-encoding');
       res.setHeader('cache-control', 'no-cache');
       res.writeHead(proxyRes.statusCode);
       _end.apply(res, [output]);
@@ -94,9 +94,11 @@ function proxyWsOpts(target) {
   };
 }
 
+const requestHost = (req) => req.headers['host'] || req.headers[':authority'];
+
 function onProxyReq(proxyReq, req) {
   if (!(proxyReq._currentRequest && proxyReq._currentRequest._headerSent)) {
-    proxyReq.setHeader('x-api-host', req.headers['host']);
+    proxyReq.setHeader('x-api-host', requestHost(req));
     proxyReq.setHeader('x-forwarded-proto', 'https');
   }
 }
@@ -104,19 +106,57 @@ function onProxyReq(proxyReq, req) {
 function onProxyReqWs(proxyReq, req, socket, options, head) {
   req.headers.origin = options.target.href;
   proxyReq.setHeader('origin', options.target.href);
-  proxyReq.setHeader('x-api-host', req.headers['host']);
+  proxyReq.setHeader('x-api-host', requestHost(req));
   proxyReq.setHeader('x-forwarded-proto', 'https');
   // console.log(proxyReq.getHeaders());
-
-  socket.on('error', (err) => {
-    console.error('Proxy WS Error:', err); // eslint-disable-line no-console
-  });
 }
 
 function onError(err, req, res) {
   res.statusCode = 598;
-  console.error('Proxy Error:', err); // eslint-disable-line no-console
   res.end(JSON.stringify(err));
+}
+
+const PROXY_EVENTS = {
+  onProxyReq:   'proxyReq',
+  onProxyReqWs: 'proxyReqWs',
+  onProxyRes:   'proxyRes',
+  onError:      'error',
+};
+
+const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Convert proxies keyed by path, with http-proxy-middleware style handlers (`onProxyReq`, `onProxyRes`, ...), into
+ * vite's `server.proxy`. A path proxies itself and everything below it; a path ending in `*` proxies everything that
+ * starts with the rest of it.
+ *
+ * @param {Record<string, object>} proxies
+ * @returns {Record<string, object>} vite proxy options keyed by a regular expression for the path
+ */
+function toViteProxy(proxies = {}) {
+  return Object.entries(proxies).reduce((out, [path, options]) => {
+    const { configure, ...rest } = options;
+    const handlers = {};
+
+    Object.entries(PROXY_EVENTS).forEach(([option, event]) => {
+      if (rest[option]) {
+        handlers[event] = rest[option];
+        delete rest[option];
+      }
+    });
+
+    const context = path.endsWith('*') ? `^${ escapeRegExp(path.slice(0, -1)) }` : `^${ escapeRegExp(path) }(?=[/?#]|$)`;
+
+    out[context] = {
+      ...rest,
+      configure(proxy, proxyOptions) {
+        Object.entries(handlers).forEach(([event, handler]) => proxy.on(event, handler));
+        configure?.(proxy, proxyOptions);
+      },
+    };
+
+    return out;
+  }, {});
 }
 
 module.exports = {
@@ -131,5 +171,6 @@ module.exports = {
   proxyWsOpts,
   onProxyReq,
   onProxyReqWs,
-  onError
+  onError,
+  toViteProxy
 };

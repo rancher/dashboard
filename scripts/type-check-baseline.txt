@@ -1,6 +1,6 @@
 # Auto-generated type-check baseline. Do not edit by hand.
 # Regenerate with: yarn type-check:baseline
-# Total errors: 301
+# Total errors: 291
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'SemVer | null' is not assignable to parameter of type 'string | SemVer'.
 pkg/aks/components/Config.vue: error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
 pkg/aks/components/Config.vue: error TS2532: Object is possibly 'undefined'.
@@ -117,12 +117,6 @@ shell/components/fleet/HelmOpAppCoConfigTab.vue: error TS7034: Variable 'items' 
 shell/components/fleet/HelmOpTargetTab.vue: error TS2322: Type 'object[]' is not assignable to type 'Cluster[]'.
 shell/components/fleet/HelmOpTargetTab.vue: error TS2322: Type 'string' is not assignable to type 'TargetMode | undefined'.
 shell/components/fleet/HelmOpValuesTab.vue: error TS2322: Type 'unknown' is not assignable to type 'ValueFrom[] | undefined'.
-shell/components/fleet/dashboard/ResourceCard.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
-shell/components/fleet/dashboard/ResourceCard.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
-shell/components/fleet/dashboard/ResourceDetails.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
-shell/components/fleet/dashboard/ResourceDetails.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
-shell/components/fleet/dashboard/__tests__/ResourceCard.test.ts: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
-shell/components/fleet/dashboard/__tests__/ResourceCard.test.ts: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
 shell/components/form/GitPicker.vue: error TS2322: Type 'unknown' is not assignable to type 'unknown[] | undefined'.
 shell/components/form/GitPicker.vue: error TS2322: Type 'unknown' is not assignable to type 'unknown[] | undefined'.
 shell/components/form/NodeScheduling.vue: error TS18046: 'n' is of type 'unknown'.
@@ -140,7 +134,6 @@ shell/components/google/util/__mocks__/gcp.ts: error TS7006: Parameter 'zone' im
 shell/components/google/util/gcp.ts: error TS2307: Cannot find module 'types/gcp' or its corresponding type declarations.
 shell/components/nav/NotificationCenter/Notification.vue: error TS7053: Element implicitly has an 'any' type because expression of type 'NotificationLevel' can't be used to index type '{ 0: string; 5: string; 2: string; 1: string; 4: string; 3: string; }'.
 shell/composables/useUserRetentionValidation.ts: error TS2769: No overload matches this call.
-shell/detail/management.cattle.io.oidcclient.vue: error TS2307: Cannot find module '~shell/assets/images/key.svg' or its corresponding type declarations.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'clusterScope' does not exist on type 'never'.
@@ -167,7 +160,6 @@ shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exis
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
 shell/edit/__tests__/token.test.ts: error TS2339: Property 'value' does not exist on type 'never'.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS2322: Type '{ selected: string; } | null' is not assignable to type 'Record<string, any> | undefined'.
-shell/edit/catalog.cattle.io.clusterrepo.vue: error TS2345: Argument of type 'string | LocationQueryValue[]' is not assignable to parameter of type 'string'.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'clusterRepoType' implicitly has an 'any' type.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'key' implicitly has an 'any' type.
 shell/edit/catalog.cattle.io.clusterrepo.vue: error TS7006: Parameter 'neu' implicitly has an 'any' type.
@@ -187,8 +179,6 @@ shell/models/steve-schema.ts: error TS2345: Argument of type 'unknown' is not as
 shell/pages/c/_cluster/apps/charts/AppChartCardSubHeader.vue: error TS2314: Generic type 'Record' requires 2 type argument(s).
 shell/pages/c/_cluster/apps/charts/__tests__/install.test.ts: error TS18047: 'wrapper.vm.value' is possibly 'null'.
 shell/pages/c/_cluster/apps/charts/__tests__/install.test.ts: error TS2339: Property 'imagePullSecrets' does not exist on type '{}'.
-shell/pages/c/_cluster/fleet/application/create.vue: error TS2307: Cannot find module '@shell/assets/images/content/dark/suse.svg' or its corresponding type declarations.
-shell/pages/c/_cluster/fleet/application/create.vue: error TS2307: Cannot find module '@shell/assets/images/content/suse.svg' or its corresponding type declarations.
 shell/pages/c/_cluster/fleet/application/create.vue: error TS2339: Property 'type' does not exist on type 'string'.
 shell/pages/c/_cluster/fleet/application/create.vue: error TS2339: Property 'type' does not exist on type 'string'.
 shell/pages/c/_cluster/fleet/application/suse-app-collection/chart.vue: error TS2322: Type '{ id: string; label: string; href: string | null; name: string | undefined; }[]' is not assignable to type 'ChartMaintainer[]'.

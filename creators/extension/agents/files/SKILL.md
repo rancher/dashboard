@@ -319,7 +319,7 @@ Always test with Standard User and User-Base accounts, not just admin.
 **Actions**:
 1. Follow the Getting Started guide for the correct scaffold command: https://extensions.rancher.io/extensions/next/extensions-getting-started
 2. Verify the generated `package.json` references `@rancher/shell` (not an old shell version).
-3. Wire up `pkg/<name>/index.ts` per the Product Registration docs: `importTypes(extension)`, `extension.metadata = require('./package.json')`, then `addProduct`/`extendProduct`.
+3. Wire up `pkg/<name>/index.ts` per the Product Registration docs: `importTypes(extension)`, `extension.metadata = metadata` (with `import metadata from './package.json'`), then `addProduct`/`extendProduct`.
 4. Install dependencies and confirm the dev server starts without errors.
 
 ---
@@ -373,7 +373,7 @@ approval — the user already told you what to change.
    ```
    Fix all lint errors before continuing.
 7. Update todos as each screen is completed.
-8. **Proxying API calls through the Rancher backend.** Never add a `devServer.proxy` block to the extension's `vue.config.js` — that only works in dev mode and disappears once the extension is built. Use one of the two mechanisms that work identically in dev and in a built/installed extension:
+8. **Proxying API calls through the Rancher backend.** Never add a `server.proxy` block to the extension's `vite.config.mjs`: that only works in dev mode and disappears once the extension is built. Use one of the two mechanisms that work identically in dev and in a built/installed extension:
 
    **a) External / third-party APIs → `/meta/proxy` via the shell Proxy API.** Use `this.$shell.proxy` (Options API) or `useShell().proxy` from `@shell/apis` (Composition API). It builds the `/meta/proxy/<host>/<path>` URL and auth headers for you, and avoids browser CORS limits.
 
@@ -410,7 +410,7 @@ approval — the user already told you what to change.
 
    This is the pattern shell itself uses for Grafana and Alertmanager (see `shell/utils/grafana.js`). Dispatch it with `store.dispatch('cluster/request', { url })`.
 
-   Both work in dev because the dashboard dev server already proxies `/meta` and `/k8s` to the Rancher API (`shell/vue.config.js`) — which is precisely why your own proxy block isn't needed.
+   Both work in dev because the dashboard dev server already proxies `/meta` and `/k8s` to the Rancher API (`shell/vite.config.mjs`), which is precisely why your own proxy block isn't needed.
 
 ---
 

@@ -4,10 +4,10 @@ The URL prefix is configured at build time, not discovered from the browser URL 
 
 ## Navigation and assets use separate bases
 
-In [shell/vue.config.js](../../shell/vue.config.js):
+In [shell/vite.config.mjs](../../shell/vite.config.mjs):
 
 - `ROUTER_BASE` sets the application's navigation base. It defaults to `/` and is injected into the bundle as `process.env.routerBase`.
-- `RESOURCE_BASE` sets Vue CLI's `publicPath`, which controls where built assets such as JavaScript and images are loaded from. It defaults to an empty value, leaving the Vue CLI default in place. A trailing slash is added when needed.
+- `RESOURCE_BASE` sets Vite's `base`, which controls where built assets such as JavaScript and images are loaded from. It defaults to an empty value, which serves them from `/`. A trailing slash is added when needed.
 
 The build scripts set these values for each deployment:
 
@@ -49,4 +49,4 @@ Code without a router instance can read the build-time value:
 const base = process.env.routerBase || '/';
 ```
 
-`process.env.routerBase` is replaced at build time by webpack; it is not a browser environment variable. For the embedded and hosted builds above, the value is `/dashboard/`; the default is `/`. These values describe the navigation base, not the asset base. Prefer the router helpers above for generating URLs rather than concatenating the prefix manually.
+`process.env.routerBase` is replaced at build time by Vite (a `define` in `shell/vite.config.mjs`); it is not a browser environment variable. For the embedded and hosted builds above, the value is `/dashboard/`; the default is `/`. These values describe the navigation base, not the asset base. Prefer the router helpers above for generating URLs rather than concatenating the prefix manually.

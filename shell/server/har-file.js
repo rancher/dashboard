@@ -150,10 +150,9 @@ function harProxy(responses, folder) {
 
       const body = resp.content?.text || '';
 
-      res.type(resp.content.mimeType);
-      res.status(resp.status);
-      res.send(Buffer.from(body));
-      res.end();
+      res.setHeader('Content-Type', resp.content.mimeType);
+      res.statusCode = resp.status;
+      res.end(Buffer.from(body));
 
       const char = !!resp.used ? '*' : ' ';
 
@@ -176,21 +175,19 @@ function harProxy(responses, folder) {
 
           console.log(`${ req.method }f 200 ${ url }`); // eslint-disable-line no-console
 
-          res.type('application/json');
-          res.status(200);
-          res.send(data);
+          res.setHeader('Content-Type', 'application/json');
+          res.statusCode = 200;
 
-          return res.end();
+          return res.end(data);
         }
       }
 
       // Fallback to sending a 404 response
-      res.status(404);
-      res.send('Not Found');
+      res.statusCode = 404;
 
       console.log(`${ req.method }? 404 ${ url }`); // eslint-disable-line no-console
 
-      return res.end();
+      return res.end('Not Found');
     }
 
     // Continue on to serve up other resources

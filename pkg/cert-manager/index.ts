@@ -7,6 +7,7 @@ import {
   CERTIFICATE_HEADERS, ISSUER_HEADERS, CLUSTER_ISSUER_HEADERS,
   CERTIFICATE_REQUEST_HEADERS, ORDER_HEADERS, CHALLENGE_HEADERS,
 } from './table-headers';
+import metadata from './package.json';
 
 const overviewPage: ProductChildCustomPage = {
   // `name` becomes the route path segment `/c/:cluster/explorer/<name>`, which is shared by
@@ -84,7 +85,7 @@ const certManagerGroup: ProductChildGroup = {
 
 export default function(extension: IPlugin) {
   importTypes(extension);
-  extension.metadata = require('./package.json');
+  extension.metadata = metadata;
 
   extension.extendProduct(EXPLORER, [certManagerGroup]);
 }

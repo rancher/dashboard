@@ -9,9 +9,12 @@ import cleanTooltipDirective from '@shell/directives/clean-tooltip';
 import cleanHtmlDirective from '@shell/directives/clean-html';
 import htmlStrippedAriaLabelDirective from '@shell/directives/strip-html-aria-label';
 import '@shell/plugins/replaceall';
+import { installModels } from '@shell/initialize/install-models';
 import { TextEncoder, TextDecoder } from 'util';
 
 const vueApp = createApp({});
+
+installModels();
 
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;

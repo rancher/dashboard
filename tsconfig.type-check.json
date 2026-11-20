@@ -13,6 +13,7 @@
     "docusaurus",
     "scripts/standalone",
     "storybook",
+    "creators/extension/pkg/files",
     "shell/types/shell"
   ]
 }
