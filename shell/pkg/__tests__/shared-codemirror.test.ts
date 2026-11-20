@@ -1,4 +1,5 @@
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { CODEMIRROR_PACKAGES, packageDir, stubSource, replacementFor } from '@shell/pkg/shared-codemirror';
 
@@ -70,6 +71,21 @@ describe('shared-codemirror', () => {
 
     it('should fall back to the package name when it is not installed', () => {
       expect(packageDir('@codemirror/not-installed')).toBe('@codemirror/not-installed');
+    });
+
+    it('should look from the shell folder when the code is bundled somewhere else, as in a package vite.config.mjs', () => {
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), 'rancher-shared-codemirror-'));
+      const installed = path.join(root, 'shell', 'node_modules', '@replit', 'codemirror-vim');
+      const bundledRequire = Object.assign((id: string) => require(id), { resolve: { paths: () => [path.join(root, 'pkg', 'thing', 'node_modules')] } });
+      const module = { exports: {} as { packageDir: (pkg: string) => string } };
+
+      fs.mkdirSync(installed, { recursive: true });
+      fs.writeFileSync(path.join(installed, 'package.json'), '{}');
+      // eslint-disable-next-line no-new-func
+      new Function('module', 'require', '__filename', fs.readFileSync(require.resolve('@shell/pkg/shared-codemirror'), 'utf8'))(module, bundledRequire, path.join(root, 'shell', 'pkg', 'shared-codemirror.js'));
+
+      expect(module.exports.packageDir('@replit/codemirror-vim')).toBe(installed);
+      fs.rmSync(root, { recursive: true });
     });
   });
 
