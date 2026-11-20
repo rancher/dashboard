@@ -14,9 +14,7 @@ import SortableTable from '@shell/components/SortableTable';
 import { _CLONE, _DETAIL } from '@shell/config/query-params';
 import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
 import GrantResources from '@shell/components/auth/GrantResources.vue';
-import {
-  grantResourceOptions, grantResourceHeaders, grantResourceRows, normaliseRuleApiGroups
-} from '@shell/utils/grant-resources';
+import { grantResourceOptions, grantResourceHeaders, grantResourceRows, normaliseRuleApiGroups } from '@shell/utils/grant-resources';
 
 import { SUBTYPE_MAPPING } from '@shell/models/management.cattle.io.roletemplate';
 import Loading from '@shell/components/Loading';

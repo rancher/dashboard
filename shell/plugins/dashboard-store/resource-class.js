@@ -2070,6 +2070,9 @@ export default class Resource {
     return owners;
   }
 
+  /**
+   * @returns {{ label: string, content: any, formatter?: string, formatterOpts?: object }[]}
+   */
   get details() {
     return this._details;
   }

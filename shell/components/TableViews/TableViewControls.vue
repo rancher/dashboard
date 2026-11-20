@@ -232,7 +232,7 @@ const { heldId: heldColumnId, order: columnDragOrder, start: armColumnDrag } = u
   indexAt:      columnSlots.indexAt,
   firstMovable: firstMovableIndex,
   onEnd:        columnSlots.clear,
-  onCommit: (order) => update({ columnOrder: order }),
+  onCommit:     (order) => update({ columnOrder: order }),
 });
 
 const startColumnDrag = (id: string, event: MouseEvent) => {

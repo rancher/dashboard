@@ -42,16 +42,14 @@ export default class UserType extends SteveModel {
    * Shown in the detail page's masthead
    */
   get details() {
-    const out = this._details;
     const tags = this.spec?.tags || [];
 
-    out.unshift(
+    return [
       { label: this.t('userType.displayName.label'), content: this.spec?.displayName },
       { label: this.t('userType.priority.label'), content: this.spec?.priority ?? 0 },
       ...(tags.length ? [{ label: this.t('userType.tags.label'), content: tags.join(', ') }] : []),
-    );
-
-    return out;
+      ...this._details,
+    ];
   }
 
   get customValidationRules() {

@@ -89,6 +89,8 @@ shell/assets/styles/base/_functions.scss:131: rgba($color, $middle)
 shell/assets/styles/base/_functions.scss:132: rgba($color, $end)
 shell/assets/styles/base/_mixins.scss:68: contrast-color($background-color, $dark, $light)
 shell/assets/styles/base/_mixins.scss:80: lighten($bg,20%)
+shell/assets/styles/base/_mixins.scss:218: color-mix(in srgb, var(--primary) 14%, transparent)
+shell/assets/styles/base/_mixins.scss:220: rgba(0, 0, 0, 0.28)
 shell/assets/styles/base/_variables-classic.scss:3: contrast-color($primary)
 shell/assets/styles/base/_variables-classic.scss:4: darken($primary, 10%)
 shell/assets/styles/base/_variables-classic.scss:5: saturate($lightest, 20%)
@@ -663,9 +665,7 @@ shell/components/ResourceCancelModal.vue:123: white
 shell/components/SelectIconGrid.vue:283: white
 shell/components/Tabbed/index.vue:625: #fff
 shell/components/TableSparkLine.vue:107: #6e3daa
-shell/components/TableViews/TableViewControls.vue:692: color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)
-shell/components/TableViews/TableViewControls.vue:702: color-mix(in srgb, var(--primary) 14%, transparent)
-shell/components/TableViews/TableViewControls.vue:704: rgba(0, 0, 0, 0.28)
+shell/components/TableViews/TableViewControls.vue:618: color-mix(in srgb, var(--active, var(--primary)) 50%, transparent)
 shell/components/TableViews/TableViewQueryInput.vue:1235: color-mix(in srgb, var(--active, var(--primary)) 12%, transparent)
 shell/components/TableViews/TableViewTabs.vue:1520: color-mix(in srgb, var(--primary) 14%, transparent)
 shell/components/TableViews/TableViewTabs.vue:1521: rgba(0, 0, 0, 0.28)

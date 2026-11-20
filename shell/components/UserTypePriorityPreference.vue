@@ -4,7 +4,9 @@
  * off and on (a row is a checkbox, as the table views' columns), or put back to the default. Each change is saved straight away, as other
  * preferences are
  */
-import { computed, nextTick, onMounted, ref } from 'vue';
+import {
+  computed, nextTick, onMounted, ref, shallowRef
+} from 'vue';
 import { useStore } from 'vuex';
 import { useShell } from '@shell/apis';
 import type { UserTypePreferences } from '@shell/apis/intf/shell';
@@ -20,8 +22,8 @@ import UserType from '@shell/models/customization.ui.rancher.usertype';
 const { t } = useI18n(useStore());
 const userTypesApi = useShell().userTypes;
 
-/** Null until loaded. Disabled ones included */
-const userTypes = ref<UserType[] | null>(null);
+/** Null until loaded. Disabled ones included. Shallow: each load replaces the list, and a deep ref would unwrap the models' class type */
+const userTypes = shallowRef<UserType[] | null>(null);
 const preferences = ref<UserTypePreferences>({});
 const list = ref<HTMLElement | null>(null);
 
