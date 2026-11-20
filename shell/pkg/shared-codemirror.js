@@ -9,6 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { createRequire } = require('module');
 
 const CODEMIRROR_PACKAGES = [
   '@codemirror/autocomplete',
@@ -36,14 +37,15 @@ function stubModule(pkg) {
 }
 
 /**
- * Directory of the given package as installed for the shell, or the package name if it can't be found.
+ * Directory of the given package as installed for the shell, looked up from the shell's own folder,
+ * or the package name if it can't be found.
  *
  * The stubs live in the extension's node_modules, which won't contain the package when the shell's
  * dependencies aren't hoisted there (e.g. a linked shell). The packages don't export package.json,
  * so it can't be found with require.resolve
  */
 function packageDir(pkg) {
-  const dir = (require.resolve.paths(pkg) || [])
+  const dir = (createRequire(__filename).resolve.paths(pkg) || [])
     .map((modules) => path.join(modules, pkg))
     .find((candidate) => fs.existsSync(path.join(candidate, 'package.json')));
 
