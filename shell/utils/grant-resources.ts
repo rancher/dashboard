@@ -18,7 +18,7 @@ type ScopedResources = Record<string, Record<string, { resources: string[], depr
  */
 export function grantResourceOptions(t: (key: string) => string, scopes: SCOPED_RESOURCE_GROUPS[]): GrantResourceOption[] {
   const options: GrantResourceOption[] = [];
-  const scopedResources = SCOPED_RESOURCES as ScopedResources;
+  const scopedResources: ScopedResources = SCOPED_RESOURCES;
 
   scopes.forEach((scope) => {
     const apiGroupsInScope = scopedResources[scope];

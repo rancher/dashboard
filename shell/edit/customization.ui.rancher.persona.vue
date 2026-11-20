@@ -11,10 +11,14 @@ import Principal from '@shell/components/auth/Principal.vue';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal.vue';
 import Loading from '@shell/components/Loading.vue';
 import { LabeledInput } from '@components/Form/LabeledInput';
-import { SCOPED_RESOURCES, SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
+import { SCOPED_RESOURCE_GROUPS } from '@shell/config/roles';
 import { MANAGEMENT } from '@shell/config/types';
 import { grantResourceOptions, normaliseRuleApiGroups } from '@shell/utils/grant-resources';
 import { PolicyRule } from '@shell/types/resources/rbac';
+
+const DEFAULT_RULE: PolicyRule = {
+  apiGroups: [''], resources: [], verbs: []
+};
 
 export default defineComponent({
   name: 'EditPersona',
@@ -53,9 +57,7 @@ export default defineComponent({
           path: 'spec.priority', rules: ['requiredInt', 'isInteger'], translationKey: 'persona.priority.label'
         },
       ],
-      defaultRule: {
-        apiGroups: [''], resources: [], verbs: []
-      } as PolicyRule,
+      defaultRule:  DEFAULT_RULE,
       // null until the persona's assignments are loaded, so a failed load never saves an empty list over them
       principalIds: null as string[] | null,
     };
@@ -141,7 +143,7 @@ export default defineComponent({
 
   computed: {
     resourceOptions() {
-      return grantResourceOptions((key: string) => this.t(key), Object.keys(SCOPED_RESOURCES) as SCOPED_RESOURCE_GROUPS[]);
+      return grantResourceOptions((key: string) => this.t(key), [SCOPED_RESOURCE_GROUPS.GLOBAL, SCOPED_RESOURCE_GROUPS.CLUSTER, SCOPED_RESOURCE_GROUPS.PROJECT_NAMESPACE]);
     },
 
     rules: {

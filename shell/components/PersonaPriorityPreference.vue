@@ -109,7 +109,7 @@ const move = async(persona: Persona, step: number) => {
 
   // Moving the row takes it out of the page for a moment, which drops its focus
   await nextTick();
-  (list.value?.querySelector(`[data-persona="${ persona.metadata.name }"]`) as HTMLElement | null)?.focus();
+  list.value?.querySelector<HTMLElement>(`[data-persona="${ persona.metadata.name }"]`)?.focus();
 };
 
 /** Back to the personas' own order, all enabled */
