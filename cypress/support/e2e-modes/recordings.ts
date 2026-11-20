@@ -147,18 +147,26 @@ function serialize(har: Har): string {
 export class RecordingStore {
   private bodyCache = new Map<string, Buffer>();
 
-  constructor(public readonly dir: string) {}
+  constructor(public readonly dir: string, public readonly overlayDir?: string) {}
 
   /**
    * The HAR file of a spec, e.g. `cypress/e2e/tests/pages/generic/home.spec.ts` in set `admin` is `admin/pages/generic/home.har`
    */
-  specFile(set: string, spec: string): string {
+  specFile(set: string, spec: string, root = this.dir): string {
     const relative = (spec.startsWith(SPEC_ROOT) ? spec.substring(SPEC_ROOT.length) : spec).replace(/\.spec\.[jt]s$/, '');
 
-    return path.join(this.dir, set, `${ relative }.har`);
+    return path.join(root, set, `${ relative }.har`);
   }
 
   read(set: string, spec: string): Har | undefined {
+    if (this.overlayDir) {
+      const overlaid = this.readFile(this.specFile(set, spec, this.overlayDir));
+
+      if (overlaid) {
+        return overlaid;
+      }
+    }
+
     return this.readFile(this.specFile(set, spec));
   }
 
@@ -181,17 +189,22 @@ export class RecordingStore {
    * The recording sets that exist, e.g. one per user the tests run as
    */
   sets(): string[] {
-    if (!fs.existsSync(this.dir)) {
-      return [];
-    }
+    const found = new Set<string>();
 
-    return fs.readdirSync(this.dir, { withFileTypes: true })
-      .filter((d) => d.isDirectory() && d.name !== BODIES_DIR)
-      .map((d) => d.name);
+    [this.dir, this.overlayDir].forEach((root) => {
+      if (!root || !fs.existsSync(root)) {
+        return;
+      }
+
+      fs.readdirSync(root, { withFileTypes: true })
+        .filter((d) => d.isDirectory() && d.name !== BODIES_DIR)
+        .forEach((d) => found.add(d.name));
+    });
+
+    return Array.from(found);
   }
 
   files(set: string): string[] {
-    const root = path.join(this.dir, set);
     const found: string[] = [];
     const walk = (dir: string) => {
       fs.readdirSync(dir, { withFileTypes: true }).forEach((d) => {
@@ -205,9 +218,16 @@ export class RecordingStore {
       });
     };
 
-    if (fs.existsSync(root)) {
-      walk(root);
-    }
+    [this.dir, this.overlayDir].forEach((base) => {
+      if (!base) {
+        return;
+      }
+      const root = path.join(base, set);
+
+      if (fs.existsSync(root)) {
+        walk(root);
+      }
+    });
 
     return found;
   }
@@ -236,9 +256,10 @@ export class RecordingStore {
       return cached;
     }
 
-    const file = path.join(this.dir, BODIES_DIR, name);
+    const candidates = [this.overlayDir, this.dir].filter((d): d is string => !!d).map((d) => path.join(d, BODIES_DIR, name));
+    const file = candidates.find((p) => fs.existsSync(p));
 
-    if (!fs.existsSync(file)) {
+    if (!file) {
       return undefined;
     }
 

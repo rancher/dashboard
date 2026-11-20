@@ -88,12 +88,13 @@ export function e2eRecordingsDir(mode: E2EMode, env: NodeJS.ProcessEnv, projectR
     return fs.existsSync(source) ? unpackedBundles([source]) : source;
   }
 
-  const bundles = fs.existsSync(source) && fs.statSync(source).isDirectory() ? fs.readdirSync(source).filter((f) => BUNDLE.test(f) && f.startsWith(`${ set }@`)).sort().map((f) => path.join(source, f)) : [];
+  const bundles = fs.existsSync(source) && fs.statSync(source).isDirectory() ? fs.readdirSync(source).filter((f) => BUNDLE.test(f)).sort().map((f) => path.join(source, f)) : [];
 
   return bundles.length ? unpackedBundles(bundles) : source;
 }
 
 const firstExisting = (paths: string[]) => paths.find((p) => fs.existsSync(p));
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|127\.0\.0\.1\.sslip\.io)$/i;
 
 /**
  * Start the record/replay server for generate and integration modes, returning the Cypress tasks it needs
@@ -111,22 +112,47 @@ export async function startE2EModeServer(mode: E2EMode, urls: E2EModeUrls, env: 
     throw new Error(`TEST_MODE=${ mode } needs a TLS key and certificate, set TEST_PROXY_KEY and TEST_PROXY_CERT`);
   }
 
-  const distDir = firstExisting([
+  const distDir = env.TEST_DEV_URL ? undefined : firstExisting([
     env.TEST_DIST_DIR || '',
     path.join(projectRoot, env.E2E_BUILD_DIST_DIR || 'dist'),
   ].filter((d) => !!d && fs.existsSync(path.join(d, 'index.html'))));
 
-  if (mode === 'integration' && !distDir) {
-    throw new Error('TEST_MODE=integration serves the dashboard from a build, set TEST_DIST_DIR to one (see `yarn e2e:build`)');
+  const devServerUrl = mode === 'integration' && !distDir ? (env.TEST_DEV_URL || 'https://localhost:8005') : undefined;
+
+  if (devServerUrl) {
+    // eslint-disable-next-line no-console
+    console.log(`[e2e integration] no dist/ build found — proxying /dashboard/ to dev server at ${ devServerUrl } (set TEST_DIST_DIR or run \`yarn e2e:build\` to serve a static build)`);
+  }
+
+  if (mode === 'generate' && urls.upstream) {
+    try {
+      const host = new URL(urls.upstream).hostname;
+
+      if (!LOCAL_HOST.test(host)) {
+        // eslint-disable-next-line no-console
+        console.warn(`[e2e generate] WARNING: recording against non-local Rancher (${ urls.upstream }). Do not commit raw recordings; always pack and run \`yarn e2e:mock:check\` before sharing.`);
+      }
+    } catch {}
+  }
+
+  const set = e2eRecordingSet(env, username);
+  const recordingsDir = e2eRecordingsDir(mode, env, projectRoot, set);
+  const localOverlay = mode === 'integration' && !env.TEST_RECORDINGS_DIR ? path.resolve(projectRoot, 'cypress', 'recordings') : undefined;
+  const overlayDir = localOverlay && localOverlay !== recordingsDir && fs.existsSync(localOverlay) ? localOverlay : undefined;
+
+  if (overlayDir) {
+    // eslint-disable-next-line no-console
+    console.log(`[e2e integration] overlaying local recordings from ${ overlayDir }`);
   }
 
   const server = new RecordReplayServer({
     mode,
     origin:   urls.origin,
     upstream: urls.upstream,
-    store:    new RecordingStore(e2eRecordingsDir(mode, env, projectRoot, e2eRecordingSet(env, username))),
-    set:      e2eRecordingSet(env, username),
+    store:    new RecordingStore(recordingsDir, overlayDir),
+    set,
     distDir,
+    devServerUrl,
     key:      fs.readFileSync(key),
     cert:     fs.readFileSync(cert),
   });

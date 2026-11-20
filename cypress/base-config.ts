@@ -60,16 +60,21 @@ const getCpuUsage = (): Promise<number> => {
  */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
 let testDirs = ['priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
-const skipSetup = process.env.TEST_SKIP?.includes('setup');
-const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
+const e2eMode = e2eModeFromEnv(process.env);
+const skipSetup = process.env.TEST_SKIP?.includes('setup') || (e2eMode === 'integration' && !process.env.TEST_ONLY?.includes('setup'));
+const defaultBaseUrl = e2eMode === 'integration' ? 'https://localhost:8005/dashboard' : 'https://localhost:8005';
+const baseUrl = (process.env.TEST_BASE_URL || defaultBaseUrl).replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
 const rancherVersion = process.env.RANCHER_VERSION;
 const noPassedVideos = process.env.TEST_NO_PASSED_VIDEOS === 'true';
 const passedSpecVideo = path.join(__dirname, 'support', 'assets', 'passed-spec.mp4');
-const e2eMode = e2eModeFromEnv(process.env);
 const modeUrls = e2eModeUrls(e2eMode, baseUrl, apiUrl, process.env);
+
+if (e2eMode === 'integration' && skipSetup && !process.env.TEST_SKIP?.includes('setup')) {
+  process.env.TEST_SKIP = [process.env.TEST_SKIP, 'setup'].filter(Boolean).join(',');
+}
 
 if (process.env.TEST_A11Y) {
   testDirs = ['accessibility'];
@@ -85,17 +90,19 @@ console.log('');
 console.log(`    Mode: ${ e2eMode }`);
 console.log(`    Username: ${ username }`);
 
-if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
-  console.log(' ❌ You must provide either CATTLE_BOOTSTRAP_PASSWORD or TEST_PASSWORD');
-}
-if (process.env.CATTLE_BOOTSTRAP_PASSWORD && process.env.TEST_PASSWORD) {
-  console.log(' ❗ If both CATTLE_BOOTSTRAP_PASSWORD and TEST_PASSWORD are provided, the first will be used');
-}
-if (!skipSetup && !process.env.CATTLE_BOOTSTRAP_PASSWORD) {
-  console.log(' ❌ You must provide CATTLE_BOOTSTRAP_PASSWORD when running setup tests');
-}
-if (skipSetup && !process.env.TEST_PASSWORD) {
-  console.log(' ❌ You must provide TEST_PASSWORD when running the tests without the setup tests');
+if (e2eMode !== 'integration') {
+  if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
+    console.log(' ❌ You must provide either CATTLE_BOOTSTRAP_PASSWORD or TEST_PASSWORD');
+  }
+  if (process.env.CATTLE_BOOTSTRAP_PASSWORD && process.env.TEST_PASSWORD) {
+    console.log(' ❗ If both CATTLE_BOOTSTRAP_PASSWORD and TEST_PASSWORD are provided, the first will be used');
+  }
+  if (!skipSetup && !process.env.CATTLE_BOOTSTRAP_PASSWORD) {
+    console.log(' ❌ You must provide CATTLE_BOOTSTRAP_PASSWORD when running setup tests');
+  }
+  if (skipSetup && !process.env.TEST_PASSWORD) {
+    console.log(' ❌ You must provide TEST_PASSWORD when running the tests without the setup tests');
+  }
 }
 
 console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
@@ -164,7 +171,7 @@ const baseConfig = defineConfig({
     api:                      modeUrls.api,
     e2eMode,
     username,
-    password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
+    password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD || (e2eMode === 'integration' ? 'password' : undefined),
     bootstrapPassword:        process.env.CATTLE_BOOTSTRAP_PASSWORD,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:             process.env.AWS_ACCESS_KEY_ID,

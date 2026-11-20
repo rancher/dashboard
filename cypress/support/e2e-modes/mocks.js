@@ -39,14 +39,19 @@ const MIN_SECRET_LENGTH = 8;
 const MAX_PATTERN_LENGTH = 1024;
 const SECRET_HEADERS = ['authorization', 'proxy-authorization', 'x-api-csrf', 'x-auth-token', 'x-api-key', 'x-api-tunnel-params'];
 const COOKIE_HEADERS = ['cookie', 'set-cookie'];
-const SECRET_KEYS = /^(password|passwd|currentPassword|newPassword|secret|clientSecret|secretKey|secretAccessKey|privateKey|token|accessToken|refreshToken|access_token|refresh_token|id_token|idToken|sessionToken|bearerToken|apiKey|api_key|apiToken|registrationToken|kubeconfig)$/;
+const SECRET_KEYS = /^(password|passwd|currentPassword|newPassword|bootstrapPassword|registryPassword|secret|clientSecret|secretKey|secretAccessKey|aws_secret_access_key|privateKey|private_key|token|accessToken|refreshToken|access_token|refresh_token|id_token|idToken|sessionToken|bearerToken|nodeToken|clusterToken|agentToken|rancherToken|apiKey|api_key|apiToken|registrationToken|kubeconfig|kubeconfigContent|authEncodedJson|serviceAccountKey|signingKey|encryptionKey|caKey|tls\.key|ssh-privatekey|licenseKey|hmac)$/i;
 const KUBERNETES_SECRET_TYPES = /^(Opaque$|kubernetes\.io\/|bootstrap\.kubernetes\.io\/|helm\.sh\/|[a-z0-9.-]*cattle\.io\/)/;
 const SECRET_HASH_KEYS = /(password|secret|token|key|ca|cert)s?[-_]?hash$/i;
 const NOT_A_CREDENTIAL = /^(https?:\/\/|\{\.)/;
 const SECRET_TYPES = /^(secret|namespacedsecret|basicauthcredential|namespacedbasicauthcredential|certificate|namespacedcertificate|dockercredential|namespaceddockercredential|sshauth|namespacedsshauth)$/i;
+const NEUTRAL_ORIGIN = 'https://e2e-mock.invalid';
+const LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|127\.0\.0\.1\.sslip\.io|e2e-mock\.invalid)$/i;
 const PATTERNS = [
   {
     name: 'private key', re: /(-----BEGIN ([A-Z0-9 ]*)PRIVATE KEY( BLOCK)?-----)([\s\S]*?)(-----END \2PRIVATE KEY\3-----)/g, keep: (m, begin, _type, _block, body, end) => `${ begin }\n${ PLACEHOLDER }\n${ end }`, secret: (m, begin, _type, _block, body) => body.trim()
+  },
+  {
+    name: 'yaml private key', re: /(\b(?:client-key-data|private-key|ssh-privatekey)\s*:\s*['"]?)([A-Za-z0-9+/=_-]{20,})(['"]?)/gi, keep: (m, prefix, _val, suffix) => `${ prefix }${ PLACEHOLDER_B64 }${ suffix }`, secret: (m, _prefix, val) => val
   },
   {
     name: 'rancher token', re: /\b((?:token|kubeconfig)-[a-z0-9-]+):([a-z0-9]{40,})\b/g, keep: (m, name) => `${ name }:${ PLACEHOLDER }`, secret: (m, name, key) => key
@@ -82,11 +87,14 @@ function publicCorpus() {
   if (publicText === undefined) {
     const parts = [];
     const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).forEach((d) => {
+      if (d.name === '__tests__') {
+        return;
+      }
       const full = path.join(dir, d.name);
 
       if (d.isDirectory()) {
         walk(full);
-      } else if (PUBLIC_EXTENSIONS.test(d.name)) {
+      } else if (PUBLIC_EXTENSIONS.test(d.name) && !/\.test\./.test(d.name)) {
         parts.push(fs.readFileSync(full, 'utf8'));
       }
     });
@@ -213,6 +221,25 @@ class Scrubber {
         return nested.encode(nested.gzip ? zlib.gzipSync(buffer) : buffer);
       }
 
+      const trimmed = value.trim();
+
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+          const parsed = JSON.parse(trimmed);
+
+          if (parsed && typeof parsed === 'object') {
+            const hits = this.hits.length;
+            const inner = this.json(parsed, `${ where } (json)`);
+
+            if (this.hits.length !== hits) {
+              return JSON.stringify(inner);
+            }
+          }
+        } catch {
+          // Not valid JSON; fall through to plain text scrubbing
+        }
+      }
+
       return this.text(value, where);
     }
     if (Array.isArray(value)) {
@@ -286,8 +313,44 @@ class Scrubber {
         return { name, value: scheme ? `${ scheme } ${ PLACEHOLDER }` : PLACEHOLDER };
       }
 
+      if (lower === 'location') {
+        return { name, value: this.url(value, where) };
+      }
+
       return { name, value: this.text(value, where) };
     });
+  }
+
+  url(value, where) {
+    if (!value) {
+      return value;
+    }
+    let out = this.text(value, where);
+    const q = out.indexOf('?');
+
+    if (q < 0) {
+      return out;
+    }
+
+    try {
+      const parsed = new URL(out, NEUTRAL_ORIGIN);
+      let changed = false;
+
+      parsed.searchParams.forEach((v, k) => {
+        if ((SECRET_KEYS.test(k) || SECRET_HASH_KEYS.test(k)) && !NOT_A_CREDENTIAL.test(v) && this.note(`${ k } query param`, v, where)) {
+          parsed.searchParams.set(k, PLACEHOLDER);
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        out = out.startsWith('http://') || out.startsWith('https://') ? parsed.toString() : `${ parsed.pathname }${ parsed.search }${ parsed.hash }`;
+      }
+    } catch {
+      // Malformed URL; already ran text() above
+    }
+
+    return out;
   }
 
   everywhere() {
@@ -336,21 +399,48 @@ const walkStrings = (value, fn) => {
   return value;
 };
 
-const scrubFrame = (scrubber, frame, where) => (frame.opcode === 1 ? { ...frame, data: scrubber.body(frame.data, where) } : frame);
+const scrubFrame = (scrubber, frame, where) => {
+  if (frame.opcode === 1) {
+    return { ...frame, data: scrubber.body(frame.data, where) };
+  }
+  if (frame.opcode === 2 && typeof frame.data === 'string') {
+    const raw = Buffer.from(frame.data, 'base64').toString('utf8');
+
+    if (raw.length && isPrintable(raw)) {
+      const hits = scrubber.hits.length;
+      const scrubbed = scrubber.body(raw, `${ where } (ws binary)`);
+
+      if (scrubber.hits.length !== hits) {
+        return { ...frame, data: Buffer.from(scrubbed, 'utf8').toString('base64') };
+      }
+    }
+  }
+
+  return frame;
+};
+
+const scrubQueryParam = (scrubber, q, where) => {
+  if ((SECRET_KEYS.test(q.name) || SECRET_HASH_KEYS.test(q.name)) && !NOT_A_CREDENTIAL.test(q.value) && scrubber.note(`${ q.name } query param`, q.value, where)) {
+    return { ...q, value: PLACEHOLDER };
+  }
+
+  return { ...q, value: scrubber.text(q.value, where) };
+};
 
 const scrubEntry = (scrubber, entry, where) => ({
   ...entry,
   request: {
     ...entry.request,
-    url:         scrubber.text(entry.request.url, where),
+    url:         scrubber.url(entry.request.url, where),
     headers:     scrubber.headers(entry.request.headers, where),
-    queryString: (entry.request.queryString || []).map((q) => ({ ...q, value: scrubber.text(q.value, where) })),
+    queryString: (entry.request.queryString || []).map((q) => scrubQueryParam(scrubber, q, where)),
     ...(entry.request.postData ? { postData: { ...entry.request.postData, text: scrubber.body(entry.request.postData.text || '', where) } } : {}),
   },
   response: {
     ...entry.response,
-    headers: scrubber.headers(entry.response.headers, where),
-    content: entry.response.content?.text !== undefined ? { ...entry.response.content, text: scrubber.body(entry.response.content.text, where) } : entry.response.content,
+    headers:     scrubber.headers(entry.response.headers, where),
+    redirectURL: scrubber.url(entry.response.redirectURL, where),
+    content:     entry.response.content?.text !== undefined ? { ...entry.response.content, text: scrubber.body(entry.response.content.text, where) } : entry.response.content,
   },
   ...(entry._webSocketMessages ? { _webSocketMessages: entry._webSocketMessages.map((f) => scrubFrame(scrubber, f, where)) } : {}),
 });
@@ -384,6 +474,47 @@ const readBody = (dir, name) => {
 
 const isText = (name) => /\.(json|yaml|js|css|html|txt|svg)(\.gz)?$/.test(name);
 
+const isPrintableBuffer = (buf) => {
+  if (!buf.length) {
+    return false;
+  }
+  const text = buf.toString('utf8');
+
+  return isPrintable(text);
+};
+
+const normalizeOrigins = (hars) => {
+  const nonLocal = new Set();
+
+  Object.values(hars).forEach((har) => {
+    const origin = har?.log?._origin;
+
+    if (!origin) {
+      return;
+    }
+    try {
+      const u = new URL(origin);
+
+      if (!LOCAL_HOST.test(u.hostname)) {
+        nonLocal.add(u.origin);
+        nonLocal.add(u.host);
+        har.log._origin = NEUTRAL_ORIGIN;
+      }
+    } catch {
+      // Ignore invalid origin
+    }
+  });
+
+  if (!nonLocal.size) {
+    return (text) => text;
+  }
+
+  const neutralHost = new URL(NEUTRAL_ORIGIN).host;
+  const origins = [...nonLocal].sort((a, b) => b.length - a.length);
+
+  return (text) => origins.reduce((out, item) => out.split(item).join(item.includes('://') ? NEUTRAL_ORIGIN : neutralHost), text);
+};
+
 /**
  * Scrubs the recordings of one user in a recordings directory, returning the bundle to write
  */
@@ -392,6 +523,7 @@ function scrub(dir, username, extraSecrets = []) {
   const hars = readTree(dir, username);
   const bodies = {};
   const renamed = new Map();
+  const scrubOrigin = normalizeOrigins(hars);
 
   extraSecrets.filter((s) => s && !isPublic(s)).forEach((s) => scrubber.found.add(s));
 
@@ -402,9 +534,10 @@ function scrub(dir, username, extraSecrets = []) {
 
       if (name && !renamed.has(name)) {
         const raw = readBody(dir, name);
+        const text = isText(name) || isPrintableBuffer(raw);
 
         renamed.set(name, {
-          where, data: isText(name) ? scrubber.body(raw.toString('utf8'), `${ where } body`) : raw.toString('base64'), text: isText(name)
+          where, data: text ? scrubber.body(raw.toString('utf8'), `${ where } body`) : raw.toString('base64'), text
         });
       }
 
@@ -413,10 +546,11 @@ function scrub(dir, username, extraSecrets = []) {
   });
 
   const everywhere = scrubber.everywhere();
+  const finalize = (text) => scrubOrigin(everywhere(text));
   const names = new Map();
 
   renamed.forEach(({ data, text }, name) => {
-    const content = text ? everywhere(data) : data;
+    const content = text ? finalize(data) : data;
     const ext = name.replace(/\.gz$/, '').split('.').pop();
     const sha = crypto.createHash('sha1').update(content).digest('hex');
     const scrubbedName = `${ sha.substring(0, 2) }/${ sha }.${ ext }`;
@@ -429,7 +563,7 @@ function scrub(dir, username, extraSecrets = []) {
       entry.response.content._file = names.get(entry.response.content._file);
     }
   }));
-  const scrubbedHars = walkStrings(hars, everywhere);
+  const scrubbedHars = walkStrings(hars, finalize);
 
   return {
     bundle: {
@@ -592,7 +726,7 @@ function durations(file) {
 }
 
 module.exports = {
-  PLACEHOLDER, scrub, writeBundle, readBundle, unpack, scrubRequestBody, check, durations
+  PLACEHOLDER, PLACEHOLDER_B64, NEUTRAL_ORIGIN, Scrubber, scrubEntry, scrub, writeBundle, readBundle, unpack, scrubRequestBody, check, durations
 };
 
 if (require.main === module) {

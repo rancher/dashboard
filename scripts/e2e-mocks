@@ -1,0 +1,375 @@
+#!/usr/bin/env node
+/* eslint-disable no-console */
+
+/**
+ * Unified CLI for managing e2e integration mock bundles (`cypress/integration-mocks/*.json.br`).
+ *
+ * Commands:
+ *   scripts/e2e-mocks update [recordings-dir] [username] [bundle]
+ *       Safely merge recorded specs from `recordings-dir` (default: cypress/recordings) into the matching
+ *       existing `.json.br` bundle(s), scrubbing credentials and running `check` before writing.
+ *   scripts/e2e-mocks check [bundle...] [--gitleaks <binary>]
+ *       Verify bundles contain no leaked credentials (defaults to all cypress/integration-mocks/*.json.br,
+ *       auto-detects `gitleaks` on PATH if installed).
+ *   scripts/e2e-mocks fetch [--tag <tag>] [--repo <owner/repo>] [--dest <dir>]
+ *       Download mock bundles from a GitHub Release (default tag: e2e-mocks-master).
+ *   scripts/e2e-mocks stats [bundle...]
+ *       Show spec, body, and size statistics for mock bundles.
+ */
+
+const { execFileSync } = require('child_process');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const {
+  check, readBundle, scrub, unpack, writeBundle
+} = require('../cypress/support/e2e-modes/mocks');
+
+const ROOT = path.resolve(__dirname, '..');
+const DEFAULT_MOCKS_DIR = path.join(ROOT, 'cypress', 'integration-mocks');
+const DEFAULT_RECORDINGS_DIR = path.join(ROOT, 'cypress', 'recordings');
+
+function findGitleaks() {
+  try {
+    return execFileSync('which', ['gitleaks'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function allBundles(dir = DEFAULT_MOCKS_DIR) {
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
+
+  return fs.readdirSync(dir)
+    .filter((f) => f.endsWith('.json.br'))
+    .sort()
+    .map((f) => path.join(dir, f));
+}
+
+function walkHars(dir, found = []) {
+  if (!fs.existsSync(dir)) {
+    return found;
+  }
+  fs.readdirSync(dir, { withFileTypes: true }).forEach((d) => {
+    const full = path.join(dir, d.name);
+
+    if (d.isDirectory()) {
+      walkHars(full, found);
+    } else if (d.name.endsWith('.har')) {
+      found.push(full);
+    }
+  });
+
+  return found;
+}
+
+function mergeIntoDir(fromDir, toDir, onlyRelPaths) {
+  const fromBodies = path.join(fromDir, 'bodies');
+
+  if (fs.existsSync(fromBodies)) {
+    const copyBodies = (d) => fs.readdirSync(d, { withFileTypes: true }).forEach((e) => {
+      const full = path.join(d, e.name);
+
+      if (e.isDirectory()) {
+        copyBodies(full);
+      } else {
+        const dest = path.join(toDir, path.relative(fromDir, full));
+
+        if (!fs.existsSync(dest)) {
+          fs.mkdirSync(path.dirname(dest), { recursive: true });
+          fs.copyFileSync(full, dest);
+        }
+      }
+    });
+
+    copyBodies(fromBodies);
+  }
+
+  let merged = 0;
+
+  walkHars(fromDir).forEach((file) => {
+    const rel = path.relative(fromDir, file).split(path.sep).join('/');
+
+    if (onlyRelPaths && !onlyRelPaths.has(rel)) {
+      return;
+    }
+    const target = path.join(toDir, rel);
+    const incoming = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const existing = fs.existsSync(target) ? JSON.parse(fs.readFileSync(target, 'utf8')) : undefined;
+
+    if (!existing) {
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, JSON.stringify(incoming));
+      merged++;
+
+      return;
+    }
+
+    const current = new Map(existing.log.pages.map((p) => [p.id, p]));
+    const newer = new Set(incoming.log.pages
+      .filter((p) => !current.has(p.id) || current.get(p.id).startedDateTime <= p.startedDateTime)
+      .map((p) => p.id));
+
+    existing.log.pages = existing.log.pages.filter((p) => !newer.has(p.id)).concat(incoming.log.pages.filter((p) => newer.has(p.id)));
+    existing.log.entries = existing.log.entries.filter((e) => !newer.has(e.pageref)).concat(incoming.log.entries.filter((e) => newer.has(e.pageref)));
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, JSON.stringify(existing));
+    merged++;
+  });
+
+  return merged;
+}
+
+function updateBundle(recordingsDir, username, bundleFile, onlyRelPaths, gitleaks) {
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'e2e-mocks-update-'));
+
+  try {
+    if (fs.existsSync(bundleFile)) {
+      unpack([bundleFile], workDir);
+    }
+    const merged = mergeIntoDir(recordingsDir, workDir, onlyRelPaths);
+
+    if (!merged) {
+      console.log(`No matching recordings for ${ path.relative(ROOT, bundleFile) }`);
+
+      return true;
+    }
+
+    const { bundle, removed, rules } = scrub(workDir, username);
+    const staged = path.join(workDir, 'staged.json.br');
+    const rawSize = writeBundle(bundle, staged);
+    const findings = check(staged, { gitleaks });
+
+    if (findings.length) {
+      findings.forEach((f) => console.error(`FAIL ${ path.relative(ROOT, bundleFile) }: ${ f.check } ${ f.rule } at ${ f.where } (${ f.length } chars)`));
+      console.error(`Refusing to write ${ path.relative(ROOT, bundleFile) }: ${ findings.length } credential finding(s)`);
+
+      return false;
+    }
+
+    fs.mkdirSync(path.dirname(bundleFile), { recursive: true });
+    fs.copyFileSync(staged, bundleFile);
+    console.log(`Updated ${ path.relative(ROOT, bundleFile) }: ${ merged } spec(s) merged, ${ (rawSize / 1e6).toFixed(1) } MB -> ${ (fs.statSync(bundleFile).size / 1e6).toFixed(1) } MB, removed ${ removed } credentials ${ JSON.stringify(rules) }${ gitleaks ? ' (gitleaks clean)' : ' (gitleaks not installed)' }`);
+
+    return true;
+  } finally {
+    fs.rmSync(workDir, { recursive: true, force: true });
+  }
+}
+
+function cmdUpdate(args) {
+  const recordingsDir = path.resolve(ROOT, args[0] || DEFAULT_RECORDINGS_DIR);
+  const username = args[1] || process.env.TEST_USERNAME || 'admin';
+  const explicitBundle = args[2] ? path.resolve(ROOT, args[2]) : undefined;
+  const gitleaks = findGitleaks();
+
+  if (explicitBundle) {
+    if (!updateBundle(recordingsDir, username, explicitBundle, undefined, gitleaks)) {
+      process.exitCode = 1;
+    }
+
+    return;
+  }
+
+  const recordedHars = walkHars(path.join(recordingsDir, username))
+    .map((f) => path.relative(recordingsDir, f).split(path.sep).join('/'));
+
+  if (!recordedHars.length) {
+    console.error(`No .har recordings found under ${ path.join(recordingsDir, username) }`);
+    process.exitCode = 1;
+
+    return;
+  }
+
+  const bundles = allBundles().filter((b) => path.basename(b).startsWith(`${ username }@`));
+  const matched = new Set();
+  let ok = true;
+
+  bundles.forEach((bundleFile) => {
+    const existing = readBundle(bundleFile);
+    const overlap = new Set(recordedHars.filter((rel) => Object.prototype.hasOwnProperty.call(existing.hars, rel)));
+
+    if (overlap.size) {
+      overlap.forEach((r) => matched.add(r));
+      if (!updateBundle(recordingsDir, username, bundleFile, overlap, gitleaks)) {
+        ok = false;
+      }
+    }
+  });
+
+  const unmatched = recordedHars.filter((r) => !matched.has(r));
+
+  if (unmatched.length) {
+    console.warn(`Unmatched new spec(s) not in any existing ${ username }@*.json.br bundle:\n  ${ unmatched.join('\n  ') }\nPass an explicit target bundle path: scripts/e2e-mocks update ${ path.relative(ROOT, recordingsDir) } ${ username } cypress/integration-mocks/${ username }@<group>.json.br`);
+  }
+
+  if (!ok) {
+    process.exitCode = 1;
+  }
+}
+
+function cmdCheck(args) {
+  let gitleaks;
+  const files = [];
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--gitleaks') {
+      gitleaks = args[++i];
+    } else {
+      files.push(path.resolve(ROOT, args[i]));
+    }
+  }
+
+  gitleaks = gitleaks || findGitleaks();
+  const targets = files.length ? files : allBundles();
+
+  if (!targets.length) {
+    console.log('No mock bundles found to check.');
+
+    return;
+  }
+
+  let total = 0;
+
+  targets.forEach((file) => {
+    const findings = check(file, { gitleaks });
+
+    total += findings.length;
+    findings.forEach((f) => console.error(`${ path.relative(ROOT, file) }: ${ f.check } ${ f.rule } at ${ f.where } (${ f.length } characters)`));
+    console.log(`${ path.relative(ROOT, file) }: ${ findings.length ? `${ findings.length } findings` : 'clean' }${ gitleaks ? '' : ' (gitleaks not installed)' }`);
+  });
+
+  if (total) {
+    process.exitCode = 1;
+  }
+}
+
+function detectRepo() {
+  if (process.env.GITHUB_REPOSITORY) {
+    return process.env.GITHUB_REPOSITORY;
+  }
+  try {
+    const url = execFileSync('git', ['remote', 'get-url', 'upstream'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const match = url.match(/github\.com[:/]([^/]+\/[^/.]+)/);
+
+    if (match) {
+      return match[1];
+    }
+  } catch {}
+  try {
+    const url = execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+    const match = url.match(/github\.com[:/]([^/]+\/[^/.]+)/);
+
+    if (match) {
+      return match[1];
+    }
+  } catch {}
+
+  return 'rancher/dashboard';
+}
+
+async function cmdFetch(args) {
+  let tag = 'e2e-mocks-master';
+  let repo = detectRepo();
+  let dest = DEFAULT_MOCKS_DIR;
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--tag') {
+      tag = args[++i];
+    } else if (args[i] === '--repo') {
+      repo = args[++i];
+    } else if (args[i] === '--dest') {
+      dest = path.resolve(ROOT, args[++i]);
+    }
+  }
+
+  const headers = { 'User-Agent': 'rancher-dashboard-e2e-mocks' };
+
+  if (process.env.GITHUB_TOKEN || process.env.GH_TOKEN) {
+    headers.Authorization = `Bearer ${ process.env.GITHUB_TOKEN || process.env.GH_TOKEN }`;
+  }
+
+  const apiUrl = `https://api.github.com/repos/${ repo }/releases/tags/${ encodeURIComponent(tag) }`;
+  const res = await fetch(apiUrl, { headers });
+
+  if (!res.ok) {
+    console.error(`Could not fetch release '${ tag }' from ${ repo } (HTTP ${ res.status })`);
+    process.exitCode = 1;
+
+    return;
+  }
+
+  const release = await res.json();
+  const assets = (release.assets || []).filter((a) => a.name.endsWith('.json.br'));
+
+  if (!assets.length) {
+    console.error(`Release '${ tag }' in ${ repo } has no .json.br mock bundles`);
+    process.exitCode = 1;
+
+    return;
+  }
+
+  fs.mkdirSync(dest, { recursive: true });
+  for (const asset of assets) {
+    const assetRes = await fetch(asset.browser_download_url, { headers });
+
+    if (!assetRes.ok) {
+      throw new Error(`Failed to download ${ asset.name } (HTTP ${ assetRes.status })`);
+    }
+    const buf = Buffer.from(await assetRes.arrayBuffer());
+
+    fs.writeFileSync(path.join(dest, asset.name), buf);
+    console.log(`Downloaded ${ asset.name } (${ (buf.length / 1e6).toFixed(2) } MB)`);
+  }
+  console.log(`Fetched ${ assets.length } mock bundle(s) into ${ path.relative(ROOT, dest) }`);
+}
+
+function cmdStats(args) {
+  const targets = args.length ? args.map((f) => path.resolve(ROOT, f)) : allBundles();
+  let totalSpecs = 0;
+  let totalBodies = 0;
+  let totalBytes = 0;
+
+  targets.forEach((file) => {
+    const bundle = readBundle(file);
+    const specs = Object.keys(bundle.hars).length;
+    const bodies = Object.keys(bundle.bodies).length;
+    const bytes = fs.statSync(file).size;
+
+    totalSpecs += specs;
+    totalBodies += bodies;
+    totalBytes += bytes;
+    console.log(`${ path.basename(file).padEnd(44) } ${ String(specs).padStart(3) } specs  ${ String(bodies).padStart(5) } bodies  ${ (bytes / 1e6).toFixed(2).padStart(6) } MB`);
+  });
+
+  console.log(`Total: ${ targets.length } bundles, ${ totalSpecs } specs, ${ totalBodies } bodies, ${ (totalBytes / 1e6).toFixed(2) } MB`);
+}
+
+async function main() {
+  const [command, ...args] = process.argv.slice(2);
+
+  switch (command) {
+  case 'update':
+    cmdUpdate(args);
+    break;
+  case 'check':
+    cmdCheck(args);
+    break;
+  case 'fetch':
+    await cmdFetch(args);
+    break;
+  case 'stats':
+    cmdStats(args);
+    break;
+  default:
+    console.log('Usage: scripts/e2e-mocks update [recordings-dir] [username] [bundle] | check [bundle...] [--gitleaks <bin>] | fetch [--tag <tag>] [--repo <owner/repo>] | stats [bundle...]');
+    process.exitCode = command ? 1 : 0;
+  }
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exitCode = 1;
+});

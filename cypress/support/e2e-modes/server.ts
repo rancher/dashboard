@@ -23,6 +23,8 @@ export interface RecordReplayServerOptions {
   set: string;
   /** A dashboard build to serve /dashboard/ from. Without one, generate mode forwards /dashboard/ to the upstream Rancher */
   distDir?: string;
+  /** A local dev server (e.g. `yarn dev` at https://localhost:8005) to proxy /dashboard/ to when distDir is not set */
+  devServerUrl?: string;
   key: Buffer;
   cert: Buffer;
 }
@@ -680,9 +682,14 @@ export class RecordReplayServer {
       return res.end(JSON.stringify(result));
     }
 
-    if (url.pathname === '/dashboard' || url.pathname.startsWith('/dashboard/')) {
-      if (this.options.distDir) {
+    const isDashboardPath = url.pathname === '/dashboard' || url.pathname.startsWith('/dashboard/') || url.pathname.startsWith('/sockjs-node') || url.pathname === '/__webpack_hmr';
+
+    if (isDashboardPath) {
+      if (this.options.distDir && (url.pathname === '/dashboard' || url.pathname.startsWith('/dashboard/'))) {
         return this.serveDashboard(url, res);
+      }
+      if (this.options.devServerUrl) {
+        return this.forward(req, res, url, body, false, this.options.devServerUrl);
       }
       if (this.options.mode === 'generate') {
         return this.forward(req, res, url, body, false);
@@ -733,8 +740,8 @@ export class RecordReplayServer {
     fs.createReadStream(file).pipe(res);
   }
 
-  private forward(req: http.IncomingMessage, res: http.ServerResponse, url: URL, body: Buffer, record: boolean) {
-    const upstream = new URL(this.options.upstream as string);
+  private forward(req: http.IncomingMessage, res: http.ServerResponse, url: URL, body: Buffer, record: boolean, upstreamUrl = this.options.upstream as string) {
+    const upstream = new URL(upstreamUrl);
     const target = new URL(`${ url.pathname }${ url.search }`, upstream);
     const method = req.method || 'GET';
     const scope = this.scope;
@@ -1166,6 +1173,12 @@ export class RecordReplayServer {
     const url = new URL(req.url || '/', this.origin);
 
     socket.on('error', () => socket.destroy());
+
+    if (this.options.devServerUrl && (url.pathname === '/ws' || url.pathname.startsWith('/sockjs-node'))) {
+      socket.destroy();
+
+      return;
+    }
 
     if (this.options.mode === 'generate') {
       this.recordSocket(req, socket, head, url);
