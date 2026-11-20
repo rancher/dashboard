@@ -43,7 +43,7 @@ describe('Charts', { testIsolation: false, tags: ['@charts', '@adminUser'] }, ()
 
         opaGatekeeper.selectContraintSubtype('k8srequiredlabels').click();
         opaGatekeeper.saveCreateForm().expectToBeEnabled();
-      });
+      }, { allowMissingFromCatalog: true });
     });
   });
 
@@ -70,7 +70,7 @@ describe('Charts', { testIsolation: false, tags: ['@charts', '@adminUser'] }, ()
               expect(elementRect.bottom).to.eq(pageHeight);
               expect(elementRect.bottom).to.eq(viewportHeight);
             });
-          });
+          }, { allowMissingFromCatalog: true });
         });
       });
     });
