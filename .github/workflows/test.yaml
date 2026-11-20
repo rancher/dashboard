@@ -100,8 +100,78 @@ jobs:
           retention-days: 10
           compression-level: 9
 
-  e2e-test:
+  check-e2e-mocks:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Setup env
+        uses: ./.github/actions/setup
+      - name: Run e2e-modes scrubber unit tests
+        run: yarn e2e:mock:test
+      - name: Check committed e2e mocks for credentials
+        if: ${{ hashFiles('cypress/integration-mocks/*.json.br') != '' }}
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          node scripts/e2e-mocks check --gitleaks "$RUNNER_TEMP/gitleaks"
+
+  e2e-plan:
+    if: "github.event_name == 'pull_request' && !contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e') && !contains( github.event.pull_request.labels.*.name, 'ci/full-e2e') && !contains( github.event.pull_request.labels.*.name, 'ci/generate-mocks')"
+    runs-on: ubuntu-24.04
+    outputs:
+      mocks: ${{ steps.plan.outputs.mocks }}
+      integration: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Restore node_modules
+        id: node-modules
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            node_modules
+            pkg/*/node_modules
+            ~/.cache/Cypress
+          key: e2e-node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.nvmrc', 'yarn.lock', 'package.json', 'pkg/rancher-components/package.json') }}
+      - name: Setup env
+        uses: ./.github/actions/setup
+      - name: Save node_modules
+        if: ${{ steps.node-modules.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            node_modules
+            pkg/*/node_modules
+            ~/.cache/Cypress
+          key: ${{ steps.node-modules.outputs.cache-primary-key }}
+      - name: Fetch integration mocks from release
+        if: ${{ hashFiles('cypress/integration-mocks/*.json.br') == '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/e2e-mocks fetch --tag "e2e-mocks-pr-${{ github.event.pull_request.number }}" \
+            || node scripts/e2e-mocks fetch --tag "e2e-mocks-${{ github.base_ref || github.ref_name }}" \
+            || true
+      - name: Plan integration jobs
+        id: plan
+        run: node .github/workflows/scripts/e2e-plan.js integration >> "$GITHUB_OUTPUT"
+        env:
+          E2E_GROUPS: >-
+            {
+              "roles": [{ "username": "admin", "tag": "@adminUser" }, { "username": "standard_user", "tag": "@standardUser" }],
+              "features": [
+                ["@navigation", "@extensions"], ["@charts"], ["@explorer"], ["@explorer2"], ["@virtualizationMgmt", "@fleet"],
+                ["@generic", "@globalSettings"], ["@manager"], ["@userMenu", "@usersAndAuths"], ["@components"]
+              ]
+            }
+
+  e2e-test:
+    if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e') && (github.event_name != 'pull_request' || contains( github.event.pull_request.labels.*.name, 'ci/full-e2e') || contains( github.event.pull_request.labels.*.name, 'ci/generate-mocks'))"
     needs: e2e-ui-build
     strategy:
       fail-fast: false
@@ -128,6 +198,11 @@ jobs:
           fetch-depth: 1
       - name: Setup env
         uses: ./.github/actions/setup
+      - name: Find specs
+        id: specs
+        run: echo "count=$(node .github/workflows/scripts/e2e-plan.js count "$GREP_TAGS")" >> "$GITHUB_OUTPUT"
+        env:
+          GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
 
       # Installing fixed version of Chrome since latest version does not work (128 didn't work)
       # Leaving this here again in case we need to pin to a specific Chrome version in the future
@@ -149,39 +224,67 @@ jobs:
          path: ${{ env.E2E_BUILD_DIST_EMBER_DIR }}
       
       - name: Run Rancher
+        if: ${{ steps.specs.outputs.count != '0' }}
         run: yarn e2e:k3s
-      
+
       - name: Setup Rancher and user
+        if: ${{ steps.specs.outputs.count != '0' }}
         run: |
           yarn e2e:prod
-        env: 
+        env:
           RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           GREP_TAGS: ${{ matrix.role.tag }}Setup+${{ matrix.features[0] }} --@jenkins ${{ matrix.role.tag }}Setup+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
           TEST_USERNAME: admin
           TEST_ONLY: setup
       - name: Detect Rancher license (Prime vs Community)
         id: detect-prime
+        if: ${{ steps.specs.outputs.count != '0' }}
         run: |
           IS_PRIME=$(curl -sk "$API/rancherversion" | jq -r '.RancherPrime // "false"')
           echo "Detected RancherPrime=$IS_PRIME"
           echo "is-prime=$IS_PRIME" >> "$GITHUB_OUTPUT"
 
       - name: Run user tests
+        if: ${{ steps.specs.outputs.count != '0' }}
         run: |
           yarn e2e:prod
           [ "$BUILD_DASHBOARD" != "false" ] || exit 0
         env:
+          TEST_MODE: generate
+          TEST_RECORDINGS_DIR: e2e-recordings
           RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
           TEST_SKIP: setup
           GREP_TAGS: ${{ matrix.role.tag }}+${{ matrix.features[0] }} --@jenkins${{ steps.detect-prime.outputs.is-prime == 'true' && ' --@noPrime' || '' }} ${{ matrix.role.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins${{ steps.detect-prime.outputs.is-prime == 'true' && ' --@noPrime' || '' }}
           TEST_USERNAME: ${{ matrix.role.username }}
+
+      - name: Pack integration mocks
+        if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
+        run: node cypress/support/e2e-modes/mocks.js pack e2e-recordings ${{ matrix.role.username }} "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br"
+
+      - name: Check integration mocks for credentials
+        id: mocks-check
+        if: ${{ !cancelled() && steps.specs.outputs.count != '0' && hashFiles('e2e-recordings/**/*.har') != '' }}
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tar.gz" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+          node cypress/support/e2e-modes/mocks.js check "e2e-mocks/${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}.json.br" --gitleaks "$RUNNER_TEMP/gitleaks"
+
+      - name: Upload integration mocks
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() && steps.mocks-check.outcome == 'success' }}
+        with:
+          name: e2e-mocks-${{ matrix.role.username }}${{ matrix.features[0] }}${{ matrix.features[1] }}
+          path: e2e-mocks/*.json.br
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}
         run: yarn k3s:local:logs
 
       - name: Create Artifacts Folder
-        if: ${{ always() }}
+        if: ${{ always() && steps.specs.outputs.count != '0' }}
         run: |
           mkdir artifacts
           cp -r cypress/screenshots artifacts 2>/dev/null || :
@@ -192,13 +295,137 @@ jobs:
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: ${{ always() }}
+        if: ${{ always() && steps.specs.outputs.count != '0' }}
         with:
           name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-${{ matrix.role.tag }}${{ matrix.features[0] }}${{ matrix.features[1] }}
           path: artifacts/
           if-no-files-found: error
           retention-days: 5
           compression-level: 9
+
+  publish-e2e-mocks:
+    if: "!cancelled() && (github.event_name == 'push' || (github.event_name == 'pull_request' && contains( github.event.pull_request.labels.*.name, 'ci/generate-mocks') && github.event.pull_request.head.repo.full_name == github.repository))"
+    needs: e2e-test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download verified mock bundles
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: e2e-mocks-*
+          path: e2e-mocks
+          merge-multiple: true
+      - name: Publish rolling mocks release
+        if: ${{ hashFiles('e2e-mocks/*.json.br') != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MOCKS_TAG: "${{ github.event_name == 'pull_request' && format('e2e-mocks-pr-{0}', github.event.pull_request.number) || format('e2e-mocks-{0}', github.ref_name) }}"
+          MOCKS_REF: "${{ github.event_name == 'pull_request' && format('PR {0} ({1})', github.event.pull_request.number, github.head_ref) || github.ref_name }}"
+        run: |
+          if gh release view "$MOCKS_TAG" >/dev/null 2>&1; then
+            gh release upload "$MOCKS_TAG" e2e-mocks/*.json.br --clobber
+          else
+            gh release create "$MOCKS_TAG" e2e-mocks/*.json.br \
+              --title "E2E Integration Mocks ($MOCKS_REF)" \
+              --notes "Auto-generated, scrubbed, and gitleaks-verified E2E mock bundles from $MOCKS_REF." \
+              --prerelease
+          fi
+
+  e2e-test-integration:
+    if: "!cancelled() && github.event_name == 'pull_request' && needs.e2e-ui-build.result == 'success' && needs.e2e-plan.outputs.mocks != '' && !contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e') && !contains( github.event.pull_request.labels.*.name, 'ci/full-e2e') && !contains( github.event.pull_request.labels.*.name, 'ci/generate-mocks')"
+    needs: [e2e-ui-build, e2e-plan]
+    name: e2e-test-integration (${{ matrix.username }}, ${{ matrix.tag }}, ${{ join(matrix.features, ', ') }}, ${{ matrix.shard }}/${{ matrix.shards }})
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.e2e-plan.outputs.integration) }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Restore node_modules
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            node_modules
+            pkg/*/node_modules
+            ~/.cache/Cypress
+          key: e2e-node-modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.nvmrc', 'yarn.lock', 'package.json', 'pkg/rancher-components/package.json') }}
+      - name: Setup env
+        uses: ./.github/actions/setup
+
+      - name: Download e2e build
+        uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+         name: ${{ env.E2E_BUILD_DIST_NAME }}
+         path: ${{ env.E2E_BUILD_DIST_DIR }}
+
+      - name: Fetch integration mocks from release
+        if: ${{ hashFiles('cypress/integration-mocks/*.json.br') == '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/e2e-mocks fetch --tag "e2e-mocks-pr-${{ github.event.pull_request.number }}" \
+            || node scripts/e2e-mocks fetch --tag "e2e-mocks-${{ github.base_ref || github.ref_name }}"
+
+      - name: Run user tests
+        run: |
+          yarn e2e:prod
+          [ "$BUILD_DASHBOARD" != "false" ] || exit 0
+        env:
+          TEST_MODE: integration
+          TEST_NO_VIDEOS: true
+          RANCHER_VERSION: ${{ needs.e2e-ui-build.outputs.runtime-rancher-version }}
+          TEST_RECORDINGS_DIR: ${{ matrix.recordings || 'cypress/recordings' }}
+          TEST_DIST_DIR: ${{ env.E2E_BUILD_DIST_DIR }}
+          TEST_SKIP: setup
+          SPEC_FILE: ${{ matrix.specs }}
+          GREP_TAGS: ${{ matrix.tag }}+${{ matrix.features[0] }} --@jenkins ${{ matrix.tag }}+${{ matrix.features[1] || matrix.features[0] }} --@jenkins
+          TEST_USERNAME: ${{ matrix.username }}
+
+      - name: Create Artifacts Folder
+        if: ${{ always() }}
+        run: |
+          mkdir artifacts
+          cp -r cypress/screenshots artifacts 2>/dev/null || :
+          cp -r cypress/videos artifacts 2>/dev/null || :
+          cp -r cypress/reports/* artifacts || :
+          cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
+        with:
+          name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-integration-${{ matrix.tag }}${{ join(matrix.features, '') }}-${{ matrix.shard }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 5
+          compression-level: 9
+
+  e2e-timings:
+    if: "!cancelled() && !contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
+    needs: [e2e-test, e2e-test-integration]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 1
+      - name: Summarize e2e timings
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node .github/workflows/scripts/e2e-timings.js ${{ github.repository }} ${{ github.run_id }} ${{ github.run_attempt }} > e2e-timings.md
+          cat e2e-timings.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload timings
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-timings
+          path: e2e-timings.md
+          retention-days: 30
 
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
