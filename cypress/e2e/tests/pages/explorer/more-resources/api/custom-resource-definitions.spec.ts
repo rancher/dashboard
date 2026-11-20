@@ -3,6 +3,8 @@ import { generateCrdsDataSmall } from '@/cypress/e2e/blueprints/explorer/more-re
 import * as jsyaml from 'js-yaml';
 import HomePagePo from '@/cypress/e2e/po/pages/home.po';
 import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dashboard.po';
+import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
+import BaseResourceList from '@/cypress/e2e/po/lists/base-resource-list.po';
 
 const cluster = 'local';
 const crdsPage = new CustomResourceDefinitionsPagePo(cluster);
@@ -224,6 +226,97 @@ describe('CustomResourceDefinitions', { testIsolation: false, tags: ['@explorer'
     after('clean up', () => {
       // delete crd
       cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', crdName);
+    });
+  });
+
+  describe('Resource column', { tags: ['@explorer', '@adminUser'] }, () => {
+    const runId = `e2e${ Date.now().toString(36) }`;
+    const groupA = `a-${ runId }.example.com`;
+    const groupB = `b-${ runId }.example.com`;
+    const singularOnlyMatch = `yak${ runId }`;
+
+    const zebra = {
+      group: groupA, plural: 'aardvarks', singular: 'zebra', kind: 'Zebra'
+    };
+    const apple = {
+      group: groupB, plural: 'apples', singular: 'apple', kind: 'Apple'
+    };
+    const yak = {
+      group: groupA, plural: 'bisons', singular: singularOnlyMatch, kind: `Yak${ runId }`
+    };
+    const crds = [zebra, apple, yak];
+
+    const nameOf = (crd: typeof zebra) => `${ crd.plural }.${ crd.group }`;
+    const resourceOf = (crd: typeof zebra) => `${ crd.group }.${ crd.singular }`;
+
+    const expectRowNames = (names: string[]) => crdsPage.sortableTable().rowElements(MEDIUM_TIMEOUT_OPT).should(($rows) => {
+      expect(Cypress.$.makeArray($rows).map((row) => Cypress.$(row).find('td:nth-of-type(3)').text().trim())).to.deep.equal(names);
+    });
+
+    const openList = () => {
+      CustomResourceDefinitionsPagePo.navTo();
+      crdsPage.waitForPage();
+      crdsPage.sortableTable().checkVisible();
+      crdsPage.sortableTable().checkLoadingIndicatorNotVisible();
+    };
+
+    before(() => {
+      crds.forEach((crd) => {
+        cy.createRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', {
+          apiVersion: 'apiextensions.k8s.io/v1',
+          kind:       'CustomResourceDefinition',
+          metadata:   { name: nameOf(crd) },
+          spec:       {
+            group: crd.group,
+            scope: 'Namespaced',
+            names: {
+              plural: crd.plural, singular: crd.singular, kind: crd.kind
+            },
+            versions: [{
+              name: 'v1', served: true, storage: true, schema: { openAPIV3Schema: { type: 'object' } }
+            }]
+          }
+        }, false);
+        cy.waitForRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', nameOf(crd), (resp: any) => resp?.status === 200, 20, { failOnStatusCode: false });
+      });
+    });
+
+    it('sorts by group then singular name when the Resource column is sorted', () => {
+      openList();
+      crdsPage.sortableTable().filter(runId);
+      expectRowNames([zebra, apple, yak].map(nameOf));
+
+      crdsPage.sortableTable().sort(3).click();
+      crdsPage.sortableTable().tableHeaderRow().checkSortOrder(3, 'down');
+      expectRowNames([yak, zebra, apple].map(nameOf));
+
+      crdsPage.sortableTable().sort(3).click();
+      crdsPage.sortableTable().tableHeaderRow().checkSortOrder(3, 'up');
+      expectRowNames([apple, zebra, yak].map(nameOf));
+    });
+
+    it('finds a CRD by the singular name shown in its Resource column', () => {
+      openList();
+      crdsPage.sortableTable().filter(singularOnlyMatch);
+      expectRowNames([nameOf(yak)]);
+      crdsPage.sortableTable().rowWithName(nameOf(yak)).column(3)
+        .should(($cell) => expect($cell.text().trim()).to.equal(resourceOf(yak)));
+    });
+
+    it('links the Resource column to the list of its custom resources', () => {
+      openList();
+      crdsPage.sortableTable().filter(runId);
+      expectRowNames([zebra, apple, yak].map(nameOf));
+      crdsPage.sortableTable().rowWithName(nameOf(yak)).column(3)
+        .find('a')
+        .click();
+      cy.location('pathname').should('match', new RegExp(`/c/${ cluster }/explorer/${ Cypress._.escapeRegExp(resourceOf(yak)) }$`));
+      new BaseResourceList('[data-testid="sortable-table-list-container"]').resourceTable().sortableTable()
+        .checkRowCount(true, 1, MEDIUM_TIMEOUT_OPT);
+    });
+
+    after('clean up', () => {
+      crds.forEach((crd) => cy.deleteRancherResource('v1', 'apiextensions.k8s.io.customresourcedefinitions', nameOf(crd), false));
     });
   });
 });
