@@ -10,7 +10,7 @@ const PRINCIPALS: Record<string, { id: string, principalType: string }> = {
 /**
  * A user type whose store dispatch answers the actions the model uses. `bindings` are the user type's labelled global role bindings
  */
-function userTypeWithStore({ bindings = [] as any[], findRole = (): Promise<any> => Promise.resolve({ id: 'usertype-dev' }) } = {}) {
+function userTypeWithStore({ bindings = [] as ReturnType<typeof binding>[], findRole = (): Promise<any> => Promise.resolve({ id: 'usertype-dev' }) } = {}) {
   const created: any[] = [];
   const dispatch = jest.fn((action: string, args: any) => {
     switch (action) {
@@ -135,6 +135,27 @@ describe('class UserType', () => {
       }, ctx);
 
       expect(userType.customValidationErrors(userType)).toStrictEqual(expected);
+    });
+  });
+
+  describe('details', () => {
+    const details = (spec: object) => new UserType({ metadata: { name: 'dev' }, spec }, { rootGetters: { 'i18n/t': (key: string) => key } }).details;
+
+    it('should show the display name, priority and tags', () => {
+      expect(details({
+        displayName: 'Developer', priority: 3, tags: ['a', 'b']
+      })).toStrictEqual([
+        { label: 'userType.displayName.label', content: 'Developer' },
+        { label: 'userType.priority.label', content: 3 },
+        { label: 'userType.tags.label', content: 'a, b' },
+      ]);
+    });
+
+    it('should show a missing priority as 0 and leave tags out when there are none', () => {
+      expect(details({ displayName: 'Developer', tags: [] })).toStrictEqual([
+        { label: 'userType.displayName.label', content: 'Developer' },
+        { label: 'userType.priority.label', content: 0 },
+      ]);
     });
   });
 

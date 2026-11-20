@@ -25,7 +25,8 @@ describe('view: customization.ui.rancher.usertype', () => {
     return userType;
   };
 
-  const createWrapper = (value = createUserType(), router = { applyQuery: jest.fn(), replace: jest.fn() }) => mount(EditUserType, {
+  // A plain object, or a real model where its validation matters
+  const createWrapper = (value: object = createUserType(), router = { applyQuery: jest.fn(), replace: jest.fn() }) => mount(EditUserType, {
     props:  { value, mode: _CREATE },
     global: {
       provide: { store: { getters: { 'i18n/t': (val: string) => val } } },
@@ -56,7 +57,7 @@ describe('view: customization.ui.rancher.usertype', () => {
     await nextTick();
   };
 
-  const saveDisabled = (wrapper: ReturnType<typeof createWrapper>) => (wrapper.find('[data-testid="form-save"]').element as HTMLButtonElement).disabled;
+  const saveDisabled = (wrapper: ReturnType<typeof createWrapper>) => wrapper.find<HTMLButtonElement>('[data-testid="form-save"]').element.disabled;
 
   it('should disable save when the form opens with the defaults', () => {
     const wrapper = createWrapper();
@@ -170,14 +171,14 @@ describe('view: customization.ui.rancher.usertype', () => {
     });
 
     it('should start with no rules', () => {
-      const wrapper = createWrapper(createModel() as any);
+      const wrapper = createWrapper(createModel());
 
       expect(wrapper.findAll('[data-testid^="grant-resources-verbs"]')).toHaveLength(0);
     });
 
     it('should add a rule with no verbs, resources or API group', async() => {
       const userType = createModel();
-      const wrapper = createWrapper(userType as any);
+      const wrapper = createWrapper(userType);
 
       await addRule(wrapper);
 
@@ -187,7 +188,7 @@ describe('view: customization.ui.rancher.usertype', () => {
     });
 
     it('should not offer non-resource URLs', async() => {
-      const wrapper = createWrapper(createModel() as any);
+      const wrapper = createWrapper(createModel());
 
       await addRule(wrapper);
 
@@ -197,7 +198,7 @@ describe('view: customization.ui.rancher.usertype', () => {
     it('should not add rules to a user type that has none', async() => {
       const userType = createModel();
 
-      createWrapper(userType as any);
+      createWrapper(userType);
       jest.advanceTimersByTime(100);
       await nextTick();
 
@@ -209,7 +210,7 @@ describe('view: customization.ui.rancher.usertype', () => {
       [true, 'a rule with verbs and no resources', ['get'], null],
       [false, 'a complete rule', ['get'], { resourceName: 'deployments', apiGroupValue: 'apps' }],
     ])('should set save disabled to %p with %s', async(disabled, _, verbs, resource) => {
-      const wrapper = createWrapper(createModel() as any);
+      const wrapper = createWrapper(createModel());
 
       await addRule(wrapper);
       await selectWithTestid(wrapper, 'grant-resources-verbs0').vm.$emit('update:value', verbs);
@@ -221,7 +222,7 @@ describe('view: customization.ui.rancher.usertype', () => {
     });
 
     it('should allow saving with no rules', () => {
-      const wrapper = createWrapper(createModel() as any);
+      const wrapper = createWrapper(createModel());
 
       expect(saveDisabled(wrapper)).toBe(false);
     });
@@ -234,7 +235,7 @@ describe('view: customization.ui.rancher.usertype', () => {
           apiGroups: ['""'], resources: ['pods'], verbs: ['get']
         }]
       });
-      const wrapper = createWrapper(userType as any);
+      const wrapper = createWrapper(userType);
 
       await (wrapper.vm as any).applyHooks(BEFORE_SAVE_HOOKS, userType);
 

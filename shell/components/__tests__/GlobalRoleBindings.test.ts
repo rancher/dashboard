@@ -54,11 +54,12 @@ describe('component: GlobalRoleBindings', () => {
     globalRoleBindings = [] as Binding[],
     groups = { [OPS_GROUP]: 'ops' } as Record<string, string>,
     userPrincipalIds = [] as string[],
+    roles = globalRoles,
   } = {}) => {
     const user = { id: USER_ID, fetchGroupPrincipals: () => Promise.resolve(groups) };
     const dispatch = jest.fn((action: string, opt: { type?: string }) => {
       if (action === 'management/findAll') {
-        return Promise.resolve(opt.type === MANAGEMENT.GLOBAL_ROLE ? globalRoles : globalRoleBindings);
+        return Promise.resolve(opt.type === MANAGEMENT.GLOBAL_ROLE ? roles : globalRoleBindings);
       }
 
       return Promise.resolve({});
@@ -234,6 +235,50 @@ describe('component: GlobalRoleBindings', () => {
       user:              { tooltip: null, disabled: false },
       'users-manage':    { tooltip: 'rbac.globalRoles.groupRole', disabled: false },
       'clusters-create': { tooltip: 'rbac.globalRoles.groupRole', disabled: false },
+    });
+  });
+
+  describe('user type roles', () => {
+    const roles = [
+      ...globalRoles,
+      {
+        id: 'usertype-dev', nameDisplay: 'User Type: Developer', builtin: false, isUserTypeRole: true, rules: []
+      },
+      {
+        id: 'gr-custom', nameDisplay: 'Custom', builtin: false, isUserTypeRole: false, rules: []
+      },
+    ];
+
+    it('gives a user type\'s role no checkbox, and other custom roles one', async() => {
+      const { wrapper } = await load({ roles });
+
+      await nextTick();
+
+      const values = wrapper.findAllComponents(Checkbox).map((c) => c.props('valueWhenTrue'));
+
+      expect(values).toContain('gr-custom');
+      expect(values).not.toContain('usertype-dev');
+    });
+
+    it('never adds or removes a user type binding when other roles change', async() => {
+      const { vm } = await load({
+        roles,
+        globalRoleBindings: [
+          {
+            id: 'grb-1', globalRoleName: 'user', userName: USER_ID
+          },
+          {
+            id: 'grb-type', globalRoleName: 'usertype-dev', userName: USER_ID
+          },
+        ]
+      });
+
+      vm.selectedRoles.splice(vm.selectedRoles.indexOf('user'), 1);
+      vm.selectedRoles.push('gr-custom');
+      vm.checkboxChanged();
+
+      expect(vm.roleChanges.addRoles).toStrictEqual(['gr-custom']);
+      expect(vm.roleChanges.removeBindings).toStrictEqual(['grb-1']);
     });
   });
 });

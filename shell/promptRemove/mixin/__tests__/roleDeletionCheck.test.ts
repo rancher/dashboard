@@ -20,7 +20,7 @@ describe('mixin: roleDeletionCheck', () => {
       $store:  { dispatch: jest.fn((action: string, { url }: { url: string }) => Promise.resolve({ data: url.endsWith(MANAGEMENT.USER) ? users : bindings })) },
     };
 
-    await (roleDeletionCheck as any).methods.handleRoleDeletionCheck.call(ctx, [{ id: 'usertype-dev' }], MANAGEMENT.GLOBAL_ROLE, '');
+    await roleDeletionCheck.methods.handleRoleDeletionCheck.call(ctx, [{ id: 'usertype-dev' }], MANAGEMENT.GLOBAL_ROLE, '');
 
     return ctx;
   };
