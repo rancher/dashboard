@@ -206,8 +206,12 @@ describe('fx: resolveInitialProvider', () => {
       expect(resolveInitialProvider(options, 'okta-partner', requestedId)?.id).toBe('okta-partner');
     });
 
-    it('should ignore a request for the local provider', () => {
-      expect(resolveInitialProvider(withLocal, null, 'local')?.id).toBe('okta-corp');
+    it('should open on the local provider when it is requested', () => {
+      expect(resolveInitialProvider(withLocal, 'okta-partner', 'local')?.id).toBe('local');
+    });
+
+    it('should ignore a request for the local provider when local is not offered', () => {
+      expect(resolveInitialProvider(options, null, 'local')?.id).toBe('okta-corp');
     });
   });
 });

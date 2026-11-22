@@ -619,8 +619,20 @@ describe('page: login', () => {
       expect(wrapper.vm.selectedProviderId).toBe('gh-community');
     });
 
-    it('should ignore a request for the local provider', async() => {
-      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: 'local' });
+    it.each([
+      ['a list of providers', [LOCAL, OKTA_CORP, GITHUB]],
+      ['a single external provider', [LOCAL, OKTA_CORP]],
+    ])('should open on the local provider when the URL names it, with %s', async(_label, drivers) => {
+      const wrapper = createWrapper(drivers, { [PROVIDER]: 'local' });
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.selectedProviderId).toBe('local');
+      expect(wrapper.vm.showLocal).toBe(true);
+    });
+
+    it('should open as without the parameter when the URL names local and local is not offered', async() => {
+      const wrapper = createWrapper([OKTA_CORP, GITHUB], { [PROVIDER]: 'local' });
 
       await runFetch(wrapper);
 
