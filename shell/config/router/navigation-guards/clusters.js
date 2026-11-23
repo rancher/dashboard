@@ -49,7 +49,15 @@ export async function loadClusters(to, from, next, { store }) {
 
     // Sometimes this needs to happen before or alongside other things... but is always needed
     const always = [
-      store.dispatch('loadManagement')
+      // Users without management permissions can still authenticate and use
+      // routes that do not require management data.
+      store.dispatch('loadManagement').catch((err) => {
+        const status = err?.status || err?._status || err?.statusCode || err?.response?.status || err?.data?.status;
+
+        if (status !== 403) {
+          throw err;
+        }
+      })
     ];
 
     // Entering a new package where we weren't before?

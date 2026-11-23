@@ -42,6 +42,7 @@ const hasOptions = (options: DropdownOption[]) => {
       >
         <rc-dropdown-item
           v-if="!a.divider"
+          :data-testid="a.action ? `dropdown-action-${ a.action }` : undefined"
           @click="(e: MouseEvent) => emit('select', e, a)"
         >
           <template #before>

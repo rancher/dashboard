@@ -2,7 +2,7 @@ import ComponentPo from '@/cypress/e2e/po/components/component.po';
 
 export class GrowlManagerPo extends ComponentPo {
   constructor() {
-    super('.growl-container');
+    super('[data-testid^="growl-list-item-"]');
   }
 
   growlList() {
@@ -10,7 +10,7 @@ export class GrowlManagerPo extends ComponentPo {
   }
 
   growlMessage() {
-    return this.self().find('.growl-message');
+    return this.self();
   }
 
   dismissWarning() {

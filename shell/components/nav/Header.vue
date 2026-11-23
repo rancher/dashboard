@@ -63,6 +63,7 @@ export default {
   fetch() {
     // fetch needed data to check if any auth provider is enabled
     this.$store.dispatch('auth/getAuthProviders');
+    this.$store.dispatch('auth/restoreImpersonation').catch(() => undefined);
   },
 
   data() {
@@ -75,6 +76,7 @@ export default {
       isUserMenuOpen:          false,
       isPageActionMenuOpen:    false,
       kubeConfigCopying:       false,
+      stoppingImpersonation:   false,
       shellShortcut,
       LOGGED_OUT,
       navHeaderRight:          null,
@@ -134,6 +136,10 @@ export default {
 
     isAuthLocalProvider() {
       return this.principal && this.principal.provider === 'local';
+    },
+
+    impersonation() {
+      return this.$store.getters['auth/impersonation'];
     },
 
     generateLogoutRoute() {
@@ -376,6 +382,18 @@ export default {
   },
 
   methods: {
+    async stopImpersonation() {
+      if (this.stoppingImpersonation) {
+        return;
+      }
+      this.stoppingImpersonation = true;
+      try {
+        await this.$store.dispatch('auth/stopImpersonation');
+      } finally {
+        this.stoppingImpersonation = false;
+      }
+    },
+
     openWhatsNew() {
       openReleaseWelcome(this.$store.commit);
     },
@@ -803,6 +821,17 @@ export default {
       <div class="center-self">
         <header-page-action-menu v-if="showPageActions" />
         <NotificationCenter />
+        <div
+          v-if="impersonation"
+          class="impersonation-header-badge"
+          data-testid="impersonation-header-badge"
+          role="status"
+          :title="t('nav.header.impersonating', { user: impersonation.displayName || impersonation.userId })"
+        >
+          <i class="icon icon-warning icon-sm" />
+          <strong>{{ t('nav.header.impersonatingLabel') }}</strong>
+          <span :title="impersonation.displayName || impersonation.userId">{{ impersonation.displayName || impersonation.userId }}</span>
+        </div>
         <rc-dropdown
           v-if="showUserMenu"
           :aria-label="t('nav.userMenu.label')"
@@ -813,18 +842,20 @@ export default {
             data-testid="nav_header_showUserMenu"
             :aria-label="t('nav.userMenu.button.label')"
           >
-            <img
-              v-if="principal && principal.avatarSrc"
-              :src="principal.avatarSrc"
-              :class="{'avatar-round': principal.roundAvatar}"
-              width="36"
-              height="36"
-              :alt="t('nav.alt.userAvatar')"
-            >
-            <i
-              v-else
-              class="icon icon-user icon-3x avatar"
-            />
+            <span class="user-avatar">
+              <img
+                v-if="principal && principal.avatarSrc"
+                :src="principal.avatarSrc"
+                :class="{'avatar-round': principal.roundAvatar}"
+                width="36"
+                height="36"
+                :alt="t('nav.alt.userAvatar')"
+              >
+              <i
+                v-else
+                class="icon icon-user icon-3x avatar"
+              />
+            </span>
           </rc-dropdown-trigger>
           <template #dropdownCollection>
             <template v-if="authEnabled">
@@ -837,6 +868,20 @@ export default {
                     {{ principal.name }}
                   </template>
                 </div>
+              </div>
+              <div
+                v-if="impersonation"
+                class="user-info impersonation-info"
+              >
+                <div class="text-small">
+                  {{ t('nav.userMenu.impersonating', { user: impersonation.displayName || impersonation.userId }) }}
+                </div>
+                <rc-dropdown-item
+                  data-testid="user-menu-stop-impersonation"
+                  @click="stopImpersonation"
+                >
+                  {{ t('nav.userMenu.returnToAdministrator') }}
+                </rc-dropdown-item>
               </div>
               <rc-dropdown-separator />
             </template>
@@ -1153,6 +1198,38 @@ export default {
       .avatar-round {
         border: 0;
         border-radius: 50%;
+      }
+
+      .user-avatar {
+        display: flex;
+        line-height: 0;
+      }
+
+      .impersonation-header-badge {
+        align-items: center;
+        background: #f59e0b;
+        border: 2px solid #fff;
+        border-radius: 999px;
+        color: #111827;
+        display: flex;
+        font-size: 12px;
+        gap: 6px;
+        line-height: 1;
+        margin-right: 12px;
+        max-width: min(40vw, 360px);
+        padding: 7px 10px;
+        white-space: nowrap;
+
+        strong {
+          flex: 0 0 auto;
+          letter-spacing: 0.04em;
+        }
+
+        span {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
 
       > .user {

@@ -340,12 +340,17 @@ nav:
     showHideBanner: Show/Hide Banner
     pinCluster: Pin cluster ({shortcut})
     unpinCluster: Unpin cluster ({shortcut})
+    impersonating: 'Impersonating {user}'
+    impersonatingLabel: IMPERSONATING
   userMenu:
     preferences: Preferences
     accountAndKeys: Account & API Keys
     whatsNew: What's New
     logOut: Log Out
     label: User menu
+    loginAsThisUser: Login as this user
+    impersonating: 'Impersonating {user}'
+    returnToAdministrator: Return to administrator
     button:
       label: Open user menu
   actionMenu:
