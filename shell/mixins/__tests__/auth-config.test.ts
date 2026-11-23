@@ -503,6 +503,26 @@ describe('mixin: authConfigMixin', () => {
       expect(instance.authConfigName).toBe('github-2');
     });
 
+    it('should mark a config whose provider supports Single Logout as supporting it', async() => {
+      const { instance, dispatch } = createInstance({ name: 'keycloakoidc', normanType: 'keyCloakOIDCConfig' });
+
+      await instance.save(jest.fn());
+
+      const [, payload] = dispatch.mock.calls.find(([action]) => action === 'management/request') as any;
+
+      expect(payload.data.logoutAllSupported).toBe(true);
+    });
+
+    it('should leave Single Logout off a config whose provider does not support it', async() => {
+      const { instance, dispatch } = createInstance();
+
+      await instance.save(jest.fn());
+
+      const [, payload] = dispatch.mock.calls.find(([action]) => action === 'management/request') as any;
+
+      expect(Object.keys(payload.data)).not.toContain('logoutAllSupported');
+    });
+
     it('should return to the provider list once the new config is enabled', async() => {
       const { instance, replace } = createInstance();
 
@@ -671,6 +691,108 @@ describe('mixin: authConfigMixin', () => {
       await instance.mixinFetch();
 
       expect(dispatch).toHaveBeenCalledWith('rancher/create', { type: 'openLdapConfig' });
+    });
+  });
+
+  describe('single Logout', () => {
+    const FakeComponent = {
+      render() {},
+      mixins:  [authConfigMixin, childHook],
+      methods: { applyHooks: jest.fn() },
+    };
+
+    const schemaFor = () => ({ resourceFields: { logoutAllSupported: { type: 'boolean', default: false } } });
+
+    const createInstance = ({ configType, authConfigCreate, existing }: { configType: string, authConfigCreate?: any, existing?: any }) => {
+      const dispatch = jest.fn((action: string, payload: any) => {
+        switch (action) {
+        case 'rancher/create': return Promise.resolve({ ...payload });
+        case 'rancher/find': return Promise.resolve(existing);
+        case 'rancher/clone': return Promise.resolve({ ...payload.resource });
+        case 'rancher/findAll': return Promise.resolve([]);
+        default: return Promise.resolve(undefined);
+        }
+      });
+
+      return mount(FakeComponent, {
+        data:   () => ({ value: { configType } }),
+        global: {
+          provide: { authConfigCreate },
+          mocks:   {
+            $store: { dispatch, getters: { 'rancher/schemaFor': schemaFor } },
+            $route: { params: { cluster: 'local', id: existing?.id }, query: { mode: 'edit' } },
+          },
+        },
+      }).vm as any;
+    };
+
+    it.each([
+      ['oidc', 'keyCloakOIDCConfig'],
+      ['saml', 'keyCloakConfig'],
+      ['oauth', 'azureADConfig'],
+    ])('should offer Single Logout on a new %s config of type %p', async(configType, normanType) => {
+      const instance = createInstance({
+        configType,
+        authConfigCreate: {
+          name: 'new', normanType, takenIds: [], created: false
+        }
+      });
+
+      await instance.mixinFetch();
+
+      expect(instance.model.logoutAllSupported).toBe(true);
+    });
+
+    it('should default a new config to logging out of Rancher only', async() => {
+      const instance = createInstance({
+        configType:       'oidc',
+        authConfigCreate: {
+          name: 'keycloakoidc', normanType: 'keyCloakOIDCConfig', takenIds: [], created: false
+        }
+      });
+
+      await instance.mixinFetch();
+
+      expect(instance.sloType).toBe('rancher');
+    });
+
+    it('should not offer Single Logout on a new config whose provider does not support it', async() => {
+      const instance = createInstance({
+        configType:       'oauth',
+        authConfigCreate: {
+          name: 'github', normanType: 'githubConfig', takenIds: [], created: false
+        }
+      });
+
+      await instance.mixinFetch();
+
+      expect(instance.model.logoutAllSupported).toBe(false);
+    });
+
+    it('should offer Single Logout on an existing config saved without it', async() => {
+      const instance = createInstance({
+        configType: 'oidc',
+        existing:   {
+          id: 'keycloakoidc', type: 'keyCloakOIDCConfig', enabled: true, logoutAllSupported: false, logoutAllEnabled: true, logoutAllForced: false
+        },
+      });
+
+      await instance.mixinFetch();
+
+      expect(instance.model.logoutAllSupported).toBe(true);
+    });
+
+    it('should keep the Single Logout choice of an existing config', async() => {
+      const instance = createInstance({
+        configType: 'oidc',
+        existing:   {
+          id: 'keycloakoidc', type: 'keyCloakOIDCConfig', enabled: true, logoutAllSupported: true, logoutAllEnabled: true, logoutAllForced: true
+        },
+      });
+
+      await instance.mixinFetch();
+
+      expect(instance.sloType).toBe('all');
     });
   });
 

@@ -53,6 +53,26 @@ export const configType = {
  */
 export const configTypeForProvider = (type) => configType[providerKey(type)];
 
+/**
+ * Providers that support Single Logout, keyed by `providerKey()`. Rancher no longer
+ * creates a config for each of them with `logoutAllSupported` set, so the UI sets it.
+ */
+const SLO_SUPPORTED_PROVIDERS = [
+  'azuread',
+  'adfs',
+  'keycloak',
+  'okta',
+  'ping',
+  'shibboleth',
+  'genericsaml',
+  'cognito',
+  'genericoidc',
+  'keycloakoidc',
+  'oidc',
+];
+
+export const isSloSupported = (type) => SLO_SUPPORTED_PROVIDERS.includes(providerKey(type));
+
 const imageOverrides = {
   azuread:      'entraid',
   genericoidc:  'openid',
