@@ -72,6 +72,7 @@ const fillStyle = computed(() => ({
 
 <style lang="scss" scoped>
 .rc-progress-bar {
+  position: relative;
   width: 100%;
   height: 4px;
   border-radius: 4px;
@@ -84,9 +85,7 @@ const fillStyle = computed(() => ({
 }
 
 .fill {
-  position: relative;
   height: 100%;
-  overflow: hidden;
   background-color: var(--fill-color);
 
   @media (prefers-reduced-motion: no-preference) {
@@ -99,16 +98,17 @@ const fillStyle = computed(() => ({
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .active .fill::after {
+  // The sweep spans the track rather than the fill so it still shows at a value of 0
+  .rc-progress-bar.active::after {
     content: '';
     position: absolute;
     inset: 0;
     background-image: linear-gradient(90deg, transparent, var(--rc-bar-active-sweep), transparent);
     animation: rc-progress-bar-sweep 1.5s ease-in-out infinite;
+  }
 
-    &:dir(rtl) {
-      animation-direction: reverse;
-    }
+  .rc-progress-bar.active:dir(rtl)::after {
+    animation-direction: reverse;
   }
 }
 

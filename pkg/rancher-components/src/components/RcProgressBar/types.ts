@@ -39,8 +39,8 @@ export interface RcProgressBarProps {
   color?: RcProgressBarColor;
 
   /**
-   * Sweeps a highlight across the fill, from the start of the bar to the end, to show that work is
-   * still running while the value isn't changing. The bar is also marked `aria-busy`. The sweep
+   * Sweeps a highlight across the bar, from the start to the end, to show that work is still
+   * running while the value isn't changing. The sweep shows even when the value is at `min`. The bar is also marked `aria-busy`. The sweep
    * isn't shown when reduced motion is preferred.
    */
   active?: boolean;

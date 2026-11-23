@@ -55,7 +55,7 @@ Values outside the range are clamped, and a \`max\` that is not greater than \`m
     },
     active: {
       control:     { type: 'boolean' },
-      description: 'Sweeps a highlight across the fill to show that work is still running while the value isn\'t changing. Also sets `aria-busy`. Defaults to `false`.',
+      description: 'Sweeps a highlight across the bar to show that work is still running while the value isn\'t changing. Also sets `aria-busy`. Defaults to `false`.',
     },
     ariaLabel: {
       control:     { type: 'text' },
@@ -199,8 +199,12 @@ export const CustomColor: Story = {
 };
 
 const activeTemplate = `<div style="display: flex; flex-direction: column; gap: 20px; width: 300px;">
+  <RcProgressBar size="small" :value="0" active aria-label="Image pull progress" />
   <RcProgressBar size="small" :value="35" active aria-label="Image pull progress" />
   <RcProgressBar size="medium" :value="70" active aria-label="Cluster upgrade progress" />
+  <div dir="rtl">
+    <RcProgressBar size="medium" :value="70" active aria-label="Cluster upgrade progress" />
+  </div>
 </div>`;
 
 export const Active: Story = {
