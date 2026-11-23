@@ -62,6 +62,15 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
+# Yarn Berry - ignore generated artifacts, keep committable directories
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
 # dotenv environment variables file
 .env
 
