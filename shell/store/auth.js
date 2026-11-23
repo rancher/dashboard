@@ -132,6 +132,8 @@ export const mutations = {
     state.impersonation = null;
     state.impersonationStatus = 'unknown';
     impersonationRestoreGeneration++;
+    impersonationRestorePromise = null;
+    impersonationRecoveryPromise = null;
   },
 
   initialPass(state, pass) {

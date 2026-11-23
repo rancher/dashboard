@@ -197,6 +197,7 @@ nav:
     loginAsThisUser: 以此用户身份登录
     impersonating: '正在模拟 {user}'
     returnToAdministrator: 返回管理员账户
+    returnToAdministratorError: 返回管理员账户失败
   failWhale:
     authMiddleware: 认证中间件
     clusterNotFound: 未找到集群 { clusterId }

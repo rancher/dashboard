@@ -546,6 +546,34 @@ describe('impersonation lifecycle actions', () => {
     expect(restoreState.impersonationStatus).toStrictEqual('unknown');
   });
 
+  it('does not reuse a pending restore promise after logout', async() => {
+    let resolveFirst: (session: object) => void = () => {};
+    const session = {
+      userId: 'u-target', principalId: 'local://target', impersonating: true
+    };
+    const dispatch = jest.fn()
+      .mockReturnValueOnce(new Promise<object>((resolve) => {
+        resolveFirst = resolve;
+      }))
+      .mockResolvedValueOnce(session);
+    const commit = jest.fn();
+    const restoreState = state();
+
+    const first = actions.restoreImpersonation({
+      dispatch, commit, state: restoreState
+    } as any);
+
+    mutations.loggedOut(restoreState);
+    const second = actions.restoreImpersonation({
+      dispatch, commit, state: restoreState
+    } as any);
+
+    await expect(second).resolves.toStrictEqual(session);
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    resolveFirst(session);
+    await first;
+  });
+
   it('does not let a pending restore overwrite stop', async() => {
     let resolveRestore: (session: object) => void = () => {};
     const dispatch = jest.fn()
@@ -794,6 +822,37 @@ describe('impersonation lifecycle actions', () => {
     expect(commit).not.toHaveBeenCalledWith('impersonationStopped');
     expect(commit).not.toHaveBeenCalledWith('impersonationStarted', expect.anything());
     expect(restoreState.impersonationStatus).toStrictEqual('unknown');
+  });
+
+  it('does not reuse a pending recovery promise after logout', async() => {
+    let resolveFirst: (response: object) => void = () => {};
+    const response = { impersonating: false, restored: true };
+    const dispatch = jest.fn()
+      .mockReturnValueOnce(new Promise<object>((resolve) => {
+        resolveFirst = resolve;
+      }))
+      .mockResolvedValueOnce(response);
+    const commit = jest.fn();
+    const recoveryState = state();
+
+    recoveryState.impersonationStatus = 'active';
+    const reload = jest.fn();
+    const location = jest.spyOn(window, 'location', 'get').mockReturnValue({ reload } as unknown as Location);
+
+    const first = actions.recoverImpersonation({
+      dispatch, commit, state: recoveryState
+    } as any);
+
+    mutations.loggedOut(recoveryState);
+    const second = actions.recoverImpersonation({
+      dispatch, commit, state: recoveryState
+    } as any);
+
+    await expect(second).resolves.toStrictEqual(response);
+    expect(dispatch).toHaveBeenCalledTimes(2);
+    resolveFirst(response);
+    await first;
+    location.mockRestore();
   });
 
   it('stops impersonation and reloads the dashboard', async() => {

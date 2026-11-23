@@ -161,15 +161,18 @@ describe('component: Header', () => {
       await Promise.all([firstClick, secondClick]);
     });
 
-    it('does not reload when returning to the administrator fails', async() => {
+    it('shows an error growl and does not reload when returning to the administrator fails', async() => {
       const wrapper = impersonatingWrapper();
       const dispatch = wrapper.vm.$store.dispatch as jest.Mock;
       const failure = new Error('return failed');
+      const title = (wrapper.vm as any).t('nav.userMenu.returnToAdministratorError');
 
       dispatch.mockRejectedValueOnce(failure);
 
-      await expect((wrapper.vm as any).stopImpersonation()).rejects.toBe(failure);
+      await expect((wrapper.vm as any).stopImpersonation()).resolves.toBeUndefined();
       expect(dispatch).toHaveBeenCalledWith('auth/stopImpersonation');
+      expect(dispatch).toHaveBeenCalledWith('growl/fromError', { title, err: failure }, { root: true });
+      expect((wrapper.vm as any).stoppingImpersonation).toStrictEqual(false);
     });
 
     it.each(['unknown', 'loading', 'inactive'])('does not render impersonation controls while status is %s', (status) => {

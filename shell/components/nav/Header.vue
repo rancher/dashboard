@@ -389,6 +389,11 @@ export default {
       this.stoppingImpersonation = true;
       try {
         await this.$store.dispatch('auth/stopImpersonation');
+      } catch (err) {
+        await this.$store.dispatch('growl/fromError', {
+          title: this.t('nav.userMenu.returnToAdministratorError'),
+          err
+        }, { root: true });
       } finally {
         this.stoppingImpersonation = false;
       }

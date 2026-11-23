@@ -78,7 +78,7 @@ describe('User impersonation lifecycle', { tags: ['@usersAndAuths', '@adminUser'
   }
 
   function openTargetRowActionMenu(username: string) {
-    usersPo.list().rowWithName(username).actionBtn().click();
+    usersPo.list().rowWithName(username, false, { timeout: statusRequestTimeout }).actionBtn().click();
   }
 
   function openTargetActionMenu(username: string) {

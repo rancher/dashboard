@@ -351,6 +351,7 @@ nav:
     loginAsThisUser: Login as this user
     impersonating: 'Impersonating {user}'
     returnToAdministrator: Return to administrator
+    returnToAdministratorError: Failed to return to administrator
     button:
       label: Open user menu
   actionMenu:
