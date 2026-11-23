@@ -4696,6 +4696,9 @@ releaseWelcome:
       workload-search:
         title: Workload search
         description: Workloads Overview now has a search bar to let you quickly find specific resources.
+      classic-theme:
+        title: Classic theme removed
+        description: 'Modern is now the only theme, so a "ui-brand" setting of "classic" now uses Modern.'
   prime:
     title: Ready for production? Go Prime.
     description: "Everything in the community edition, plus 24×7 enterprise support, hardened images from a trusted registry, extended lifecycles and the full SUSE cloud-native suite:"
@@ -9895,6 +9898,10 @@ banner:
 branding:
   label: Branding
   directoryName: Brand Asset Directory Name
+  classicThemeRemoved:
+    title: Classic theme removed
+    message: 'We noticed that you have "classic" set for the "ui-brand" setting. We have removed that theme as it was no longer supported.'
+    editSetting: Edit setting
   logos:
     home: Product main page
     logoLabel: Rancher Logo

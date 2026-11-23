@@ -39,6 +39,11 @@ export const WHATS_NEW_FEATURES: WhatsNewFeature[] = [
     titleKey:       'releaseWelcome.whatsNew.features.workload-search.title',
     descriptionKey: 'releaseWelcome.whatsNew.features.workload-search.description',
   },
+  {
+    id:             'classic-theme',
+    titleKey:       'releaseWelcome.whatsNew.features.classic-theme.title',
+    descriptionKey: 'releaseWelcome.whatsNew.features.classic-theme.description',
+  },
 ];
 
 /**

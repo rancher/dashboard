@@ -40,6 +40,7 @@ import { getVersionData } from '@shell/config/version';
 import { markRaw } from 'vue';
 import paginationUtils from '@shell/utils/pagination-utils';
 import { addReleaseNotesNotification } from '@shell/utils/release-notes';
+import { updateClassicThemeRemovedNotification } from '@shell/utils/classic-theme-removed';
 import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
 import { showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
@@ -874,7 +875,8 @@ export const actions = {
     }
 
     const pl = res[MANAGEMENT.SETTING]?.find((x) => x.id === 'ui-pl')?.value;
-    const brand = res[MANAGEMENT.SETTING]?.find((x) => x.id === SETTING.BRAND)?.value;
+    const brandSetting = res[MANAGEMENT.SETTING]?.find((x) => x.id === SETTING.BRAND);
+    const brand = brandSetting?.value;
     const systemNamespaces = res[MANAGEMENT.SETTING]?.find((x) => x.id === SETTING.SYSTEM_NAMESPACES);
 
     if ( pl ) {
@@ -888,6 +890,7 @@ export const actions = {
     // Add the notification for the release notes
     if (isRancher) {
       await addReleaseNotesNotification(dispatch, getters);
+      await updateClassicThemeRemovedNotification(dispatch, getters, brandSetting);
 
       fetchAndProcessDynamicContent(dispatch, getters, this.$axios);
 
