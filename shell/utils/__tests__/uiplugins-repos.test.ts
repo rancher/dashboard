@@ -4,6 +4,9 @@ import {
   repoDownloadState,
   repoIndexId,
   notifyRepoDownload,
+  waitForRepoDownload,
+  readPendingRepos,
+  resumePendingRepoDownloads,
 } from '@shell/utils/uiplugins-repos';
 import { UI_PLUGINS_REPOS } from '@shell/config/uiplugins';
 import { NotificationLevel } from '@shell/types/notifications';
@@ -242,5 +245,163 @@ describe('fx: notifyRepoDownload', () => {
     const added = store.dispatch.mock.calls.find((c: any) => c[0] === 'notifications/add')?.[1];
 
     expect(added.primaryAction.route).toStrictEqual({ name: 'c-cluster-uiplugins', params: { cluster: 'local' } });
+  });
+
+  describe('a repository that goes away while we wait', () => {
+    /**
+     * The store is not holding the repository and the lookup fails, which is what happens once it
+     * has been deleted or the session has expired. Steve rejects with a plain response object.
+     */
+    const storeWithMissingRepo = () => {
+      // Rejecting with a plain object is exactly what the store does, and is why the browser
+      // reports `[object Object]`
+      /* eslint-disable-next-line prefer-promise-reject-errors */
+      const dispatch = jest.fn((action: string) => (action === 'management/find' ? Promise.reject({ status: 404, message: 'not found' }) : Promise.resolve()));
+
+      return {
+        dispatch,
+        getters: {
+          'i18n/t':          (key: string) => key,
+          'management/byId': () => undefined,
+        },
+      };
+    };
+
+    it('should give up instead of polling a repository that cannot come back', async() => {
+      const store = storeWithMissingRepo();
+
+      await expect(waitForRepoDownload(store, 'repo-1')).resolves.toStrictEqual({
+        state: 'failed', message: '', gone: true
+      });
+
+      // One attempt, not one every poll interval for the whole deadline
+      expect(store.dispatch.mock.calls.filter((c: any) => c[0] === 'management/find')).toHaveLength(1);
+    });
+
+    it('should not leave the failed lookup as an unhandled rejection', async() => {
+      // An unawaited, uncaught `management/find` surfaces in the browser as `[object Object]`,
+      // repeated once per poll for the length of the wait
+      const unhandled: any[] = [];
+      const onUnhandled = (reason: any) => unhandled.push(reason);
+
+      process.on('unhandledRejection', onUnhandled);
+
+      await notifyRepoDownload(storeWithMissingRepo(), 'repo-1');
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      process.off('unhandledRejection', onUnhandled);
+
+      expect(unhandled).toStrictEqual([]);
+    });
+
+    it('should not announce a repository that never arrived', async() => {
+      const store = storeWithMissingRepo();
+
+      await notifyRepoDownload(store, 'repo-1');
+
+      expect(store.dispatch).not.toHaveBeenCalledWith('notifications/add', expect.anything());
+    });
+  });
+});
+
+describe('fx: resumePendingRepoDownloads', () => {
+  const PENDING_KEY = 'extension-repos-awaiting-download';
+
+  const storeFor = (repo: any) => ({
+    dispatch: jest.fn((..._args: any[]) => Promise.resolve()),
+    getters:  {
+      'i18n/t':          (key: string) => key,
+      'management/byId': () => repo,
+    },
+  });
+
+  beforeEach(() => window.localStorage.removeItem(PENDING_KEY));
+  afterEach(() => window.localStorage.removeItem(PENDING_KEY));
+
+  it('should remember a repository while its download is outstanding', async() => {
+    const store = storeFor({ status: {} });
+
+    // Not awaited - it is still waiting on a repository that never becomes ready
+    notifyRepoDownload(store, 'repo-1');
+    await Promise.resolve();
+
+    expect(readPendingRepos()).toStrictEqual(['repo-1']);
+  });
+
+  it('should stop remembering one it has reported on', async() => {
+    const store = storeFor({ status: { indexConfigMapName: 'cm' } });
+
+    await notifyRepoDownload(store, 'repo-1');
+
+    expect(readPendingRepos()).toStrictEqual([]);
+  });
+
+  it('should pick up a repository the previous page never got to report', async() => {
+    window.localStorage.setItem(PENDING_KEY, JSON.stringify({ 'repo-1': Date.now() }));
+    const store = storeFor({ status: { indexConfigMapName: 'cm' } });
+
+    resumePendingRepoDownloads(store);
+    for (let i = 0; i < 10; i++) {
+      await Promise.resolve();
+    }
+
+    expect(store.dispatch).toHaveBeenCalledWith('notifications/add', expect.objectContaining({ id: 'extension-repo-download-repo-1', level: NotificationLevel.Success }));
+    expect(readPendingRepos()).toStrictEqual([]);
+  });
+
+  it('should do nothing when there is nothing outstanding', () => {
+    const store = storeFor({ status: {} });
+
+    resumePendingRepoDownloads(store);
+
+    expect(store.dispatch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['not valid json', '{nope'],
+    ['the wrong shape', '"repo-1"'],
+    ['an entry with no timestamp', '{"repo-1":null}'],
+  ])('should survive %s in storage', (_label, raw) => {
+    window.localStorage.setItem(PENDING_KEY, raw);
+
+    expect(readPendingRepos()).toStrictEqual([]);
+  });
+
+  it('should stop resuming a repository that has been pending for too long', () => {
+    const twoDaysAgo = Date.now() - (48 * 60 * 60 * 1000);
+
+    window.localStorage.setItem(PENDING_KEY, JSON.stringify({ 'repo-1': twoDaysAgo, 'repo-2': Date.now() }));
+
+    // Otherwise a repository that never succeeds and is never deleted restarts a wait on every
+    // page load, forever
+    expect(readPendingRepos()).toStrictEqual(['repo-2']);
+  });
+
+  it('should keep a slow repository pending when the wait runs out of time', async() => {
+    // Running out of time is not an ending - the next page load should pick the wait back up,
+    // otherwise the banner's promise of a notification is quietly dropped
+    jest.useFakeTimers();
+
+    const settled = notifyRepoDownload(storeFor({ status: {} }), 'repo-1');
+
+    await jest.advanceTimersByTimeAsync(16 * 60 * 1000);
+    await settled;
+    jest.useRealTimers();
+
+    expect(readPendingRepos()).toStrictEqual(['repo-1']);
+  });
+
+  it('should not let resuming push the expiry further out', async() => {
+    const anHourAgo = Date.now() - (60 * 60 * 1000);
+
+    window.localStorage.setItem(PENDING_KEY, JSON.stringify({ 'repo-1': anHourAgo }));
+
+    // Still downloading, so it stays pending - but with its original timestamp
+    notifyRepoDownload(storeFor({ status: {} }), 'repo-1');
+    await Promise.resolve();
+
+    const stored = JSON.parse(window.localStorage.getItem(PENDING_KEY) || '{}');
+
+    expect(stored['repo-1']).toBe(anHourAgo);
   });
 });

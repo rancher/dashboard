@@ -105,6 +105,14 @@ describe('component: AddExtensionReposDialog', () => {
   });
 
   describe('reporting the download', () => {
+    // `reportDownloads` starts a detached async chain; let its microtasks drain before asserting.
+    // Microtasks rather than a timer, because earlier tests in this file leave fake timers on.
+    const flush = async() => {
+      for (let i = 0; i < 10; i++) {
+        await Promise.resolve();
+      }
+    };
+
     const mountWith = (dispatch: jest.Mock) => {
       const store = mockedStore() as any;
 
@@ -128,7 +136,7 @@ describe('component: AddExtensionReposDialog', () => {
       const wrapper = mountWith(dispatch);
 
       wrapper.vm.reportDownloads(['partner-extensions']);
-      await nextTick();
+      await flush();
 
       expect(dispatch).not.toHaveBeenCalledWith('growl/info', expect.anything(), expect.anything());
 
@@ -140,7 +148,7 @@ describe('component: AddExtensionReposDialog', () => {
       const wrapper = mountWith(dispatch);
 
       wrapper.vm.reportDownloads(['rancher-ui-plugins', 'partner-extensions']);
-      await nextTick();
+      await flush();
 
       const tasks = dispatch.mock.calls
         .filter((c: any) => c[0] === 'notifications/add')
@@ -159,7 +167,7 @@ describe('component: AddExtensionReposDialog', () => {
       const wrapper = mountWith(dispatch);
 
       wrapper.vm.reportDownloads([]);
-      await nextTick();
+      await flush();
 
       expect(dispatch).not.toHaveBeenCalledWith('growl/info', expect.anything(), expect.anything());
       expect(dispatch).not.toHaveBeenCalledWith('notifications/add', expect.anything());

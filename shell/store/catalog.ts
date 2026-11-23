@@ -416,8 +416,10 @@ async function runLoad(ctx: CatalogContext, { force, reset, repoKeys = [] }: { f
       // here so we don't accidentally fetch other unrelated repos just because they haven't loaded yet.
       shouldLoad = repoKeys.includes(repo._key);
     } else {
-      // Default behavior: load if explicitly forced, OR if the repo hasn't been loaded into state yet.
-      shouldLoad = force === true || !getters.isLoaded(repo);
+      // Default behavior: load if explicitly forced, OR if the repo hasn't been loaded into state
+      // yet. `reset` has to fetch too: it rebuilds `charts` from only what this call fetched, so
+      // skipping an already-loaded repo would commit a cache that drops it.
+      shouldLoad = force === true || reset === true || !getters.isLoaded(repo);
     }
 
     if ( shouldLoad && repo.canLoad ) {

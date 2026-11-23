@@ -454,7 +454,7 @@ export default {
         return;
       }
 
-      this.$store.dispatch('catalog/load', { force: true, repoKeys });
+      this.loadRepoCharts(repoKeys);
     },
 
     loading(neu) {
@@ -466,7 +466,7 @@ export default {
 
       this.deferredRepoKeys = [];
 
-      this.$store.dispatch('catalog/load', { force: true, repoKeys });
+      this.loadRepoCharts(repoKeys);
     },
 
     helmOps: {
@@ -589,6 +589,16 @@ export default {
       } else {
         this.showInstallDialog(plugin, action, {}, version);
       }
+    },
+
+    /**
+     * Nothing is waiting on this load, so it has to handle its own failure. The store rejects
+     * with a plain response object rather than an Error, which would otherwise surface as an
+     * unhandled `[object Object]` rejection.
+     */
+    loadRepoCharts(repoKeys) {
+      this.$store.dispatch('catalog/load', { force: true, repoKeys })
+        .catch((e) => console.error('Failed to load charts for', repoKeys, e)); // eslint-disable-line no-console
     },
 
     async refreshCharts(forceChartsUpdate = false) {
@@ -1764,4 +1774,16 @@ export default {
     }
   }
 
+</style>
+
+<!-- Not scoped: the emphasis in the downloading banner comes from a translated string rendered
+     with v-clean-html, which scoped styles cannot reach. `.pending-repos` is only used here. -->
+<style lang="scss">
+.pending-repos {
+  // Emphasis is carried by weight alone. The browser default for `b` is `bolder`, which lands on
+  // 700 and reads as though the text had also grown, so match the 600 used elsewhere here.
+  b {
+    font-weight: 600;
+  }
+}
 </style>
