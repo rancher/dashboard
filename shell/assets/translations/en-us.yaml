@@ -1614,6 +1614,7 @@ catalog:
       rancher-partner-charts: Partners
       rancher-rke2-charts: RKE2
       rancher-ui-plugins: Rancher Extensions
+      partner-extensions: Partner Extensions
       suse-application-collection: SUSE App Collection
 
     target:
@@ -6226,6 +6227,15 @@ plugins:
     bannerBtn: Add repositories
     title: Add Extensions repositories
     prompt: Enable additional repositories to access more extensions
+  pendingRepos:
+    downloading: 'The extensions from the following repositories are being downloaded: <b>{names}</b> - this might take a few minutes.'
+    continue: <b>You can continue using Rancher</b> and we will notify you when the extensions are ready to be used.
+    failed: 'The extensions from the following repositories could not be downloaded:'
+  repoDownload:
+    ready:
+      title: Extensions ready!
+      message: 'All the extensions from the "{name}" repository have been successfully downloaded and are now ready to be used.'
+      action: View Extensions
   setup:
     installed: Already installed
     uninstalled: Already uninstalled
