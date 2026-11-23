@@ -16,6 +16,29 @@ const VUE_CLI_DEPENDENCIES = ['@vue/cli-plugin-babel', '@vue/cli-service', '@vue
 const APP_VUE_CONFIG = /^const config = require\('@rancher\/shell\/vue\.config'\);[^\n]*\n+module\.exports = config\(__dirname, \{\s*excludes: (\[[^\]]*\]),?\s*(\/\/[^\n]*\s*)?\}\);?\s*$/;
 const PKG_VUE_CONFIG = /^module\.exports = require\('(\.\/\.shell|@rancher\/shell)\/pkg\/vue\.config(\.js)?'\)\(__dirname\);?\s*$/;
 const PKG_BABEL_CONFIG = /^module\.exports = require\('(\.\/\.shell|@rancher\/shell)\/pkg\/babel\.config(\.js)?'\);?\s*$/;
+const WEBPACK_ENV_TYPES = /,\s*"(@types\/)?webpack-env"(?=\s*\])|\s*"(@types\/)?webpack-env",?/;
+const TSCONFIG_INCLUDE = /("include"\s*:\s*\[)(\s*)(\])?/;
+const TSCONFIG_FILES = /("files"\s*:\s*\[)(\s*)(\])?/;
+const TSCONFIG_ROOT = /(\{)(\s*)(\})?/;
+const VITE_ENV_TYPES = '../../node_modules/@rancher/shell/types/vite-env.d.ts';
+
+function addViteEnvTypes(content) {
+  if (content.includes(VITE_ENV_TYPES)) {
+    return content;
+  }
+
+  const insertInArray = (_, open, space, close) => `${ open }${ space }${ JSON.stringify(VITE_ENV_TYPES) }${ close ? `${ space }]` : `,${ space }` }`;
+
+  if (TSCONFIG_INCLUDE.test(content)) {
+    return content.replace(TSCONFIG_INCLUDE, insertInArray);
+  }
+
+  if (TSCONFIG_FILES.test(content)) {
+    return content.replace(TSCONFIG_FILES, insertInArray);
+  }
+
+  return content.replace(TSCONFIG_ROOT, (_, open, space, close) => `${ open }${ space }"include": ["**/*", ${ JSON.stringify(VITE_ENV_TYPES) }]${ close ? `${ space }}` : `,${ space }` }`);
+}
 
 const viteConfig = (excludes) => `import config from '@rancher/shell/vite.config.mjs';
 
@@ -126,11 +149,12 @@ const viteUpdates = (params = {}) => {
 
     if (fs.existsSync(file('tsconfig.json'))) {
       const originalContent = fs.readFileSync(file('tsconfig.json'), 'utf8');
-      const content = originalContent.replace(/\s*"webpack-env",?/, '');
+      const withoutWebpack = originalContent.replace(WEBPACK_ENV_TYPES, '');
+      const content = addViteEnvTypes(withoutWebpack);
 
       if (content !== originalContent) {
         writeContent(file('tsconfig.json'), content, originalContent);
-        printContent(file('tsconfig.json'), 'Removing webpack-env types');
+        printContent(file('tsconfig.json'), [withoutWebpack !== originalContent && 'Removing webpack-env types', content !== withoutWebpack && 'Adding Vite client types'].filter(Boolean).join(', '));
         stats.vite.push(file('tsconfig.json'));
         stats.total.push(file('tsconfig.json'));
       }
@@ -145,6 +169,8 @@ const viteUpdates = (params = {}) => {
         removeFile(file(fileName));
       } else if (fileName === 'vue.config.js') {
         console.warn(`${ file(fileName) } has been customized and is no longer used: move its configuration to ${ file('vite.config.mjs') }`);
+      } else {
+        console.warn(`${ file(fileName) } has been customized and is no longer used: packages are built with Vite, which does not read it`);
       }
     });
   });

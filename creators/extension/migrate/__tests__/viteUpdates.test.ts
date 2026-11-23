@@ -109,7 +109,7 @@ describe('fx: viteUpdates', () => {
     viteUpdates();
 
     expect(JSON.parse(read('pkg/thing/package.json'))).toStrictEqual({ name: 'thing' });
-    expect(read('pkg/thing/tsconfig.json')).toStrictEqual('{\n  // comments and trailing commas are allowed\n  "compilerOptions": {\n    "types": [\n      "node",\n      "shell",\n    ],\n  },\n}\n');
+    expect(read('pkg/thing/tsconfig.json')).toStrictEqual('{\n  "include": ["**/*", "../../node_modules/@rancher/shell/types/vite-env.d.ts"],\n  // comments and trailing commas are allowed\n  "compilerOptions": {\n    "types": [\n      "node",\n      "shell",\n    ],\n  },\n}\n');
     expect(fs.readdirSync('pkg/thing').sort()).toStrictEqual(['package.json', 'tsconfig.json']);
   });
 
@@ -122,6 +122,63 @@ describe('fx: viteUpdates', () => {
     viteUpdates();
 
     expect(fs.existsSync('pkg/thing/vue.config.js')).toStrictEqual(false);
+  });
+
+  it('should change only what a package tsconfig.json needs for Vite, keeping its own settings', () => {
+    write({ 'pkg/thing/tsconfig.json': '{\n  "compilerOptions": {\n    "useDefineForClassFields": false,\n    "types": [\n      "@types/node",\n      "@types/webpack-env",\n      "shell"\n    ]\n  },\n  "include": [\n    "**/*.ts",\n    "**/*.vue"\n  ]\n}\n' });
+
+    viteUpdates();
+
+    expect(read('pkg/thing/tsconfig.json')).toStrictEqual('{\n  "compilerOptions": {\n    "useDefineForClassFields": false,\n    "types": [\n      "@types/node",\n      "shell"\n    ]\n  },\n  "include": [\n    "../../node_modules/@rancher/shell/types/vite-env.d.ts",\n    "**/*.ts",\n    "**/*.vue"\n  ]\n}\n');
+  });
+
+  it('should leave a package tsconfig.json that already has the Vite client types', () => {
+    const content = '{\n  "include": [\n    "**/*.ts",\n    "../../node_modules/@rancher/shell/types/vite-env.d.ts"\n  ]\n}\n';
+
+    write({ 'pkg/thing/tsconfig.json': content });
+
+    viteUpdates();
+
+    expect(read('pkg/thing/tsconfig.json')).toStrictEqual(content);
+  });
+
+  it('should keep a package tsconfig.json valid JSON when webpack-env is the last type or include is empty', () => {
+    write({ 'pkg/thing/tsconfig.json': '{\n  "compilerOptions": {\n    "types": [\n      "@types/node",\n      "@types/webpack-env"\n    ]\n  },\n  "include": []\n}\n' });
+
+    viteUpdates();
+
+    expect(JSON.parse(read('pkg/thing/tsconfig.json'))).toStrictEqual({
+      compilerOptions: { types: ['@types/node'] },
+      include:         ['../../node_modules/@rancher/shell/types/vite-env.d.ts'],
+    });
+  });
+
+  it('should add the Vite client types when a package tsconfig.json has no include property', () => {
+    write({ 'pkg/thing/tsconfig.json': '{\n  "compilerOptions": {\n    "strict": true\n  }\n}\n' });
+
+    viteUpdates();
+
+    expect(JSON.parse(read('pkg/thing/tsconfig.json'))).toStrictEqual({
+      include:         ['**/*', '../../node_modules/@rancher/shell/types/vite-env.d.ts'],
+      compilerOptions: { strict: true },
+    });
+  });
+
+  it('should add the Vite client types to files when a package tsconfig.json uses files instead of include', () => {
+    write({ 'pkg/thing/tsconfig.json': '{\n  "files": [\n    "index.ts"\n  ]\n}\n' });
+
+    viteUpdates();
+
+    expect(JSON.parse(read('pkg/thing/tsconfig.json'))).toStrictEqual({ files: ['../../node_modules/@rancher/shell/types/vite-env.d.ts', 'index.ts'] });
+  });
+
+  it('should keep a customized package babel.config.js and say it is no longer used', () => {
+    write({ 'pkg/thing/babel.config.js': 'module.exports = { plugins: [\'@babel/plugin-transform-class-static-block\'] };\n' });
+
+    viteUpdates();
+
+    expect(fs.existsSync('pkg/thing/babel.config.js')).toStrictEqual(true);
+    expect(console.warn).toHaveBeenCalledWith(`${ path.join('pkg', 'thing', 'babel.config.js') } has been customized and is no longer used: packages are built with Vite, which does not read it`); // eslint-disable-line no-console
   });
 
   it('should keep a customized package vue.config.js and say it is no longer used', () => {
