@@ -573,7 +573,7 @@ describe('impersonation lifecycle actions', () => {
     location.mockRestore();
   });
 
-  it('recovers an expired impersonation session and reloads once', async() => {
+  it.each(['active', 'loading', 'unknown'])('recovers an expired impersonation session from %s state and reloads once', async(impersonationStatus) => {
     const response = { impersonating: false, restored: true };
     const dispatch = jest.fn().mockResolvedValue(response);
     const commit = jest.fn();
@@ -581,7 +581,7 @@ describe('impersonation lifecycle actions', () => {
     const location = jest.spyOn(window, 'location', 'get').mockReturnValue({ reload } as unknown as Location);
 
     await expect(actions.recoverImpersonation({
-      dispatch, commit, state: { impersonationStatus: 'active' }
+      dispatch, commit, state: { impersonationStatus }
     } as any)).resolves.toStrictEqual(response);
 
     expect(dispatch).toHaveBeenCalledWith('management/request', {
@@ -592,6 +592,17 @@ describe('impersonation lifecycle actions', () => {
     expect(commit).toHaveBeenCalledWith('impersonationStopped');
     expect(reload).toHaveBeenCalledWith();
     location.mockRestore();
+  });
+
+  it('does not attempt recovery for a known inactive session', async() => {
+    const dispatch = jest.fn();
+    const commit = jest.fn();
+
+    await expect(actions.recoverImpersonation({
+      dispatch, commit, state: { impersonationStatus: 'inactive' }
+    } as any)).resolves.toStrictEqual(null);
+
+    expect(dispatch).not.toHaveBeenCalledWith('management/request', expect.anything(), expect.anything());
   });
 
   it('logs out without reloading when recovery reports no restoration', async() => {
@@ -679,13 +690,13 @@ describe('impersonation lifecycle actions', () => {
     expect(commit).toHaveBeenCalledWith('impersonationStatus', 'unknown');
   });
 
-  it('does not recover a normal logout, but recovers an unauthorized active session', async() => {
+  it.each(['active', 'loading', 'unknown'])('does not recover a normal logout, but recovers an unauthorized %s session', async(impersonationStatus) => {
     const dispatch = jest.fn().mockResolvedValue(undefined);
     const extensionLogout = jest.fn().mockResolvedValue(undefined);
 
     await actions.logout({
       dispatch,
-      getters:   { loggedIn: true, impersonationStatus: 'active' },
+      getters:   { loggedIn: true, impersonationStatus },
       rootState: { $extension: { logout: extensionLogout } },
     } as any);
     expect(dispatch).toHaveBeenCalledWith('rancher/request', expect.anything(), { root: true });
@@ -693,10 +704,24 @@ describe('impersonation lifecycle actions', () => {
     dispatch.mockClear();
     await actions.logout({
       dispatch,
-      getters:   { loggedIn: true, impersonationStatus: 'active' },
+      getters:   { loggedIn: true, impersonationStatus },
       rootState: { $extension: { logout: extensionLogout } },
     }, { unauthorized: true } as any);
     expect(dispatch).toHaveBeenCalledWith('recoverImpersonation');
+  });
+
+  it('uses normal unauthorized logout for a known inactive session', async() => {
+    const dispatch = jest.fn().mockResolvedValue(undefined);
+    const extensionLogout = jest.fn().mockResolvedValue(undefined);
+
+    await actions.logout({
+      dispatch,
+      getters:   { loggedIn: true, impersonationStatus: 'inactive' },
+      rootState: { $extension: { logout: extensionLogout } },
+    }, { unauthorized: true } as any);
+
+    expect(dispatch).not.toHaveBeenCalledWith('recoverImpersonation');
+    expect(dispatch).toHaveBeenCalledWith('rancher/request', expect.anything(), { root: true });
   });
 
   it('does not let pending recovery overwrite a newer start', async() => {

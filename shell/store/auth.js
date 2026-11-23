@@ -293,7 +293,7 @@ export const actions = {
   },
 
   async recoverImpersonation({ commit, dispatch, state }) {
-    if (state && state.impersonationStatus !== 'active') {
+    if (state?.impersonationStatus === 'inactive') {
       return null;
     }
 
@@ -642,7 +642,7 @@ export const actions = {
   },
 
   async logout({ dispatch, getters, rootState }, options = {}) {
-    if (options?.unauthorized && getters.impersonationStatus === 'active') {
+    if (options?.unauthorized && ['active', 'loading', 'unknown'].includes(getters.impersonationStatus)) {
       try {
         await dispatch('recoverImpersonation');
       } catch {
