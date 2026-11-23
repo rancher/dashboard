@@ -12,6 +12,19 @@ export const EDIT_HIDDEN_METADATA_KEYS = [
   'managedFields',
 ];
 
+const CONTROLLER_KEYS = /^(lifecycle|authz\.management)\.cattle\.io\//;
+
+/**
+ * Remove the labels and annotations that Rancher's controllers own from the metadata of a resource about to be created.
+ */
+export function dropControllerMetadata(metadata?: { labels?: Record<string, string>, annotations?: Record<string, string> } | null): void {
+  for (const map of [metadata?.labels, metadata?.annotations]) {
+    if (map) {
+      Object.keys(map).filter((key) => CONTROLLER_KEYS.test(key)).forEach((key) => delete map[key]);
+    }
+  }
+}
+
 export function steveCleanForDownload(yaml: string, keys?: {
   rootKeys?: string[],
   metadataKeys?: string[],

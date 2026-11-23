@@ -8,7 +8,7 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
-import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
+import { dropControllerMetadata, steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 import paginationUtils from '@shell/utils/pagination-utils';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 
@@ -391,8 +391,7 @@ export default {
     dropKeys(m, newMetadataKeys);
     dropCattleKeys(m.annotations);
     dropCattleKeys(m.labels);
-    dropCattleKeys(m.annotations, controllerKeys);
-    dropCattleKeys(m.labels, controllerKeys);
+    dropControllerMetadata(m);
 
     m.name = '';
 
@@ -478,8 +477,6 @@ const newMetadataKeys = [
   'uid',
 ];
 
-const controllerKeys = /^(lifecycle|authz\.management)\.cattle\.io\//;
-
 function dropUnderscores(obj) {
   for ( const k in obj ) {
     if ( k.startsWith('__') ) {
@@ -494,13 +491,13 @@ function dropUnderscores(obj) {
   }
 }
 
-function dropCattleKeys(obj, pattern = /(^|field\.)cattle\.io(\/.*|$)/) {
+function dropCattleKeys(obj) {
   if ( !obj ) {
     return;
   }
 
   Object.keys(obj).forEach((key) => {
-    if ( pattern.test(key) ) {
+    if ( !!key.match(/(^|field\.)cattle\.io(\/.*|$)/) ) {
       delete obj[key];
     }
   });

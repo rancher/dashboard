@@ -6,6 +6,7 @@ const roles = new RolesPo(BLANK_CLUSTER);
 
 const ROLE_TEMPLATE_UPDATE = /\/v3\/roletemplates\/rt-[a-z0-9]+$/i;
 const LIFECYCLE_FINALIZER = 'controller.cattle.io/mgmt-auth-roletemplate-lifecycle';
+const GLOBAL_ROLE_LIFECYCLE_FINALIZER = 'controller.cattle.io/mgmt-auth-gr-controller';
 const BOOTSTRAPPING_LABEL = 'authz.management.cattle.io/bootstrapping';
 
 const RULES = [{
@@ -31,9 +32,9 @@ function deleteRolesNamed(prefix: string) {
   });
 }
 
-function createRoleTemplate(name: string): Cypress.Chainable<string> {
+function createRoleTemplate(name: string, fields: Record<string, any> = {}): Cypress.Chainable<string> {
   return cy.createRancherResource('v3', 'roleTemplates', {
-    name, context: 'cluster', description: 'created by e2e', rules: RULES
+    name, context: 'cluster', description: 'created by e2e', rules: RULES, ...fields
   }).then((resp) => resp.body.id);
 }
 
@@ -168,6 +169,41 @@ describe('Role Templates as YAML', { tags: ['@usersAndAuths', '@adminUser'] }, (
     });
   });
 
+  it('clears the fields deleted in Edit YAML', () => {
+    const name = `${ prefix }-delete`;
+
+    createRoleTemplate(name, { roleTemplateIds: ['cluster-member'] }).then((id) => {
+      roles.goTo(undefined, 'CLUSTER');
+      roles.waitForPage(undefined, 'CLUSTER');
+      roles.list('CLUSTER').actionMenu(name).getMenuItem('Edit YAML').click();
+
+      const editRole = roles.createRole(id);
+
+      editRole.waitForPage();
+      editRole.yamlEditor().value().then((yaml) => {
+        const roleTemplate: any = jsyaml.load(yaml);
+
+        expect(roleTemplate.roleTemplateNames).to.deep.eq(['cluster-member']);
+        delete roleTemplate.roleTemplateNames;
+        delete roleTemplate.description;
+
+        editRole.yamlEditor().set(jsyaml.dump(roleTemplate));
+      });
+
+      cy.intercept('PUT', ROLE_TEMPLATE_UPDATE).as('updateRoleTemplate');
+      editRole.saveEditYamlForm().click();
+
+      cy.wait('@updateRoleTemplate').its('response.statusCode').should('eq', 200);
+      roles.waitForPage(undefined, 'CLUSTER');
+
+      cy.getRancherResource('v1', 'management.cattle.io.roletemplates', id).then(({ body }) => {
+        expect(body.roleTemplateNames || []).to.deep.eq([]);
+        expect(body.description || '').to.eq('');
+        expect(body.displayName).to.eq(name);
+      });
+    });
+  });
+
   it('shows why Rancher rejected a role template created with Edit as YAML', () => {
     roles.goTo(undefined, 'CLUSTER');
     roles.waitForPage(undefined, 'CLUSTER');
@@ -243,5 +279,76 @@ describe('Role Templates as YAML', { tags: ['@usersAndAuths', '@adminUser'] }, (
     roles.waitForPage(undefined, 'GLOBAL');
     roles.list('GLOBAL').resourceTable().sortableTable().filter(`${ name }{enter}`);
     roles.list('GLOBAL').resourceTable().sortableTable().checkRowCount(false, 1);
+  });
+
+  it('does not keep the metadata Rancher owns from role template YAML pasted into the create form', () => {
+    const name = `${ prefix }-pasted`;
+
+    roles.goTo(undefined, 'CLUSTER');
+    roles.waitForPage(undefined, 'CLUSTER');
+    roles.listCreate('Create Cluster Role');
+
+    const createRole = roles.createRole();
+
+    createRole.waitForPage('roleContext=CLUSTER', 'grant-resources');
+    createRole.editAsYaml().click();
+    createRole.yamlEditor().set(roleTemplateYaml({
+      metadata: {
+        name:        'cluster-member',
+        labels:      { [BOOTSTRAPPING_LABEL]: 'default-roletemplate', e2e: 'pasted' },
+        annotations: { 'lifecycle.cattle.io/create.mgmt-auth-roletemplate-lifecycle': 'true' },
+      },
+      context:     'cluster',
+      displayName: name,
+      rules:       RULES,
+    }));
+
+    cy.intercept('POST', '/v3/roletemplates').as('createRoleTemplate');
+    createRole.saveYamlForm().click();
+
+    cy.wait('@createRoleTemplate').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(response?.body.labels).to.include({ e2e: 'pasted' });
+      expect(response?.body.labels).not.to.have.property(BOOTSTRAPPING_LABEL);
+
+      cy.waitForRancherResource('v1', 'management.cattle.io.roletemplates', response?.body.id, (resp: any) => resp.body.metadata.finalizers?.includes(LIFECYCLE_FINALIZER))
+        .should('eq', true);
+    });
+  });
+
+  it('does not keep the metadata Rancher owns from global role YAML pasted into the create form', () => {
+    const name = `${ prefix }-global-pasted`;
+
+    roles.goTo(undefined, 'GLOBAL');
+    roles.waitForPage(undefined, 'GLOBAL');
+    roles.listCreate('Create Global Role');
+
+    const createGlobalRole = roles.createGlobal();
+
+    createGlobalRole.waitForPage('roleContext=GLOBAL', 'grant-resources');
+    createGlobalRole.editAsYaml().click();
+    createGlobalRole.yamlEditor().set(jsyaml.dump({
+      apiVersion: 'management.cattle.io/v3',
+      kind:       'GlobalRole',
+      metadata:   {
+        name,
+        labels:      { [BOOTSTRAPPING_LABEL]: 'default-globalrole', e2e: 'pasted' },
+        annotations: { 'lifecycle.cattle.io/create.mgmt-auth-gr-controller': 'true' },
+      },
+      displayName: name,
+      rules:       RULES,
+    }));
+
+    cy.intercept('POST', '/v1/management.cattle.io.globalroles').as('createGlobalRole');
+    createGlobalRole.saveYamlForm().click();
+
+    cy.wait('@createGlobalRole').then(({ response }) => {
+      expect(response?.statusCode).to.eq(201);
+      expect(response?.body.metadata.labels).to.include({ e2e: 'pasted' });
+      expect(response?.body.metadata.labels).not.to.have.property(BOOTSTRAPPING_LABEL);
+    });
+
+    cy.waitForRancherResource('v1', 'management.cattle.io.globalroles', name, (resp: any) => resp.body.metadata.finalizers?.includes(GLOBAL_ROLE_LIFECYCLE_FINALIZER))
+      .should('eq', true);
   });
 });

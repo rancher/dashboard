@@ -1,9 +1,11 @@
 import jsyaml from 'js-yaml';
+import omit from 'lodash/omit';
 import pickBy from 'lodash/pickBy';
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
+import { dropControllerMetadata } from '@shell/plugins/steve/resource-utils';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
 export const CATTLE_API_GROUP = '.cattle.io';
@@ -57,6 +59,8 @@ export const VERBS = [
 ];
 
 export const CREATE_VERBS = new Set(['PUT', 'blocked-PUT']);
+
+const NON_FIELD_KEYS = ['apiVersion', 'kind', 'id', 'type', 'links', 'actions', 'metadata', 'status', 'displayName'];
 
 export default class RoleTemplate extends SteveDescriptionModel {
   get customValidationRules() {
@@ -173,21 +177,37 @@ export default class RoleTemplate extends SteveDescriptionModel {
     return true;
   }
 
+  /**
+   * Save the role template's YAML through Norman.
+   *
+   * On edit, a field deleted from the YAML is cleared (the display name is kept). On create, the labels and
+   * annotations that Rancher's controllers own are dropped.
+   */
   async saveYaml(yaml) {
     const data = jsyaml.load(yaml) || {};
-    const name = data.displayName || (!this.id && data.metadata?.name) || undefined;
-    const {
-      apiVersion, kind, id, type, links, actions, metadata, displayName, roleTemplateNames, ...fields
-    } = data;
+    const metadata = data.metadata || {};
+    const fields = omit(data, NON_FIELD_KEYS);
+
+    if (this.id) {
+      Object.entries(this.toJSON()).forEach(([key, value]) => {
+        if (!(key in fields) && !NON_FIELD_KEYS.includes(key) && !key.startsWith('_')) {
+          fields[key] = typeof value === 'boolean' ? false : null;
+        }
+      });
+    } else {
+      dropControllerMetadata(metadata);
+    }
+
+    const { roleTemplateNames, ...normanFields } = fields;
     const renamed = {
-      name,
+      name:            data.displayName || (!this.id && metadata.name) || undefined,
       roleTemplateIds: roleTemplateNames,
-      labels:          metadata?.labels,
-      annotations:     metadata?.annotations,
+      labels:          metadata.labels || {},
+      annotations:     metadata.annotations || {},
     };
     const norman = await this.$dispatch('rancher/clone', { resource: await this.norman }, { root: true });
 
-    Object.assign(norman, fields, pickBy(renamed, (value) => value !== undefined));
+    Object.assign(norman, normanFields, pickBy(renamed, (value) => value !== undefined));
 
     return this.saveNorman(norman);
   }

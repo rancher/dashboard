@@ -1,4 +1,4 @@
-import { steveCleanForDownload, EDIT_HIDDEN_METADATA_KEYS } from '@shell/plugins/steve/resource-utils';
+import { dropControllerMetadata, steveCleanForDownload, EDIT_HIDDEN_METADATA_KEYS } from '@shell/plugins/steve/resource-utils';
 
 describe('steve: ressource-utils', () => {
   it('should do nothing if the yaml is not passed', () => {
@@ -199,6 +199,31 @@ metadata:
 
       expect(cleanedYamlStr).not.toContain('state:');
       expect(cleanedYamlStr).not.toContain('uid:');
+    });
+  });
+
+  describe('dropControllerMetadata', () => {
+    it('should drop the labels and annotations owned by Rancher controllers and keep the rest', () => {
+      const metadata = {
+        labels: {
+          'authz.management.cattle.io/bootstrapping': 'default-globalrole',
+          'cattle.io/creator':                        'norman',
+          team:                                       'platform',
+        },
+        annotations: {
+          'lifecycle.cattle.io/create.mgmt-auth-gr-controller': 'true',
+          'authz.management.cattle.io/cr-name':                 'cattle-globalrole-user',
+          note:                                                 'kept',
+        },
+      };
+
+      dropControllerMetadata(metadata);
+
+      expect(metadata).toStrictEqual({ labels: { 'cattle.io/creator': 'norman', team: 'platform' }, annotations: { note: 'kept' } });
+    });
+
+    it.each([undefined, null, {}, { labels: null, annotations: undefined }])('should accept metadata of %p', (metadata) => {
+      expect(() => dropControllerMetadata(metadata as any)).not.toThrow();
     });
   });
 });

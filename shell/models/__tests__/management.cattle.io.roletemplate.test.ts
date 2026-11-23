@@ -161,6 +161,74 @@ rules: []
       expect(saved.save).toHaveBeenCalledWith();
     });
 
+    it('should clear the fields an edit deletes from the YAML', async() => {
+      const { saved, roleTemplate } = createRoleTemplate({
+        id:                'rt-abcde',
+        displayName:       'Inherits',
+        description:       'current',
+        locked:            true,
+        roleTemplateNames: ['cluster-member'],
+        rules:             [{
+          apiGroups: [''], resources: ['pods'], verbs: ['get']
+        }],
+        metadata: { labels: { team: 'platform' }, annotations: { note: 'current' } },
+      });
+
+      roleTemplate.updateSubtype('CLUSTER');
+
+      await roleTemplate.saveYaml(`displayName: Inherits
+context: cluster
+`);
+
+      expect(saved).toStrictEqual(expect.objectContaining({
+        id:              'rt-abcde',
+        type:            'roleTemplate',
+        name:            'Inherits',
+        context:         'cluster',
+        description:     null,
+        locked:          false,
+        roleTemplateIds: null,
+        rules:           null,
+        labels:          {},
+        annotations:     {},
+      }));
+      expect(saved).not.toHaveProperty('_subtype');
+      expect(saved).not.toHaveProperty('hidden');
+    });
+
+    it('should drop the labels and annotations Rancher\'s controllers own from a new role template', async() => {
+      const { saved, roleTemplate } = createRoleTemplate({ context: 'cluster' });
+
+      await roleTemplate.saveYaml(`metadata:
+  name: cluster-member
+  labels:
+    authz.management.cattle.io/bootstrapping: default-roletemplate
+    team: platform
+  annotations:
+    lifecycle.cattle.io/create.mgmt-auth-roletemplate-lifecycle: 'true'
+    note: pasted
+displayName: Pasted Role
+`);
+
+      expect(saved.labels).toStrictEqual({ team: 'platform' });
+      expect(saved.annotations).toStrictEqual({ note: 'pasted' });
+    });
+
+    it('should send the labels and annotations of an edit as written', async() => {
+      const { saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
+
+      await roleTemplate.saveYaml(`metadata:
+  labels:
+    authz.management.cattle.io/bootstrapping: default-roletemplate
+  annotations:
+    lifecycle.cattle.io/create.mgmt-auth-roletemplate-lifecycle: 'true'
+displayName: Cluster Member
+`);
+
+      expect(saved.labels).toStrictEqual({ 'authz.management.cattle.io/bootstrapping': 'default-roletemplate' });
+      expect(saved.annotations).toStrictEqual({ 'lifecycle.cattle.io/create.mgmt-auth-roletemplate-lifecycle': 'true' });
+    });
+
     it('should keep the display name when an edit removes it from the YAML', async() => {
       const { cached, saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
 
