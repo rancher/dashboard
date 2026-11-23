@@ -262,6 +262,13 @@
     "**/nyc/test-exclude/minimatch": "11.0.9",
     "**/editorconfig/minimatch": "11.0.9",
     "**/@percy/cli-doctor/minimatch": "11.0.9",
-    "**/@vue/language-core/minimatch": "11.0.9"
+    "**/@vue/language-core/minimatch": "11.0.9",
+    "**/@jest/reporters/glob": "14.0.6",
+    "**/jest-config/glob": "14.0.6",
+    "**/jest-runtime/glob": "14.0.6",
+    "**/babel-jest/babel-plugin-istanbul/test-exclude/glob": "14.0.6",
+    "**/babel-jest/babel-plugin-istanbul/test-exclude/minimatch": "11.0.9",
+    "**/@jest/transform/babel-plugin-istanbul/test-exclude/glob": "14.0.6",
+    "**/@jest/transform/babel-plugin-istanbul/test-exclude/minimatch": "11.0.9"
   }
 }
