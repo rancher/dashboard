@@ -1,5 +1,5 @@
 import { CATTLE_PUBLIC_ENDPOINTS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@shell/config/labels-annotations';
-import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE } from '@shell/config/types';
+import { NODE as NODE_TYPE, NAMESPACE as NAMESPACE_TYPE, PV as PV_TYPE } from '@shell/config/types';
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
@@ -130,6 +130,18 @@ export const PERSISTENT_VOLUME_CLAIM = {
   value:         'claimName',
   formatter:     'LinkDetail',
   formatterOpts: { reference: 'claim.detailLocation' }
+};
+
+/**
+ * Link to the PV bound to a PVC
+ */
+export const PERSISTENT_VOLUME = {
+  name:          'volume',
+  labelKey:      'tableHeaders.volume',
+  value:         'spec.volumeName',
+  sort:          ['spec.volumeName'],
+  formatter:     'LinkName',
+  formatterOpts: { type: PV_TYPE },
 };
 
 export const OUTPUT = {
