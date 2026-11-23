@@ -5,9 +5,6 @@ import {
   MAY_BE_COMMONJS, REQUIRE_FILE, isCommonJS, withoutEmptyExports, wrapCommonJS
 } from './commonjs.mjs';
 
-const REQUIRE = /(?<![\w$.])require\(\s*(?:'([^'\n]+)'|"([^"\n]+)"|`([^`$\n]+)`)\s*\)/g;
-const TEMPLATE_REQUIRE = /(?<![\w$.])require\(\s*`([^`\n]*\$\{[^`\n]*)`\s*\)/g;
-const EXPRESSION = /\$\{[^}]*\}/g;
 const REQUIRED_AS_VALUE = /\.(svg|png|jpe?g|gif|webp|ico|avif|woff2?|ttf|eot|json|ya?ml|csv|md)$/;
 const MODULE_EXTENSIONS = ['js', 'jsx', 'ts', 'tsx', 'mjs', 'vue', 'json'];
 const NOT_MODULE = /(^|\/)__tests__\/|\.(test|spec)\.\w+$|\.d\.ts$/;
@@ -57,10 +54,28 @@ function parseCode(context, code) {
   }
 }
 
+const LOGICAL_ASSIGNMENT = ['||=', '&&=', '??='];
+
+function optionalBefore(node) {
+  for (let link = node; link?.type === 'CallExpression' || link?.type === 'MemberExpression'; link = link.callee || link.object) {
+    if (link.optional) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 const RUNS_SOMETIMES = {
   IfStatement:           (node, child) => child !== node.test,
   ConditionalExpression: (node, child) => child !== node.test,
   LogicalExpression:     (node, child) => child === node.right,
+  AssignmentExpression:  (node, child) => LOGICAL_ASSIGNMENT.includes(node.operator) && child === node.right,
+  AssignmentPattern:     (node, child) => child === node.right,
+  CallExpression:        (node, child) => node.arguments.includes(child) && optionalBefore(node),
+  MemberExpression:      (node, child) => node.computed && child === node.property && optionalBefore(node),
+  PropertyDefinition:    (node, child) => !node.static && child === node.value,
+  ClassProperty:         (node, child) => !node.static && child === node.value,
   SwitchCase:            (node, child) => child !== node.test,
   CatchClause:           () => true,
   ForStatement:          (node, child) => child !== node.init,
@@ -91,33 +106,31 @@ function laterThanLoad(call, ancestors) {
   return undefined;
 }
 
-function requiredPath(call) {
-  const [arg] = call.arguments;
-
-  if (call.callee.type !== 'Identifier' || call.callee.name !== 'require') {
-    return undefined;
-  }
-
-  if (arg?.type === 'Literal' && typeof arg.value === 'string') {
-    return arg.value;
-  }
-
-  return arg?.type === 'TemplateLiteral' ? arg.quasis[arg.quasis.length - 1].value.cooked : undefined;
-}
-
-function requiresRunLater(code, program) {
-  const found = [];
+function requireCalls(code, program) {
+  const calls = [];
 
   walk(program, (node, _, ancestors) => {
-    const required = node.type === 'CallExpression' ? requiredPath(node) : undefined;
-    const where = required !== undefined && !REQUIRED_AS_VALUE.test(cleanId(required)) && laterThanLoad(node, ancestors);
+    const [arg, ...others] = node.type === 'CallExpression' ? node.arguments : [];
+    const string = arg?.type === 'Literal' && typeof arg.value === 'string';
 
-    if (where) {
-      found.push({ call: code.slice(node.start, node.end).replace(/\s+/g, ' '), where, start: node.start });
+    if ((!string && arg?.type !== 'TemplateLiteral') || others.length || node.callee.type !== 'Identifier' || node.callee.name !== 'require') {
+      return;
+    }
+
+    const template = !string && arg.expressions.length ? {
+      raw: code.slice(arg.start + 1, arg.end - 1), first: arg.quasis[0].value.cooked, last: arg.quasis[arg.quasis.length - 1].value.cooked
+    } : undefined;
+    const source = string ? arg.value : arg.quasis[0].value.cooked;
+    const ending = string ? arg.value : arg.quasis[arg.quasis.length - 1].value.cooked;
+
+    if (template || source) {
+      calls.push({
+        start: node.start, end: node.end, call: code.slice(node.start, node.end), argStart: arg.start, argEnd: arg.end, source: template ? undefined : source, template, asValue: REQUIRED_AS_VALUE.test(cleanId(ending)), where: laterThanLoad(node, ancestors)
+      });
     }
   });
 
-  return found;
+  return calls.sort((a, b) => a.start - b.start);
 }
 
 function applyAlias(aliases, source) {
@@ -135,10 +148,10 @@ function applyAlias(aliases, source) {
  * with a warning.
  *
  * The dev server serves native ES modules, which cannot load a module when a call runs, so there each required module
- * is imported, and loads, with the file that requires it, and a CommonJS `.js` or `.ts` file becomes an ES module that
- * runs its code in a function of `(module, exports)`, as `wrapCommonJS` describes. A `require()` of a module inside a
- * function, a `try` or a condition runs there before the code around it, so the dev server warns about each one at its
- * file and line. Only code in the app's pkg folder is changed.
+ * is imported, and runs, when the file that requires it loads, and a CommonJS `.js` or `.ts` file becomes an ES module
+ * that runs its code in a function of `(module, exports)`, as `wrapCommonJS` describes. A `require()` of a module
+ * inside a function, a `try` or a condition runs there when the file loads instead of when the call is reached, so the
+ * dev server warns about each one at its file and line. Only code in the app's pkg folder is changed.
  *
  * @param {{ root: string }} options the app's root directory
  */
@@ -193,84 +206,103 @@ export function rancherRequireCompat({ root }) {
       const build = config.command === 'build';
       const requires = code.includes('require(');
       const mayBeCommonJS = SCRIPT_FILE.test(file) && MAY_BE_COMMONJS.test(code);
-      const program = !build && !CLASSIC_WORKER.test(id) && (requires || mayBeCommonJS) ? parseCode(this, code) : undefined;
-      const commonJS = program !== undefined && mayBeCommonJS && isCommonJS(program);
+      const program = (requires || (!build && mayBeCommonJS && !CLASSIC_WORKER.test(id))) ? parseCode(this, code) : undefined;
+      const commonJS = !build && program !== undefined && mayBeCommonJS && !CLASSIC_WORKER.test(id) && isCommonJS(program);
 
-      if (!commonJS && !requires) {
+      if (!program || (!commonJS && !requires)) {
         return;
       }
 
-      (program ? requiresRunLater(code, program) : []).forEach(({ call, where, start }) => {
-        this.warn(`${ call } ${ where } loads its module with this file under yarn dev, so an error the module throws stops the dashboard instead of reaching the code around the call. Use import() to load the module when it is needed.`, start);
-      });
+      const calls = requires ? requireCalls(code, program) : [];
+
+      if (!build) {
+        calls.filter(({ where, asValue }) => where && !asValue).forEach(({ call, where, start }) => {
+          this.warn(`${ call.replace(/\s+/g, ' ') } ${ where } runs when this file loads under yarn dev, not when the call is reached; if the module throws, it stops the dashboard. Use import() to load it on demand.`, start);
+        });
+      }
 
       const imports = new Map();
       const contexts = [];
       const helpers = new Set();
-      const out = (commonJS ? withoutEmptyExports(code, program) : code)
-        .replace(REQUIRE, (call, single, double, template) => {
-          const source = single || double || template;
-          const asValue = REQUIRED_AS_VALUE.test(cleanId(source));
 
-          if (build) {
-            if (asValue) {
-              helpers.add(VALUE);
-            }
-
-            return asValue ? `__rancher_require_value__(${ call })` : call;
-          }
-
-          if (!imports.has(source)) {
-            imports.set(source, `__rancher_require_${ imports.size }__`);
-          }
-
+      const requireOf = ({ call, source, asValue }) => {
+        if (build) {
           if (asValue) {
-            return imports.get(source);
+            helpers.add(VALUE);
           }
 
-          if (!isPackage(source)) {
-            helpers.add(REQUIRE_FILE);
+          return asValue ? `__rancher_require_value__(${ call })` : call;
+        }
 
-            return `__rancher_require_file__(${ imports.get(source) })`;
+        if (!imports.has(source)) {
+          imports.set(source, `__rancher_require_${ imports.size }__`);
+        }
+
+        if (asValue) {
+          return imports.get(source);
+        }
+
+        if (!isPackage(source)) {
+          helpers.add(REQUIRE_FILE);
+
+          return `__rancher_require_file__(${ imports.get(source) })`;
+        }
+
+        helpers.add(REQUIRE_PACKAGE);
+
+        return `__rancher_require_package__(${ imports.get(source) })`;
+      };
+
+      const contextOf = ({ call, template: { raw, first, last } }, expression) => {
+        const dir = first.slice(0, first.lastIndexOf('/') + 1);
+        const folder = dir && folderFor(dir, file);
+        const key = dir && (build ? dir : keyFor(dir));
+
+        if (!folder || !key) {
+          this.warn(`${ file }: require(\`${ raw }\`) cannot be bundled, so it will throw when it runs: start its path with a folder`);
+
+          return call;
+        }
+
+        const extension = /^[^/]*\.\w+$/.test(last) ? last : undefined;
+        const name = `__rancher_require_context_${ contexts.length }__`;
+
+        helpers.add(LOOKUP);
+        helpers.add(VALUE);
+
+        if (build) {
+          const files = fs.existsSync(folder) ? fs.readdirSync(folder, { recursive: true }).map((entry) => entry.split(path.sep).join('/')) : [];
+          const required = files.filter((entry) => !NOT_MODULE.test(entry) && (extension ? entry.endsWith(extension) : MODULE_EXTENSIONS.includes(path.extname(entry).slice(1))));
+
+          contexts.push(`function ${ name }() {\n  return {\n${ required.map((entry) => `    ${ JSON.stringify(`${ dir }${ entry }`) }: function() { return require(${ JSON.stringify(`${ dir }${ entry }`) }); },\n`).join('') }  };\n}`);
+        } else {
+          const files = extension ? `**/*${ extension }` : `**/*.{${ MODULE_EXTENSIONS.join(',') }}`;
+
+          helpers.add(REQUIRE_FILE);
+          contexts.push(`function ${ name }() {\n  var modules = import.meta.glob(${ JSON.stringify([`${ dir }${ files }`, ...NOT_MODULES]) }, { eager: true });\n\n  return Object.keys(modules).reduce(function(out, file) {\n    out[file] = function() { return __rancher_require_file__(modules[file]); };\n\n    return out;\n  }, {});\n}`);
+        }
+
+        return `__rancher_require_context__(${ name }(), ${ JSON.stringify(dir) }, ${ JSON.stringify(key) }, ${ expression })`;
+      };
+
+      const replacements = [];
+
+      for (let i = calls.length - 1; i >= 0; i--) {
+        const call = calls[i];
+        const inner = replacements.filter(({ start, end }) => start > call.start && end < call.end);
+        const arg = inner.reduce((text, { start, end, replacement }) => `${ text.slice(0, start - call.argStart) }${ replacement }${ text.slice(end - call.argStart) }`, code.slice(call.argStart, call.argEnd));
+        const replacement = call.template ? contextOf(call, arg) : requireOf(call);
+
+        for (let j = replacements.length - 1; j >= 0; j--) {
+          if (replacements[j].start > call.start && replacements[j].end < call.end) {
+            replacements.splice(j, 1);
           }
+        }
 
-          helpers.add(REQUIRE_PACKAGE);
+        replacements.push({ ...call, replacement });
+      }
 
-          return `__rancher_require_package__(${ imports.get(source) })`;
-        })
-        .replace(TEMPLATE_REQUIRE, (call, template) => {
-          const [first, ...rest] = template.split(EXPRESSION);
-          const dir = first.slice(0, first.lastIndexOf('/') + 1);
-          const folder = dir && folderFor(dir, file);
-          const key = dir && (build ? dir : keyFor(dir));
-
-          if (!folder || !key) {
-            this.warn(`${ file }: require(\`${ template }\`) cannot be bundled, so it will throw when it runs: start its path with a folder`);
-
-            return call;
-          }
-
-          const last = rest[rest.length - 1];
-          const extension = /^[^/]*\.\w+$/.test(last) ? last : undefined;
-          const name = `__rancher_require_context_${ contexts.length }__`;
-
-          helpers.add(LOOKUP);
-          helpers.add(VALUE);
-
-          if (build) {
-            const files = fs.existsSync(folder) ? fs.readdirSync(folder, { recursive: true }).map((entry) => entry.split(path.sep).join('/')) : [];
-            const required = files.filter((entry) => !NOT_MODULE.test(entry) && (extension ? entry.endsWith(extension) : MODULE_EXTENSIONS.includes(path.extname(entry).slice(1))));
-
-            contexts.push(`function ${ name }() {\n  return {\n${ required.map((entry) => `    ${ JSON.stringify(`${ dir }${ entry }`) }: function() { return require(${ JSON.stringify(`${ dir }${ entry }`) }); },\n`).join('') }  };\n}`);
-          } else {
-            const files = extension ? `**/*${ extension }` : `**/*.{${ MODULE_EXTENSIONS.join(',') }}`;
-
-            helpers.add(REQUIRE_FILE);
-            contexts.push(`function ${ name }() {\n  var modules = import.meta.glob(${ JSON.stringify([`${ dir }${ files }`, ...NOT_MODULES]) }, { eager: true });\n\n  return Object.keys(modules).reduce(function(out, file) {\n    out[file] = function() { return __rancher_require_file__(modules[file]); };\n\n    return out;\n  }, {});\n}`);
-          }
-
-          return `__rancher_require_context__(${ name }(), ${ JSON.stringify(dir) }, ${ JSON.stringify(key) }, \`${ template }\`)`;
-        });
+      const out = replacements.reduce((text, { start, end, replacement }) => `${ text.slice(0, start) }${ replacement }${ text.slice(end) }`, commonJS ? withoutEmptyExports(code, program) : code);
 
       const transformed = commonJS ? wrapCommonJS(out, program) : out;
 

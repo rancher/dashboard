@@ -75,6 +75,10 @@ describe('fx: rancherRequireCompat', () => {
     ['a file that is not code', `const a = require('./a');`, `${ ROOT }/pkg/thing/styles.scss`],
     ['a method called require', `const a = store.require('./a');`, `${ ROOT }/pkg/thing/index.ts`],
     ['code without require', `import a from './a';`, `${ ROOT }/pkg/thing/index.ts`],
+    ['a require() in a doc comment', `/**\n * const x = require('./m/does-not-exist');\n */\nexport const a = 1;`, `${ ROOT }/pkg/thing/index.ts`],
+    ['a require() in a line comment', `// const x = require('./m/does-not-exist');\nexport const a = 1;`, `${ ROOT }/pkg/thing/index.js`],
+    ['a require() in a string', `export const help = "call require('./m/nope') to load";`, `${ ROOT }/pkg/thing/index.ts`],
+    ['a require() with a path built from a template in a comment', `// require(\`./models/\${ type }\`)\nexport const a = 1;`, `${ ROOT }/pkg/thing/index.ts`],
   ])('should leave %s alone', (_, code, id) => {
     expect(transform(code, id)).toBeUndefined();
   });
@@ -121,6 +125,17 @@ describe('fx: rancherRequireCompat', () => {
 
     it('should leave tests, type declarations and other files out of the folder', () => {
       expect(transform(`const load = (type) => require(\`@shell/models/\${ type }\`);`).code).toContain('["@shell/models/**/*.{js,jsx,ts,tsx,mjs,vue,json}","!**/__tests__/**","!**/*.{test,spec}.*","!**/*.d.ts"]');
+    });
+
+    it('should keep the extension after an expression that contains braces', () => {
+      expect(transform(`const load = (name) => require(\`./icons/\${ format({ name }) }.svg\`);`).code).toContain('["./icons/**/*.svg","!**/__tests__/**","!**/*.{test,spec}.*","!**/*.d.ts"]');
+    });
+
+    it('should rewrite a require() inside a template expression', () => {
+      const code = transform(`const a = require(\`@shell/models/\${ require('./name').default }\`);`).code;
+
+      expect(code).toContain(`\`@shell/models/\${ __rancher_require_file__(__rancher_require_0__).default }\``);
+      expect(code).toContain('import * as __rancher_require_0__ from "./name";');
     });
 
     it('should leave a path that starts with an expression alone, and warn about it', () => {
@@ -213,12 +228,12 @@ describe('fx: rancherRequireCompat', () => {
       warn.mockClear();
     });
 
-    it('should warn that it loads with the file, at the call, and point to import()', () => {
+    it('should warn that it runs when the file loads, at the call, and point to import()', () => {
       const code = `try {\n  require('./throws');\n} catch (e) {}\n`;
 
       transform(code);
 
-      expect(warn).toHaveBeenCalledWith(`require('./throws') in a try loads its module with this file under yarn dev, so an error the module throws stops the dashboard instead of reaching the code around the call. Use import() to load the module when it is needed.`, code.indexOf('require('));
+      expect(warn).toHaveBeenCalledWith(`require('./throws') in a try runs when this file loads under yarn dev, not when the call is reached; if the module throws, it stops the dashboard. Use import() to load it on demand.`, code.indexOf('require('));
     });
 
     it.each([
@@ -229,10 +244,16 @@ describe('fx: rancherRequireCompat', () => {
       ['after a logical operator', `const a = enabled && require('./a');`, `require('./a') in a condition`],
       ['in a catch', `try {\n  load();\n} catch (e) {\n  require('./fallback');\n}`, `require('./fallback') in a condition`],
       ['with a path built from a template', `function load(name) {\n  return require(\`./models/\${ name }\`);\n}`, `require(\`./models/\${ name }\`) in a function`],
+      ['in a logical assignment', `cache ||= require('./a');`, `require('./a') in a condition`],
+      ['in a nullish assignment', `cache ??= require('./a');`, `require('./a') in a condition`],
+      ['in a destructuring default', `const { a = require('./a') } = options;`, `require('./a') in a condition`],
+      ['in an optional call', `widget.maybe?.(require('./a'));`, `require('./a') in a condition`],
+      ['after an optional member', `widget?.load(require('./a'));`, `require('./a') in a condition`],
+      ['in a class instance field', `class Widget {\n  a = require('./a');\n}`, `require('./a') in a condition`],
     ])('should warn about a require() %s', (_, code, described) => {
       transform(code);
 
-      expect(warn).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`^${ described.replace(/[$()[\]{}.*?+|\\^]/g, '\\$&') } loads its module`)), code.indexOf('require('));
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`^${ described.replace(/[$()[\]{}.*?+|\\^]/g, '\\$&') } runs when this file loads`)), code.indexOf('require('));
     });
 
     it('should warn about each one at its own position', () => {
@@ -253,6 +274,8 @@ describe('fx: rancherRequireCompat', () => {
       ['of json', `try {\n  require('./package.json');\n} catch (e) {}`],
       ['of a template path to assets', `const icon = (name) => require(\`./icons/\${ name }.svg\`);`],
       ['by a method of another object', `const load = () => store.require('./a');`],
+      ['at the start of an optional chain', `const load = require('./a')?.load;`],
+      ['in a static class field', `class Widget {\n  static a = require('./a');\n}`],
     ])('should not warn about a require() %s', (_, code) => {
       transform(code);
 
@@ -297,6 +320,13 @@ describe('fx: rancherRequireCompat', () => {
 
     it('should leave a required module to the bundler, which loads it when the call runs', () => {
       expect(build(`function load() {\n  return require('./thing');\n}`)).toBeUndefined();
+    });
+
+    it.each([
+      ['a string', `export const help = "load it with require('./logo.svg')";`],
+      ['a comment', `// const logo = require('./logo.svg');\nexport const a = 1;`],
+    ])('should leave a require() of an asset in %s alone', (_, code) => {
+      expect(build(code)).toBeUndefined();
     });
 
     it.each([
