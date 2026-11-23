@@ -68,10 +68,7 @@ export default {
 
       return false;
     },
-    addPath(ev) {
-      if (ev) {
-        ev.preventDefault();
-      }
+    addPath() {
       this.paths = [...this.paths, { id: random32(1) }];
       this.$nextTick(() => {
         if (this.$refs.paths && this.$refs.paths.length > 0) {
@@ -163,6 +160,7 @@ export default {
     </template>
     <button
       v-if="ruleMode === 'setHost'"
+      type="button"
       class="btn role-tertiary add"
       @click="addPath"
     >
