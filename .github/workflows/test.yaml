@@ -121,7 +121,7 @@ jobs:
           ['@userMenu', '@usersAndAuths'],
           ['@components'],
         ]
-    runs-on: ubuntu-24.04 # Revert to 'ubuntu-latest' when this is resolved: https://github.com/rancher/rancher/issues/58615 
+    runs-on: ubuntu-latest # Revert to 'ubuntu-latest' when this is resolved: https://github.com/rancher/rancher/issues/58615 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
@@ -203,7 +203,7 @@ jobs:
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
         with:
