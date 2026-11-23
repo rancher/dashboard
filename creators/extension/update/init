@@ -50,8 +50,13 @@ appPackage.dependencies['@rancher/shell'] = shellVersion;
 
 fs.writeFileSync(path.join(dest, 'package.json'), `${ JSON.stringify(appPackage, null, 2) }\n`);
 
-spawnSync(`yarn`, ['install'], {
+// The update rewrites package.json, so the lockfile has to change. Yarn Classic accepts the flag too.
+const install = spawnSync(`yarn`, ['install', '--no-immutable'], {
   cwd:   dest,
   shell: false,
   stdio: ['ignore', process.stdout, process.stderr],
 });
+
+if (install.status !== 0) {
+  process.exit(install.status ?? 1);
+}
