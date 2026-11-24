@@ -6,6 +6,7 @@ import { LoginPagePo } from '@/cypress/e2e/po/pages/login-page.po';
 import UiPluginsPagePo from '@/cypress/e2e/po/pages/explorer/uiplugins.po';
 import { NamespaceFilterPo } from '@/cypress/e2e/po/components/namespace-filter.po';
 import { CLUSTER_REPOS_BASE_URL } from '@/cypress/support/utils/api-endpoints';
+import { catchTargetPageException } from '@/cypress/support/utils/exception-utils';
 import { qase } from '@/cypress/support/qase';
 
 const namespaceFilter = new NamespaceFilterPo();
@@ -24,6 +25,12 @@ const GIT_REPO_NAME = 'rancher-plugin-examples';
 describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
   beforeEach(() => {
     cy.login();
+    // Tolerate the transient app-side "Failed call" unhandled rejection from the
+    // Steve request layer (it retries internally). It surfaces intermittently while
+    // the extensions views load/reload - e.g. after a successful upgrade the reload
+    // would throw and fail the test even though the extension was already upgraded,
+    // leaving no Upgrade action for the retry.
+    catchTargetPageException(['Failed call', 'Network Error']);
   });
 
   qase(14839, it('should go to the available tab by default and preserve active tab on reload', () => {
