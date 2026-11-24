@@ -757,6 +757,10 @@ describe('Cluster Manager', { testIsolation: 'off', tags: ['@manager', '@adminUs
     // Delete downloads directory. Need a fresh start to avoid conflicting file names
     cy.deleteDownloadsFolder();
 
+    // sortable-table moves bulk actions that do not fit into the overflow dropdown (inline display:none)
+    // at the default 1000px width the download kubeconfig button does not fit
+    cy.viewport(1440, 900);
+
     ClusterManagerListPagePo.navTo();
     clusterList.list().resourceTable().sortableTable().rowElementWithName('local')
       .click();
