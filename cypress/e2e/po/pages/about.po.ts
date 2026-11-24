@@ -37,6 +37,14 @@ export default class AboutPagePo extends PagePo {
       .click();
   }
 
+  aboutContainer() {
+    return this.self().get('.about');
+  }
+
+  sectionHeadings() {
+    return this.aboutContainer().children('.size-3');
+  }
+
   cliDocsLink() {
     return cy.getId('about__cli_docs_link');
   }

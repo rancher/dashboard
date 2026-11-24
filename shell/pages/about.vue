@@ -58,7 +58,7 @@ export default {
   <Loading v-if="!settings" />
   <div
     v-else
-    class="about"
+    class="about pb-40"
   >
     <BackLink :link="backLink" />
     <div class="title-block mb-20">

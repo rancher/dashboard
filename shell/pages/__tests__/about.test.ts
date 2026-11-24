@@ -1,4 +1,5 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { RcHeading } from '@components/RcHeading';
 import About from '@shell/pages/about.vue';
 import { SETTING } from '@shell/config/settings';
 import { DOCS_BASE } from '@shell/config/private-label';
@@ -91,6 +92,24 @@ describe('page: about', () => {
       const wrapper = await createWrapper();
 
       expect(wrapper.findAll('a[href^="https://releases.rancher.com/cli2"]')).toHaveLength(0);
+    });
+  });
+
+  describe('layout spacing', () => {
+    it('should apply consistent top spacing to every section after the first', async() => {
+      const wrapper = await createWrapper();
+      const headings = wrapper.findAllComponents(RcHeading);
+
+      expect(headings.length).toBeGreaterThan(1);
+      headings.slice(1).forEach((heading) => {
+        expect(heading.classes()).toContain('pt-40');
+      });
+    });
+
+    it('should apply bottom padding matching the inter-section spacing', async() => {
+      const wrapper = await createWrapper();
+
+      expect(wrapper.find('.about').classes()).toContain('pb-40');
     });
   });
 
