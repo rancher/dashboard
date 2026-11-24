@@ -29,20 +29,28 @@ describe('SortableTable checkbox alignment', { tags: ['@components', '@adminUser
 
     getTable().rowCheckboxBox(0).should('be.visible');
 
-    getTable().headerCheckboxBox().then(($headerBox) => {
-      const headerRect = $headerBox[0].getBoundingClientRect();
+    getTable().headerCheckboxCell().then(($headerCell) => {
+      const headerCellRect = $headerCell[0].getBoundingClientRect();
+      const headerCellCenterY = headerCellRect.y + (headerCellRect.height / 2);
 
-      getTable().rowCheckboxBox(0).then(($rowBox) => {
-        const rowRect = $rowBox[0].getBoundingClientRect();
+      getTable().headerCheckboxBox().then(($headerBox) => {
+        const headerRect = $headerBox[0].getBoundingClientRect();
+        const headerCenterY = headerRect.y + (headerRect.height / 2);
 
-        expect(Math.abs(rowRect.x - headerRect.x), 'horizontal offset vs header checkbox').to.be.at.most(0.5);
+        expect(Math.abs(headerCenterY - headerCellCenterY), 'header checkbox vertical offset').to.be.at.most(0.5);
 
-        getTable().rowStateBadge(0).then(($badge) => {
-          const badgeRect = $badge[0].getBoundingClientRect();
-          const rowCenterY = rowRect.y + (rowRect.height / 2);
-          const badgeCenterY = badgeRect.y + (badgeRect.height / 2);
+        getTable().rowCheckboxBox(0).then(($rowBox) => {
+          const rowRect = $rowBox[0].getBoundingClientRect();
 
-          expect(Math.abs(rowCenterY - badgeCenterY), 'vertical offset vs state badge').to.be.at.most(1);
+          expect(Math.abs(rowRect.x - headerRect.x), 'horizontal offset vs header checkbox').to.be.at.most(0.1);
+
+          getTable().rowStateBadge(0).then(($badge) => {
+            const badgeRect = $badge[0].getBoundingClientRect();
+            const rowCenterY = rowRect.y + (rowRect.height / 2);
+            const badgeCenterY = badgeRect.y + (badgeRect.height / 2);
+
+            expect(Math.abs(rowCenterY - badgeCenterY), 'vertical offset vs state badge').to.be.at.most(0.2);
+          });
         });
       });
     });

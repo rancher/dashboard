@@ -2077,6 +2077,15 @@ export default {
   .advanced-search-box {
     width: 100%;
   }
+
+  .sortable-table tr.main-row > td.row-check {
+    padding-top: 8px;
+
+    .selection-checkbox {
+      display: flex;
+      width: fit-content;
+    }
+  }
 </style>
 
 <style lang="scss">
@@ -2152,15 +2161,6 @@ export default {
 
       &:last-child {
         padding-right: 10px;
-      }
-
-      &.row-check {
-        padding-top: 8px;
-
-        .selection-checkbox {
-          display: flex;
-          width: fit-content;
-        }
       }
     }
 
