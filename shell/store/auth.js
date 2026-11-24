@@ -29,6 +29,12 @@ let impersonationRestorePromise = null;
 let impersonationRecoveryPromise = null;
 let impersonationRestoreGeneration = 0;
 
+function invalidateImpersonationRequests() {
+  impersonationRestoreGeneration++;
+  impersonationRestorePromise = null;
+  impersonationRecoveryPromise = null;
+}
+
 export const LOGIN_ERRORS = {
   CLIENT:              'client',
   CLIENT_UNAUTHORIZED: 'client_unauthorized',
@@ -131,9 +137,7 @@ export const mutations = {
     state.initialPass = null;
     state.impersonation = null;
     state.impersonationStatus = 'unknown';
-    impersonationRestoreGeneration++;
-    impersonationRestorePromise = null;
-    impersonationRecoveryPromise = null;
+    invalidateImpersonationRequests();
   },
 
   initialPass(state, pass) {
@@ -212,24 +216,8 @@ export const actions = {
     commit('initialPass', pass);
   },
 
-  async startImpersonation({ commit, dispatch }, userId) {
-    impersonationRestoreGeneration++;
-
-    const session = await dispatch('management/request', {
-      url:    '/v3/impersonation-sessions',
-      method: 'post',
-      data:   { userId },
-    }, { root: true });
-
-    commit('impersonationStarted', session);
-    commit('loggedInAs', session.principalId);
-    commit('clearUserCache');
-
-    return session;
-  },
-
   async stopImpersonation({ commit, dispatch }) {
-    impersonationRestoreGeneration++;
+    invalidateImpersonationRequests();
 
     await dispatch('management/request', {
       url:    '/v3/impersonation-sessions/current',
@@ -246,7 +234,7 @@ export const actions = {
     }
 
     if (impersonationRestorePromise) {
-      return impersonationRestorePromise.promise;
+      return impersonationRestorePromise;
     }
 
     const generation = impersonationRestoreGeneration;
@@ -282,13 +270,12 @@ export const actions = {
         throw e;
       }
     })();
-    const requestRecord = { promise: request };
 
-    impersonationRestorePromise = requestRecord;
+    impersonationRestorePromise = request;
     try {
       return await request;
     } finally {
-      if (impersonationRestorePromise === requestRecord) {
+      if (impersonationRestorePromise === request) {
         impersonationRestorePromise = null;
       }
     }
@@ -300,10 +287,12 @@ export const actions = {
     }
 
     if (impersonationRecoveryPromise) {
-      return impersonationRecoveryPromise.promise;
+      return impersonationRecoveryPromise;
     }
 
     const generation = ++impersonationRestoreGeneration;
+
+    impersonationRestorePromise = null;
     const request = (async() => {
       commit('impersonationStatus', 'unknown');
 
@@ -338,13 +327,12 @@ export const actions = {
         throw e;
       }
     })();
-    const requestRecord = { promise: request };
 
-    impersonationRecoveryPromise = requestRecord;
+    impersonationRecoveryPromise = request;
     try {
       return await request;
     } finally {
-      if (impersonationRecoveryPromise === requestRecord) {
+      if (impersonationRecoveryPromise === request) {
         impersonationRecoveryPromise = null;
       }
     }

@@ -290,32 +290,6 @@ describe('impersonation lifecycle actions', () => {
     expect(state().impersonationStatus).toStrictEqual('unknown');
   });
 
-  it('starts impersonation and updates the effective principal', async() => {
-    const dispatch = jest.fn().mockResolvedValue({ userId: 'u-target', principalId: 'local://target' });
-    const commit = jest.fn();
-
-    await actions.startImpersonation({ dispatch, commit } as any, 'u-target');
-
-    expect(dispatch).toHaveBeenCalledWith('management/request', {
-      url:    '/v3/impersonation-sessions',
-      method: 'post',
-      data:   { userId: 'u-target' },
-    }, { root: true });
-    expect(commit).toHaveBeenCalledWith('impersonationStarted', { userId: 'u-target', principalId: 'local://target' });
-    expect(commit).toHaveBeenCalledWith('loggedInAs', 'local://target');
-    expect(commit).toHaveBeenCalledWith('clearUserCache');
-  });
-
-  it('does not update state when starting impersonation fails', async() => {
-    const error = { status: 403 };
-    const dispatch = jest.fn().mockRejectedValue(error);
-    const commit = jest.fn();
-
-    await expect(actions.startImpersonation({ dispatch, commit } as any, 'u-target')).rejects.toStrictEqual(error);
-
-    expect(commit).not.toHaveBeenCalledWith('impersonationStarted', expect.anything());
-  });
-
   it('restores an active impersonation session after reload', async() => {
     const session = {
       userId: 'u-target', principalId: 'local://target', impersonating: true
@@ -494,34 +468,6 @@ describe('impersonation lifecycle actions', () => {
       { status: 'rejected', reason: error }
     ]);
     expect(commit).toHaveBeenCalledWith('impersonationStatus', 'unknown');
-  });
-
-  it('does not let a pending restore overwrite a newer start', async() => {
-    let resolveRestore: (session: object) => void = () => {};
-    const restoreSession = {
-      userId: 'u-old', principalId: 'local://old', impersonating: true
-    };
-    const startedSession = {
-      userId: 'u-new', principalId: 'local://new', impersonating: true
-    };
-    const dispatch = jest.fn()
-      .mockReturnValueOnce(new Promise<object>((resolve) => {
-        resolveRestore = resolve;
-      }))
-      .mockResolvedValueOnce(startedSession);
-    const commit = jest.fn();
-    const restoreState = { impersonation: null, impersonationStatus: 'unknown' };
-
-    const restore = actions.restoreImpersonation({
-      dispatch, commit, state: restoreState
-    } as any);
-
-    await actions.startImpersonation({ dispatch, commit }, 'u-new');
-    resolveRestore(restoreSession);
-    await restore;
-
-    expect(commit).toHaveBeenCalledWith('impersonationStarted', startedSession);
-    expect(commit).not.toHaveBeenCalledWith('impersonationStarted', restoreSession);
   });
 
   it('does not let a pending restore overwrite logout', async() => {
@@ -750,33 +696,6 @@ describe('impersonation lifecycle actions', () => {
 
     expect(dispatch).not.toHaveBeenCalledWith('recoverImpersonation');
     expect(dispatch).toHaveBeenCalledWith('rancher/request', expect.anything(), { root: true });
-  });
-
-  it('does not let pending recovery overwrite a newer start', async() => {
-    let resolveRecovery: (response: object) => void = () => {};
-    const recoveryResponse = { impersonating: false, restored: true };
-    const startedSession = { userId: 'u-new', principalId: 'local://new' };
-    const dispatch = jest.fn()
-      .mockReturnValueOnce(new Promise<object>((resolve) => {
-        resolveRecovery = resolve;
-      }))
-      .mockResolvedValueOnce(startedSession);
-    const commit = jest.fn();
-    const reload = jest.fn();
-    const location = jest.spyOn(window, 'location', 'get').mockReturnValue({ reload } as unknown as Location);
-
-    const recovery = actions.recoverImpersonation({
-      dispatch, commit, state: { impersonationStatus: 'active' }
-    } as any);
-
-    await actions.startImpersonation({ dispatch, commit }, 'u-new');
-    resolveRecovery(recoveryResponse);
-    await recovery;
-
-    expect(commit).toHaveBeenCalledWith('impersonationStarted', startedSession);
-    expect(commit).not.toHaveBeenCalledWith('impersonationStopped');
-    expect(reload).not.toHaveBeenCalledWith();
-    location.mockRestore();
   });
 
   it('does not let pending recovery overwrite a newer stop', async() => {

@@ -67,6 +67,7 @@ describe('User impersonation lifecycle', { tags: ['@usersAndAuths', '@adminUser'
     return cy.createUser({
       username,
       globalRole: { role: 'user' },
+      password:   `${ Cypress.env('password') }-impersonation-e2e`,
     }).then((response: Cypress.Response<any>) => ({
       id:       response.body.id as string,
       username: response.body.username as string,
