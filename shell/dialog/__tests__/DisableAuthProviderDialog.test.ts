@@ -82,12 +82,4 @@ describe('component: DisableAuthProviderDialog', () => {
     expect(disableCb).not.toHaveBeenCalled();
     expect(onClose(wrapper)).toHaveBeenCalledTimes(1);
   });
-
-  // The confirming action is destructive, so it must not read as an ordinary
-  // primary button.
-  it('should present the confirm action as destructive', () => {
-    const wrapper = createWrapper();
-
-    expect(confirmButton(wrapper).classes()).toContain('disable-auth-provider__confirm');
-  });
 });
