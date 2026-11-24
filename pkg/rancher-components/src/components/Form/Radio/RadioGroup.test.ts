@@ -24,7 +24,7 @@ describe('component: RadioGroup', () => {
       expect(slot.disabled).toBe(disabled);
     });
 
-    it('should disable an individual option and pass its tooltip props when option.disabled is true', async() => {
+    it('should disable an individual option when option.disabled is true', async() => {
       const wrapper = mount(RadioGroup, {
         propsData: {
           name:    'roles',
@@ -32,11 +32,9 @@ describe('component: RadioGroup', () => {
           options: [
             { label: 'Member', value: 'member' },
             {
-              label:       'Locked Role',
-              value:       'locked-role',
-              disabled:    true,
-              tooltip:     'This role is locked.',
-              tooltipIcon: 'lock'
+              label:    'Locked Role',
+              value:    'locked-role',
+              disabled: true,
             }
           ]
         }
@@ -46,9 +44,6 @@ describe('component: RadioGroup', () => {
 
       expect(buttons[0].props('disabled')).toStrictEqual(false);
       expect(buttons[1].props('disabled')).toStrictEqual(true);
-      expect(buttons[1].props('tooltip')).toStrictEqual('This role is locked.');
-      expect(buttons[1].props('tooltipIcon')).toStrictEqual('lock');
-      expect(buttons[1].find('button.rc-icon-tooltip i.icon-lock').exists()).toStrictEqual(true);
 
       await buttons[1].find('label.radio-container').trigger('click');
 

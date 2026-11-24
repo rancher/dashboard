@@ -3,7 +3,7 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioButton, RadioGroup } from '@components/Form/Radio';
 import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
@@ -24,6 +24,7 @@ export default {
     Card,
     Checkbox,
     Loading,
+    RadioButton,
     RadioGroup,
     RcIconTooltip,
     SelectPrincipal
@@ -269,7 +270,38 @@ export default {
           data-testid="permission-options"
           :options="options"
           name="permission-group"
-        />
+        >
+          <template
+            v-for="(option, i) in options"
+            :key="i"
+            #[i]="{ option: normalizedOption, isDisabled }"
+          >
+            <RadioButton
+              v-model:value="permissionGroup"
+              name="permission-group"
+              :radio-option-id="normalizedOption.radioOptionId"
+              :val="option.value"
+              :label="option.locked ? `${ option.label } (${ option.tooltip })` : option.label"
+              :description="option.description"
+              :disabled="isDisabled"
+              :prevent-focus-on-radio-groups="true"
+              :data-testid="`radio-button-${i}`"
+            >
+              <template #label>
+                <span v-clean-html="option.label" />
+                <RcIconTooltip
+                  v-if="option.locked"
+                  class="ml-5"
+                  :content="option.tooltip"
+                  icon-type="lock"
+                  @click.stop.prevent
+                  @keydown.enter.stop
+                  @keydown.space.stop
+                />
+              </template>
+            </RadioButton>
+          </template>
+        </RadioGroup>
         <div
           v-if="permissionGroup === 'custom'"
           class="custom-permissions ml-20 mt-10"

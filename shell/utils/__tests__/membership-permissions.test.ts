@@ -156,21 +156,19 @@ describe('utils: membership-permissions', () => {
       { id: 'unlocked-role', locked: false },
     ];
 
-    it('returns disabled, locked, tooltip and lock icon when a role object is locked', () => {
+    it('returns disabled, locked, and tooltip when a role object is locked', () => {
       expect(getRoleLockProps({ id: 'custom', locked: true }, roleTemplates, t)).toStrictEqual({
-        disabled:    true,
-        locked:      true,
-        tooltip:     '%members.clusterPermissions.custom.lockedRole%',
-        tooltipIcon: 'lock',
+        disabled: true,
+        locked:   true,
+        tooltip:  '%members.clusterPermissions.custom.lockedRole%',
       });
     });
 
-    it('returns disabled, locked, tooltip and lock icon when a role ID matches a locked role template', () => {
+    it('returns disabled, locked, and tooltip when a role ID matches a locked role template', () => {
       expect(getRoleLockProps('locked-role', roleTemplates, t)).toStrictEqual({
-        disabled:    true,
-        locked:      true,
-        tooltip:     '%members.clusterPermissions.custom.lockedRole%',
-        tooltipIcon: 'lock',
+        disabled: true,
+        locked:   true,
+        tooltip:  '%members.clusterPermissions.custom.lockedRole%',
       });
     });
 

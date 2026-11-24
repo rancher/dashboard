@@ -3,7 +3,6 @@ import { PropType, defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import RadioButton from '@components/Form/Radio/RadioButton.vue';
 import { generateRandomAlphaString } from '@shell/utils/string';
-import type { RcIconType } from '@components/RcIcon/types';
 
 interface Option {
   value: unknown,
@@ -11,8 +10,6 @@ interface Option {
   description?: string,
   radioOptionId?: string,
   disabled?: boolean,
-  tooltip?: string | object,
-  tooltipIcon?: RcIconType,
 }
 
 export default defineComponent({
@@ -318,8 +315,6 @@ export default defineComponent({
             :description="option.description"
             :val="option.value"
             :disabled="isDisabled || Boolean(option.disabled)"
-            :tooltip="option.tooltip"
-            :tooltip-icon="option.tooltipIcon"
             :data-testid="`radio-button-${i}`"
             :mode="mode"
             :use-body-text-color="useBodyTextColor"

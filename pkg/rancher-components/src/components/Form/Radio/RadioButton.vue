@@ -1,12 +1,9 @@
 <script lang="ts">
-import { PropType, defineComponent } from 'vue';
+import { defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import { generateRandomAlphaString } from '@shell/utils/string';
-import { RcIconTooltip } from '@components/RcIconTooltip';
-import type { RcIconType } from '@components/RcIcon/types';
 
 export default defineComponent({
-  components: { RcIconTooltip },
 
   inheritAttrs: false,
   props:        {
@@ -76,22 +73,6 @@ export default defineComponent({
     },
 
     /**
-     * Tooltip text or floating-vue options object shown on the icon next to the radio label.
-     */
-    tooltip: {
-      type:    [String, Object],
-      default: null
-    },
-
-    /**
-     * Icon type rendered next to the radio label when `tooltip` is set.
-     */
-    tooltipIcon: {
-      type:    String as PropType<RcIconType>,
-      default: 'info'
-    },
-
-    /**
      * Prevent focus when using radio in the context of a Radio group
      */
     preventFocusOnRadioGroups: {
@@ -121,27 +102,13 @@ export default defineComponent({
 
   data() {
     return {
-      isChecked:           this.value === this.val,
-      randomString:        `${ generateRandomAlphaString(12) }-radio`,
-      describeById:        `${ generateRandomAlphaString(12) }-radio-described-id`,
-      tooltipDescribeById: `${ generateRandomAlphaString(12) }-radio-tooltip-described-id`,
+      isChecked:    this.value === this.val,
+      randomString: `${ generateRandomAlphaString(12) }-radio`,
+      describeById: `${ generateRandomAlphaString(12) }-radio-described-id`,
     };
   },
 
   computed: {
-    tooltipText(): string {
-      return typeof this.tooltip === 'string' ? this.tooltip : this.tooltip?.content || '';
-    },
-
-    ariaDescribedBy(): string | undefined {
-      const ids = [
-        this.descriptionKey || this.description ? this.describeById : '',
-        this.tooltipText ? this.tooltipDescribeById : '',
-      ].filter(Boolean);
-
-      return ids.length ? ids.join(' ') : undefined;
-    },
-
     /**
      * Determines if the radio is disabled.
      */
@@ -225,7 +192,7 @@ export default defineComponent({
       :aria-label="label"
       :aria-checked="isChecked"
       :aria-disabled="isDisabled"
-      :aria-describedby="ariaDescribedBy"
+      :aria-describedby="descriptionKey || description ? describeById : undefined"
       role="radio"
     />
     <div class="labeling">
@@ -247,20 +214,6 @@ export default defineComponent({
           v-else-if="label"
           v-clean-html="label"
         />
-        <RcIconTooltip
-          v-if="tooltip"
-          class="ml-5"
-          :content="tooltip"
-          :icon-type="tooltipIcon"
-          @click.stop.prevent
-          @keydown.enter.stop
-          @keydown.space.stop
-        />
-        <span
-          v-if="tooltipText"
-          :id="tooltipDescribeById"
-          class="sr-only"
-        >{{ tooltipText }}</span>
       </label>
       <div
         v-if="descriptionKey || description"

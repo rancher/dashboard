@@ -1,9 +1,10 @@
-import { shallowMount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import ProjectMemberEditor from '@shell/components/form/ProjectMemberEditor.vue';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal.vue';
-import { RadioGroup } from '@components/Form/Radio';
+import { RadioButton, RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { RcIconTooltip } from '@components/RcIconTooltip';
+import { waitForTooltip } from '@shell/directives/__tests__/utils/tooltip';
 
 describe('component: ProjectMemberEditor', () => {
   it('should mark Select Member as required', () => {
@@ -84,18 +85,16 @@ describe('component: ProjectMemberEditor', () => {
 
     expect(ownerOpt.disabled).toBeUndefined();
     expect(readOnlyOpt).toStrictEqual(expect.objectContaining({
-      value:       'read-only',
-      disabled:    true,
-      locked:      true,
-      tooltip:     '%members.clusterPermissions.custom.lockedRole%',
-      tooltipIcon: 'lock'
+      value:    'read-only',
+      disabled: true,
+      locked:   true,
+      tooltip:  '%members.clusterPermissions.custom.lockedRole%'
     }));
     expect(lockedCustomOpt).toStrictEqual(expect.objectContaining({
-      value:       'locked-custom-role',
-      disabled:    true,
-      locked:      true,
-      tooltip:     '%members.clusterPermissions.custom.lockedRole%',
-      tooltipIcon: 'lock'
+      value:    'locked-custom-role',
+      disabled: true,
+      locked:   true,
+      tooltip:  '%members.clusterPermissions.custom.lockedRole%'
     }));
     expect(unlockedCustomOpt.disabled).toBeUndefined();
 
@@ -170,5 +169,54 @@ describe('component: ProjectMemberEditor', () => {
     await (ProjectMemberEditor as any).fetch.call(wrapper.vm);
 
     expect(value.permissionGroup).toStrictEqual('member');
+  });
+
+  it('should render a focusable lock tooltip and include the locked reason in aria-label for locked radio options', async() => {
+    const value = {
+      permissionGroup: 'member', custom: {}, principalId: '', roleTemplateIds: [] as string[]
+    };
+    const wrapper = mount(ProjectMemberEditor, {
+      attachTo: document.body,
+      props:    { value },
+      data() {
+        return {
+          roleTemplates: [
+            {
+              id:          'locked-project-role',
+              nameDisplay: 'Locked Project Role',
+              description: 'Locked project role',
+              builtin:     false,
+              external:    false,
+              hidden:      false,
+              context:     'project',
+              locked:      true
+            }
+          ] as any
+        };
+      },
+      global: {
+        mocks: { $fetchState: { pending: false } },
+        stubs: {
+          Card:            { template: '<div><slot name="title" /><slot name="body" /></div>' },
+          SelectPrincipal: true,
+        }
+      },
+    });
+
+    const lockedRadio = wrapper.findAllComponents(RadioButton).find((r) => r.props('val') === 'locked-project-role');
+
+    expect(lockedRadio?.props('disabled')).toStrictEqual(true);
+    expect(lockedRadio?.find('span[role="radio"]').attributes('aria-label')).toStrictEqual('Locked Project Role (%members.clusterPermissions.custom.lockedRole%)');
+
+    const tooltipBtn = lockedRadio?.find('button.rc-icon-tooltip');
+
+    expect(tooltipBtn?.exists()).toStrictEqual(true);
+    expect(tooltipBtn?.find('i.icon-lock').exists()).toStrictEqual(true);
+
+    tooltipBtn?.element.dispatchEvent(new FocusEvent('focus'));
+    await waitForTooltip();
+
+    expect(document.querySelector('.v-popper__popper--shown')?.textContent?.trim()).toStrictEqual('%members.clusterPermissions.custom.lockedRole%');
+    wrapper.unmount();
   });
 });
