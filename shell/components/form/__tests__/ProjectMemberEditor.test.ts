@@ -103,9 +103,13 @@ describe('component: ProjectMemberEditor', () => {
     expect(checkboxes[0].props('disabled')).toStrictEqual(false);
     expect(checkboxes[1].props('disabled')).toStrictEqual(true);
     expect(wrapper.findAll('i.icon-lock')).toHaveLength(1);
+
+    await checkboxes[0].vm.$emit('update:value', true);
+
+    expect(wrapper.props('value').roleTemplateIds).toStrictEqual(['create-ns']);
   });
 
-  it('should fall back to the first unlocked option when the default project-member role is locked on fetch', async() => {
+  it('should clear permissionGroup and roleTemplateIds when the default project-member role is locked on fetch', async() => {
     const value = {
       permissionGroup: 'member', custom: {}, principalId: '', roleTemplateIds: [] as string[]
     };
@@ -137,8 +141,8 @@ describe('component: ProjectMemberEditor', () => {
 
     await (ProjectMemberEditor as any).fetch.call(wrapper.vm);
 
-    expect(value.permissionGroup).toStrictEqual('owner');
-    expect(value.roleTemplateIds).toStrictEqual(['project-owner']);
+    expect(value.permissionGroup).toStrictEqual('');
+    expect(value.roleTemplateIds).toStrictEqual([]);
   });
 
   it('should keep the current permissionGroup on fetch when it is not locked', async() => {

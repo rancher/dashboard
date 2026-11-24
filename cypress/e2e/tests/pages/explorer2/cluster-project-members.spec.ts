@@ -209,9 +209,10 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
       clusterMembership.permissionOptions().self().contains('label.radio-container', lockedClusterRoleName).within(() => {
         cy.root().should('have.class', 'disabled');
         cy.get('span[role="radio"]').should('have.attr', 'aria-disabled', 'true');
-        cy.get('i.icon-lock').should('exist');
+        cy.get('i.icon-lock').should('exist').focus();
         cy.root().click({ force: true }).should('not.have.class', 'radio-button-checked');
       });
+      cy.get('.v-popper__popper--shown').should('contain.text', 'This role is locked.');
 
       clusterMembership.cancelCreateForm().click();
       clusterMembership.waitForPageWithExactUrl();
@@ -225,9 +226,10 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
       projectMembership.permissionOptions().self().contains('label.radio-container', lockedProjectRoleName).within(() => {
         cy.root().should('have.class', 'disabled');
         cy.get('span[role="radio"]').should('have.attr', 'aria-disabled', 'true');
-        cy.get('i.icon-lock').should('exist');
+        cy.get('i.icon-lock').should('exist').focus();
         cy.root().click({ force: true }).should('not.have.class', 'radio-button-checked');
       });
+      cy.get('.v-popper__popper--shown').should('contain.text', 'This role is locked.');
     });
   });
 });

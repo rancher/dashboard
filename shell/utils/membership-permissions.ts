@@ -21,3 +21,37 @@ export function canViewMembershipEditorList(store: Store<any>, needsProject = fa
 export function canViewClusterMembershipEditor(store: Store<any>): boolean {
   return canViewMembershipEditor(store);
 }
+
+export interface RoleTemplateLockable {
+  id?: string;
+  locked?: boolean | null;
+}
+
+export interface RoleLockProps {
+  disabled?: true;
+  locked?: true;
+  tooltip?: string;
+  tooltipIcon?: 'icon-lock';
+}
+
+/**
+ * Returns the option properties needed to disable and badge a locked cluster or project role template.
+ */
+export function getRoleLockProps(
+  roleOrId: RoleTemplateLockable | string | null | undefined,
+  roleTemplates: RoleTemplateLockable[],
+  t: (key: string) => string
+): RoleLockProps {
+  const role = typeof roleOrId === 'string' ? roleTemplates.find((r) => r.id === roleOrId) : roleOrId;
+
+  if (role?.locked) {
+    return {
+      disabled:    true,
+      locked:      true,
+      tooltip:     t('members.clusterPermissions.custom.lockedRole'),
+      tooltipIcon: 'icon-lock'
+    };
+  }
+
+  return {};
+}

@@ -118,13 +118,33 @@ export default defineComponent({
 
   data() {
     return {
-      isChecked:    this.value === this.val,
-      randomString: `${ generateRandomAlphaString(12) }-radio`,
-      describeById: `${ generateRandomAlphaString(12) }-radio-described-id`,
+      isChecked:           this.value === this.val,
+      randomString:        `${ generateRandomAlphaString(12) }-radio`,
+      describeById:        `${ generateRandomAlphaString(12) }-radio-described-id`,
+      tooltipDescribeById: `${ generateRandomAlphaString(12) }-radio-tooltip-described-id`,
     };
   },
 
   computed: {
+    tooltipText(): string {
+      return typeof this.tooltip === 'string' ? this.tooltip : this.tooltip?.content || '';
+    },
+
+    tooltipConfig(): Record<string, unknown> {
+      const options = typeof this.tooltip === 'string' ? { content: this.tooltip } : this.tooltip;
+
+      return { triggers: ['hover', 'touch', 'focus', 'click'], ...options };
+    },
+
+    ariaDescribedBy(): string | undefined {
+      const ids = [
+        this.descriptionKey || this.description ? this.describeById : '',
+        this.tooltipText ? this.tooltipDescribeById : '',
+      ].filter(Boolean);
+
+      return ids.length ? ids.join(' ') : undefined;
+    },
+
     /**
      * Determines if the radio is disabled.
      */
@@ -208,7 +228,7 @@ export default defineComponent({
       :aria-label="label"
       :aria-checked="isChecked"
       :aria-disabled="isDisabled"
-      :aria-describedby="descriptionKey || description ? describeById : undefined"
+      :aria-describedby="ariaDescribedBy"
       role="radio"
     />
     <div class="labeling">
@@ -232,10 +252,21 @@ export default defineComponent({
         />
         <i
           v-if="tooltip"
-          v-clean-tooltip="tooltip"
+          v-clean-tooltip="tooltipConfig"
           class="icon ml-5"
           :class="tooltipIcon"
+          tabindex="0"
+          role="button"
+          :aria-label="t('generic.moreInfo')"
+          @click.stop.prevent
+          @keydown.enter.stop
+          @keydown.space.stop
         />
+        <span
+          v-if="tooltipText"
+          :id="tooltipDescribeById"
+          class="sr-only"
+        >{{ tooltipText }}</span>
       </label>
       <div
         v-if="descriptionKey || description"

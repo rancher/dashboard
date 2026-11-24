@@ -4,7 +4,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 
 describe('component: ClusterPermissionsEditor', () => {
-  it('should mark locked cluster roles and locked custom permissions as disabled with a lock tooltip', () => {
+  it('should mark locked cluster roles and locked custom permissions as disabled with a lock tooltip', async() => {
     const wrapper = shallowMount(ClusterPermissionsEditor, {
       props: { value: [] },
       data() {
@@ -78,9 +78,13 @@ describe('component: ClusterPermissionsEditor', () => {
     expect(checkboxes[0].props('disabled')).toStrictEqual(false);
     expect(checkboxes[1].props('disabled')).toStrictEqual(true);
     expect(wrapper.findAll('i.icon-lock')).toHaveLength(1);
+
+    await checkboxes[0].vm.$emit('update:value', true);
+
+    expect((wrapper.vm as any).roleTemplateIds).toStrictEqual(['projects-create']);
   });
 
-  it('should fall back to the first unlocked option when the default cluster-member role is locked on fetch', async() => {
+  it('should clear permissionGroup and roleTemplateIds when the default cluster-member role is locked on fetch', async() => {
     const roleTemplates = [
       {
         id: 'cluster-owner', builtin: true, context: 'cluster', locked: false
@@ -110,8 +114,8 @@ describe('component: ClusterPermissionsEditor', () => {
 
     await (ClusterPermissionsEditor as any).fetch.call(wrapper.vm);
 
-    expect((wrapper.vm as any).permissionGroup).toStrictEqual('owner');
-    expect((wrapper.vm as any).roleTemplateIds).toStrictEqual(['cluster-owner']);
+    expect((wrapper.vm as any).permissionGroup).toStrictEqual('');
+    expect((wrapper.vm as any).roleTemplateIds).toStrictEqual([]);
   });
 
   it('should keep the current permissionGroup on fetch when it is not locked', async() => {

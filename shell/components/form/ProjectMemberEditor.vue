@@ -7,6 +7,7 @@ import { Card } from '@components/Card';
 import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
+import { getRoleLockProps } from '@shell/utils/membership-permissions';
 import DOMPurify from 'dompurify';
 
 export default {
@@ -42,7 +43,7 @@ export default {
     this.projects = projects;
 
     if (this.options.find((opt) => opt.value === this.value.permissionGroup)?.disabled) {
-      this.value.permissionGroup = this.options.find((opt) => !opt.disabled)?.value;
+      this.value.permissionGroup = '';
       this.setRoleTemplateIds(this.value.permissionGroup);
     }
   },
@@ -159,7 +160,7 @@ export default {
         label:       this.purifyOption(role.nameDisplay),
         description: this.purifyOption(role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('projectMembers.projectPermissions.noDescription')),
         value:       this.purifyOption(role.id),
-        ...this.getRoleLockProps(role),
+        ...getRoleLockProps(role, this.roleTemplates, this.t),
       }));
 
       return [
@@ -167,19 +168,19 @@ export default {
           label:       this.t('projectMembers.projectPermissions.owner.label'),
           description: this.t('projectMembers.projectPermissions.owner.description'),
           value:       'owner',
-          ...this.getRoleLockProps('project-owner')
+          ...getRoleLockProps('project-owner', this.roleTemplates, this.t)
         },
         {
           label:       this.t('projectMembers.projectPermissions.member.label'),
           description: this.t('projectMembers.projectPermissions.member.description'),
           value:       'member',
-          ...this.getRoleLockProps('project-member')
+          ...getRoleLockProps('project-member', this.roleTemplates, this.t)
         },
         {
           label:       this.t('projectMembers.projectPermissions.readOnly.label'),
           description: this.t('projectMembers.projectPermissions.readOnly.description'),
           value:       'read-only',
-          ...this.getRoleLockProps('read-only')
+          ...getRoleLockProps('read-only', this.roleTemplates, this.t)
         },
         ...customRoles,
         {
@@ -190,7 +191,7 @@ export default {
       ];
     },
     customPermissionsUpdate() {
-      return this.customPermissions.map((item) => Object.assign(item, this.getRoleLockProps(item.key)));
+      return this.customPermissions.map((item) => Object.assign(item, getRoleLockProps(item.key, this.roleTemplates, this.t)));
     }
   },
   watch: {
@@ -206,21 +207,6 @@ export default {
     }
   },
   methods: {
-    getRoleLockProps(roleOrId) {
-      const role = typeof roleOrId === 'string' ? this.roleTemplates.find((r) => r.id === roleOrId) : roleOrId;
-
-      if (role?.locked) {
-        return {
-          disabled:    true,
-          locked:      true,
-          tooltip:     this.t('members.clusterPermissions.custom.lockedRole'),
-          tooltipIcon: 'icon-lock'
-        };
-      }
-
-      return {};
-    },
-
     onAdd(principalId) {
       this.value['principalId'] = principalId;
     },
@@ -232,6 +218,10 @@ export default {
     },
 
     getRoleTemplateIds(permissionGroup) {
+      if (!permissionGroup) {
+        return [];
+      }
+
       if (permissionGroup === 'owner') {
         return ['project-owner'];
       }

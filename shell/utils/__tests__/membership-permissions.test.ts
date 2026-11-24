@@ -3,6 +3,7 @@ import {
   canViewClusterMembershipEditor,
   canViewMembershipEditor,
   canViewMembershipEditorList,
+  getRoleLockProps,
 } from '@shell/utils/membership-permissions';
 
 const MGMT_ROLE_TEMPLATE = 'management.cattle.io.roletemplate';
@@ -145,6 +146,38 @@ describe('utils: membership-permissions', () => {
       },
     ])('when $description, returns $expected', ({ schemas, expected }) => {
       expect(canViewClusterMembershipEditor(storeWithSchemas(schemas))).toStrictEqual(expected);
+    });
+  });
+
+  describe('getRoleLockProps', () => {
+    const t = (key: string) => `%${ key }%`;
+    const roleTemplates = [
+      { id: 'locked-role', locked: true },
+      { id: 'unlocked-role', locked: false },
+    ];
+
+    it('returns disabled, locked, tooltip and icon-lock when a role object is locked', () => {
+      expect(getRoleLockProps({ id: 'custom', locked: true }, roleTemplates, t)).toStrictEqual({
+        disabled:    true,
+        locked:      true,
+        tooltip:     '%members.clusterPermissions.custom.lockedRole%',
+        tooltipIcon: 'icon-lock',
+      });
+    });
+
+    it('returns disabled, locked, tooltip and icon-lock when a role ID matches a locked role template', () => {
+      expect(getRoleLockProps('locked-role', roleTemplates, t)).toStrictEqual({
+        disabled:    true,
+        locked:      true,
+        tooltip:     '%members.clusterPermissions.custom.lockedRole%',
+        tooltipIcon: 'icon-lock',
+      });
+    });
+
+    it('returns an empty object when the role is unlocked or not found', () => {
+      expect(getRoleLockProps('unlocked-role', roleTemplates, t)).toStrictEqual({});
+      expect(getRoleLockProps('missing-role', roleTemplates, t)).toStrictEqual({});
+      expect(getRoleLockProps({ id: 'custom', locked: false }, roleTemplates, t)).toStrictEqual({});
     });
   });
 });

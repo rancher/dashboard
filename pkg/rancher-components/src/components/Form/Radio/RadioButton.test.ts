@@ -1,5 +1,6 @@
 import { shallowMount, mount } from '@vue/test-utils';
 import { RadioButton } from './index';
+import { waitForTooltip } from '@shell/directives/__tests__/utils/tooltip';
 
 describe('radioButton.vue', () => {
   it('renders label slot contents', () => {
@@ -75,32 +76,68 @@ describe('radioButton.vue', () => {
       });
 
       expect(wrapper.find('.radio-label i.icon').exists()).toStrictEqual(false);
+      expect(wrapper.find('span[role="radio"]').attributes('aria-describedby')).toBeUndefined();
     });
 
-    it('renders the default info icon when tooltip is provided without tooltipIcon', () => {
-      const wrapper = shallowMount(RadioButton, {
+    it('renders a focusable info icon that shows its tooltip on focus and describes the radio', async() => {
+      const wrapper = mount(RadioButton, {
+        attachTo:  document.body,
         propsData: {
           label: 'Role Label', val: 'role', value: 'role', tooltip: 'Helpful info'
         }
       });
 
       const icon = wrapper.find('.radio-label i.icon');
+      const radio = wrapper.find('span[role="radio"]');
 
       expect(icon.exists()).toStrictEqual(true);
       expect(icon.classes()).toContain('icon-info');
+      expect(icon.classes()).toContain('has-clean-tooltip');
+      expect(icon.attributes('tabindex')).toStrictEqual('0');
+      expect(icon.attributes('role')).toStrictEqual('button');
+      expect(radio.attributes('aria-describedby')).toStrictEqual(wrapper.vm.tooltipDescribeById);
+      expect(wrapper.find(`#${ wrapper.vm.tooltipDescribeById }`).text()).toStrictEqual('Helpful info');
+
+      icon.element.dispatchEvent(new FocusEvent('focus'));
+      await waitForTooltip();
+
+      expect(document.querySelector('.v-popper__popper--shown')?.textContent?.trim()).toStrictEqual('Helpful info');
+      wrapper.unmount();
     });
 
-    it('renders a custom tooltip icon when tooltip and tooltipIcon are provided', () => {
+    it('renders a custom tooltip icon and combines description and object tooltip in aria-describedby', () => {
       const wrapper = shallowMount(RadioButton, {
         propsData: {
-          label: 'Locked Role', val: 'locked-role', value: 'member', tooltip: 'This role is locked.', tooltipIcon: 'icon-lock'
+          label:          'Locked Role',
+          val:            'locked-role',
+          value:          'member',
+          descriptionKey: 'some.description.key',
+          tooltip:        { content: 'This role is locked.' },
+          tooltipIcon:    'icon-lock'
         }
       });
 
       const icon = wrapper.find('.radio-label i.icon');
+      const radio = wrapper.find('span[role="radio"]');
 
       expect(icon.exists()).toStrictEqual(true);
       expect(icon.classes()).toContain('icon-lock');
+      expect(icon.classes()).toContain('has-clean-tooltip');
+      expect(radio.attributes('aria-describedby')).toStrictEqual(`${ wrapper.vm.describeById } ${ wrapper.vm.tooltipDescribeById }`);
+      expect(wrapper.find(`#${ wrapper.vm.tooltipDescribeById }`).text()).toStrictEqual('This role is locked.');
+    });
+
+    it('handles an object tooltip without content', () => {
+      const wrapper = shallowMount(RadioButton, {
+        propsData: {
+          label:   'Role Label',
+          val:     'role',
+          value:   'role',
+          tooltip: {}
+        }
+      });
+
+      expect(wrapper.find('span[role="radio"]').attributes('aria-describedby')).toBeUndefined();
     });
   });
 });

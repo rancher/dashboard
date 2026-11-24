@@ -8,6 +8,7 @@ import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
+import { getRoleLockProps } from '@shell/utils/membership-permissions';
 
 export function canViewClusterPermissionsEditor(store) {
   return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
@@ -53,7 +54,7 @@ export default {
     this.roleTemplates = roleTemplates;
 
     if (this.options.find((opt) => opt.value === this.permissionGroup)?.disabled) {
-      this.permissionGroup = this.options.find((opt) => !opt.disabled)?.value;
+      this.permissionGroup = '';
     }
   },
   data() {
@@ -130,6 +131,10 @@ export default {
         });
     },
     roleTemplateIds() {
+      if (!this.permissionGroup) {
+        return [];
+      }
+
       if (this.permissionGroup === 'owner') {
         return ['cluster-owner'];
       }
@@ -151,7 +156,7 @@ export default {
         label:       role.nameDisplay,
         description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('members.clusterPermissions.noDescription'),
         value:       role.id,
-        ...this.getRoleLockProps(role)
+        ...getRoleLockProps(role, this.roleTemplates, this.t)
       }));
 
       return [
@@ -159,13 +164,13 @@ export default {
           label:       this.t('members.clusterPermissions.owner.label'),
           description: this.t('members.clusterPermissions.owner.description'),
           value:       'owner',
-          ...this.getRoleLockProps('cluster-owner')
+          ...getRoleLockProps('cluster-owner', this.roleTemplates, this.t)
         },
         {
           label:       this.t('members.clusterPermissions.member.label'),
           description: this.t('members.clusterPermissions.member.description'),
           value:       'member',
-          ...this.getRoleLockProps('cluster-member')
+          ...getRoleLockProps('cluster-member', this.roleTemplates, this.t)
         },
         ...customRoles,
         {
@@ -185,7 +190,7 @@ export default {
       }, { root: true });
     },
     customPermissionsUpdate() {
-      return this.customPermissions.map((item) => Object.assign(item, this.getRoleLockProps(item.key)));
+      return this.customPermissions.map((item) => Object.assign(item, getRoleLockProps(item.key, this.roleTemplates, this.t)));
     }
   },
 
@@ -195,21 +200,6 @@ export default {
     }
   },
   methods: {
-    getRoleLockProps(roleOrId) {
-      const role = typeof roleOrId === 'string' ? this.roleTemplates.find((r) => r.id === roleOrId) : roleOrId;
-
-      if (role?.locked) {
-        return {
-          disabled:    true,
-          locked:      true,
-          tooltip:     this.t('members.clusterPermissions.custom.lockedRole'),
-          tooltipIcon: 'icon-lock'
-        };
-      }
-
-      return {};
-    },
-
     async principalProperty() {
       const principal = await this.principal;
 
