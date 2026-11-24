@@ -7,6 +7,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { getRoleLockProps } from '@shell/utils/membership-permissions';
 
@@ -24,6 +25,7 @@ export default {
     Checkbox,
     Loading,
     RadioGroup,
+    RcIconTooltip,
     SelectPrincipal
   },
 
@@ -283,10 +285,10 @@ export default {
               class="mb-5"
               :label="permission.label"
             />
-            <i
+            <RcIconTooltip
               v-if="permission.locked"
-              v-clean-tooltip="permission.tooltip"
-              class="icon icon-lock"
+              :content="permission.tooltip"
+              icon-type="lock"
             />
           </div>
         </div>

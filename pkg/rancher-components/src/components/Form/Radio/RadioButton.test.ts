@@ -1,5 +1,6 @@
 import { shallowMount, mount } from '@vue/test-utils';
 import { RadioButton } from './index';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 import { waitForTooltip } from '@shell/directives/__tests__/utils/tooltip';
 
 describe('radioButton.vue', () => {
@@ -75,11 +76,11 @@ describe('radioButton.vue', () => {
         }
       });
 
-      expect(wrapper.find('.radio-label i.icon').exists()).toStrictEqual(false);
+      expect(wrapper.findComponent(RcIconTooltip).exists()).toStrictEqual(false);
       expect(wrapper.find('span[role="radio"]').attributes('aria-describedby')).toBeUndefined();
     });
 
-    it('renders a focusable info icon that shows its tooltip on focus and describes the radio', async() => {
+    it('renders a focusable RcIconTooltip that shows its tooltip on focus and describes the radio', async() => {
       const wrapper = mount(RadioButton, {
         attachTo:  document.body,
         propsData: {
@@ -87,18 +88,17 @@ describe('radioButton.vue', () => {
         }
       });
 
-      const icon = wrapper.find('.radio-label i.icon');
+      const tooltipBtn = wrapper.find('.radio-label button.rc-icon-tooltip');
+      const icon = tooltipBtn.find('i.rc-icon');
       const radio = wrapper.find('span[role="radio"]');
 
-      expect(icon.exists()).toStrictEqual(true);
+      expect(tooltipBtn.exists()).toStrictEqual(true);
+      expect(tooltipBtn.classes()).toContain('has-clean-tooltip');
       expect(icon.classes()).toContain('icon-info');
-      expect(icon.classes()).toContain('has-clean-tooltip');
-      expect(icon.attributes('tabindex')).toStrictEqual('0');
-      expect(icon.attributes('role')).toStrictEqual('button');
       expect(radio.attributes('aria-describedby')).toStrictEqual(wrapper.vm.tooltipDescribeById);
       expect(wrapper.find(`#${ wrapper.vm.tooltipDescribeById }`).text()).toStrictEqual('Helpful info');
 
-      icon.element.dispatchEvent(new FocusEvent('focus'));
+      tooltipBtn.element.dispatchEvent(new FocusEvent('focus'));
       await waitForTooltip();
 
       expect(document.querySelector('.v-popper__popper--shown')?.textContent?.trim()).toStrictEqual('Helpful info');
@@ -113,16 +113,16 @@ describe('radioButton.vue', () => {
           value:          'member',
           descriptionKey: 'some.description.key',
           tooltip:        { content: 'This role is locked.' },
-          tooltipIcon:    'icon-lock'
+          tooltipIcon:    'lock'
         }
       });
 
-      const icon = wrapper.find('.radio-label i.icon');
+      const tooltip = wrapper.findComponent(RcIconTooltip);
       const radio = wrapper.find('span[role="radio"]');
 
-      expect(icon.exists()).toStrictEqual(true);
-      expect(icon.classes()).toContain('icon-lock');
-      expect(icon.classes()).toContain('has-clean-tooltip');
+      expect(tooltip.exists()).toStrictEqual(true);
+      expect(tooltip.props('iconType')).toStrictEqual('lock');
+      expect(tooltip.props('content')).toStrictEqual({ content: 'This role is locked.' });
       expect(radio.attributes('aria-describedby')).toStrictEqual(`${ wrapper.vm.describeById } ${ wrapper.vm.tooltipDescribeById }`);
       expect(wrapper.find(`#${ wrapper.vm.tooltipDescribeById }`).text()).toStrictEqual('This role is locked.');
     });

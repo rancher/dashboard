@@ -2,6 +2,7 @@ import { shallowMount } from '@vue/test-utils';
 import ClusterPermissionsEditor from '@shell/components/form/Members/ClusterPermissionsEditor.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 describe('component: ClusterPermissionsEditor', () => {
   it('should mark locked cluster roles and locked custom permissions as disabled with a lock tooltip', async() => {
@@ -61,7 +62,7 @@ describe('component: ClusterPermissionsEditor', () => {
       disabled:    true,
       locked:      true,
       tooltip:     '%members.clusterPermissions.custom.lockedRole%',
-      tooltipIcon: 'icon-lock'
+      tooltipIcon: 'lock'
     }));
     expect(memberOpt.disabled).toBeUndefined();
     expect(lockedCustomOpt).toStrictEqual(expect.objectContaining({
@@ -69,7 +70,7 @@ describe('component: ClusterPermissionsEditor', () => {
       disabled:    true,
       locked:      true,
       tooltip:     '%members.clusterPermissions.custom.lockedRole%',
-      tooltipIcon: 'icon-lock'
+      tooltipIcon: 'lock'
     }));
     expect(unlockedCustomOpt.disabled).toBeUndefined();
 
@@ -77,7 +78,12 @@ describe('component: ClusterPermissionsEditor', () => {
 
     expect(checkboxes[0].props('disabled')).toStrictEqual(false);
     expect(checkboxes[1].props('disabled')).toStrictEqual(true);
-    expect(wrapper.findAll('i.icon-lock')).toHaveLength(1);
+
+    const tooltips = wrapper.findAllComponents(RcIconTooltip);
+
+    expect(tooltips).toHaveLength(1);
+    expect(tooltips[0].props('iconType')).toStrictEqual('lock');
+    expect(tooltips[0].props('content')).toStrictEqual('%members.clusterPermissions.custom.lockedRole%');
 
     await checkboxes[0].vm.$emit('update:value', true);
 

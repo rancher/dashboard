@@ -31,7 +31,7 @@ export interface RoleLockProps {
   disabled?: true;
   locked?: true;
   tooltip?: string;
-  tooltipIcon?: 'icon-lock';
+  tooltipIcon?: 'lock';
 }
 
 /**
@@ -49,7 +49,7 @@ export function getRoleLockProps(
       disabled:    true,
       locked:      true,
       tooltip:     t('members.clusterPermissions.custom.lockedRole'),
-      tooltipIcon: 'icon-lock'
+      tooltipIcon: 'lock'
     };
   }
 

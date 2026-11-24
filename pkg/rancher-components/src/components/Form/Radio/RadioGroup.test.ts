@@ -36,7 +36,7 @@ describe('component: RadioGroup', () => {
               value:       'locked-role',
               disabled:    true,
               tooltip:     'This role is locked.',
-              tooltipIcon: 'icon-lock'
+              tooltipIcon: 'lock'
             }
           ]
         }
@@ -47,8 +47,8 @@ describe('component: RadioGroup', () => {
       expect(buttons[0].props('disabled')).toStrictEqual(false);
       expect(buttons[1].props('disabled')).toStrictEqual(true);
       expect(buttons[1].props('tooltip')).toStrictEqual('This role is locked.');
-      expect(buttons[1].props('tooltipIcon')).toStrictEqual('icon-lock');
-      expect(buttons[1].find('i.icon-lock').exists()).toStrictEqual(true);
+      expect(buttons[1].props('tooltipIcon')).toStrictEqual('lock');
+      expect(buttons[1].find('button.rc-icon-tooltip i.icon-lock').exists()).toStrictEqual(true);
 
       await buttons[1].find('label.radio-container').trigger('click');
 

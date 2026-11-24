@@ -1,9 +1,12 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { PropType, defineComponent } from 'vue';
 import { _VIEW } from '@shell/config/query-params';
 import { generateRandomAlphaString } from '@shell/utils/string';
+import { RcIconTooltip } from '@components/RcIconTooltip';
+import type { RcIconType } from '@components/RcIcon/types';
 
 export default defineComponent({
+  components: { RcIconTooltip },
 
   inheritAttrs: false,
   props:        {
@@ -81,11 +84,11 @@ export default defineComponent({
     },
 
     /**
-     * Icon class rendered next to the radio label when `tooltip` is set.
+     * Icon type rendered next to the radio label when `tooltip` is set.
      */
     tooltipIcon: {
-      type:    String,
-      default: 'icon-info'
+      type:    String as PropType<RcIconType>,
+      default: 'info'
     },
 
     /**
@@ -128,12 +131,6 @@ export default defineComponent({
   computed: {
     tooltipText(): string {
       return typeof this.tooltip === 'string' ? this.tooltip : this.tooltip?.content || '';
-    },
-
-    tooltipConfig(): Record<string, unknown> {
-      const options = typeof this.tooltip === 'string' ? { content: this.tooltip } : this.tooltip;
-
-      return { triggers: ['hover', 'touch', 'focus', 'click'], ...options };
     },
 
     ariaDescribedBy(): string | undefined {
@@ -250,14 +247,11 @@ export default defineComponent({
           v-else-if="label"
           v-clean-html="label"
         />
-        <i
+        <RcIconTooltip
           v-if="tooltip"
-          v-clean-tooltip="tooltipConfig"
-          class="icon ml-5"
-          :class="tooltipIcon"
-          tabindex="0"
-          role="button"
-          :aria-label="t('generic.moreInfo')"
+          class="ml-5"
+          :content="tooltip"
+          :icon-type="tooltipIcon"
           @click.stop.prevent
           @keydown.enter.stop
           @keydown.space.stop

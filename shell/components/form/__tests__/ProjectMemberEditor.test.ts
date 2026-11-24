@@ -3,6 +3,7 @@ import ProjectMemberEditor from '@shell/components/form/ProjectMemberEditor.vue'
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal.vue';
 import { RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 
 describe('component: ProjectMemberEditor', () => {
   it('should mark Select Member as required', () => {
@@ -87,14 +88,14 @@ describe('component: ProjectMemberEditor', () => {
       disabled:    true,
       locked:      true,
       tooltip:     '%members.clusterPermissions.custom.lockedRole%',
-      tooltipIcon: 'icon-lock'
+      tooltipIcon: 'lock'
     }));
     expect(lockedCustomOpt).toStrictEqual(expect.objectContaining({
       value:       'locked-custom-role',
       disabled:    true,
       locked:      true,
       tooltip:     '%members.clusterPermissions.custom.lockedRole%',
-      tooltipIcon: 'icon-lock'
+      tooltipIcon: 'lock'
     }));
     expect(unlockedCustomOpt.disabled).toBeUndefined();
 
@@ -102,7 +103,12 @@ describe('component: ProjectMemberEditor', () => {
 
     expect(checkboxes[0].props('disabled')).toStrictEqual(false);
     expect(checkboxes[1].props('disabled')).toStrictEqual(true);
-    expect(wrapper.findAll('i.icon-lock')).toHaveLength(1);
+
+    const tooltips = wrapper.findAllComponents(RcIconTooltip);
+
+    expect(tooltips).toHaveLength(1);
+    expect(tooltips[0].props('iconType')).toStrictEqual('lock');
+    expect(tooltips[0].props('content')).toStrictEqual('%members.clusterPermissions.custom.lockedRole%');
 
     await checkboxes[0].vm.$emit('update:value', true);
 
