@@ -44,7 +44,7 @@ export interface PermissionGroupOption {
 export function getRoleLockProps(
   roleOrId: RoleTemplateLockable | string | null | undefined,
   roleTemplates: RoleTemplateLockable[],
-  t: (key: string) => string
+  lockedTooltip: string
 ): RoleLockProps {
   const role = typeof roleOrId === 'string' ? roleTemplates.find((r) => r.id === roleOrId) : roleOrId;
 
@@ -52,7 +52,7 @@ export function getRoleLockProps(
     return {
       disabled: true,
       locked:   true,
-      tooltip:  t('members.clusterPermissions.custom.lockedRole'),
+      tooltip:  lockedTooltip,
     };
   }
 

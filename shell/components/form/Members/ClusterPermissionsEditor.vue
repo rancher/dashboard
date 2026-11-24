@@ -3,13 +3,13 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { RadioButton, RadioGroup } from '@components/Form/Radio';
 import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { RcIconTooltip } from '@components/RcIconTooltip';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { getRoleLockProps, resolveUnlockedPermissionGroup } from '@shell/utils/membership-permissions';
+import { getRoleLockProps } from '@shell/utils/membership-permissions';
+import MemberPermissionGroup from '@shell/components/form/Members/MemberPermissionGroup.vue';
 
 export function canViewClusterPermissionsEditor(store) {
   return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
@@ -24,8 +24,7 @@ export default {
     Card,
     Checkbox,
     Loading,
-    RadioButton,
-    RadioGroup,
+    MemberPermissionGroup,
     RcIconTooltip,
     SelectPrincipal
   },
@@ -155,11 +154,12 @@ export default {
       return [this.permissionGroup];
     },
     options() {
+      const lockedTooltip = this.t('members.clusterPermissions.custom.lockedRole');
       const customRoles = this.customRoles.map((role) => ({
         label:       role.nameDisplay,
         description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('members.clusterPermissions.noDescription'),
         value:       role.id,
-        ...getRoleLockProps(role, this.roleTemplates, this.t)
+        ...getRoleLockProps(role, this.roleTemplates, lockedTooltip)
       }));
 
       return [
@@ -167,13 +167,13 @@ export default {
           label:       this.t('members.clusterPermissions.owner.label'),
           description: this.t('members.clusterPermissions.owner.description'),
           value:       'owner',
-          ...getRoleLockProps('cluster-owner', this.roleTemplates, this.t)
+          ...getRoleLockProps('cluster-owner', this.roleTemplates, lockedTooltip)
         },
         {
           label:       this.t('members.clusterPermissions.member.label'),
           description: this.t('members.clusterPermissions.member.description'),
           value:       'member',
-          ...getRoleLockProps('cluster-member', this.roleTemplates, this.t)
+          ...getRoleLockProps('cluster-member', this.roleTemplates, lockedTooltip)
         },
         ...customRoles,
         {
@@ -193,7 +193,9 @@ export default {
       }, { root: true });
     },
     customPermissionsUpdate() {
-      return this.customPermissions.map((item) => Object.assign(item, getRoleLockProps(item.key, this.roleTemplates, this.t)));
+      const lockedTooltip = this.t('members.clusterPermissions.custom.lockedRole');
+
+      return this.customPermissions.map((item) => Object.assign(item, getRoleLockProps(item.key, this.roleTemplates, lockedTooltip)));
     }
   },
 
@@ -203,10 +205,6 @@ export default {
     }
   },
   methods: {
-    onPermissionGroupChange(nextValue) {
-      this.permissionGroup = resolveUnlockedPermissionGroup(nextValue, this.permissionGroup, this.options);
-    },
-
     async principalProperty() {
       const principal = await this.principal;
 
@@ -269,45 +267,10 @@ export default {
         </div>
       </template>
       <template v-slot:body>
-        <RadioGroup
-          :value="permissionGroup"
-          data-testid="permission-options"
+        <MemberPermissionGroup
+          v-model:value="permissionGroup"
           :options="options"
-          name="permission-group"
-          @update:value="onPermissionGroupChange"
-        >
-          <template
-            v-for="(option, i) in options"
-            :key="i"
-            #[i]="{ option: normalizedOption, isDisabled }"
-          >
-            <RadioButton
-              :value="permissionGroup"
-              name="permission-group"
-              :radio-option-id="normalizedOption.radioOptionId"
-              :val="option.value"
-              :label="option.locked ? `${ option.label } (${ option.tooltip })` : option.label"
-              :description="option.description"
-              :disabled="isDisabled || Boolean(option.disabled)"
-              :prevent-focus-on-radio-groups="true"
-              :data-testid="`radio-button-${i}`"
-              @update:value="onPermissionGroupChange"
-            >
-              <template #label>
-                <span v-clean-html="option.label" />
-                <RcIconTooltip
-                  v-if="option.locked"
-                  class="ml-5"
-                  :content="option.tooltip"
-                  icon-type="lock"
-                  @click.stop.prevent
-                  @keydown.enter.stop
-                  @keydown.space.stop
-                />
-              </template>
-            </RadioButton>
-          </template>
-        </RadioGroup>
+        />
         <div
           v-if="permissionGroup === 'custom'"
           class="custom-permissions ml-20 mt-10"

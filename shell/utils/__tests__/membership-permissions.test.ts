@@ -151,32 +151,32 @@ describe('utils: membership-permissions', () => {
   });
 
   describe('getRoleLockProps', () => {
-    const t = (key: string) => `%${ key }%`;
+    const lockedTooltip = '%members.clusterPermissions.custom.lockedRole%';
     const roleTemplates = [
       { id: 'locked-role', locked: true },
       { id: 'unlocked-role', locked: false },
     ];
 
     it('returns disabled, locked, and tooltip when a role object is locked', () => {
-      expect(getRoleLockProps({ id: 'custom', locked: true }, roleTemplates, t)).toStrictEqual({
+      expect(getRoleLockProps({ id: 'custom', locked: true }, roleTemplates, lockedTooltip)).toStrictEqual({
         disabled: true,
         locked:   true,
-        tooltip:  '%members.clusterPermissions.custom.lockedRole%',
+        tooltip:  lockedTooltip,
       });
     });
 
     it('returns disabled, locked, and tooltip when a role ID matches a locked role template', () => {
-      expect(getRoleLockProps('locked-role', roleTemplates, t)).toStrictEqual({
+      expect(getRoleLockProps('locked-role', roleTemplates, lockedTooltip)).toStrictEqual({
         disabled: true,
         locked:   true,
-        tooltip:  '%members.clusterPermissions.custom.lockedRole%',
+        tooltip:  lockedTooltip,
       });
     });
 
     it('returns an empty object when the role is unlocked or not found', () => {
-      expect(getRoleLockProps('unlocked-role', roleTemplates, t)).toStrictEqual({});
-      expect(getRoleLockProps('missing-role', roleTemplates, t)).toStrictEqual({});
-      expect(getRoleLockProps({ id: 'custom', locked: false }, roleTemplates, t)).toStrictEqual({});
+      expect(getRoleLockProps('unlocked-role', roleTemplates, lockedTooltip)).toStrictEqual({});
+      expect(getRoleLockProps('missing-role', roleTemplates, lockedTooltip)).toStrictEqual({});
+      expect(getRoleLockProps({ id: 'custom', locked: false }, roleTemplates, lockedTooltip)).toStrictEqual({});
     });
   });
 

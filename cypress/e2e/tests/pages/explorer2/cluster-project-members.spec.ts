@@ -210,8 +210,8 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
         cy.root().should('have.class', 'disabled');
         cy.get('span[role="radio"]').should('have.attr', 'aria-disabled', 'true');
         cy.get('button.rc-icon-tooltip').should('exist').find('i.icon-lock').should('exist');
-        cy.get('button.rc-icon-tooltip').focus();
         cy.root().click({ force: true }).should('not.have.class', 'radio-button-checked');
+        cy.get('button.rc-icon-tooltip').focus();
       });
       cy.get('.v-popper__popper--shown').should('contain.text', 'This role is locked.');
 
@@ -228,8 +228,8 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
         cy.root().should('have.class', 'disabled');
         cy.get('span[role="radio"]').should('have.attr', 'aria-disabled', 'true');
         cy.get('button.rc-icon-tooltip').should('exist').find('i.icon-lock').should('exist');
-        cy.get('button.rc-icon-tooltip').focus();
         cy.root().click({ force: true }).should('not.have.class', 'radio-button-checked');
+        cy.get('button.rc-icon-tooltip').focus();
       });
       cy.get('.v-popper__popper--shown').should('contain.text', 'This role is locked.');
     });
