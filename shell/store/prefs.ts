@@ -194,12 +194,81 @@ const cookieOptions = {
 };
 
 export const R_AUTH_REDIRECT = 'rancher-auth-redirect';
+export const R_PENDING_PREFS = 'rancher-pending-prefs';
 
 function storedAuthRedirect(): Record<string, any> | null {
   try {
     return JSON.parse(sessionStorage.getItem(R_AUTH_REDIRECT) || 'null');
   } catch {
     return null;
+  }
+}
+
+interface PendingPrefsRecord {
+  user: string;
+  prefs: Record<string, any>;
+}
+
+function storedPendingPrefs(): PendingPrefsRecord | null {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(R_PENDING_PREFS) || 'null');
+
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      !Array.isArray(parsed) &&
+      typeof parsed.user === 'string' &&
+      parsed.prefs &&
+      typeof parsed.prefs === 'object' &&
+      !Array.isArray(parsed.prefs)
+    ) {
+      return parsed;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function stagePendingPref(key: string, value: any, user: string) {
+  try {
+    const existing = storedPendingPrefs();
+    const prefs = existing && existing.user === user ? existing.prefs : {};
+
+    prefs[key] = value;
+    localStorage.setItem(R_PENDING_PREFS, JSON.stringify({ user, prefs }));
+  } catch {
+  }
+}
+
+function clearPendingPref(key: string, user: string, expectedValue?: any) {
+  try {
+    const existing = storedPendingPrefs();
+
+    if (!existing || existing.user !== user || !(key in existing.prefs)) {
+      return;
+    }
+
+    if (arguments.length >= 3 && !isEqual(existing.prefs[key], expectedValue)) {
+      return;
+    }
+
+    delete existing.prefs[key];
+
+    if (Object.keys(existing.prefs).length > 0) {
+      localStorage.setItem(R_PENDING_PREFS, JSON.stringify(existing));
+    } else {
+      clearAllPendingPrefs();
+    }
+  } catch {
+  }
+}
+
+function clearAllPendingPrefs() {
+  try {
+    localStorage.removeItem(R_PENDING_PREFS);
+  } catch {
   }
 }
 
@@ -348,6 +417,7 @@ export const mutations = {
       }
       delete state.data[key];
     }
+    clearAllPendingPrefs();
   },
 
   setDefinition(state: PrefsState, { name, definition = {} }: { name: string, definition?: PrefDefinition }) {
@@ -477,6 +547,12 @@ export const actions = {
         return;
       }
 
+      const user = rootGetters['auth/principalId'] || '';
+      const toWrite = definition.mangleWrite ? definition.mangleWrite(value) : value;
+      const encoded = definition.parseJSON ? JSON.stringify(toWrite) : toWrite;
+
+      stagePendingPref(key, encoded, user);
+
       // In flight from now, not from when the queue reaches it: a write queued ahead of this one reads the
       // server first, and would otherwise commit the server's copy over the value just committed above.
       holdPending(key);
@@ -487,17 +563,13 @@ export const actions = {
           const server = await dispatch('loadServer'); // There's no watch on prefs, so get before set...
 
           if ( server?.data ) {
-            if ( definition.mangleWrite ) {
-              value = definition.mangleWrite(value);
-            }
-
-            if ( definition.parseJSON ) {
-              server.data[key] = JSON.stringify(value);
-            } else {
-              server.data[key] = value;
-            }
+            server.data[key] = encoded;
 
             await server.save({ redirectUnauthorized: false });
+
+            if (pendingWrites.get(key) === 1) {
+              clearPendingPref(key, user, encoded);
+            }
           }
         } catch (e) {
           // Well it failed, but not much to do about it...
@@ -798,16 +870,34 @@ export const actions = {
       return;
     }
 
+    const user: string = rootGetters['auth/principalId'] || '';
+    const pending = storedPendingPrefs();
+
+    if (pending && pending.user !== user) {
+      clearAllPendingPrefs();
+    }
+
+    const interrupted = pending && pending.user === user ? Object.entries(pending.prefs).filter(([key]) => !pendingWrites.has(key)) : [];
+
     // if prefsBeforeLogin has values from login page, update the backend
-    if (Object.keys(prefsBeforeLogin).length > 0) {
+    if (Object.keys(prefsBeforeLogin).length > 0 || interrupted.length > 0) {
+      interrupted.forEach(([key, value]) => {
+        server.data[key] = value;
+      });
+
       Object.keys(prefsBeforeLogin).forEach((key) => {
         server.data[key] = prefsBeforeLogin[key];
       });
 
-      await server.save({ redirectUnauthorized: false });
+      try {
+        await server.save({ redirectUnauthorized: false });
 
-      // Clear prefsBeforeLogin, as we have now saved theses
-      prefsBeforeLogin = {};
+        // Clear prefsBeforeLogin, as we have now saved theses
+        prefsBeforeLogin = {};
+        interrupted.forEach(([key, value]) => clearPendingPref(key, user, value));
+      } catch (e) {
+        console.error('Error saving pending preferences', e); // eslint-disable-line no-console
+      }
     }
 
     for (const key in state.definitions) {

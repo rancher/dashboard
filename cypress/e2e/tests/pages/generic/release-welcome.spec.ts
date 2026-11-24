@@ -197,6 +197,27 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.checkNotExists();
   });
 
+  it('stays dismissed when reloaded before the preference save completes', () => {
+    seedReadWhatsNew('v2.15.3');
+
+    HomePagePo.goTo();
+    dialog.checkVisible();
+
+    cy.intercept({
+      method: 'PUT', url: 'v1/userpreferences/*', times: 1
+    }, (req) => {
+      req.destroy();
+    }).as('abortedMarkRead');
+
+    dialog.closeButton().click();
+    cy.wait('@abortedMarkRead');
+    cy.reload();
+
+    homePage.waitForPage();
+    dialog.checkNotExists();
+    cy.wait('@markRead').its('request.body.data.read-whatsnew').should('eq', '"v2.16.0"');
+  });
+
   it('can be reopened from the user menu', () => {
     seedReadWhatsNew('v2.16.0');
 
