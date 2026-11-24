@@ -133,6 +133,17 @@ function isCurrentPageRequest(ctx, { key, id }) {
   return pageRequests(ctx)[key] === id;
 }
 
+function invalidatePageRequests(ctx, type) {
+  const latest = pageRequests(ctx);
+  const prefix = `${ normalizeType(type) }/`;
+
+  Object.keys(latest).forEach((key) => {
+    if (key.startsWith(prefix)) {
+      latest[key]++;
+    }
+  });
+}
+
 export default {
   request() {
     throw new Error('Not Implemented');
@@ -558,7 +569,7 @@ export default {
       });
     }
 
-    if ( !opt.transient && opt.watch !== false ) {
+    if ( !opt.transient && !superseded && opt.watch !== false ) {
       dispatch('watch', watchArgs);
     }
 
@@ -735,6 +746,7 @@ export default {
 
     const res = await dispatch('request', { opt, type });
 
+    // A list page that landed during this request now owns the cache. Loading this resource over it would clear the page and empty the list
     const skipCache = opt.transient || (!havePage && getters.havePage(type));
 
     if (!opt.transient && skipCache) {
@@ -753,7 +765,11 @@ export default {
 
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return skipCache ? await dispatch('create', res) : getters.byId(type, id);
+    if (opt.transient) {
+      return dispatch('create', res);
+    }
+
+    return skipCache ? (getters.byId(type, id) || await dispatch('create', res)) : getters.byId(type, id);
   },
 
   /**
@@ -879,6 +895,8 @@ export default {
     }
 
     const { compareWatches, unwatch = true, forget = true } = config;
+
+    invalidatePageRequests({ state }, type);
 
     if (unwatch) {
       // Stop all known watches

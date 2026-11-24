@@ -31,20 +31,6 @@ describe('Yaml Editor', { tags: ['@components', '@adminUser', '@standardUser'] }
       cy.intercept('POST', '/v1/apps.deployments').as('createDeployment');
       deploymentsCreatePage.createWithUI(name, containerImage, namespace);
       cy.wait('@createDeployment').its('response.statusCode').should('eq', 201);
-
-      // Wait for the deployment to exist AND for its rollout to settle before the tests navigate from
-      // the list to the YAML editor.
-      // While the deployment is still reporting status changes the socket keeps sending
-      // `resource.changes`, which makes the paginated list re-request its page. Navigating away while
-      // one of those is still in flight leaves the detail view without a resource to render, so
-      // `.resource-yaml` never appears. Letting the rollout settle stops those re-fetches.
-      // Remove this workaround once https://github.com/rancher/dashboard/issues/19075 is fixed.
-      cy.waitForRancherResource('v1', 'apps.deployments', `${ namespace }/${ name }`, (resp: any) => {
-        const status = resp?.body?.status || {};
-        const replicas = resp?.body?.spec?.replicas;
-
-        return resp?.status === 200 && replicas > 0 && status.readyReplicas === replicas && status.availableReplicas === replicas;
-      }, 30, { failOnStatusCode: false });
     });
   });
 

@@ -1,7 +1,7 @@
 import _actions from '@shell/plugins/dashboard-store/actions';
 
 const {
-  find, findAll, findMatching, findPage
+  find, findAll, findMatching, findPage, forgetType
 } = _actions;
 
 describe('dashboard-store: actions', () => {
@@ -349,12 +349,42 @@ describe('dashboard-store: findPage', () => {
 
     expect(loadPageCalls(ctx.commit)).toHaveLength(1);
   });
+
+  it('does not commit or watch when forgetType invalidates an in-flight page request', async() => {
+    let resolveRequest!: (value: PageResponse) => void;
+    const ctx = setupPageContext(() => new Promise((resolve) => {
+      resolveRequest = resolve;
+    }));
+
+    const pending = findPage(ctx, {
+      type: 'pod',
+      opt:  {
+        pagination: {
+          page: 1, pageSize: 10, filters: []
+        }
+      }
+    });
+
+    forgetType({
+      commit: ctx.commit, dispatch: ctx.dispatch, state: { ...ctx.state, started: [] }
+    }, { type: 'pod', unwatch: false });
+
+    resolveRequest({
+      data: ['stale'], count: 1, revision: '1'
+    });
+
+    await pending;
+
+    expect(loadPageCalls(ctx.commit)).toHaveLength(0);
+    expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+  });
 });
 
 describe('dashboard-store: find', () => {
   const setupFindContext = ({
     havePageBefore = false,
     havePageAfter = false,
+    cachedAfter = undefined as unknown,
     response = { id: 'ns/dep', metadata: { resourceVersion: '42' } },
     created = { id: 'ns/dep', classified: true },
   } = {}) => {
@@ -364,6 +394,9 @@ describe('dashboard-store: find', () => {
     const dispatch = jest.fn((action: string, payload?: unknown) => {
       if (action === 'request') {
         havePage = havePageAfter;
+        if (cachedAfter !== undefined) {
+          stored = cachedAfter;
+        }
 
         return Promise.resolve(response);
       }
@@ -468,5 +501,38 @@ describe('dashboard-store: find', () => {
     } finally {
       warnSpy.mockRestore();
     }
+  });
+
+  it('returns the store-backed resource when havePage becomes true mid-request and the page already cached it', async() => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const pageCached = { id: 'ns/dep', fromPage: true };
+    const ctx = setupFindContext({
+      havePageBefore: false, havePageAfter: true, cachedAfter: pageCached
+    });
+
+    try {
+      const result = await find(ctx, {
+        type: 'apps.deployment', id: 'ns/dep', opt: { watch: true }
+      });
+
+      expect(ctx.dispatch).not.toHaveBeenCalledWith('load', expect.anything());
+      expect(ctx.dispatch).not.toHaveBeenCalledWith('create', expect.anything());
+      expect(result).toStrictEqual(pageCached);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('returns the classified resource without loading or watching when opt.transient is true and there is no page', async() => {
+    const ctx = setupFindContext();
+
+    const result = await find(ctx, {
+      type: 'apps.deployment', id: 'ns/dep', opt: { transient: true }
+    });
+
+    expect(ctx.dispatch).not.toHaveBeenCalledWith('load', expect.anything());
+    expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+    expect(ctx.dispatch).toHaveBeenCalledWith('create', ctx.response);
+    expect(result).toStrictEqual(ctx.created);
   });
 });

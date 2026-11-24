@@ -605,7 +605,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
     before(() => {
       cy.createE2EResourceName('race-dep-a').then((name) => {
         depAName = name;
-        const dep = structuredClone(createDeploymentBlueprint);
+        const dep: any = structuredClone(createDeploymentBlueprint);
 
         dep.metadata.name = depAName;
         dep.spec.template.spec.containers[0].image = SMALL_CONTAINER.image;
@@ -616,7 +616,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
 
       cy.createE2EResourceName('race-dep-b').then((name) => {
         depBName = name;
-        const dep = structuredClone(createDeploymentBlueprint);
+        const dep: any = structuredClone(createDeploymentBlueprint);
 
         dep.metadata.name = depBName;
         dep.spec.template.spec.containers[0].image = SMALL_CONTAINER.image;
@@ -635,7 +635,10 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       detailA.goTo();
       detailA.waitForDetailsPage(depAName);
 
-      cy.intercept('GET', '/v1/apps.deployments?*', (req) => {
+      let listRequestStarted = false;
+
+      cy.intercept('GET', '/v1/apps.deployments?*includeAssociatedData=true*', (req) => {
+        listRequestStarted = true;
         req.on('response', (res) => {
           res.setDelay(1500);
         });
@@ -650,6 +653,10 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
       sideNav.navToSideMenuEntryByLabel('Deployments');
       cy.url().should('match', /\/apps\.deployment$/);
 
+      cy.wrap(null).should(() => {
+        expect(listRequestStarted).to.eq(true);
+      });
+
       cy.window().then((win: any) => {
         const app = win.document.querySelector('#app')?.__vue_app__;
 
@@ -663,7 +670,7 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
 
       sideNav.navToSideMenuEntryByLabel('Deployments');
       deploymentsListPage.waitForPage();
-      deploymentsListPage.sortableTable().checkVisible();
+      deploymentsListPage.sortableTable().rowElementWithName(depBName).should('be.visible');
     });
 
     after(() => {
