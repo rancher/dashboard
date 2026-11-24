@@ -251,7 +251,9 @@ describe('component: RoleDetailEdit', () => {
     });
 
     (wrapper.vm as any).defaultValue = true;
-    await wrapper.findComponent(CruResource).props('applyHooks')('_beforeSaveHooks');
+    const applyHooks = wrapper.findComponent(CruResource).props('applyHooks') as (event: string) => Promise<void>;
+
+    await applyHooks('_beforeSaveHooks');
 
     expect(value.clusterCreatorDefault).toBe(true);
   });
@@ -282,7 +284,9 @@ describe('component: RoleDetailEdit', () => {
       },
     });
 
-    await wrapper.findComponent(CruResource).props('applyHooks')('_beforeSaveHooks');
+    const applyHooks = wrapper.findComponent(CruResource).props('applyHooks') as (event: string) => Promise<void>;
+
+    await applyHooks('_beforeSaveHooks');
 
     expect(value).not.toHaveProperty('undefined');
   });
