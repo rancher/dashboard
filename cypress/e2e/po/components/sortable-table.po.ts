@@ -453,11 +453,11 @@ export default class SortableTablePo extends ComponentPo {
   }
 
   rowCheckboxBox(index: number) {
-    return this.row(index).self().find('td.row-check .checkbox-custom');
+    return this.self().find('tbody tr.main-row').eq(index).find('td.row-check .checkbox-custom');
   }
 
   rowStateBadge(index: number) {
-    return this.row(index).self().find('.badge-state');
+    return this.self().find('tbody tr.main-row').eq(index).find('.badge-state');
   }
 
   selectedCount() {

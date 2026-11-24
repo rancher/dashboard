@@ -1,11 +1,24 @@
 import { WorkloadsPodsListPagePo } from '@/cypress/e2e/po/pages/explorer/workloads-pods.po';
+import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
 
-describe('SortableTable checkbox alignment', { tags: ['@components', '@adminUser', '@standardUser'] }, () => {
+describe('SortableTable checkbox alignment', { tags: ['@components', '@adminUser'] }, () => {
   const podsListPage = new WorkloadsPodsListPagePo('local');
+  const namespace = 'default';
+  let podName = '';
 
   beforeEach(() => {
     cy.login();
     cy.viewport(1280, 720);
+
+    cy.createPod(namespace, 'checkbox-align', SMALL_CONTAINER.image).then((resp: any) => {
+      podName = resp.body.metadata.name;
+    });
+  });
+
+  afterEach(() => {
+    if (podName) {
+      cy.deleteRancherResource('v1', 'pods', `${ namespace }/${ podName }`, false);
+    }
   });
 
   it('aligns row checkboxes horizontally with the header checkbox and vertically with row content', () => {
@@ -15,6 +28,7 @@ describe('SortableTable checkbox alignment', { tags: ['@components', '@adminUser
     const table = podsListPage.list().resourceTable().sortableTable();
 
     table.checkLoadingIndicatorNotVisible();
+    table.rowWithName(podName).self().should('be.visible');
     table.rowCheckboxBox(0).should('be.visible');
 
     table.headerCheckboxBox().then(($headerBox) => {
