@@ -33,6 +33,8 @@ fi
 
 PUBLISH_ARGS="--no-git-tag-version --access public --registry $NPM_REGISTRY"
 
+source "${SCRIPT_DIR}/release-line.sh"
+
 pushd ${SHELL_DIR} >/dev/null
 
 function publish() {
@@ -47,13 +49,18 @@ function publish() {
     PKG_VERSION=$3
   fi
 
-  # if the PKG_VERSION has a - it means it will be a pre-release
-  if [[ $PKG_VERSION == *"-"* ]]; then
-    PUBLISH_ARGS="$PUBLISH_ARGS --tag pre-release"
+  # Always pass --tag explicitly so a publish can never fall through to npm's implicit `latest`
+  DIST_TAG=$(npm_dist_tag "$PKG_VERSION")
+
+  if [ "$FORCE_PUBLISH_TO_NPM" == "true" ] && [ "$DIST_TAG" == "latest" ]; then
+    echo "Refusing to publish ${PKG_VERSION} to ${NPM_REGISTRY} as 'latest'. Shell and creators publish to their release line (rancher-2.NN); 'latest' moves by promotion, not by publish."
+    exit 1
   fi
 
+  PUBLISH_ARGS="$PUBLISH_ARGS --tag ${DIST_TAG}"
+
   # when testing the workflow, we don't want to actually do an npm publish but only a dry run
-  if [ ${DRY_RUN} == "true" ]; then
+  if [ "${DRY_RUN}" == "true" ]; then
     PUBLISH_ARGS="$PUBLISH_ARGS --dry-run"
   fi
 
@@ -115,7 +122,7 @@ case $PKG_NAME in
     # with the changes in https://github.com/rancher/dashboard/pull/16166/files#diff-d954ab41ef46f7fdbaaf6d8c2bc715ad2cc823a829317b6ff93a3c94a92811f1
     #  with NPM 11.3 --dry--run now does additional checks, one of them is the version number
     #  so for dry runs we need to provide a valid version number here (not something published before)
-    if [ ${DRY_RUN} == "true" ]; then
+    if [ "${DRY_RUN}" == "true" ]; then
       update_version_in_package_json "${SHELL_DIR}/package.json" "${DUMMY_VERSION}"
     fi
 
@@ -127,7 +134,7 @@ case $PKG_NAME in
     # with the changes in https://github.com/rancher/dashboard/pull/16166/files#diff-d954ab41ef46f7fdbaaf6d8c2bc715ad2cc823a829317b6ff93a3c94a92811f1
     #  with NPM 11.3 --dry--run now does additional checks, one of them is the version number
     #  so for dry runs we need to provide a valid version number here (not something published before)
-    if [ ${DRY_RUN} == "true" ]; then
+    if [ "${DRY_RUN}" == "true" ]; then
       update_version_in_package_json "${CREATORS_DIR}/package.json" "${DUMMY_VERSION}"
     fi
 

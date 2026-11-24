@@ -131,9 +131,11 @@ export default {
               endpoint: url,
               noCache:  true,
               metadata: {
-                developer:                                        'true',
-                direct:                                           'true',
-                [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>= 3',
+                developer:                                   'true',
+                direct:                                      'true',
+                // Mandatory from 2.17, and a developer-loaded extension is built against
+                // whichever Shell is running, so it is compatible by definition.
+                [UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION]: '>= 217.0.0',
               },
               noAuth: true
             }
