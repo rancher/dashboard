@@ -9,7 +9,7 @@ import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
 import { RcIconTooltip } from '@components/RcIconTooltip';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { getRoleLockProps } from '@shell/utils/membership-permissions';
+import { getRoleLockProps, resolveUnlockedPermissionGroup } from '@shell/utils/membership-permissions';
 
 export function canViewClusterPermissionsEditor(store) {
   return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
@@ -203,6 +203,10 @@ export default {
     }
   },
   methods: {
+    onPermissionGroupChange(nextValue) {
+      this.permissionGroup = resolveUnlockedPermissionGroup(nextValue, this.permissionGroup, this.options);
+    },
+
     async principalProperty() {
       const principal = await this.principal;
 
@@ -266,10 +270,11 @@ export default {
       </template>
       <template v-slot:body>
         <RadioGroup
-          v-model:value="permissionGroup"
+          :value="permissionGroup"
           data-testid="permission-options"
           :options="options"
           name="permission-group"
+          @update:value="onPermissionGroupChange"
         >
           <template
             v-for="(option, i) in options"
@@ -277,15 +282,16 @@ export default {
             #[i]="{ option: normalizedOption, isDisabled }"
           >
             <RadioButton
-              v-model:value="permissionGroup"
+              :value="permissionGroup"
               name="permission-group"
               :radio-option-id="normalizedOption.radioOptionId"
               :val="option.value"
               :label="option.locked ? `${ option.label } (${ option.tooltip })` : option.label"
               :description="option.description"
-              :disabled="isDisabled"
+              :disabled="isDisabled || Boolean(option.disabled)"
               :prevent-focus-on-radio-groups="true"
               :data-testid="`radio-button-${i}`"
+              @update:value="onPermissionGroupChange"
             >
               <template #label>
                 <span v-clean-html="option.label" />

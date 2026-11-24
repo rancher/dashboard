@@ -8,7 +8,7 @@ import { RadioButton, RadioGroup } from '@components/Form/Radio';
 import { Checkbox } from '@components/Form/Checkbox';
 import { RcIconTooltip } from '@components/RcIconTooltip';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
-import { getRoleLockProps } from '@shell/utils/membership-permissions';
+import { getRoleLockProps, resolveUnlockedPermissionGroup } from '@shell/utils/membership-permissions';
 import DOMPurify from 'dompurify';
 
 export default {
@@ -210,6 +210,10 @@ export default {
     }
   },
   methods: {
+    onPermissionGroupChange(nextValue) {
+      this.value.permissionGroup = resolveUnlockedPermissionGroup(nextValue, this.value.permissionGroup, this.options);
+    },
+
     onAdd(principalId) {
       this.value['principalId'] = principalId;
     },
@@ -284,11 +288,12 @@ export default {
       </template>
       <template v-slot:body>
         <RadioGroup
-          v-model:value="value.permissionGroup"
+          :value="value.permissionGroup"
           :mode="mode"
           data-testid="permission-options"
           :options="options"
           name="permission-group"
+          @update:value="onPermissionGroupChange"
         >
           <template
             v-for="(option, i) in options"
@@ -296,16 +301,17 @@ export default {
             #[i]="{ option: normalizedOption, isDisabled }"
           >
             <RadioButton
-              v-model:value="value.permissionGroup"
+              :value="value.permissionGroup"
               name="permission-group"
               :mode="mode"
               :radio-option-id="normalizedOption.radioOptionId"
               :val="option.value"
               :label="option.locked ? `${ option.label } (${ option.tooltip })` : option.label"
               :description="option.description"
-              :disabled="isDisabled"
+              :disabled="isDisabled || Boolean(option.disabled)"
               :prevent-focus-on-radio-groups="true"
               :data-testid="`radio-button-${i}`"
+              @update:value="onPermissionGroupChange"
             >
               <template #label>
                 <span v-clean-html="option.label" />

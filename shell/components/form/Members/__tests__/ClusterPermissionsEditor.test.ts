@@ -186,6 +186,13 @@ describe('component: ClusterPermissionsEditor', () => {
     await waitForTooltip();
 
     expect(document.querySelector('.v-popper__popper--shown')?.textContent?.trim()).toStrictEqual('%members.clusterPermissions.custom.lockedRole%');
+
+    const group = wrapper.find('[role="radiogroup"]');
+
+    (group.element as HTMLElement).focus();
+    await group.trigger('keydown.down');
+
+    expect((wrapper.vm as any).permissionGroup).toStrictEqual('custom');
     wrapper.unmount();
   });
 });

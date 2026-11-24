@@ -4,6 +4,7 @@ import {
   canViewMembershipEditor,
   canViewMembershipEditorList,
   getRoleLockProps,
+  resolveUnlockedPermissionGroup,
 } from '@shell/utils/membership-permissions';
 
 const MGMT_ROLE_TEMPLATE = 'management.cattle.io.roletemplate';
@@ -176,6 +177,37 @@ describe('utils: membership-permissions', () => {
       expect(getRoleLockProps('unlocked-role', roleTemplates, t)).toStrictEqual({});
       expect(getRoleLockProps('missing-role', roleTemplates, t)).toStrictEqual({});
       expect(getRoleLockProps({ id: 'custom', locked: false }, roleTemplates, t)).toStrictEqual({});
+    });
+  });
+
+  describe('resolveUnlockedPermissionGroup', () => {
+    const options = [
+      { value: 'owner', disabled: true },
+      { value: 'member' },
+      { value: 'locked-1', disabled: true },
+      { value: 'locked-2', disabled: true },
+      { value: 'custom' },
+    ];
+
+    it('returns the selected value when it is unlocked or unknown', () => {
+      expect(resolveUnlockedPermissionGroup('member', 'custom', options)).toStrictEqual('member');
+      expect(resolveUnlockedPermissionGroup('unknown', 'member', options)).toStrictEqual('unknown');
+    });
+
+    it('skips consecutive disabled options when moving forward', () => {
+      expect(resolveUnlockedPermissionGroup('locked-1', 'member', options)).toStrictEqual('custom');
+    });
+
+    it('skips consecutive disabled options when moving backward', () => {
+      expect(resolveUnlockedPermissionGroup('locked-2', 'custom', options)).toStrictEqual('member');
+    });
+
+    it('keeps the current value when no unlocked option exists in the direction of movement', () => {
+      expect(resolveUnlockedPermissionGroup('owner', 'member', options)).toStrictEqual('member');
+    });
+
+    it('finds the first unlocked option when current value is empty', () => {
+      expect(resolveUnlockedPermissionGroup('owner', '', options)).toStrictEqual('member');
     });
   });
 });

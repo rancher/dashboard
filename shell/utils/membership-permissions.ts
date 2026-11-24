@@ -33,6 +33,11 @@ export interface RoleLockProps {
   tooltip?: string;
 }
 
+export interface PermissionGroupOption {
+  value: string;
+  disabled?: boolean;
+}
+
 /**
  * Returns the option properties needed to disable and badge a locked cluster or project role template.
  */
@@ -52,4 +57,31 @@ export function getRoleLockProps(
   }
 
   return {};
+}
+
+/**
+ * Resolves a permission group selection to the nearest unlocked option in the direction of movement,
+ * or keeps the current value when no unlocked option exists in that direction.
+ */
+export function resolveUnlockedPermissionGroup(
+  nextValue: string,
+  currentValue: string,
+  options: PermissionGroupOption[]
+): string {
+  const nextIndex = options.findIndex((opt) => opt.value === nextValue);
+
+  if (nextIndex === -1 || !options[nextIndex].disabled) {
+    return nextValue;
+  }
+
+  const currentIndex = options.findIndex((opt) => opt.value === currentValue);
+  const step = currentIndex !== -1 && nextIndex < currentIndex ? -1 : 1;
+
+  for (let i = nextIndex + step; i >= 0 && i < options.length; i += step) {
+    if (!options[i].disabled) {
+      return options[i].value;
+    }
+  }
+
+  return currentValue;
 }
