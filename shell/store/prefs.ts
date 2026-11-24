@@ -877,7 +877,7 @@ export const actions = {
       clearAllPendingPrefs();
     }
 
-    const interrupted = pending && pending.user === user ? Object.entries(pending.prefs).filter(([key]) => !pendingWrites.has(key)) : [];
+    const interrupted = pending && pending.user === user ? Object.entries(pending.prefs).filter(([key]) => key in state.definitions && !pendingWrites.has(key)) : [];
 
     // if prefsBeforeLogin has values from login page, update the backend
     if (Object.keys(prefsBeforeLogin).length > 0 || interrupted.length > 0) {

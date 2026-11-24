@@ -214,8 +214,8 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     cy.reload();
 
     homePage.waitForPage();
-    dialog.checkNotExists();
     cy.wait('@markRead').its('request.body.data.read-whatsnew').should('eq', '"v2.16.0"');
+    dialog.checkNotExists();
   });
 
   it('can be reopened from the user menu', () => {

@@ -2057,6 +2057,32 @@ describe('prefs store', () => {
         expect(localStorage.getItem(R_PENDING_PREFS)).toBeNull();
       });
 
+      it('ignores unknown preference keys in R_PENDING_PREFS when replaying interrupted writes', async() => {
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+          user:  'local://user-a',
+          prefs: { 'unknown-pref-key': '"unexpected"' },
+        }));
+
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: { [READ_WHATS_NEW]: '"v2.15.3"' } as Record<string, any>,
+          save: jest.fn().mockResolvedValue(undefined),
+        };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+
+        await actions.loadServer({
+          state:       s,
+          dispatch,
+          commit,
+          rootState:   {},
+          rootGetters: { 'auth/principalId': 'local://user-a' },
+        } as any, undefined);
+
+        expect(serverObj.save).toHaveBeenCalledTimes(0);
+        expect(serverObj.data['unknown-pref-key']).toBeUndefined();
+      });
+
       it('discards pending writes belonging to a different user instead of replaying them', async() => {
         localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
           user:  'local://user-a',
