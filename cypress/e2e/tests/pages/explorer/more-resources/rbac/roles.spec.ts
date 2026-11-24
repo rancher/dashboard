@@ -1,4 +1,5 @@
 import { RolesPagePo } from '@/cypress/e2e/po/pages/explorer/roles.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import { generateRolesDataSmall, rolesNoData } from '@/cypress/e2e/blueprints/explorer/rbac/roles-get';
 
 const rolesPage = new RolesPagePo();
@@ -81,6 +82,23 @@ describe('Roles', { testIsolation: false, tags: ['@explorer', '@adminUser'] }, (
 
     after('clean up', () => {
       cy.updateNamespaceFilter('local', 'none', '{"local":["all://user"]}');
+    });
+  });
+
+  describe('Create', () => {
+    it('opens the create form and Edit as YAML without an error', () => {
+      const createRole = new ResourceDetailPo('.main-layout');
+
+      rolesPage.goTo();
+      rolesPage.waitForPage();
+      rolesPage.clickCreate();
+
+      createRole.createEditView().nameNsDescription().name().checkVisible();
+      createRole.createEditView().errorBanner().should('not.exist');
+
+      createRole.createEditView().editAsYaml();
+      createRole.resourceYaml().codeMirror().checkVisible();
+      createRole.createEditView().errorBanner().should('not.exist');
     });
   });
 });

@@ -626,7 +626,7 @@ export default {
         name-key="displayName"
         description-key="description"
         label="Name"
-        :rules="{ name: fvGetAndReportPathRules('displayName') }"
+        :rules="{ name: [...fvGetAndReportPathRules('displayName'), ...fvGetAndReportPathRules('name')] }"
         @update:value="$emit('input', $event)"
       />
       <div

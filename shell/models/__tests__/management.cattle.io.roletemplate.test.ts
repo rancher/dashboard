@@ -4,6 +4,25 @@ import { MANAGEMENT, NORMAN } from '@shell/config/types';
 
 const BLOCKED_SCHEMA = { resourceMethods: ['GET', 'blocked-DELETE', 'blocked-PUT', 'blocked-PATCH'] };
 
+const NORMAN_SCHEMAS: Record<string, any> = {
+  roletemplate: {
+    resourceFields: {
+      context:         { type: 'string' },
+      description:     { type: 'string' },
+      locked:          { type: 'boolean' },
+      roleTemplateIds: { type: 'array[reference[roleTemplate]]' },
+      rules:           { type: 'array[policyRule]' },
+    }
+  },
+  policyrule: {
+    resourceFields: {
+      apiGroups: { type: 'array[string]' },
+      resources: { type: 'array[string]' },
+      verbs:     { type: 'array[string]' },
+    }
+  },
+};
+
 function createRoleTemplate(data: Record<string, any>) {
   const cached = {
     id: data.id, type: 'roleTemplate', links: { update: '/v3/roletemplates/rt-abcde' }
@@ -11,7 +30,11 @@ function createRoleTemplate(data: Record<string, any>) {
   const saved = { save: jest.fn() } as Record<string, any>;
   const ctx: any = {
     getters:     { schemaFor: () => BLOCKED_SCHEMA },
-    rootGetters: { 'type-map/optionsFor': () => ({ isEditable: true }), 'i18n/t': (key: string) => key },
+    rootGetters: {
+      'type-map/optionsFor': () => ({ isEditable: true }),
+      'i18n/t':              jest.fn((key: string) => key),
+      'rancher/schemaFor':   (type: string) => NORMAN_SCHEMAS[type.toLowerCase()],
+    },
   };
 
   ctx.dispatch = jest.fn((action: string, payload: any) => {
@@ -326,6 +349,55 @@ roleTemplateNames:
 
       await expect(roleTemplate.saveYaml(yaml)).rejects.toBe('resourceYaml.errors.wrongKind');
       expect(saved.save).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['rules written as a map', 'rules:\n  apiGroups: [""]\n  resources: [pods]\n  verbs: [get]\n', 'rules'],
+      ['a rule written as text', 'rules:\n  - get pods\n', 'rules[0]'],
+      ['verbs written as text', 'rules:\n  - resources: [pods]\n    verbs: get\n', 'rules[0].verbs'],
+      ['a verb written as a number', 'rules:\n  - resources: [pods]\n    verbs: [1]\n', 'rules[0].verbs[0]'],
+      ['roleTemplateNames written as text', 'roleTemplateNames: cluster-member\n', 'roleTemplateNames'],
+      ['locked written as text', 'locked: "yes"\n', 'locked'],
+      ['a description written as a list', 'description: [a]\n', 'description'],
+    ])('should reject %s without saving anything', async(_, fields, path) => {
+      const { ctx, saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
+
+      await expect(roleTemplate.saveYaml(`${ HEADER }displayName: My Role\n${ fields }`)).rejects.toBe('resourceYaml.errors.wrongType');
+      expect(ctx.rootGetters['i18n/t']).toHaveBeenCalledWith('resourceYaml.errors.wrongType', { path });
+      expect(saved.save).not.toHaveBeenCalled();
+    });
+
+    it('should save fields written as null, and fields the Norman schema does not have, as they are', async() => {
+      const { saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
+
+      await roleTemplate.saveYaml(`${ HEADER }displayName: My Role
+rules:
+  - resources: [pods]
+    verbs: [get]
+    resourceNames:
+roleTemplateNames:
+unknownField: 1
+`);
+
+      expect(saved).toStrictEqual(expect.objectContaining({
+        rules: [{
+          resources: ['pods'], verbs: ['get'], resourceNames: null
+        }],
+        roleTemplateIds: null,
+        unknownField:    1,
+      }));
+      expect(saved.save).toHaveBeenCalledWith();
+    });
+
+    it('should save without checking types when the Norman schema is not loaded', async() => {
+      const { ctx, saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
+
+      ctx.rootGetters['rancher/schemaFor'] = () => undefined;
+
+      await roleTemplate.saveYaml(`${ HEADER }displayName: My Role\nroleTemplateNames: cluster-member\n`);
+
+      expect(saved.roleTemplateIds).toBe('cluster-member');
+      expect(saved.save).toHaveBeenCalledWith();
     });
 
     it('should clear the fields deleted from the YAML of a clone', async() => {

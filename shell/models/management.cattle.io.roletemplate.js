@@ -1,4 +1,5 @@
 import jsyaml from 'js-yaml';
+import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import pickBy from 'lodash/pickBy';
 import { get } from '@shell/utils/object';
@@ -64,6 +65,36 @@ const API_VERSION = 'management.cattle.io/v3';
 const KIND = 'RoleTemplate';
 const NON_FIELD_KEYS = ['apiVersion', 'kind', 'id', 'type', 'links', 'actions', 'metadata', 'status', 'displayName'];
 const NEVER_CLEARED_KEYS = [...NON_FIELD_KEYS, 'context'];
+const NORMAN_FIELD_NAMES = { roleTemplateNames: 'roleTemplateIds' };
+const STRING_TYPES = /^(string|dnsLabel|enum|date|reference\[.*\])$/;
+
+function wrongTypePath(value, type, schemaFor, path) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  const itemType = type.match(/^array\[(.*)\]$/)?.[1];
+  const fields = schemaFor(type)?.resourceFields;
+  let children = [];
+
+  if (itemType) {
+    if (!Array.isArray(value)) {
+      return path;
+    }
+    children = value.map((item, i) => [`${ path }[${ i }]`, item, itemType]);
+  } else if (fields) {
+    if (!isPlainObject(value)) {
+      return path;
+    }
+    children = Object.keys(value)
+      .filter((key) => fields[key])
+      .map((key) => [`${ path }.${ key }`, value[key], fields[key].type]);
+  } else if (type === 'boolean' ? typeof value !== 'boolean' : STRING_TYPES.test(type) && typeof value !== 'string') {
+    return path;
+  }
+
+  return children.map(([childPath, item, childType]) => wrongTypePath(item, childType, schemaFor, childPath)).find(Boolean);
+}
 
 export default class RoleTemplate extends SteveDescriptionModel {
   get customValidationRules() {
@@ -183,9 +214,9 @@ export default class RoleTemplate extends SteveDescriptionModel {
   /**
    * Save the role template's YAML through Norman.
    *
-   * The YAML must be a RoleTemplate, or saving throws. A field the YAML leaves out is cleared, except the display
-   * name (on edit) and context, which keep their current value. On create, the labels and annotations that
-   * Rancher's controllers own are dropped.
+   * The YAML must be a RoleTemplate whose fields have the types the role template's Norman schema gives them, or
+   * saving throws. A field the YAML leaves out is cleared, except the display name (on edit) and context, which
+   * keep their current value. On create, the labels and annotations that Rancher's controllers own are dropped.
    */
   async saveYaml(yaml) {
     const data = jsyaml.load(yaml);
@@ -196,6 +227,19 @@ export default class RoleTemplate extends SteveDescriptionModel {
 
     const metadata = data.metadata || {};
     const fields = pickBy(omit(data, NON_FIELD_KEYS), (_, key) => !key.startsWith('_'));
+    const schemaFor = this.$rootGetters['rancher/schemaFor'];
+    const normanFieldTypes = schemaFor(NORMAN.ROLE_TEMPLATE)?.resourceFields || {};
+    const wrongField = Object.entries(fields)
+      .map(([key, value]) => {
+        const normanField = normanFieldTypes[NORMAN_FIELD_NAMES[key] || key];
+
+        return normanField && wrongTypePath(value, normanField.type, schemaFor, key);
+      })
+      .find(Boolean);
+
+    if (wrongField) {
+      throw this.t('resourceYaml.errors.wrongType', { path: wrongField });
+    }
 
     Object.entries(this.toJSON()).forEach(([key, value]) => {
       if (!(key in fields) && !NEVER_CLEARED_KEYS.includes(key) && !key.startsWith('_')) {

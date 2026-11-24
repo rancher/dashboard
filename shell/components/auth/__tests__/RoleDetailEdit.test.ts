@@ -291,6 +291,41 @@ describe('component: RoleDetailEdit', () => {
     expect(value).not.toHaveProperty('undefined');
   });
 
+  it('should not pass the model\'s name error to CruResource when opening a new RBAC role', async() => {
+    const nameRequired = '"Name" is required';
+    const value = {
+      type:                   SUBTYPE_MAPPING.RBAC_ROLE.type,
+      rules:                  [],
+      subtype:                SUBTYPE_MAPPING.RBAC_ROLE.id,
+      metadata:               { name: '' },
+      modelValidationRules:   [{ path: 'name', rules: [() => nameRequired] }],
+      customValidationErrors: (_: unknown, ignorePaths: string[] = []) => (ignorePaths.includes('name') ? [] : [nameRequired]),
+    };
+    const wrapper = shallowMount(RoleDetailEdit, {
+      props:  { mode: _CREATE, value },
+      global: {
+        renderStubDefaultSlot: true,
+        mocks:                 {
+          $fetchState: { pending: false },
+          $route:      { name: 'anything', query: {} },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
+              'store/customisation/': jest.fn()
+            }
+          }
+        },
+      },
+    });
+
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.findComponent(CruResource).props('errors')).toStrictEqual([]);
+  });
+
   describe('resourceOptions', () => {
     const createWrapper = () => mount(RoleDetailEdit, {
       props: {

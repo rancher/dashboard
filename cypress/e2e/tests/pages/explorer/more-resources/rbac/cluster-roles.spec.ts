@@ -1,4 +1,5 @@
 import { ClusterRolesPagePo } from '@/cypress/e2e/po/pages/explorer/cluster-roles.po';
+import ResourceDetailPo from '@/cypress/e2e/po/edit/resource-detail.po';
 import { clusterRolesNoData, generateClusterRolesDataSmall } from '@/cypress/e2e/blueprints/explorer/rbac/cluster-roles-get';
 
 const clusterRolesPage = new ClusterRolesPagePo();
@@ -45,6 +46,49 @@ describe('ClusterRoles', { testIsolation: false, tags: ['@explorer', '@adminUser
       clusterRolesPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
       clusterRolesPage.list().resourceTable().sortableTable().noRowsShouldNotExist();
       clusterRolesPage.list().resourceTable().sortableTable().checkRowCount(false, 2);
+    });
+  });
+
+  describe('Create', () => {
+    const createClusterRole = new ResourceDetailPo('.main-layout');
+    let clusterRoleName: string | undefined;
+
+    before(() => {
+      cy.createE2EResourceName('cluster-role-clone').then((name) => {
+        clusterRoleName = name;
+        cy.deleteRancherResource('v1', 'rbac.authorization.k8s.io.clusterroles', name, false);
+        cy.createRancherResource('v1', 'rbac.authorization.k8s.io.clusterroles', {
+          metadata: { name },
+          rules:    [{
+            apiGroups: [''], resources: ['pods'], verbs: ['get']
+          }],
+        });
+      });
+    });
+
+    it('opens the create form without an error', () => {
+      clusterRolesPage.goTo();
+      clusterRolesPage.waitForPage();
+      clusterRolesPage.clickCreate();
+
+      createClusterRole.createEditView().nameNsDescription().name().checkVisible();
+      createClusterRole.createEditView().errorBanner().should('not.exist');
+    });
+
+    it('opens the clone form without an error', () => {
+      clusterRolesPage.goTo();
+      clusterRolesPage.waitForPage();
+      clusterRolesPage.list().resourceTable().sortableTable().filter(clusterRoleName as string);
+      clusterRolesPage.list().actionMenu(clusterRoleName as string).getMenuItem('Clone').click();
+
+      createClusterRole.createEditView().nameNsDescription().name().checkVisible();
+      createClusterRole.createEditView().errorBanner().should('not.exist');
+    });
+
+    after(() => {
+      if (clusterRoleName) {
+        cy.deleteRancherResource('v1', 'rbac.authorization.k8s.io.clusterroles', clusterRoleName, false);
+      }
     });
   });
 });

@@ -233,6 +233,37 @@ describe('Role Templates as YAML', { tags: ['@usersAndAuths', '@adminUser'] }, (
     });
   });
 
+  [
+    { field: 'rules', change: (roleTemplate: any) => ({ ...roleTemplate, rules: roleTemplate.rules[0] }) },
+    { field: 'roleTemplateNames', change: (roleTemplate: any) => ({ ...roleTemplate, roleTemplateNames: 'cluster-member' }) },
+  ].forEach(({ field, change }) => {
+    it(`rejects ${ field } of the wrong type in Edit YAML and keeps the role as it was`, () => {
+      const name = `${ prefix }-type-${ field.toLowerCase() }`;
+
+      createRoleTemplate(name, { roleTemplateIds: ['cluster-member'] }).then((id) => {
+        const editRole = roles.createRole(id);
+
+        editRole.goTo();
+        editRole.waitForPage();
+        editRole.editAsYaml().click();
+        editRole.yamlEditor().value().then((yaml) => {
+          editRole.yamlEditor().set(jsyaml.dump(change(jsyaml.load(yaml))));
+        });
+
+        cy.intercept('PUT', ROLE_TEMPLATE_UPDATE).as('updateRoleTemplate');
+        editRole.saveYamlForm().click();
+
+        editRole.errors().should('contain', `"${ field }" in the YAML has the wrong type`);
+        cy.get('@updateRoleTemplate.all').should('have.length', 0);
+
+        cy.getRancherResource('v1', 'management.cattle.io.roletemplates', id).then(({ body }) => {
+          expect(body.roleTemplateNames).to.deep.eq(['cluster-member']);
+          expect(body.rules).to.deep.eq(RULES);
+        });
+      });
+    });
+  });
+
   it('shows why Rancher rejected a role template created with Edit as YAML', () => {
     roles.goTo(undefined, 'CLUSTER');
     roles.waitForPage(undefined, 'CLUSTER');

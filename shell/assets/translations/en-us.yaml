@@ -6893,6 +6893,7 @@ resourceYaml:
   errors:
     namespaceRequired: This resource is namespaced, so a namespace must be provided.
     wrongKind: The YAML must be a {kind} ({apiVersion}).
+    wrongType: '"{path}" in the YAML has the wrong type.'
   buttons:
     continue: Continue Editing
     edit: Edit YAML
