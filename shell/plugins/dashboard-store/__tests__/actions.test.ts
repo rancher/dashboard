@@ -1,6 +1,8 @@
 import _actions from '@shell/plugins/dashboard-store/actions';
 
-const { findAll, findMatching, findPage } = _actions;
+const {
+  find, findAll, findMatching, findPage
+} = _actions;
 
 describe('dashboard-store: actions', () => {
   describe('findAll', () => {
@@ -346,5 +348,125 @@ describe('dashboard-store: findPage', () => {
     });
 
     expect(loadPageCalls(ctx.commit)).toHaveLength(1);
+  });
+});
+
+describe('dashboard-store: find', () => {
+  const setupFindContext = ({
+    havePageBefore = false,
+    havePageAfter = false,
+    response = { id: 'ns/dep', metadata: { resourceVersion: '42' } },
+    created = { id: 'ns/dep', classified: true },
+  } = {}) => {
+    let havePage = havePageBefore;
+    let stored: unknown;
+
+    const dispatch = jest.fn((action: string, payload?: unknown) => {
+      if (action === 'request') {
+        havePage = havePageAfter;
+
+        return Promise.resolve(response);
+      }
+      if (action === 'load') {
+        stored = { ...(payload as { data: object }).data, loaded: true };
+
+        return Promise.resolve(stored);
+      }
+      if (action === 'create') {
+        return Promise.resolve(created);
+      }
+
+      return Promise.resolve();
+    });
+
+    const getters = {
+      byId:     jest.fn(() => stored),
+      havePage: jest.fn(() => havePage),
+      urlFor:   jest.fn(() => '/v1/apps.deployments/ns/dep'),
+    };
+
+    const state = { config: { namespace: 'unitTest' }, types: {} };
+
+    return {
+      state, getters, dispatch, response, created
+    };
+  };
+
+  it('loads, watches, and returns the cached resource when no page-cache race occurs', async() => {
+    const ctx = setupFindContext();
+
+    const result = await find(ctx, {
+      type: 'apps.deployment', id: 'ns/dep', opt: {}
+    });
+
+    expect(ctx.dispatch).toHaveBeenCalledWith('load', { data: ctx.response, invalidatePageCache: undefined });
+    expect(ctx.dispatch).toHaveBeenCalledWith('watch', {
+      type:      'apps.deployment',
+      id:        'dep',
+      namespace: 'ns',
+      revision:  '42',
+      force:     false,
+    });
+    expect(result).toStrictEqual({ ...ctx.response, loaded: true });
+  });
+
+  it('skips watch when opt.watch is false', async() => {
+    const ctx = setupFindContext();
+
+    await find(ctx, {
+      type: 'apps.deployment', id: 'ns/dep', opt: { watch: false }
+    });
+
+    expect(ctx.dispatch).toHaveBeenCalledWith('load', { data: ctx.response, invalidatePageCache: undefined });
+    expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+  });
+
+  it('returns the classified resource without loading or watching when havePage becomes true mid-request', async() => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const ctx = setupFindContext({ havePageBefore: false, havePageAfter: true });
+
+    try {
+      const result = await find(ctx, {
+        type: 'apps.deployment', id: 'ns/dep', opt: { watch: true }
+      });
+
+      expect(warnSpy).toHaveBeenCalledWith('Prevented `find` action from polluting cache for type "apps.deployment" (currently represents a page).');
+      expect(ctx.dispatch).not.toHaveBeenCalledWith('load', expect.anything());
+      expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+      expect(ctx.dispatch).toHaveBeenCalledWith('create', ctx.response);
+      expect(result).toStrictEqual(ctx.created);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  it('loads normally when havePage was already true before the request started', async() => {
+    const ctx = setupFindContext({ havePageBefore: true, havePageAfter: true });
+
+    const result = await find(ctx, {
+      type: 'apps.deployment', id: 'ns/dep', opt: {}
+    });
+
+    expect(ctx.dispatch).toHaveBeenCalledWith('load', { data: ctx.response, invalidatePageCache: undefined });
+    expect(result).toStrictEqual({ ...ctx.response, loaded: true });
+  });
+
+  it('returns the classified resource without warning or loading when opt.transient is true, even if havePage flips', async() => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const ctx = setupFindContext({ havePageBefore: false, havePageAfter: true });
+
+    try {
+      const result = await find(ctx, {
+        type: 'apps.deployment', id: 'ns/dep', opt: { transient: true }
+      });
+
+      expect(warnSpy).not.toHaveBeenCalledWith(expect.anything());
+      expect(ctx.dispatch).not.toHaveBeenCalledWith('load', expect.anything());
+      expect(ctx.dispatch).not.toHaveBeenCalledWith('watch', expect.anything());
+      expect(ctx.dispatch).toHaveBeenCalledWith('create', ctx.response);
+      expect(result).toStrictEqual(ctx.created);
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 });

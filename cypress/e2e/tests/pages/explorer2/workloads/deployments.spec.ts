@@ -6,6 +6,7 @@ import ClusterDashboardPagePo from '@/cypress/e2e/po/pages/explorer/cluster-dash
 import { generateDeploymentsDataSmall } from '@/cypress/e2e/blueprints/explorer/workloads/deployments/deployments-get';
 import { MEDIUM_TIMEOUT_OPT } from '@/cypress/support/utils/timeouts';
 import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/workload.utils';
+import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { qase } from '@/cypress/support/qase';
 
 const localCluster = 'local';
@@ -592,6 +593,82 @@ describe('Deployments', { testIsolation: false, tags: ['@explorer2', '@adminUser
 
     after(() => {
       cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ volumeDeploymentId }`, false);
+    });
+  });
+
+  describe('Page-cache race on detail navigation', () => {
+    const { namespace } = createDeploymentBlueprint.metadata;
+    const apiResource = 'apps.deployments';
+    let depAName: string;
+    let depBName: string;
+
+    before(() => {
+      cy.createE2EResourceName('race-dep-a').then((name) => {
+        depAName = name;
+        const dep = structuredClone(createDeploymentBlueprint);
+
+        dep.metadata.name = depAName;
+        dep.spec.template.spec.containers[0].image = SMALL_CONTAINER.image;
+        dep.spec.template.spec.terminationGracePeriodSeconds = 0;
+
+        cy.createRancherResource('v1', apiResource, JSON.stringify(dep), false);
+      });
+
+      cy.createE2EResourceName('race-dep-b').then((name) => {
+        depBName = name;
+        const dep = structuredClone(createDeploymentBlueprint);
+
+        dep.metadata.name = depBName;
+        dep.spec.template.spec.containers[0].image = SMALL_CONTAINER.image;
+        dep.spec.template.spec.terminationGracePeriodSeconds = 0;
+
+        cy.createRancherResource('v1', apiResource, JSON.stringify(dep), false);
+      });
+    });
+
+    it('renders the detail page when a paginated list fetch lands while find is in flight', () => {
+      const detailA = new WorkloadsDeploymentsDetailsPagePo(depAName, localCluster, 'apps.deployment' as any, namespace);
+      const detailB = new WorkloadsDeploymentsDetailsPagePo(depBName, localCluster, 'apps.deployment' as any, namespace);
+      const deploymentsListPage = new WorkloadsDeploymentsListPagePo(localCluster);
+      const sideNav = new ProductNavPo();
+
+      detailA.goTo();
+      detailA.waitForDetailsPage(depAName);
+
+      cy.intercept('GET', '/v1/apps.deployments?*', (req) => {
+        req.on('response', (res) => {
+          res.setDelay(1500);
+        });
+      }).as('delayedList');
+
+      cy.intercept('GET', `/v1/apps.deployments/${ namespace }/${ depBName }*`, (req) => {
+        req.on('response', (res) => {
+          res.setDelay(3000);
+        });
+      }).as('delayedDetail');
+
+      sideNav.navToSideMenuEntryByLabel('Deployments');
+      cy.url().should('match', /\/apps\.deployment$/);
+
+      cy.window().then((win: any) => {
+        const app = win.document.querySelector('#app')?.__vue_app__;
+
+        app.config.globalProperties.$router.push(`/c/${ localCluster }/explorer/apps.deployment/${ namespace }/${ depBName }`);
+      });
+
+      cy.wait('@delayedList');
+      cy.wait('@delayedDetail');
+
+      detailB.waitForDetailsPage(depBName);
+
+      sideNav.navToSideMenuEntryByLabel('Deployments');
+      deploymentsListPage.waitForPage();
+      deploymentsListPage.sortableTable().checkVisible();
+    });
+
+    after(() => {
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ depAName }`, false);
+      cy.deleteRancherResource('v1', apiResource, `${ namespace }/${ depBName }`, false);
     });
   });
 });

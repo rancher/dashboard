@@ -735,29 +735,25 @@ export default {
 
     const res = await dispatch('request', { opt, type });
 
-    if (!havePage && getters.havePage(type)) {
-      // There may be a super edge case where list --> detail (whilst loading) --> list navigation causes the list's rows to disappear
-      // Somehow the `findPage` from the list page returns before the `find`. The `find` then clears the page state in the cache.
-      // If this has happened silently return (we don't care about result)
-      // https://github.com/rancher/dashboard/issues/17524
+    const skipCache = opt.transient || (!havePage && getters.havePage(type));
+
+    if (!opt.transient && skipCache) {
       console.warn(`Prevented \`find\` action from polluting cache for type "${ type }" (currently represents a page).`); // eslint-disable-line no-console
-
-      return;
     }
 
-    if (!opt.transient) {
+    if (!skipCache) {
       await dispatch('load', { data: res, invalidatePageCache: opt.invalidatePageCache });
-    }
 
-    if (!opt.transient && opt.watch !== false ) {
-      dispatch('watch', createFindWatchArg({
-        type, id, opt, res
-      }));
+      if (opt.watch !== false) {
+        dispatch('watch', createFindWatchArg({
+          type, id, opt, res
+        }));
+      }
     }
 
     garbageCollect.gcUpdateLastAccessed(ctx, type);
 
-    return opt.transient ? await dispatch('create', res) : getters.byId(type, id);
+    return skipCache ? await dispatch('create', res) : getters.byId(type, id);
   },
 
   /**
