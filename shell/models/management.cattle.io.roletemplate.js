@@ -60,7 +60,10 @@ export const VERBS = [
 
 export const CREATE_VERBS = new Set(['PUT', 'blocked-PUT']);
 
+const API_VERSION = 'management.cattle.io/v3';
+const KIND = 'RoleTemplate';
 const NON_FIELD_KEYS = ['apiVersion', 'kind', 'id', 'type', 'links', 'actions', 'metadata', 'status', 'displayName'];
+const NEVER_CLEARED_KEYS = [...NON_FIELD_KEYS, 'context'];
 
 export default class RoleTemplate extends SteveDescriptionModel {
   get customValidationRules() {
@@ -180,21 +183,27 @@ export default class RoleTemplate extends SteveDescriptionModel {
   /**
    * Save the role template's YAML through Norman.
    *
-   * On edit, a field deleted from the YAML is cleared (the display name is kept). On create, the labels and
-   * annotations that Rancher's controllers own are dropped.
+   * The YAML must be a RoleTemplate, or saving throws. A field the YAML leaves out is cleared, except the display
+   * name and context, which keep their current value (on create, the form's). On create, the labels and annotations
+   * that Rancher's controllers own are dropped.
    */
   async saveYaml(yaml) {
-    const data = jsyaml.load(yaml) || {};
+    const data = jsyaml.load(yaml);
+
+    if (data?.apiVersion !== API_VERSION || data?.kind !== KIND) {
+      throw this.t('resourceYaml.errors.wrongKind', { kind: KIND, apiVersion: API_VERSION });
+    }
+
     const metadata = data.metadata || {};
     const fields = omit(data, NON_FIELD_KEYS);
 
-    if (this.id) {
-      Object.entries(this.toJSON()).forEach(([key, value]) => {
-        if (!(key in fields) && !NON_FIELD_KEYS.includes(key) && !key.startsWith('_')) {
-          fields[key] = typeof value === 'boolean' ? false : null;
-        }
-      });
-    } else {
+    Object.entries(this.toJSON()).forEach(([key, value]) => {
+      if (!(key in fields) && !NEVER_CLEARED_KEYS.includes(key) && !key.startsWith('_')) {
+        fields[key] = typeof value === 'boolean' ? false : null;
+      }
+    });
+
+    if (!this.id) {
       dropControllerMetadata(metadata);
     }
 

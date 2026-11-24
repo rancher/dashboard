@@ -11,7 +11,7 @@ function createRoleTemplate(data: Record<string, any>) {
   const saved = { save: jest.fn() } as Record<string, any>;
   const ctx: any = {
     getters:     { schemaFor: () => BLOCKED_SCHEMA },
-    rootGetters: { 'type-map/optionsFor': () => ({ isEditable: true }) },
+    rootGetters: { 'type-map/optionsFor': () => ({ isEditable: true }), 'i18n/t': (key: string) => key },
   };
 
   ctx.dispatch = jest.fn((action: string, payload: any) => {
@@ -26,6 +26,10 @@ function createRoleTemplate(data: Record<string, any>) {
     ctx, cached, saved, roleTemplate: new RoleTemplate({ type: MANAGEMENT.ROLE_TEMPLATE, ...data }, ctx)
   };
 }
+
+const HEADER = `apiVersion: management.cattle.io/v3
+kind: RoleTemplate
+`;
 
 const YAML = `apiVersion: management.cattle.io/v3
 kind: RoleTemplate
@@ -121,7 +125,7 @@ describe('class RoleTemplate', () => {
     it('should not let the YAML replace the Norman role template\'s own id, type or links', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
 
-      await roleTemplate.saveYaml(`id: rt-other
+      await roleTemplate.saveYaml(`${ HEADER }id: rt-other
 type: management.cattle.io.roletemplate
 links:
   update: blocked
@@ -176,7 +180,7 @@ rules: []
 
       roleTemplate.updateSubtype('CLUSTER');
 
-      await roleTemplate.saveYaml(`displayName: Inherits
+      await roleTemplate.saveYaml(`${ HEADER }displayName: Inherits
 context: cluster
 `);
 
@@ -199,7 +203,7 @@ context: cluster
     it('should drop the labels and annotations Rancher\'s controllers own from a new role template', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ context: 'cluster' });
 
-      await roleTemplate.saveYaml(`metadata:
+      await roleTemplate.saveYaml(`${ HEADER }metadata:
   name: cluster-member
   labels:
     authz.management.cattle.io/bootstrapping: default-roletemplate
@@ -217,7 +221,7 @@ displayName: Pasted Role
     it('should send the labels and annotations of an edit as written', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
 
-      await roleTemplate.saveYaml(`metadata:
+      await roleTemplate.saveYaml(`${ HEADER }metadata:
   labels:
     authz.management.cattle.io/bootstrapping: default-roletemplate
   annotations:
@@ -234,7 +238,7 @@ displayName: Cluster Member
 
       cached.name = 'Current Name';
 
-      await roleTemplate.saveYaml(`metadata:
+      await roleTemplate.saveYaml(`${ HEADER }metadata:
   name: rt-abcde
 `);
 
@@ -244,7 +248,7 @@ displayName: Cluster Member
     it('should use metadata.name as the display name when the YAML for a new role template has none', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ context: 'cluster' });
 
-      await roleTemplate.saveYaml(`metadata:
+      await roleTemplate.saveYaml(`${ HEADER }metadata:
   name: my-role
 `);
 
@@ -254,7 +258,7 @@ displayName: Cluster Member
     it('should leave the name out for Norman to reject when the YAML and the form have none', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ context: 'cluster' });
 
-      await roleTemplate.saveYaml(`displayName: ''
+      await roleTemplate.saveYaml(`${ HEADER }displayName: ''
 metadata:
   name: ''
 `);
@@ -265,7 +269,7 @@ metadata:
     it('should keep the context of the tab the role template is created from when the YAML has none', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ context: 'project' });
 
-      await roleTemplate.saveYaml('displayName: My Role\n');
+      await roleTemplate.saveYaml(`${ HEADER }displayName: My Role\n`);
 
       expect(saved.context).toBe('project');
     });
@@ -273,7 +277,7 @@ metadata:
     it('should save YAML whose metadata is empty', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
 
-      await roleTemplate.saveYaml('metadata:\ndisplayName: My Role\n');
+      await roleTemplate.saveYaml(`${ HEADER }metadata:\ndisplayName: My Role\n`);
 
       expect(saved.save).toHaveBeenCalledWith();
     });
@@ -281,7 +285,7 @@ metadata:
     it('should save a role template that has no rules of its own', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
 
-      await roleTemplate.saveYaml(`displayName: Inherit Only
+      await roleTemplate.saveYaml(`${ HEADER }displayName: Inherit Only
 roleTemplateNames:
   - cluster-member
 `);
@@ -289,13 +293,40 @@ roleTemplateNames:
       expect(saved.save).toHaveBeenCalledWith();
     });
 
-    it('should save an empty YAML document with the values of the form', async() => {
-      const { saved, roleTemplate } = createRoleTemplate({ displayName: 'From The Form', context: 'project' });
+    it.each([
+      ['an empty document', ''],
+      ['a ConfigMap', 'apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: rt-abcde\n'],
+      ['a document without apiVersion and kind', 'displayName: My Role\n'],
+    ])('should reject %s without saving anything', async(_, yaml) => {
+      const { saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
 
-      await roleTemplate.saveYaml('');
+      await expect(roleTemplate.saveYaml(yaml)).rejects.toBe('resourceYaml.errors.wrongKind');
+      expect(saved.save).not.toHaveBeenCalled();
+    });
 
-      expect(saved).toStrictEqual(expect.objectContaining({ context: 'project', projectCreatorDefault: false }));
-      expect(saved.save).toHaveBeenCalledWith();
+    it('should clear the fields deleted from the YAML of a clone', async() => {
+      const { saved, roleTemplate } = createRoleTemplate({
+        context:           'cluster',
+        locked:            true,
+        roleTemplateNames: ['cluster-member'],
+        rules:             [{
+          apiGroups: [''], resources: ['pods'], verbs: ['get']
+        }],
+      });
+
+      await roleTemplate.saveYaml(`${ HEADER }displayName: Clone\n`);
+
+      expect(saved).toStrictEqual(expect.objectContaining({
+        name: 'Clone', context: 'cluster', locked: false, roleTemplateIds: null, rules: null
+      }));
+    });
+
+    it('should keep the context when an edit removes it from the YAML', async() => {
+      const { saved, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'project' });
+
+      await roleTemplate.saveYaml(`${ HEADER }displayName: My Role\n`);
+
+      expect(saved.context).toBe('project');
     });
   });
 

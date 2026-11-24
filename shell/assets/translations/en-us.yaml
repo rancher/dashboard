@@ -6892,6 +6892,7 @@ resourceTabs:
 resourceYaml:
   errors:
     namespaceRequired: This resource is namespaced, so a namespace must be provided.
+    wrongKind: The YAML must be a {kind} ({apiVersion}).
   buttons:
     continue: Continue Editing
     edit: Edit YAML

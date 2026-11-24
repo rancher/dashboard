@@ -186,6 +186,7 @@ describe('Role Templates as YAML', { tags: ['@usersAndAuths', '@adminUser'] }, (
         expect(roleTemplate.roleTemplateNames).to.deep.eq(['cluster-member']);
         delete roleTemplate.roleTemplateNames;
         delete roleTemplate.description;
+        delete roleTemplate.context;
 
         editRole.yamlEditor().set(jsyaml.dump(roleTemplate));
       });
@@ -200,6 +201,34 @@ describe('Role Templates as YAML', { tags: ['@usersAndAuths', '@adminUser'] }, (
         expect(body.roleTemplateNames || []).to.deep.eq([]);
         expect(body.description || '').to.eq('');
         expect(body.displayName).to.eq(name);
+        expect(body.context).to.eq('cluster');
+      });
+    });
+  });
+
+  it('rejects YAML that is not a role template and keeps the role as it was', () => {
+    const name = `${ prefix }-not-role`;
+
+    createRoleTemplate(name, { roleTemplateIds: ['cluster-member'] }).then((id) => {
+      const editRole = roles.createRole(id);
+
+      editRole.goTo();
+      editRole.waitForPage();
+      editRole.editAsYaml().click();
+      editRole.yamlEditor().set(jsyaml.dump({
+        apiVersion: 'v1', kind: 'ConfigMap', metadata: { name }, data: { key: 'value' }
+      }));
+
+      cy.intercept('PUT', ROLE_TEMPLATE_UPDATE).as('updateRoleTemplate');
+      editRole.saveYamlForm().click();
+
+      editRole.errors().should('contain', 'The YAML must be a RoleTemplate');
+      cy.get('@updateRoleTemplate.all').should('have.length', 0);
+
+      cy.getRancherResource('v1', 'management.cattle.io.roletemplates', id).then(({ body }) => {
+        expect(body.context).to.eq('cluster');
+        expect(body.roleTemplateNames).to.deep.eq(['cluster-member']);
+        expect(body.rules).to.have.length(1);
       });
     });
   });
@@ -253,6 +282,42 @@ describe('Role Templates as YAML', { tags: ['@usersAndAuths', '@adminUser'] }, (
 
       cy.waitForRancherResource('v1', 'management.cattle.io.roletemplates', response?.body.id, (resp: any) => resp.body.metadata.finalizers?.includes(LIFECYCLE_FINALIZER))
         .should('eq', true);
+    });
+  });
+
+  it('does not copy the fields deleted from the YAML of a clone', () => {
+    const source = `${ prefix }-source`;
+    const name = `${ prefix }-clone-deleted`;
+
+    createRoleTemplate(source, { roleTemplateIds: ['cluster-member'] }).then(() => {
+      roles.goTo(undefined, 'CLUSTER');
+      roles.waitForPage(undefined, 'CLUSTER');
+      roles.list('CLUSTER').rowCloneYamlClick(source);
+
+      const cloneRole = roles.createRole();
+
+      cy.url().should('include', 'mode=clone');
+      cloneRole.name().set(name);
+      cloneRole.editAsYaml().click();
+      cloneRole.yamlEditor().value().then((yaml) => {
+        const roleTemplate: any = jsyaml.load(yaml);
+
+        expect(roleTemplate.roleTemplateNames).to.deep.eq(['cluster-member']);
+        delete roleTemplate.roleTemplateNames;
+        delete roleTemplate.rules;
+
+        cloneRole.yamlEditor().set(jsyaml.dump(roleTemplate));
+      });
+
+      cy.intercept('POST', '/v3/roletemplates').as('createRoleTemplate');
+      cloneRole.saveYamlForm().click();
+
+      cy.wait('@createRoleTemplate').then(({ response }) => {
+        expect(response?.statusCode).to.eq(201);
+        expect(response?.body.name).to.eq(name);
+        expect(response?.body.roleTemplateIds || []).to.deep.eq([]);
+        expect(response?.body.rules || []).to.deep.eq([]);
+      });
     });
   });
 
