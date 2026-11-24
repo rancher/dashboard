@@ -110,16 +110,27 @@ describe('class RoleTemplate', () => {
         labels:      { team: 'platform' },
         annotations: { note: 'edited' },
       }));
+      expect(saved).not.toHaveProperty('_description');
       expect(saved.save).toHaveBeenCalledWith();
     });
 
     it('should leave the cached Norman role template unchanged', async() => {
-      const { cached, roleTemplate } = createRoleTemplate({ id: 'rt-abcde', context: 'cluster' });
+      const { cached, roleTemplate } = createRoleTemplate({
+        id:      'rt-abcde',
+        context: 'cluster',
+        locked:  true,
+        rules:   [{
+          apiGroups: [''], resources: ['pods'], verbs: ['get']
+        }],
+      });
 
       await roleTemplate.saveYaml(YAML);
 
       expect(cached.clusterScopedRules).toBeUndefined();
       expect(cached.labels).toBeUndefined();
+      expect(cached.locked).toBeUndefined();
+      expect(cached.rules).toBeUndefined();
+      expect(cached.context).toBeUndefined();
     });
 
     it('should not let the YAML replace the Norman role template\'s own id, type or links', async() => {
@@ -266,6 +277,19 @@ metadata:
       expect(saved.name).toBeUndefined();
     });
 
+    it('should not resurrect a form displayName when the YAML for a new role template removes it', async() => {
+      const { cached, saved, roleTemplate } = createRoleTemplate({ context: 'cluster', displayName: 'Typed In Form' });
+
+      cached.name = 'Typed In Form';
+
+      await roleTemplate.saveYaml(`${ HEADER }displayName: ''
+metadata:
+  name: ''
+`);
+
+      expect(saved.name).toBeUndefined();
+    });
+
     it('should keep the context of the tab the role template is created from when the YAML has none', async() => {
       const { saved, roleTemplate } = createRoleTemplate({ context: 'project' });
 
@@ -382,6 +406,17 @@ roleTemplateNames:
       roleTemplate.saveNorman(norman);
 
       expect(norman.rules).toStrictEqual([expected]);
+      expect(norman.save).toHaveBeenCalledWith();
+    });
+
+    it.each([
+      ['null entries in rules', [null]],
+      ['non-array rules', 'invalid'],
+    ])('should tolerate %s without throwing', (_, rules) => {
+      const { roleTemplate } = createRoleTemplate({});
+      const norman = { rules, save: jest.fn() };
+
+      expect(() => roleTemplate.saveNorman(norman)).not.toThrow();
       expect(norman.save).toHaveBeenCalledWith();
     });
   });

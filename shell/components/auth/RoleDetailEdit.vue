@@ -150,7 +150,11 @@ export default {
     if (this.registerBeforeHook) {
       this.registerBeforeHook(() => {
         // Map default value back to its own key for given subtype
-        this.value[SUBTYPE_MAPPING[this.value.subtype].defaultKey] = !!this.defaultValue;
+        const defaultKey = SUBTYPE_MAPPING[this.value.subtype]?.defaultKey;
+
+        if (defaultKey) {
+          this.value[defaultKey] = !!this.defaultValue;
+        }
       });
     }
 
@@ -557,6 +561,7 @@ export default {
     :resource="value"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :apply-hooks="applyHooks"
     :cancel-event="true"
     @error="e=>errors = e"
     @finish="save"

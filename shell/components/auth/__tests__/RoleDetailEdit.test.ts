@@ -224,6 +224,69 @@ describe('component: RoleDetailEdit', () => {
     expect(wrapper.findComponent(CruResource).props('doneRoute')).toBe('c-cluster-auth-roles-resource');
   });
 
+  it('should pass applyHooks to CruResource so default role changes apply before previewing YAML', async() => {
+    const value: Record<string, any> = {
+      type:     MANAGEMENT.ROLE_TEMPLATE,
+      rules:    [],
+      subtype:  SUBTYPE_MAPPING.CLUSTER.id,
+      metadata: { name: '' },
+    };
+    const wrapper = shallowMount(RoleDetailEdit, {
+      props:  { mode: _CREATE, value },
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $route:      { name: 'anything', query: {} },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
+              'store/customisation/': jest.fn()
+            }
+          }
+        },
+      },
+    });
+
+    (wrapper.vm as any).defaultValue = true;
+    await wrapper.findComponent(CruResource).props('applyHooks')('_beforeSaveHooks');
+
+    expect(value.clusterCreatorDefault).toBe(true);
+  });
+
+  it('should not set an undefined property when running before-save hooks on an RBAC role', async() => {
+    const value: Record<string, any> = {
+      type:     SUBTYPE_MAPPING.RBAC_ROLE.type,
+      rules:    [],
+      subtype:  SUBTYPE_MAPPING.RBAC_ROLE.id,
+      metadata: { name: '' },
+    };
+    const wrapper = shallowMount(RoleDetailEdit, {
+      props:  { mode: _CREATE, value },
+      global: {
+        mocks: {
+          $fetchState: { pending: false },
+          $route:      { name: 'anything', query: {} },
+          $store:      {
+            dispatch: jest.fn(),
+            getters:  {
+              currentStore:           () => 'store',
+              'i18n/t':               jest.fn(),
+              'store/schemaFor':      jest.fn(),
+              'store/customisation/': jest.fn()
+            }
+          }
+        },
+      },
+    });
+
+    await wrapper.findComponent(CruResource).props('applyHooks')('_beforeSaveHooks');
+
+    expect(value).not.toHaveProperty('undefined');
+  });
+
   describe('resourceOptions', () => {
     const createWrapper = () => mount(RoleDetailEdit, {
       props: {

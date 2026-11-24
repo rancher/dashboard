@@ -184,8 +184,8 @@ export default class RoleTemplate extends SteveDescriptionModel {
    * Save the role template's YAML through Norman.
    *
    * The YAML must be a RoleTemplate, or saving throws. A field the YAML leaves out is cleared, except the display
-   * name and context, which keep their current value (on create, the form's). On create, the labels and annotations
-   * that Rancher's controllers own are dropped.
+   * name (on edit) and context, which keep their current value. On create, the labels and annotations that
+   * Rancher's controllers own are dropped.
    */
   async saveYaml(yaml) {
     const data = jsyaml.load(yaml);
@@ -195,7 +195,7 @@ export default class RoleTemplate extends SteveDescriptionModel {
     }
 
     const metadata = data.metadata || {};
-    const fields = omit(data, NON_FIELD_KEYS);
+    const fields = pickBy(omit(data, NON_FIELD_KEYS), (_, key) => !key.startsWith('_'));
 
     Object.entries(this.toJSON()).forEach(([key, value]) => {
       if (!(key in fields) && !NEVER_CLEARED_KEYS.includes(key) && !key.startsWith('_')) {
@@ -214,7 +214,17 @@ export default class RoleTemplate extends SteveDescriptionModel {
       labels:          metadata.labels || {},
       annotations:     metadata.annotations || {},
     };
-    const norman = await this.$dispatch('rancher/clone', { resource: await this.norman }, { root: true });
+    const norman = await this.$dispatch('rancher/clone', { resource: await this.basicNorman }, { root: true });
+
+    if (!norman.context) {
+      norman.context = this.context;
+    }
+
+    if (!this.id) {
+      delete norman.name;
+      norman.clusterCreatorDefault = false;
+      norman.projectCreatorDefault = false;
+    }
 
     Object.assign(norman, normanFields, pickBy(renamed, (value) => value !== undefined));
 
@@ -252,12 +262,17 @@ export default class RoleTemplate extends SteveDescriptionModel {
   }
 
   saveNorman(norman) {
-    for (const rule of norman.rules || []) {
-      if (rule.nonResourceURLs && rule.nonResourceURLs.length) {
-        delete rule.resources;
-        delete rule.apiGroups;
-      } else {
-        delete rule.nonResourceURLs;
+    if (Array.isArray(norman.rules)) {
+      for (const rule of norman.rules) {
+        if (!rule || typeof rule !== 'object') {
+          continue;
+        }
+        if (rule.nonResourceURLs && rule.nonResourceURLs.length) {
+          delete rule.resources;
+          delete rule.apiGroups;
+        } else {
+          delete rule.nonResourceURLs;
+        }
       }
     }
 
