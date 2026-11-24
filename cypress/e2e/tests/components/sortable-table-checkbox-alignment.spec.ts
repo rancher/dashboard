@@ -3,6 +3,7 @@ import { SMALL_CONTAINER } from '@/cypress/e2e/tests/pages/explorer2/workloads/w
 
 describe('SortableTable checkbox alignment', { tags: ['@components', '@adminUser'] }, () => {
   const podsListPage = new WorkloadsPodsListPagePo('local');
+  const getTable = () => podsListPage.list().resourceTable().sortableTable();
   const namespace = 'default';
   let podName = '';
 
@@ -24,22 +25,19 @@ describe('SortableTable checkbox alignment', { tags: ['@components', '@adminUser
   it('aligns row checkboxes horizontally with the header checkbox and vertically with row content', () => {
     podsListPage.goTo();
     podsListPage.waitForPage();
+    podsListPage.listElementWithName(podName).should('be.visible');
 
-    const table = podsListPage.list().resourceTable().sortableTable();
+    getTable().rowCheckboxBox(0).should('be.visible');
 
-    table.checkLoadingIndicatorNotVisible();
-    table.rowWithName(podName).self().should('be.visible');
-    table.rowCheckboxBox(0).should('be.visible');
-
-    table.headerCheckboxBox().then(($headerBox) => {
+    getTable().headerCheckboxBox().then(($headerBox) => {
       const headerRect = $headerBox[0].getBoundingClientRect();
 
-      table.rowCheckboxBox(0).then(($rowBox) => {
+      getTable().rowCheckboxBox(0).then(($rowBox) => {
         const rowRect = $rowBox[0].getBoundingClientRect();
 
         expect(Math.abs(rowRect.x - headerRect.x), 'horizontal offset vs header checkbox').to.be.at.most(0.5);
 
-        table.rowStateBadge(0).then(($badge) => {
+        getTable().rowStateBadge(0).then(($badge) => {
           const badgeRect = $badge[0].getBoundingClientRect();
           const rowCenterY = rowRect.y + (rowRect.height / 2);
           const badgeCenterY = badgeRect.y + (badgeRect.height / 2);
