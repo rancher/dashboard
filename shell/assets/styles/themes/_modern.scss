@@ -737,8 +737,8 @@ BODY, .theme-light {
   --rc-bar-severity-low: #FADA38;
   --rc-bar-severity-none: #C3C6D5;
 
-  --rc-bar-track: #DDDEE7;
-  --rc-bar-active-sweep: #{rgba(#FFFFFF, 0.4)};
+  --rc-bar-track: #{$grey-20};
+  --rc-bar-active-sweep: #{$lightest};
 
   --rc-primary-hover: #{$primary-120};
 

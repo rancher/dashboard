@@ -104,6 +104,7 @@ const fillStyle = computed(() => ({
     position: absolute;
     inset: 0;
     background-image: linear-gradient(90deg, transparent, var(--rc-bar-active-sweep), transparent);
+    opacity: 0.4;
     animation: rc-progress-bar-sweep 1.5s ease-in-out infinite;
   }
 
