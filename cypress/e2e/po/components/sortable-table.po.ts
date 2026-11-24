@@ -448,6 +448,18 @@ export default class SortableTablePo extends ComponentPo {
     return new CheckboxInputPo('[data-testid="sortable-table_check_select_all"]');
   }
 
+  headerCheckboxBox() {
+    return this.self().find('thead th:first-child .checkbox-custom');
+  }
+
+  rowCheckboxBox(index: number) {
+    return this.row(index).self().find('td.row-check .checkbox-custom');
+  }
+
+  rowStateBadge(index: number) {
+    return this.row(index).self().find('.badge-state');
+  }
+
   selectedCount() {
     return cy.get('.row-check input[type="checkbox"]:checked').its('length');
   }

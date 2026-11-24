@@ -1606,7 +1606,6 @@ export default {
                 <td
                   v-if="tableActions"
                   class="row-check"
-                  align="middle"
                 >
                   {{ row.mainRowKey }}
                   <Checkbox
@@ -1774,7 +1773,6 @@ export default {
               <td
                 v-if="tableActions"
                 class="row-check"
-                align="middle"
               />
               <td
                 :colspan="fullColspan - (tableActions ? 1: 0)"
@@ -2157,7 +2155,12 @@ export default {
       }
 
       &.row-check {
-        padding-top: 12px;
+        padding-top: 8px;
+
+        .selection-checkbox {
+          display: flex;
+          width: fit-content;
+        }
       }
     }
 
