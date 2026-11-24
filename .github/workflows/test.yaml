@@ -148,9 +148,9 @@ jobs:
         if: ${{ failure() }}
         run: |
           mkdir artifacts
-          cp -r cypress/screenshots artifacts
-          cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs
-          cp browser-logs/out.html artifacts/browser-logs.html
+          if [ -d cypress/screenshots ]; then cp -r cypress/screenshots artifacts; fi
+          if [ -f "${{ env.E2E_RANCHER_LOG }}" ]; then cp "${{ env.E2E_RANCHER_LOG }}" artifacts/rancher.logs; fi
+          if [ -f browser-logs/out.html ]; then cp browser-logs/out.html artifacts/browser-logs.html; fi
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
