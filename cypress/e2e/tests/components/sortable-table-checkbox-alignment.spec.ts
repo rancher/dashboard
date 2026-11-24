@@ -25,7 +25,7 @@ describe('SortableTable checkbox alignment', { tags: ['@components', '@adminUser
   it('aligns row checkboxes horizontally with the header checkbox and vertically with row content', () => {
     podsListPage.goTo();
     podsListPage.waitForPage();
-    podsListPage.listElementWithName(podName).should('be.visible');
+    getTable().rowWithName(podName).self().should('be.visible');
 
     getTable().rowCheckboxBox(0).should('be.visible');
 
