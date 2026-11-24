@@ -81,7 +81,7 @@ jobs:
           ['@components'],
           ['@noVai']
         ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Revert to 'ubuntu-latest' when this is resolved: https://github.com/rancher/rancher/issues/58615 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
@@ -155,7 +155,7 @@ jobs:
   a11y-test:
     if: "!contains( github.event.pull_request.labels.*.name, 'ci/skip-e2e')"
     needs: e2e-ui-build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Revert to 'ubuntu-latest' when this is resolved: https://github.com/rancher/rancher/issues/58615 
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
