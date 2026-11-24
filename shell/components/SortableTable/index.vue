@@ -2079,6 +2079,7 @@ export default {
   }
 
   .sortable-table tr.main-row > td.row-check {
+    // Override older extensions' unscoped `.sortable-table td.row-check` (12px) rule
     padding-top: 8px;
 
     .selection-checkbox {
