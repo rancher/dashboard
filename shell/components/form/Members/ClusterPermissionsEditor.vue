@@ -51,6 +51,10 @@ export default {
     ]);
 
     this.roleTemplates = roleTemplates;
+
+    if (this.options.find((opt) => opt.value === this.permissionGroup)?.disabled) {
+      this.permissionGroup = this.options.find((opt) => !opt.disabled)?.value;
+    }
   },
   data() {
     return {
@@ -146,19 +150,22 @@ export default {
       const customRoles = this.customRoles.map((role) => ({
         label:       role.nameDisplay,
         description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('members.clusterPermissions.noDescription'),
-        value:       role.id
+        value:       role.id,
+        ...this.getRoleLockProps(role)
       }));
 
       return [
         {
           label:       this.t('members.clusterPermissions.owner.label'),
           description: this.t('members.clusterPermissions.owner.description'),
-          value:       'owner'
+          value:       'owner',
+          ...this.getRoleLockProps('cluster-owner')
         },
         {
           label:       this.t('members.clusterPermissions.member.label'),
           description: this.t('members.clusterPermissions.member.description'),
-          value:       'member'
+          value:       'member',
+          ...this.getRoleLockProps('cluster-member')
         },
         ...customRoles,
         {
@@ -178,16 +185,7 @@ export default {
       }, { root: true });
     },
     customPermissionsUpdate() {
-      return this.customPermissions.reduce((acc, customPermissionsItem) => {
-        const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.id === customPermissionsItem.key);
-
-        if (lockedExist.locked) {
-          customPermissionsItem['locked'] = true;
-          customPermissionsItem['tooltip'] = this.t('members.clusterPermissions.custom.lockedRole');
-        }
-
-        return [...acc, customPermissionsItem];
-      }, []);
+      return this.customPermissions.map((item) => Object.assign(item, this.getRoleLockProps(item.key)));
     }
   },
 
@@ -197,6 +195,21 @@ export default {
     }
   },
   methods: {
+    getRoleLockProps(roleOrId) {
+      const role = typeof roleOrId === 'string' ? this.roleTemplates.find((r) => r.id === roleOrId) : roleOrId;
+
+      if (role?.locked) {
+        return {
+          disabled:    true,
+          locked:      true,
+          tooltip:     this.t('members.clusterPermissions.custom.lockedRole'),
+          tooltipIcon: 'icon-lock'
+        };
+      }
+
+      return {};
+    },
+
     async principalProperty() {
       const principal = await this.principal;
 
@@ -261,6 +274,7 @@ export default {
       <template v-slot:body>
         <RadioGroup
           v-model:value="permissionGroup"
+          data-testid="permission-options"
           :options="options"
           name="permission-group"
         />

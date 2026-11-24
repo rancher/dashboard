@@ -23,6 +23,85 @@ describe('component: RadioGroup', () => {
 
       expect(slot.disabled).toBe(disabled);
     });
+
+    it('should disable an individual option and pass its tooltip props when option.disabled is true', async() => {
+      const wrapper = mount(RadioGroup, {
+        propsData: {
+          name:    'roles',
+          value:   'member',
+          options: [
+            { label: 'Member', value: 'member' },
+            {
+              label:       'Locked Role',
+              value:       'locked-role',
+              disabled:    true,
+              tooltip:     'This role is locked.',
+              tooltipIcon: 'icon-lock'
+            }
+          ]
+        }
+      });
+
+      const buttons = wrapper.findAllComponents({ name: 'RadioButton' });
+
+      expect(buttons[0].props('disabled')).toStrictEqual(false);
+      expect(buttons[1].props('disabled')).toStrictEqual(true);
+      expect(buttons[1].props('tooltip')).toStrictEqual('This role is locked.');
+      expect(buttons[1].props('tooltipIcon')).toStrictEqual('icon-lock');
+      expect(buttons[1].find('i.icon-lock').exists()).toStrictEqual(true);
+
+      await buttons[1].find('label.radio-container').trigger('click');
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+    });
+
+    it('should skip disabled options during keyboard arrow navigation', async() => {
+      const wrapper = mount(RadioGroup, {
+        attachTo:  document.body,
+        propsData: {
+          name:    'roles',
+          value:   'member',
+          options: [
+            { label: 'Member', value: 'member' },
+            {
+              label: 'Locked Role', value: 'locked', disabled: true
+            },
+            { label: 'Custom', value: 'custom' }
+          ]
+        }
+      });
+
+      const group = wrapper.find('[role="radiogroup"]');
+
+      (group.element as HTMLElement).focus();
+      await group.trigger('keydown.down');
+
+      expect(wrapper.emitted('update:value')?.[0]).toStrictEqual(['custom']);
+      wrapper.unmount();
+    });
+
+    it('should not emit update:value on keyboard navigation when all options are disabled', async() => {
+      const wrapper = mount(RadioGroup, {
+        attachTo:  document.body,
+        propsData: {
+          name:    'roles',
+          value:   'locked',
+          options: [
+            {
+              label: 'Locked Role', value: 'locked', disabled: true
+            }
+          ]
+        }
+      });
+
+      const group = wrapper.find('[role="radiogroup"]');
+
+      (group.element as HTMLElement).focus();
+      await group.trigger('keydown.down');
+
+      expect(wrapper.emitted('update:value')).toBeUndefined();
+      wrapper.unmount();
+    });
   });
 
   it('a11y: adding ARIA props should correctly fill out the appropriate fields on the component', async() => {

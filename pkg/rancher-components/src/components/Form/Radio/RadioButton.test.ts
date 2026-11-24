@@ -65,4 +65,42 @@ describe('radioButton.vue', () => {
     expect(ariaDescribedBy).toBe(wrapper.vm.describeById);
     expect(itemId).toBe(radioOptionId);
   });
+
+  describe('tooltip', () => {
+    it('does not render a tooltip icon when tooltip is not provided', () => {
+      const wrapper = shallowMount(RadioButton, {
+        propsData: {
+          label: 'Role Label', val: 'role', value: 'role'
+        }
+      });
+
+      expect(wrapper.find('.radio-label i.icon').exists()).toStrictEqual(false);
+    });
+
+    it('renders the default info icon when tooltip is provided without tooltipIcon', () => {
+      const wrapper = shallowMount(RadioButton, {
+        propsData: {
+          label: 'Role Label', val: 'role', value: 'role', tooltip: 'Helpful info'
+        }
+      });
+
+      const icon = wrapper.find('.radio-label i.icon');
+
+      expect(icon.exists()).toStrictEqual(true);
+      expect(icon.classes()).toContain('icon-info');
+    });
+
+    it('renders a custom tooltip icon when tooltip and tooltipIcon are provided', () => {
+      const wrapper = shallowMount(RadioButton, {
+        propsData: {
+          label: 'Locked Role', val: 'locked-role', value: 'member', tooltip: 'This role is locked.', tooltipIcon: 'icon-lock'
+        }
+      });
+
+      const icon = wrapper.find('.radio-label i.icon');
+
+      expect(icon.exists()).toStrictEqual(true);
+      expect(icon.classes()).toContain('icon-lock');
+    });
+  });
 });

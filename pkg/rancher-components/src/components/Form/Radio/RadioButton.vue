@@ -73,6 +73,22 @@ export default defineComponent({
     },
 
     /**
+     * Tooltip text or floating-vue options object shown on the icon next to the radio label.
+     */
+    tooltip: {
+      type:    [String, Object],
+      default: null
+    },
+
+    /**
+     * Icon class rendered next to the radio label when `tooltip` is set.
+     */
+    tooltipIcon: {
+      type:    String,
+      default: 'icon-info'
+    },
+
+    /**
      * Prevent focus when using radio in the context of a Radio group
      */
     preventFocusOnRadioGroups: {
@@ -213,6 +229,12 @@ export default defineComponent({
         <span
           v-else-if="label"
           v-clean-html="label"
+        />
+        <i
+          v-if="tooltip"
+          v-clean-tooltip="tooltip"
+          class="icon ml-5"
+          :class="tooltipIcon"
         />
       </label>
       <div

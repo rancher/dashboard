@@ -9,6 +9,9 @@ interface Option {
   label: string,
   description?: string,
   radioOptionId?: string,
+  disabled?: boolean,
+  tooltip?: string | object,
+  tooltipIcon?: string,
 }
 
 export default defineComponent({
@@ -229,7 +232,12 @@ export default defineComponent({
         return;
       }
 
-      const opts = this.normalizedOptions;
+      const opts = this.normalizedOptions.filter((x) => !x.disabled);
+
+      if (!opts.length) {
+        return;
+      }
+
       const selected = opts.find((x) => x.value === this.value);
       let newIndex = (selected ? opts.indexOf(selected) : -1) + direction;
 
@@ -297,7 +305,7 @@ export default defineComponent({
         <slot
           :v-bind="$attrs"
           :option="option"
-          :is-disabled="isDisabled"
+          :is-disabled="isDisabled || Boolean(option.disabled)"
           :name="i"
         >
           <!-- Default input -->
@@ -308,7 +316,9 @@ export default defineComponent({
             :radio-option-id="option.radioOptionId"
             :description="option.description"
             :val="option.value"
-            :disabled="isDisabled"
+            :disabled="isDisabled || Boolean(option.disabled)"
+            :tooltip="option.tooltip"
+            :tooltip-icon="option.tooltipIcon"
             :data-testid="`radio-button-${i}`"
             :mode="mode"
             :use-body-text-color="useBodyTextColor"
