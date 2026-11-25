@@ -1,6 +1,6 @@
 import {
   applyQuery, applyQueryExpression, fieldsFor, parseQuery,
-  parseQueryExpression, queryToServerFilters, replaceToken, rowsToCsv, queryFor, tokenAt, validateQuery, valuesInUse,
+  parseQueryExpression, queryToServerFilters, quoteIfNeeded, replaceToken, rowsToCsv, queryFor, tokenAt, validateQuery, valuesInUse,
   coreFieldIdsFor, CORE_FIELD_IDS,
   moveInOrder,
   serverPathFor,
@@ -106,6 +106,18 @@ describe('fx: parseQuery', () => {
   it('keeps quoted values together', () => {
     expect(parseQuery('name:"nginx a"', fields)).toStrictEqual([{
       field: 'name', value: 'nginx a', negated: false
+    }]);
+  });
+
+  it.each([
+    ['single around double', `name:'say "hi there" now'`, 'say "hi there" now'],
+    ['double around single', `name:"it's here"`, `it's here`],
+    ['the same kind, doubled', `name:"say ""it's here"" now"`, `say "it's here" now`],
+    ['the same kind, not doubled', 'name:"say "hi", now"', 'say "hi", now'],
+    ['the other kind, next to each other', `name:'two "" quotes'`, 'two "" quotes'],
+  ])('reads quotes within a quoted value: %s', (_, query, value) => {
+    expect(parseQuery(query, fields)).toStrictEqual([{
+      field: 'name', value, negated: false
     }]);
   });
 
@@ -557,6 +569,36 @@ describe('fx: queryToServerFilters', () => {
 
     expect(filters).toHaveLength(0);
     expect(unsupported.map((t) => t.value)).toStrictEqual(['Error', 'nginx']);
+  });
+});
+
+describe('fx: quoteIfNeeded', () => {
+  const fields = fieldsFor(HEADERS, ROWS);
+
+  it.each([
+    ['a plain value', 'nginx', 'nginx'],
+    ['spaces', 'my app', '"my app"'],
+    ['a colon', 'nginx:1.21', '"nginx:1.21"'],
+    ['a backslash', 'C:\\temp\\', '"C:\\temp\\"'],
+    ['double quotes', 'He said "hello there", then left', `'He said "hello there", then left'`],
+    ['a double quote in a word', 'a"b', `'a"b'`],
+    ['double quotes around it', '"quoted"', `'"quoted"'`],
+    ['an apostrophe', `it's`, `"it's"`],
+    ['both kinds', `She said "it's here" today`, `"She said ""it's here"" today"`],
+    ['both kinds, at the ends', `"it's"`, `"""it's"""`],
+  ])('should write %s as one term that reads back as it was', (_, value, quoted) => {
+    const query = `name:${ quoted } state:Error`;
+
+    expect(quoteIfNeeded(value)).toBe(quoted);
+    expect(validateQuery(query, fields)).toStrictEqual([]);
+    expect(parseQuery(query, fields)).toStrictEqual([
+      {
+        field: 'name', value, negated: false
+      },
+      {
+        field: 'state', value: 'Error', negated: false
+      },
+    ]);
   });
 });
 
