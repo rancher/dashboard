@@ -154,13 +154,12 @@ export function init(store) {
     canYaml:     true,
   });
 
-  // The restart column label includes the vendor, which is resolved in the list component (the brand isn't known yet here)
   headers(MANAGEMENT.FEATURE, [
     STATE,
     NAME_UNLINKED,
     FEATURE_DESCRIPTION,
-    RESTART
-  ]);
+    { ...RESTART, labelKey: 'tableHeaders.restartSystem' }
+  ]);  
 
   hideBulkActions(MANAGEMENT.FEATURE, true);
 }
