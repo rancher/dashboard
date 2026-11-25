@@ -2,6 +2,7 @@
 import ipaddr from 'ipaddr.js';
 import CopyToClipboard from '@shell/components/CopyToClipboard';
 import { mapGetters } from 'vuex';
+import { primaryNodeIps } from '@shell/models/cluster/node';
 import RcStatusBadge from '@components/Pill/RcStatusBadge/RcStatusBadge';
 
 export default {
@@ -30,26 +31,19 @@ export default {
       return this.externalIp && this.internalIp && this.externalIp === this.internalIp;
     },
     showPopover() {
-      return this.filteredExternalIps.length > 1 || this.filteredInternalIps.length > 1;
+      return this.remainingIpCount > 0;
+    },
+    primaryIps() {
+      return primaryNodeIps({ externalIps: this.filteredExternalIps, internalIps: this.filteredInternalIps });
     },
     externalIp() {
-      return this.filteredExternalIps[0] || null;
+      return this.primaryIps.externalIp || null;
     },
     internalIp() {
-      return this.filteredInternalIps[0] || null;
+      return this.primaryIps.internalIp || null;
     },
     remainingIpCount() {
-      let count = 0;
-
-      if (this.filteredExternalIps.length > 1) {
-        count += this.filteredExternalIps.length - 1;
-      }
-
-      if (!this.internalSameAsExternal && this.filteredInternalIps.length > 1) {
-        count += this.filteredInternalIps.length - 1;
-      }
-
-      return count;
+      return new Set([...this.remainingExternalIps, ...this.remainingInternalIps]).size;
     },
     tooltipContent() {
       const count = this.remainingIpCount;
@@ -57,10 +51,10 @@ export default {
       return this.t('internalExternalIP.clickToShowMoreIps', { count });
     },
     remainingExternalIps() {
-      return this.filteredExternalIps.slice(1);
+      return this.filteredExternalIps.filter((ip) => ip !== this.externalIp);
     },
     remainingInternalIps() {
-      return this.filteredInternalIps.slice(1);
+      return this.filteredInternalIps.filter((ip) => ip !== this.internalIp);
     }
   },
   methods: {

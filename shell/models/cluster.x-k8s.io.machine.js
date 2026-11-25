@@ -1,7 +1,7 @@
 import { ADDRESSES, CAPI, NODE } from '@shell/config/types';
 import { CAPI as CAPI_LABELS, MACHINE_ROLES } from '@shell/config/labels-annotations';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { listNodeRoles } from '@shell/models/cluster/node';
+import { listNodeRoles, primaryNodeIps } from '@shell/models/cluster/node';
 import { insertAt, findBy } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import { downloadUrl } from '@shell/utils/download';
@@ -240,10 +240,10 @@ export default class CapiMachine extends CapiMachineRoot {
   }
 
   get internalIp() {
-    return this.internalIps[0];
+    return primaryNodeIps(this).internalIp;
   }
 
   get externalIp() {
-    return this.externalIps[0];
+    return primaryNodeIps(this).externalIp;
   }
 }

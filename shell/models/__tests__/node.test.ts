@@ -1,4 +1,4 @@
-import Node from '@shell/models/cluster/node';
+import Node, { primaryNodeIps } from '@shell/models/cluster/node';
 import { METRIC } from '@shell/config/types';
 
 describe('class Node', () => {
@@ -376,6 +376,53 @@ describe('class Node', () => {
       ])('should count only the non-system labels given %s', (_, labels, expected) => {
         expect(nodeWith(labels).customLabelCount).toStrictEqual(expected);
       });
+    });
+  });
+
+  describe('IPs', () => {
+    const V4_IN = '10.0.0.1';
+    const V6_IN = 'fd00::1';
+    const V4_EX = '203.0.113.1';
+    const V6_EX = '2001:db8::1';
+
+    it.each([
+      ['both IPv4 when only IPv4 is external', [V4_EX], [V6_IN, V4_IN], V4_EX, V4_IN],
+      ['both IPv6 when only IPv6 is external', [V6_EX], [V4_IN, V6_IN], V6_EX, V6_IN],
+      ['both IPv6 when only IPv6 is internal', [V4_EX, V6_EX], [V6_IN], V6_EX, V6_IN],
+      ['the family of the first internal IP, IPv4, when both match', [V6_EX, V4_EX], [V4_IN, V6_IN], V4_EX, V4_IN],
+      ['the family of the first internal IP, IPv6, when both match', [V4_EX, V6_EX], [V6_IN, V4_IN], V6_EX, V6_IN],
+      ['the first of each when no family matches', [V4_EX], [V6_IN], V4_EX, V6_IN],
+      ['the first internal IP without an external one', [], [V6_IN, V4_IN], undefined, V6_IN],
+      ['the first external IP without an internal one', [V6_EX, V4_EX], [], V6_EX, undefined],
+      ['the first of each when they are not IPs', ['host-a', 'host-b'], ['host-c'], 'host-a', 'host-c'],
+      ['nothing without IPs', [], [], undefined, undefined],
+    ])('should show %s', (_, externalIps, internalIps, externalIp, internalIp) => {
+      expect(primaryNodeIps({ externalIps, internalIps })).toStrictEqual({ externalIp, internalIp });
+    });
+
+    it.each([
+      [[V4_EX], [V6_IN, V4_IN], V4_EX, V4_IN],
+      [[V6_EX, V4_EX], [V4_IN], V4_EX, V4_IN],
+    ])('should show IPs of the same family and keep the order of the lists, given external %p and internal %p', (externalIps, internalIps, externalIp, internalIp) => {
+      const node = new Node({
+        metadata: { annotations: {} },
+        status:   {
+          addresses: [
+            ...internalIps.map((address) => ({ type: 'InternalIP', address })),
+            ...externalIps.map((address) => ({ type: 'ExternalIP', address })),
+            { type: 'Hostname', address: 'node-1' },
+          ]
+        }
+      });
+
+      expect([node.externalIp, node.internalIp]).toStrictEqual([externalIp, internalIp]);
+      expect([node.externalIps, node.internalIps]).toStrictEqual([externalIps, internalIps]);
+    });
+
+    it('should show the internal IP of a node without annotations', () => {
+      const node = new Node({ metadata: {}, status: { addresses: [{ type: 'InternalIP', address: V4_IN }] } });
+
+      expect(node.internalIp).toStrictEqual(V4_IN);
     });
   });
 });

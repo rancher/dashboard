@@ -77,6 +77,19 @@ describe('class MgmtNode', () => {
     });
   });
 
+  it.each([
+    [['203.0.113.1', '203.0.113.2'], ['fd00::1', '10.0.0.1']],
+    [['2001:db8::1', '203.0.113.1'], ['10.0.0.1']],
+  ])('should return an external and an internal IP of the same family, given external %p and internal %p', (externalIps, internalIps) => {
+    const addresses = [
+      ...internalIps.map((address) => ({ type: 'InternalIP', address })),
+      ...externalIps.map((address) => ({ type: 'ExternalIP', address })),
+    ];
+    const mgmtNode = new MgmtNode({ status: { internalNodeStatus: { addresses } } });
+
+    expect([mgmtNode.externalIp, mgmtNode.internalIp]).toStrictEqual(['203.0.113.1', '10.0.0.1']);
+  });
+
   describe('should return an appropriate message', () => {
     it('if there is no internalIp to display', () => {
       const mgmtNode = new MgmtNode({ status: {} }, ctx);

@@ -4,6 +4,8 @@ import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@shell/config/types';
 import { parseSi } from '@shell/utils/units';
+import { isValidIP } from '@shell/utils/validators/cidr';
+import ipaddr from 'ipaddr.js';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LOCAL } from '@shell/config/query-params';
@@ -100,18 +102,18 @@ export default class ClusterNode extends SteveModel {
   }
 
   get externalIps() {
-    const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
+    const annotationAddress = this.metadata?.annotations?.[RKE.EXTERNAL_IP];
     const statusAddresses = this.addresses.filter((address) => address.type === 'ExternalIP').map((address) => address.address);
 
     return statusAddresses.concat(annotationAddress || []);
   }
 
   get internalIp() {
-    return this.internalIps[0];
+    return primaryNodeIps(this).internalIp;
   }
 
   get externalIp() {
-    return this.externalIps[0];
+    return primaryNodeIps(this).externalIp;
   }
 
   get labels() {
@@ -616,6 +618,27 @@ function calculatePercentage(allocatable, capacity) {
   const percent = (((c - a) / c) * 100);
 
   return formatPercent(percent);
+}
+
+function isSameIpFamily(a, b) {
+  return isValidIP(a) && isValidIP(b) && ipaddr.parse(a).kind() === ipaddr.parse(b).kind();
+}
+
+/**
+ * The external and internal IP to show for a node, of the same family if it has such a pair.
+ * Starts from the first internal IP, as Kubernetes lists the node's primary family first
+ */
+export function primaryNodeIps({ externalIps, internalIps }) {
+  const internalIp = internalIps.find((internal) => externalIps.some((external) => isSameIpFamily(internal, external)));
+
+  if (!internalIp) {
+    return { externalIp: externalIps[0], internalIp: internalIps[0] };
+  }
+
+  return {
+    externalIp: externalIps.find((external) => isSameIpFamily(internalIp, external)),
+    internalIp
+  };
 }
 
 export function listNodeRoles(isControlPlane, isWorker, isEtcd, allString) {

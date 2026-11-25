@@ -113,6 +113,54 @@ describe('component: InternalExternalIP', () => {
     });
   });
 
+  describe('dual-stack nodes', () => {
+    const V4_IN = '10.0.0.1';
+    const V6_IN = 'fd00::1';
+    const V4_EX = '203.0.113.1';
+    const V6_EX = '2001:db8::1';
+
+    const shownIps = (wrapper: VueWrapper<any>) => [
+      wrapper.find('[data-testid="external-ip"]').text(),
+      wrapper.find('[data-testid="internal-ip"]').text()
+    ];
+    const listedIps = (wrapper: VueWrapper<any>) => wrapper.findAll('.ip-address span').map((ip) => ip.text());
+
+    it.each([
+      [[V4_EX], [V6_IN, V4_IN], [V4_EX, V4_IN], [V6_IN], '+1 more'],
+      [[V6_EX], [V4_IN, V6_IN], [V6_EX, V6_IN], [V4_IN], '+1 more'],
+      [[V6_EX, V4_EX], [V4_IN, V6_IN], [V4_EX, V4_IN], [V6_EX, V6_IN], '+2 more'],
+      [[V4_EX, V6_EX], [V6_IN, V4_IN], [V6_EX, V6_IN], [V4_EX, V4_IN], '+2 more'],
+    ])('should show IPs of the same family and list the others, given external %p and internal %p', (externalIps, internalIps, shown, listed, more) => {
+      const wrapper = mountComponent({ row: { externalIps, internalIps } });
+
+      expect(shownIps(wrapper)).toStrictEqual(shown);
+      expect(listedIps(wrapper)).toStrictEqual(listed);
+      expect(wrapper.find('[data-testid="plus-more"]').text()).toStrictEqual(more);
+    });
+
+    it('should show the only IPs when they are of different families', () => {
+      const wrapper = mountComponent({ row: { externalIps: [V4_EX], internalIps: [V6_IN] } });
+
+      expect(shownIps(wrapper)).toStrictEqual([V4_EX, V6_IN]);
+      expect(wrapper.find('[data-testid="plus-more"]').exists()).toBe(false);
+    });
+
+    it('should count the internal IPs that are not external ones when the first is the same as external', () => {
+      const wrapper = mountComponent({ row: { externalIps: [V4_EX], internalIps: [V4_EX, V6_IN] } });
+
+      expect(wrapper.text()).toContain('tableHeaders.internalIpSameAsExternal');
+      expect(wrapper.find('[data-testid="plus-more"]').text()).toStrictEqual('+1 more');
+      expect(listedIps(wrapper)).toStrictEqual([V6_IN]);
+    });
+
+    it('should count an IP that is both external and internal once', () => {
+      const wrapper = mountComponent({ row: { externalIps: [V4_EX, V6_EX], internalIps: [V4_EX, V6_EX] } });
+
+      expect(wrapper.text()).toContain('tableHeaders.internalIpSameAsExternal');
+      expect(wrapper.find('[data-testid="plus-more"]').text()).toStrictEqual('+1 more');
+    });
+  });
+
   describe('fallback to singular IPs', () => {
     it('should use singular externalIp and internalIp when arrays are not present', () => {
       const wrapper = mountComponent({ row: { externalIp: '1.1.1.1', internalIp: '2.2.2.2' } });

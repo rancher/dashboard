@@ -47,7 +47,8 @@ describe('component: WorkloadDetailEndpoints', () => {
   ];
 
   const basicNodesOutput = [
-    { externalIp: 'some-external-ip' }
+    { externalIps: [] },
+    { externalIp: 'another-external-ip', externalIps: ['some-external-ip', 'another-external-ip'] }
   ];
 
   it.each([
