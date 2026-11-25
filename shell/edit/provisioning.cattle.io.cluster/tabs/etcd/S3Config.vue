@@ -220,11 +220,18 @@ export default {
           v-if="differentRetention"
           v-model:value="config.retention"
           :label="t('cluster.rke2.etcd.s3config.snapshotRetention.label')"
+          :tooltip="t('cluster.rke2.etcd.s3config.snapshotRetention.tooltip')"
           :mode="mode"
           :suffix="t('cluster.rke2.snapshots.s3Suffix')"
           class="mt-10"
           @update:value="update"
         />
+        <p
+          v-else
+          class="mt-10 text-muted"
+        >
+          {{ t('cluster.rke2.etcd.s3config.snapshotRetention.tooltip') }}
+        </p>
       </div>
     </div>
   </div>

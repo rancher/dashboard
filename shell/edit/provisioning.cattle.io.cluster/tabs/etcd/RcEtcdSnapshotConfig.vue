@@ -96,7 +96,7 @@ const snapshotRetention = computed(() => etcd.value.snapshotRetention || undefin
           :mode="mode"
           :label="t('cluster.rke2.etcd.snapshotRetention.label')"
           :suffix="s3Backup ? t('cluster.rke2.snapshots.s3Suffix') : t('cluster.rke2.snapshots.suffix')"
-          :tooltip="s3Backup ? t('cluster.rke2.etcd.snapshotRetention.tooltip') : undefined"
+          :tooltip="t('cluster.rke2.etcd.snapshotRetention.tooltip')"
           @update:value="(snapshotRetention: number) => update({ snapshotRetention })"
         />
       </div>
