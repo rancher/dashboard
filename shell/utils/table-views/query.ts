@@ -70,15 +70,24 @@ export function tokenize(query: string): TableViewQueryToken[] {
 }
 
 function unquote(value: string): string {
-  if (value.length > 1 && (value[0] === '"' || value[0] === `'`) && value[value.length - 1] === value[0]) {
-    return value.substring(1, value.length - 1);
+  const quote = value[0];
+
+  if (value.length > 1 && (quote === '"' || quote === `'`) && value[value.length - 1] === quote) {
+    return value.substring(1, value.length - 1).replaceAll(quote + quote, quote);
   }
 
   return value;
 }
 
+/** In the kind of quotes the value doesn't hold. One that holds both has its double quotes doubled */
 export function quoteIfNeeded(value: string): string {
-  return /[\s:]/.test(value) ? `"${ value }"` : value;
+  if (!/[\s:"']/.test(value)) {
+    return value;
+  }
+
+  const quote = value.includes('"') && !value.includes(`'`) ? `'` : '"';
+
+  return `${ quote }${ value.replaceAll(quote, quote + quote) }${ quote }`;
 }
 
 /**

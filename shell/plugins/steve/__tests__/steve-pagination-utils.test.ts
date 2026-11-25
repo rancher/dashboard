@@ -458,6 +458,22 @@ describe('class StevePaginationUtils', () => {
       expect(result).toBe(`filter=metadata.name=${ y }`);
     });
 
+    it.each([
+      ['double quotes', 'He said "hello", then left', 'He%20said%20%5C%22hello%5C%22%2C%20then%20left'],
+      ['a double quote in a word', 'a"b', 'a%5C%22b'],
+      ['a single quote', `it's`, `it's`],
+      ['backslashes', 'C:\\temp', 'C%3A%5C%5Ctemp'],
+      ['a backslash at the end', 'C:\\', 'C%3A%5C%5C'],
+      ['a double quote after a backslash', 'a\\"b', 'a%5C%5C%5C%22b'],
+    ])('should keep a filter value as it is for the api: %s', (_, x, y) => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),
+      ];
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
+
+      expect(result).toBe(`filter=metadata.name="${ y }"`);
+    });
+
     it('should handle IN and NOT_IN operators', () => {
       const filters = [
         new PaginationParamFilter({
@@ -491,6 +507,7 @@ describe('class StevePaginationUtils', () => {
       [true, 'true'],
       [0, '0'],
       [1, '1'],
+      [-1, '"-1"'],
     ])('should handle falsy filter value %s', (x: any, y) => {
       const filters = [
         new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),
