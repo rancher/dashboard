@@ -1,10 +1,9 @@
 import { MANAGEMENT_NODE } from '@shell/config/labels-annotations';
 import { ADDRESSES, MANAGEMENT, NODE, NORMAN } from '@shell/config/types';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { listNodeRoles } from '@shell/models/cluster/node';
+import { listNodeRoles, primaryNodeIps } from '@shell/models/cluster/node';
 import { downloadUrl } from '@shell/utils/download';
 import { sortableNumericSuffix } from '@shell/utils/sort';
-import findLast from 'lodash/findLast';
 import HybridModel from '@shell/plugins/steve/hybrid-class';
 import { notOnlyOfRole } from '@shell/models/cluster.x-k8s.io.machine';
 
@@ -165,39 +164,11 @@ export default class MgmtNode extends HybridModel {
   }
 
   get internalIp() {
-    // This shows in the IP address column for RKE1 nodes in the
-    // list of nodes in the cluster detail page of Cluster Management.
-    const internal = this.addresses.find(({ type }) => {
-      return type === ADDRESSES.INTERNAL_IP;
-    });
-
-    if (internal) {
-      return internal.address;
-    }
-
-    // For RKE1 clusters in EC2, node addresses are
-    // under status.rkeNode.address and status.rkeNode.internalAddress
-    if (!internal && this.status?.rkeNode) {
-      return this.status.rkeNode.internalAddress;
-    }
-
-    return this.t('generic.none');
+    return primaryNodeIps(this).internalIp || this.t('generic.none');
   }
 
   get externalIp() {
-    const statusAddress = findLast(this.addresses, (address) => address.type === 'ExternalIP')?.address;
-
-    if (statusAddress) {
-      return statusAddress;
-    }
-
-    // For RKE1 clusters in EC2, node addresses are
-    // under status.rkeNode.address and status.rkeNode.internalAddress
-    if (!statusAddress && this.status?.rkeNode) {
-      return this.status.rkeNode.address;
-    }
-
-    return this.t('generic.none');
+    return primaryNodeIps(this).externalIp || this.t('generic.none');
   }
 
   get canScaleDown() {

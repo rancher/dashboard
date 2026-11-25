@@ -164,4 +164,28 @@ describe('class CapiMachine', () => {
       expect(new CapiMachine(data).kubeNodeNameSort).toStrictEqual('');
     });
   });
+
+  describe('IPs', () => {
+    it.each([
+      [['203.0.113.1'], ['fd00::1', '10.0.0.1']],
+      [['2001:db8::1', '203.0.113.1'], ['10.0.0.1']],
+    ])('should show an external and an internal IP of the same family, given external %p and internal %p', (externalIps, internalIps) => {
+      const machine = new CapiMachine({
+        status: {
+          addresses: [
+            ...internalIps.map((address) => ({ type: 'InternalIP', address })),
+            ...externalIps.map((address) => ({ type: 'ExternalIP', address })),
+          ]
+        }
+      });
+
+      expect([machine.externalIp, machine.internalIp]).toStrictEqual(['203.0.113.1', '10.0.0.1']);
+    });
+
+    it('should not have IPs without a status', () => {
+      const machine = new CapiMachine({});
+
+      expect([machine.externalIp, machine.internalIp]).toStrictEqual([undefined, undefined]);
+    });
+  });
 });
