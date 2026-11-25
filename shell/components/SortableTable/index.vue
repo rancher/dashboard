@@ -1715,6 +1715,7 @@ export default {
                     <template v-if="featureDropdownMenu">
                       <ActionMenu
                         :resource="row.row"
+                        :action-args="tableActionArgs"
                         :data-testid="componentTestid + '-' + i + '-action-button'"
                         :button-aria-label="t('sortableTable.tableActionsLabel', { resource: row?.row?.id || '' })"
                       />

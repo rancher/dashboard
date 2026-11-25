@@ -1,3 +1,6 @@
+import { shallowMount } from '@vue/test-utils';
+import { createStore } from 'vuex';
+import ActionMenu from '@shell/components/ActionMenuShell.vue';
 import SortableTable from '@shell/components/SortableTable/index.vue';
 
 type Column = { hide?: boolean, isColVisible?: boolean } | null | undefined;
@@ -44,5 +47,38 @@ describe('sortableTable methods', () => {
 
       expect(ctx.expanded).toStrictEqual({});
     });
+  });
+});
+
+describe('sortableTable row menu', () => {
+  it('should pass the table to the actions asking for it', () => {
+    const headers = [{
+      name: 'name', label: 'Name', value: 'id'
+    }];
+    const rows = [{ id: 'one' }, { id: 'two' }];
+    const store = createStore({
+      getters: {
+        'i18n/t':          () => (key: string) => key,
+        'prefs/get':       () => () => 10,
+        'management/byId': () => () => ({ value: 'v2.17.0' }),
+      }
+    });
+    const wrapper = shallowMount(SortableTable, {
+      props:  { headers, rows },
+      global: {
+        plugins: [store],
+        mocks:   {
+          $store: store, $route: { query: {} }, $router: { applyQuery: jest.fn() }
+        },
+        directives: {
+          shortkey: () => {}, 'trim-whitespace': () => {}, 'ui-context': () => {}
+        },
+      },
+    });
+    const menu = wrapper.findAllComponents(ActionMenu)[1];
+    const argsFor = menu.props('actionArgs') as (action: object, resources: unknown[]) => unknown;
+
+    expect(argsFor({ action: 'download', passTable: true }, [menu.props('resource')])).toStrictEqual([{ headers, rows: [rows[1]] }]);
+    expect(argsFor({ action: 'promptRemove' }, [menu.props('resource')])).toBeUndefined();
   });
 });

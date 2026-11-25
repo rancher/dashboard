@@ -7,6 +7,7 @@ import { isAlternate } from '@shell/utils/platform';
 import { RcDropdownMenu } from '@components/RcDropdown';
 import { ButtonVariant, ButtonSize } from '@components/RcButton/types';
 import { DropdownOption } from '@components/RcDropdown/types';
+import type { TableViewAction } from '@shell/types/table-views';
 
 defineOptions({ inheritAttrs: false });
 
@@ -23,6 +24,8 @@ type RcDropdownMenuComponentProps = {
   /** Forwarded to RcDropdown's `container` prop. */
   container?: string | HTMLElement;
   open?: boolean;
+  /** Arguments for the action's method, from whatever the menu is in */
+  actionArgs?: (action: TableViewAction, resources: unknown[]) => unknown[] | undefined;
 }
 
 const props = defineProps <RcDropdownMenuComponentProps>();
@@ -83,7 +86,7 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
     const opts = { alt: isAlternate(event) };
 
     store.dispatch('action-menu/execute', {
-      action, args, opts
+      action, args: args || props.actionArgs?.(action, [props.resource]), opts
     });
   }
 };

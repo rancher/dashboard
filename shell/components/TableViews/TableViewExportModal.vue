@@ -15,7 +15,7 @@ import { escapeHtml } from '@shell/utils/string';
 import { exportColumnsFor, rowsToCsv, rowsToJson } from '@shell/utils/table-views/export';
 import { useI18n } from '@shell/composables/useI18n';
 import { NotificationLevel } from '@shell/types/notifications';
-import type { TableViewRow } from '@shell/types/table-views';
+import type { TableActionContext, TableViewRow } from '@shell/types/table-views';
 
 const FORMATS = ['yaml', 'json', 'csv'] as const;
 
@@ -42,11 +42,14 @@ const props = withDefaults(defineProps<{
   isSelection?: boolean,
   /** From a resource action; empty when the table is driving */
   resources?: ExportResource[],
+  /** The table the resource action was picked in, if any */
+  table?: TableActionContext,
 }>(), {
   count:       0,
   viewName:    '',
   isSelection: false,
   resources:   () => [],
+  table:       undefined,
 });
 
 const emit = defineEmits<{
@@ -61,8 +64,12 @@ const format = ref<Format>(props.isSelection ? 'yaml' : 'csv');
 
 const formatOptions = computed(() => FORMATS.map((f) => ({ value: f, label: t(`tableViews.export.format.${ f }`) })));
 
-/** The type's own columns: a resource action never learns which table it was picked in */
+/** The table's columns, else the type's own, eg from a detail page */
 const selectionColumns = computed(() => {
+  if (props.table) {
+    return exportColumnsFor(props.table.headers, (key: string) => t(key));
+  }
+
   const first = props.resources[0];
   const schema = first?.schema;
 
@@ -97,7 +104,7 @@ const intro = computed(() => {
 });
 
 /** Writes the file and says what it was called. Given everything it needs, as the modal is closed by then */
-const exportResources = async(items: ExportResource[], as: Format, columns: ReturnType<typeof exportColumnsFor>, onProgress: (done: number, total: number) => void) => {
+const exportResources = async(items: ExportResource[], rows: TableViewRow[], as: Format, columns: ReturnType<typeof exportColumnsFor>, onProgress: (done: number, total: number) => void) => {
   const first = items[0];
 
   if (as === 'yaml') {
@@ -112,15 +119,16 @@ const exportResources = async(items: ExportResource[], as: Format, columns: Retu
     return 'resources.zip';
   }
 
-  const name = (first?.type || 'resources').replace(/[^a-z0-9]+/gi, '-');
+  // Named after what it holds, as the view's own export is
+  const name = ((rows[0] as Partial<ExportResource> | undefined)?.type || first?.type || 'resources').replace(/[^a-z0-9]+/gi, '-');
 
   if (as === 'json') {
-    await downloadFile(`${ name }.json`, rowsToJson(items, columns), 'application/json;charset=utf-8');
+    await downloadFile(`${ name }.json`, rowsToJson(rows, columns), 'application/json;charset=utf-8');
 
     return `${ name }.json`;
   }
 
-  await downloadFile(`${ name }.csv`, rowsToCsv(items, columns), 'text/csv;charset=utf-8');
+  await downloadFile(`${ name }.csv`, rowsToCsv(rows, columns), 'text/csv;charset=utf-8');
 
   return `${ name }.csv`;
 };
@@ -137,7 +145,8 @@ const selectionType = (items: ExportResource[]): string => {
   return t('tableViews.export.notification.items', { count });
 };
 
-const exportSelection = async(items: ExportResource[], as: Format, columns: ReturnType<typeof exportColumnsFor>) => {
+/** `rows` are what the table shows for `items`: a cluster row's action is run on another resource than the row */
+const exportSelection = async(items: ExportResource[], rows: TableViewRow[], as: Format, columns: ReturnType<typeof exportColumnsFor>) => {
   const count = items.length;
   const type = selectionType(items);
   const id = await store.dispatch('notifications/add', {
@@ -151,7 +160,7 @@ const exportSelection = async(items: ExportResource[], as: Format, columns: Retu
   const onProgress = (done: number, total: number) => store.dispatch('notifications/update', { id, progress: Math.round((100 * done) / (total || 1)) });
 
   try {
-    const file = await exportResources(items, as, columns, onProgress);
+    const file = await exportResources(items, rows, as, columns, onProgress);
 
     await store.dispatch('notifications/update', {
       id,
@@ -178,12 +187,13 @@ const download = () => {
   if (props.resources.length) {
     // Read now: the modal, and its props, go with the close
     const items = [...props.resources];
+    const rows = [...(props.table?.rows || items)];
     const as = format.value;
     const columns = selectionColumns.value;
 
     props.modal.onClose();
     // Running on with nothing on screen, so a failure the notification can't report is at least logged
-    exportSelection(items, as, columns).catch((e) => console.error('Unable to export the selection', e)); // eslint-disable-line no-console
+    exportSelection(items, rows, as, columns).catch((e) => console.error('Unable to export the selection', e)); // eslint-disable-line no-console
 
     return;
   }
