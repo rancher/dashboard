@@ -21,7 +21,7 @@ import { ActionLocation, ExtensionPoint } from '@shell/core/types';
 import { getApplicableExtensionEnhancements } from '@shell/core/plugin-helpers';
 import IconOrSvg from '@shell/components/IconOrSvg';
 import { wait } from '@shell/utils/async';
-import { configTypeForProvider } from '@shell/models/management.cattle.io.authconfig';
+import { sloAuthProviderOfPrincipal } from '@shell/utils/auth-providers';
 import HeaderPageActionMenu from './HeaderPageActionMenu.vue';
 import NotificationCenter from './NotificationCenter';
 import {
@@ -30,7 +30,6 @@ import {
   RcDropdownSeparator,
   RcDropdownTrigger
 } from '@components/RcDropdown';
-import { SLO_AUTH_PROVIDERS } from '@shell/store/auth';
 import { CLUSTER_SHELL } from '@shell/store/features';
 import { openReleaseWelcome, releaseWelcomeVersion } from '@shell/utils/release-welcome';
 
@@ -105,7 +104,7 @@ export default {
     sloAuthProviderEnabled() {
       const publicAuthProviders = this.$store.getters['rancher/all']('authProvider');
 
-      return publicAuthProviders.find((authProvider) => SLO_AUTH_PROVIDERS.includes(configTypeForProvider(authProvider?.type))) || {};
+      return sloAuthProviderOfPrincipal(publicAuthProviders, this.$store.getters['auth/principalId']) || {};
     },
 
     shouldShowSloLogoutModal() {
@@ -116,7 +115,7 @@ export default {
 
       const { logoutAllSupported, logoutAllEnabled, logoutAllForced } = this.sloAuthProviderEnabled;
 
-      return logoutAllSupported && logoutAllEnabled && !logoutAllForced;
+      return !!logoutAllSupported && !!logoutAllEnabled && !logoutAllForced;
     },
 
     appName() {
