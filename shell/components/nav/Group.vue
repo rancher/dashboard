@@ -92,7 +92,7 @@ export default {
     },
 
     isGroupActive() {
-      return this.isOverview || (this.hasActiveRoute() && this.isExpanded && this.showHeader);
+      return this.isOverview || (this.hasActiveRoute() && this.showHeader);
     },
 
     hasChildren() {

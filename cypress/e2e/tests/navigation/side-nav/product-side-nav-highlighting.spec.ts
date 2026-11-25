@@ -114,6 +114,33 @@ describe('Side navigation: Highlighting ', { tags: ['@navigation', '@adminUser']
     productNavPo.activeNavItem().should('equal', 'Role Templates');
   });
 
+  it('Collapsed parent group retains group-highlight when a child item is selected', () => {
+    const homePage = new HomePagePo();
+    const productNavPo = new ProductNavPo();
+
+    homePage.navToClusterMenuEntry('local');
+    homePage.waitForPageWithSpecificUrl('/c/local/explorer');
+
+    productNavPo.navToSideMenuGroupByLabel('Workloads');
+    productNavPo.navToSideMenuEntryByLabel('DaemonSets');
+    productNavPo.activeNavItem().should('contain', 'DaemonSets');
+
+    productNavPo.groupByLabel('Workloads')
+      .should('have.class', 'expanded')
+      .and('have.class', 'group-highlight');
+
+    productNavPo.groupByLabel('Workloads').find('i.toggle-accordion').first().click();
+
+    productNavPo.groupByLabel('Workloads')
+      .should('not.have.class', 'expanded')
+      .and('have.class', 'group-highlight')
+      .and('not.have.css', 'background-color', 'rgba(0, 0, 0, 0)');
+
+    productNavPo.navToSideMenuGroupByLabel('Storage');
+    productNavPo.groupByLabel('Workloads').should('not.have.class', 'group-highlight');
+    productNavPo.groupByLabel('Storage').should('have.class', 'group-highlight');
+  });
+
   after(() => {
     cy.setUserPreference({ 'show-pre-release': false });
   });
