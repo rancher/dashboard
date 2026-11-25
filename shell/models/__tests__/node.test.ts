@@ -395,6 +395,7 @@ describe('class Node', () => {
       ['the first internal IP without an external one', [], [V6_IN, V4_IN], undefined, V6_IN],
       ['the first external IP without an internal one', [V6_EX, V4_EX], [], V6_EX, undefined],
       ['the first of each when they are not IPs', ['host-a', 'host-b'], ['host-c'], 'host-a', 'host-c'],
+      ['the IPv6 ones, also the IPv4-mapped', ['203.0.113.1', '::ffff:203.0.113.1'], ['fd00::1'], '::ffff:203.0.113.1', 'fd00::1'],
       ['nothing without IPs', [], [], undefined, undefined],
     ])('should show %s', (_, externalIps, internalIps, externalIp, internalIp) => {
       expect(primaryNodeIps({ externalIps, internalIps })).toStrictEqual({ externalIp, internalIp });

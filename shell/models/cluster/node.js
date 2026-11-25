@@ -4,8 +4,6 @@ import {
   CAPI, MANAGEMENT, METRIC, NORMAN, POD
 } from '@shell/config/types';
 import { parseSi } from '@shell/utils/units';
-import { isValidIP } from '@shell/utils/validators/cidr';
-import ipaddr from 'ipaddr.js';
 
 import SteveModel from '@shell/plugins/steve/steve-class';
 import { LOCAL } from '@shell/config/query-params';
@@ -620,8 +618,9 @@ function calculatePercentage(allocatable, capacity) {
   return formatPercent(percent);
 }
 
+// Lists sort by the IPs, so this runs for every comparison: parsing them is too slow
 function isSameIpFamily(a, b) {
-  return isValidIP(a) && isValidIP(b) && ipaddr.parse(a).kind() === ipaddr.parse(b).kind();
+  return a.includes(':') === b.includes(':');
 }
 
 /**
