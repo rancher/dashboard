@@ -378,4 +378,72 @@ describe('class Node', () => {
       });
     });
   });
+
+  describe('roles', () => {
+    const CONTROL_PLANE = 'node-role.kubernetes.io/control-plane';
+    const CONTROL_PLANE_OLD = 'node-role.kubernetes.io/controlplane';
+    const MASTER = 'node-role.kubernetes.io/master';
+    const ETCD = 'node-role.kubernetes.io/etcd';
+    const WORKER = 'node-role.kubernetes.io/worker';
+
+    const nodeWith = (labels: Record<string, string>) => new Node({ metadata: { labels } });
+
+    describe('isControlPlane', () => {
+      it.each([
+        ['the control-plane label', true, { [CONTROL_PLANE]: 'true' }],
+        ['the master label', true, { [MASTER]: 'true' }],
+        ['no control plane label', false, { [ETCD]: 'true', [WORKER]: 'true' }],
+        ['only RKE1\'s controlplane label', false, { [CONTROL_PLANE_OLD]: 'true' }],
+      ])('given %s should be %p', (_, expected, labels) => {
+        expect(nodeWith(labels).isControlPlane).toStrictEqual(expected);
+      });
+    });
+
+    describe('isEtcd', () => {
+      it.each([
+        ['the etcd label', true, { [ETCD]: 'true' }],
+        ['no etcd label', false, { [CONTROL_PLANE]: 'true', [WORKER]: 'true' }],
+      ])('given %s should be %p', (_, expected, labels) => {
+        expect(nodeWith(labels).isEtcd).toStrictEqual(expected);
+      });
+    });
+
+    describe('isWorker', () => {
+      it.each([
+        ['the worker label', true, { [WORKER]: 'true' }],
+        ['no role labels, e.g. in an imported cluster', true, {}],
+        ['only the control-plane label', false, { [CONTROL_PLANE]: 'true' }],
+        ['only the master label', false, { [MASTER]: 'true' }],
+        ['only the etcd label', false, { [ETCD]: 'true' }],
+        ['the worker label alongside other roles', true, {
+          [CONTROL_PLANE]: 'true', [ETCD]: 'true', [WORKER]: 'true'
+        }],
+      ])('given %s should be %p', (_, expected, labels) => {
+        expect(nodeWith(labels).isWorker).toStrictEqual(expected);
+      });
+    });
+
+    // A worker label alongside etcd, so isWorker can't come from having no role labels
+    const presenceCases: ['isControlPlane' | 'isEtcd' | 'isWorker', Record<string, string>][] = [
+      ['isControlPlane', { [CONTROL_PLANE]: '' }],
+      ['isControlPlane', { [CONTROL_PLANE]: 'false' }],
+      ['isEtcd', { [ETCD]: '' }],
+      ['isEtcd', { [ETCD]: 'false' }],
+      ['isWorker', { [WORKER]: '', [ETCD]: 'true' }],
+      ['isWorker', { [WORKER]: 'false', [ETCD]: 'true' }],
+    ];
+
+    it.each(presenceCases)('should be %p whenever the role label exists, whatever its value, like the server side sort: %p', (getter, labels) => {
+      expect(nodeWith(labels)[getter]).toStrictEqual(true);
+    });
+
+    it('should not look up the management node, so the roles shown match the server side sort', () => {
+      const managementAll = jest.fn(() => []);
+      const node = new Node({ metadata: { labels: { [CONTROL_PLANE]: 'true' } } }, { rootGetters: { 'management/all': managementAll } });
+
+      [node.isControlPlane, node.isEtcd, node.isWorker]; // eslint-disable-line no-unused-expressions
+
+      expect(managementAll).toHaveBeenCalledTimes(0);
+    });
+  });
 });
