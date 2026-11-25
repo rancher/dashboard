@@ -210,6 +210,33 @@ export const ROLES = {
   value:    'roles'
 };
 
+export const NODE_CONTROL_PLANE = {
+  name:      'controlPlane',
+  labelKey:  'tableHeaders.controlPlane',
+  value:     'isControlPlane',
+  sort:      ['isControlPlane:desc', 'nameSort'],
+  formatter: 'Checked',
+  align:     'center',
+};
+
+export const NODE_ETCD = {
+  name:      'etcd',
+  labelKey:  'tableHeaders.etcd',
+  value:     'isEtcd',
+  sort:      ['isEtcd:desc', 'nameSort'],
+  formatter: 'Checked',
+  align:     'center',
+};
+
+export const NODE_WORKER = {
+  name:      'worker',
+  labelKey:  'tableHeaders.worker',
+  value:     'isWorker',
+  sort:      ['isWorker:desc', 'nameSort'],
+  formatter: 'Checked',
+  align:     'center',
+};
+
 export const VERSION = {
   name:     'version',
   labelKey: 'tableHeaders.version',

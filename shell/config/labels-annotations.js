@@ -45,8 +45,15 @@ export const STORAGE = {
 export const MANAGEMENT_NODE = { NODE_NAME: 'management.cattle.io/nodename' };
 
 export const NODE_ROLES = {
+  /**
+   * RKE1's control plane label
+   */
   CONTROL_PLANE_OLD: 'node-role.kubernetes.io/controlplane',
   CONTROL_PLANE:     'node-role.kubernetes.io/control-plane',
+  /**
+   * Legacy control plane label, still set alongside `CONTROL_PLANE` by some distros (e.g. RKE2 and K3s)
+   */
+  MASTER:            'node-role.kubernetes.io/master',
   WORKER:            'node-role.kubernetes.io/worker',
   ETCD:              'node-role.kubernetes.io/etcd',
 };

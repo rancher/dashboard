@@ -7755,6 +7755,7 @@ tableHeaders:
   commit: Commit
   condition: Condition
   constraint: Constraint
+  controlPlane: Control Plane
   completions: Completions
   count: Count
   createdAt: Created At
@@ -7778,6 +7779,7 @@ tableHeaders:
   distinguisherMethod: Distinguisher Method
   effect: Effect
   endpoints: Endpoints
+  etcd: Etcd
   expires: Expires
   explore: Explore
   firstSeen: First Seen
@@ -7957,6 +7959,7 @@ tableHeaders:
   volume: Volume
   volumeMode: Volume Mode
   weight: Weight
+  worker: Worker
   clusterResources: Cluster Resources
   repoPerClusterState: Cluster State
   repoPerClusterStateTooltip: The state of the repo on the cluster

@@ -144,25 +144,24 @@ export default class ClusterNode extends SteveModel {
     return Object.entries(this.filteredSystemLabels).map(([key, value]) => `${ key }=${ value }`);
   }
 
-  get isWorker() {
-    return this.managementNode ? this.managementNode.isWorker : `${ this.labels[NODE_ROLES.WORKER] }` === 'true';
-  }
-
+  /**
+   * Roles come from the presence of the node's role labels, so they match how the paginated list sorts them server side.
+   *
+   * See NODE_CONTROL_PLANE, NODE_ETCD and NODE_WORKER in shell/config/product/explorer.js
+   */
   get isControlPlane() {
-    if (this.managementNode) {
-      return this.managementNode.isControlPlane;
-    } else if (
-      `${ this.labels[NODE_ROLES.CONTROL_PLANE] }` === 'true' ||
-      `${ this.labels[NODE_ROLES.CONTROL_PLANE_OLD] }` === 'true'
-    ) {
-      return true;
-    }
-
-    return false;
+    return NODE_ROLES.CONTROL_PLANE in this.labels || NODE_ROLES.MASTER in this.labels;
   }
 
   get isEtcd() {
-    return this.managementNode ? this.managementNode.isEtcd : `${ this.labels[NODE_ROLES.ETCD] }` === 'true';
+    return NODE_ROLES.ETCD in this.labels;
+  }
+
+  /**
+   * A node without a control plane or etcd role label is a worker, e.g. in an imported cluster
+   */
+  get isWorker() {
+    return NODE_ROLES.WORKER in this.labels || (!this.isControlPlane && !this.isEtcd);
   }
 
   get hasARole() {
