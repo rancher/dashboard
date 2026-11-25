@@ -1311,4 +1311,89 @@ describe('class: Workload', () => {
       expect(makeWorkload(type, spec, status).ready).toStrictEqual(expected);
     });
   });
+
+  describe('getter: podGauges', () => {
+    const makeWorkload = ({
+      type = WORKLOAD_TYPES.DEPLOYMENT,
+      paginationEnabled = false,
+      associatedData,
+    }: { type?: string; paginationEnabled?: boolean; associatedData?: any } = {}) => {
+      const metadata: any = { name: 'test', namespace: 'default' };
+
+      if (associatedData !== undefined) {
+        metadata.associatedData = associatedData;
+      }
+
+      return new Workload({
+        type, metadata, spec: {}
+      }, {
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }), paginationEnabled: () => paginationEnabled },
+        dispatch:    jest.fn(),
+        rootGetters: { 'i18n/t': (key: string) => key },
+      });
+    };
+
+    const podsFromAssociatedData = (states: string[]) => ([{
+      gvk:  { kind: 'Pod' },
+      data: states.map((name) => ({
+        state: {
+          name, error: 'false', transitioning: 'false'
+        }
+      })),
+    }]);
+
+    it('ssp on, associatedData present: counts the embedded pods and never reads the pod store', () => {
+      const workload = makeWorkload({ paginationEnabled: true, associatedData: podsFromAssociatedData(['running', 'running']) });
+      const pods = jest.fn(() => []);
+
+      Object.defineProperty(workload, 'pods', { get: pods });
+
+      const gauges = workload.podGauges;
+
+      expect(Object.values(gauges).reduce((n: number, g: any) => n + g.count, 0)).toBe(2);
+      expect(pods).not.toHaveBeenCalled();
+    });
+
+    it('ssp on, associatedData omitted: empty and never reads the pod store', () => {
+      const workload = makeWorkload({ paginationEnabled: true });
+      const pods = jest.fn(() => [{ stateColor: 'text-warning', stateDisplay: 'From Store' }]);
+
+      Object.defineProperty(workload, 'pods', { get: pods });
+
+      expect(workload.podGauges).toStrictEqual({});
+      expect(pods).not.toHaveBeenCalled();
+    });
+
+    it('ssp off: falls back to the pod store', () => {
+      const workload = makeWorkload({ paginationEnabled: false });
+      const pods = jest.fn(() => [{ stateColor: 'text-success', stateDisplay: 'Running' }]);
+
+      Object.defineProperty(workload, 'pods', { get: pods });
+
+      expect(workload.podGauges).toStrictEqual({ Running: { color: 'success', count: 1 } });
+      expect(pods).toHaveBeenCalledTimes(1);
+    });
+
+    it('type without embedded health (CronJob): ignores pagination and reads the pod store', () => {
+      const workload = makeWorkload({ type: WORKLOAD_TYPES.CRON_JOB, paginationEnabled: true });
+      const pods = jest.fn(() => [{ stateColor: 'text-success', stateDisplay: 'Running' }]);
+
+      Object.defineProperty(workload, 'pods', { get: pods });
+
+      expect(workload.podGauges).toStrictEqual({ Running: { color: 'success', count: 1 } });
+      expect(pods).toHaveBeenCalledTimes(1);
+    });
+
+    it('replica set, ssp on, associatedData present: counts the embedded pods and never reads the pod store', () => {
+      const workload = makeWorkload({
+        type: WORKLOAD_TYPES.REPLICA_SET, paginationEnabled: true, associatedData: podsFromAssociatedData(['running'])
+      });
+      const pods = jest.fn(() => []);
+
+      Object.defineProperty(workload, 'pods', { get: pods });
+
+      expect(Object.values(workload.podGauges).reduce((n: number, g: any) => n + g.count, 0)).toBe(1);
+      expect(pods).not.toHaveBeenCalled();
+    });
+  });
 });
