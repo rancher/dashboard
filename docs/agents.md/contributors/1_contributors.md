@@ -56,10 +56,23 @@ When either created, editing, viewing or listing a kubernetes resource the follo
   - for a dropdown, use `ResourceLabeledSelect` (`shell/components/form/ResourceLabeledSelect.vue`). With pagination enabled it requests one page at a time and doesn't persist results to the store. See the cluster scope select in `shell/edit/token.vue`, which also filters clusters server-side via `paginationFilterClusters`
   - if only the spread of possible options for a property in a resource is needed use the steve store's `fetchResourceSummary` action (e.g. `summaryField: 'metadata.name'`)
 
-## Translations
+## Translations, Internationalization and Localization
 
 - Translations live in `shell/assets/translations/`. `en-us.yaml` is the source of truth.
 - A link in another locale must use the same URL, anchor and attributes (e.g. `target="_blank" rel="noopener nofollow"`) as `en-us.yaml`.
 - When adding or changing a docs link, check that the page and its `#anchor` exist on the current docs site. The Rancher docs are built with Antora, so section anchors look like `#_section_title`, not `#section-title`.
 - If a docs link changes, update any e2e test that asserts the URL (search `cypress/` for the old anchor).
 
+## Code
+- JS/Typescript
+  - Avoid top-level `functions` in files that support inline methods
+    - Good - JS/Typescript classes can have `private` methods
+    - Good - Vue Options API components can use `methods`
+  - Avoid small (< 5 lines) `functions` that are only called once
+    - Good - include the logic inline in the calling function
+    - Bad - a single use 3 line `function` called from a simple calling function
+    - Exception - extracting is fine if it needs its own unit test, a name makes complex logic clearer, or the calling function is already complex
+  - Avoid using Typescript `as` notation if there is a suitable alternative
+    - Bad - `const a = { .. } as MyInterface`
+    - Good - `const a: MyInterface = { .. }`
+  - Avoid creating new Typescript Interfaces and Types if they exist already in `shell/types`
