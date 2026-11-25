@@ -474,6 +474,15 @@ describe('class StevePaginationUtils', () => {
       expect(result).toBe(`filter=metadata.name="${ y }"`);
     });
 
+    it('should send a number that needs quotes as text', () => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: -1 as unknown as string })] }),
+      ];
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
+
+      expect(result).toBe('filter=metadata.name="-1"');
+    });
+
     it('should handle IN and NOT_IN operators', () => {
       const filters = [
         new PaginationParamFilter({
@@ -507,7 +516,6 @@ describe('class StevePaginationUtils', () => {
       [true, 'true'],
       [0, '0'],
       [1, '1'],
-      [-1, '"-1"'],
     ])('should handle falsy filter value %s', (x: any, y) => {
       const filters = [
         new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),

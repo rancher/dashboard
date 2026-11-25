@@ -79,7 +79,10 @@ function unquote(value: string): string {
   return value;
 }
 
-/** In the kind of quotes the value doesn't hold. One that holds both has its double quotes doubled */
+/**
+ * In the kind of quotes the value doesn't hold. One that holds both has its double quotes doubled, rather than
+ * escaped with a backslash, so a query that already holds a backslash keeps its meaning
+ */
 export function quoteIfNeeded(value: string): string {
   if (!/[\s:"']/.test(value)) {
     return value;
