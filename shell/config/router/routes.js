@@ -129,11 +129,6 @@ export default [
         path:      'ecm',
         component: () => interopDefault(import('@shell/pages/c/_cluster/ecm/index.vue')),
         name:      'c-cluster-ecm'
-      },
-      {
-        path:      '/c/:cluster/settings',
-        component: () => interopDefault(import('@shell/pages/c/_cluster/settings/index.vue')),
-        name:      'c-cluster-settings'
       }
     ]
   },
@@ -412,6 +407,10 @@ export default [
         path:      '/c/:cluster/monitoring/route-receiver',
         component: () => interopDefault(import('@shell/pages/c/_cluster/monitoring/route-receiver/index.vue')),
         name:      'c-cluster-monitoring-route-receiver'
+      }, {
+        path:      '/c/:cluster/settings',
+        component: () => interopDefault(import('@shell/pages/c/_cluster/settings/index.vue')),
+        name:      'c-cluster-settings'
       }, {
         path:      '/c/:cluster/settings/banners',
         component: () => interopDefault(import('@shell/pages/c/_cluster/settings/banners.vue')),
