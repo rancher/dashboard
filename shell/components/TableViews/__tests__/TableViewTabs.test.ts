@@ -901,7 +901,8 @@ describe('TableViewTabs', () => {
         await wrapper.vm.$nextTick();
         await wrapper.setProps({ view: emitted(wrapper)[0] });
 
-        expect([vm.selectedViewId, vm.isDirty]).toStrictEqual([null, false]);
+        expect(vm.selectedViewId).toBeNull();
+        expect(vm.isDirty).toBe(false);
       });
 
       it.each(gone)('should leave the user where they are when it comes back, when it was %s', async(_, id, left) => {
@@ -917,7 +918,8 @@ describe('TableViewTabs', () => {
         store.commit('configs', configs);
         await wrapper.vm.$nextTick();
 
-        expect([vm.selectedViewId, emitted(wrapper)]).toStrictEqual([null, [asItComes]]);
+        expect(vm.selectedViewId).toBeNull();
+        expect(emitted(wrapper)).toStrictEqual([asItComes]);
       });
 
       it('should go to the table\'s own tab even when another view holds the same config', async() => {
@@ -959,6 +961,36 @@ describe('TableViewTabs', () => {
         await wrapper.vm.$nextTick();
 
         expect(vm.drafts).toStrictEqual({});
+      });
+
+      it('should drop the changes held for it when it is not in front, so it comes back as saved', async() => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({
+          admin: false, initialViewId: 'sv', view: { ...EMPTY, query: 'name:edited' }
+        });
+
+        vm.applyView(mine);
+        await wrapper.setProps({ view: { ...EMPTY, query: 'name:mine' } });
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+        store.commit('configs', configs);
+        await wrapper.vm.$nextTick();
+
+        expect(vm.drafts).toStrictEqual({});
+      });
+
+      it('should keep the changes held for the views still there', async() => {
+        const { wrapper, vm, store } = createWrapper({
+          admin: false, initialViewId: 'pv', view: { ...EMPTY, query: 'name:edited' }
+        });
+
+        vm.applyView(mine);
+        await wrapper.setProps({ view: { ...EMPTY, query: 'name:mine' } });
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+
+        expect(Object.keys(vm.drafts)).toStrictEqual(['pv']);
       });
 
       it.each([
@@ -1224,7 +1256,8 @@ describe('TableViewTabs', () => {
         });
         await vm.deleteView(single);
 
-        expect([(wrapper.emitted('update:view') as [TableViewState][]).map(([view]) => view.query), fromError.mock.calls.length]).toStrictEqual([[''], 1]);
+        expect((wrapper.emitted('update:view') as [TableViewState][]).map(([view]) => view.query)).toStrictEqual(['']);
+        expect(fromError).toHaveBeenCalledWith(expect.objectContaining({ err: expect.any(Error) }));
       });
 
       it('should keep a view they publish or stop sharing in front', async() => {
@@ -1238,7 +1271,8 @@ describe('TableViewTabs', () => {
         store.commit('configs', configs);
         await wrapper.vm.$nextTick();
 
-        expect([vm.selectedViewId, wrapper.emitted('update:view')]).toStrictEqual(['own', undefined]);
+        expect(vm.selectedViewId).toBe('own');
+        expect(wrapper.emitted('update:view')).toBeUndefined();
       });
 
       it('should stop sharing a view by making it the user\'s first, in its place, then deleting its resource', async() => {
