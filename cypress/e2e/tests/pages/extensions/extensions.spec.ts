@@ -150,6 +150,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
       }
     });
 
+    // Set the version to Prime
     cy.intercept('GET', '/rancherversion', {
       statusCode: 200,
       body:       {
@@ -164,12 +165,7 @@ describe('Extensions page', { tags: ['@extensions', '@adminUser'] }, () => {
     extensionsPo.goTo();
     extensionsPo.waitForTitle();
 
-    // if rancher prime, title should be Rancher Prime - Extensions, otherwise Rancher Community - Extensions
-    cy.getRancherVersion(true).then((version) => {
-      const expectedTitle = version.RancherPrime === 'true' ? 'Rancher Prime - Extensions' : 'Rancher Community - Extensions';
-
-      cy.title().should('eq', expectedTitle);
-    });
+    cy.title().should('eq', 'Rancher Prime - Extensions');
 
     extensionsPo.repoBanner().checkVisible();
   }));
