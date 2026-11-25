@@ -1,5 +1,5 @@
 import { SETTING } from './settings';
-import { CURRENT_RANCHER_VERSION } from './version';
+import { CURRENT_RANCHER_VERSION, isRancherPrime } from './version';
 import { requireAsset } from '@shell/utils/require-asset';
 
 export const ANY = 0;
@@ -9,7 +9,7 @@ export const DOCS_BASE = `https://ranchermanager.docs.rancher.com/v${ CURRENT_RA
 
 const STANDARD_VENDOR = 'Rancher Community';
 const STANDARD_PRODUCT = 'Explorer';
-const CUSTOM_VENDOR = { suse: 'Rancher Prime' };
+const PRIME_VENDOR = 'Rancher Prime';
 
 let mode = STANDARD;
 let vendor = STANDARD_VENDOR;
@@ -57,14 +57,11 @@ export function matches(pl) {
 
 export function getVendor() {
   if ( vendor === SETTING.PL_RANCHER_VALUE ) {
-    // Custom vendor override based on brand
-    if (brand && CUSTOM_VENDOR[brand]) {
-      return CUSTOM_VENDOR[brand];
-    }
-
-    return STANDARD_VENDOR;
+    // If using the default 'rancher' vendor then return either Community or Prime based as appropriate
+    return isRancherPrime() ? PRIME_VENDOR : STANDARD_VENDOR;
   }
 
+  // Return the custom vendor if it's not the default 'rancher' value
   return vendor;
 }
 
