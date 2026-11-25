@@ -568,13 +568,17 @@ const focusTab = (id: string | null, toEnd = false) => {
 let deletingId: string | null = null;
 
 /**
- * Someone else can take the view in front away: deleted, unpublished or no longer readable. What it
- * put on the table goes with it, and so does the pick, or its return would move the user back
+ * Someone else can take a view away: deleted, unpublished or no longer readable. Its held edits go with
+ * it. In front, what it put on the table goes too, and so does the pick, or its return would move the
+ * user back
  */
 const leaveGoneView = () => {
+  const ids = new Set(allViews.value.map((view) => view.id));
   const id = pickedViewId.value;
 
-  if (!id || id === deletingId || allViews.value.some((view) => view.id === id)) {
+  Object.keys(drafts.value).filter((key) => key !== draftKey(null) && !ids.has(key)).forEach(forgetDraft);
+
+  if (!id || id === deletingId || ids.has(id)) {
     return;
   }
 
@@ -585,7 +589,6 @@ const leaveGoneView = () => {
 
   const hadFocus = tabWraps.get(id)?.contains(document.activeElement);
 
-  forgetDraft(id);
   showTab();
 
   if (hadFocus) {
