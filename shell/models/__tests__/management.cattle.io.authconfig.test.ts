@@ -1,4 +1,6 @@
-import AuthConfig, { configTypeForProvider, configTypeName, providerIcon, providerKey } from '@shell/models/management.cattle.io.authconfig';
+import AuthConfig, {
+  configTypeForProvider, configTypeName, isSloSupported, providerIcon, providerKey
+} from '@shell/models/management.cattle.io.authconfig';
 import Resource from '@shell/plugins/dashboard-store/resource-class';
 import { requireAsset } from '@shell/utils/require-asset';
 
@@ -81,6 +83,39 @@ describe('fx: configTypeForProvider', () => {
   it('should resolve the config naming as well as the provider naming', () => {
     expect(configTypeForProvider('githubConfig')).toBe('oauth');
     expect(configTypeForProvider('githubProvider')).toBe('oauth');
+  });
+});
+
+describe('fx: isSloSupported', () => {
+  it.each([
+    'azureADConfig',
+    'adfsConfig',
+    'keyCloakConfig',
+    'oktaConfig',
+    'pingConfig',
+    'shibbolethConfig',
+    'genericSAMLConfig',
+    'cognitoConfig',
+    'genericOIDCConfig',
+    'keyCloakOIDCConfig',
+    'oidcConfig',
+    'keyCloakOIDCProvider',
+  ])('should report %p as supporting Single Logout', (type) => {
+    expect(isSloSupported(type)).toBe(true);
+  });
+
+  it.each([
+    'githubConfig',
+    'githubAppConfig',
+    'googleOauthConfig',
+    'activeDirectoryConfig',
+    'openLdapConfig',
+    'freeIpaConfig',
+    'localConfig',
+    '',
+    undefined,
+  ])('should report %p as not supporting Single Logout', (type) => {
+    expect(isSloSupported(type)).toBe(false);
   });
 });
 
