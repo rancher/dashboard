@@ -23,18 +23,35 @@ export default {
     }
   },
   data() {
-    this.value['tlsConfig'] = this.value.tlsConfig || {};
-
     return {
-      initialCaSecretKey:          this.value.tlsConfig.ca?.secret?.key ? this.value.tlsConfig.ca.secret.key : '',
-      initialCaSecretName:         this.value.tlsConfig.ca?.secret?.name ? this.value.tlsConfig.ca.secret.name : '',
-      initialClientCertSecretKey:  this.value.tlsConfig.cert?.secret?.key ? this.value.tlsConfig.cert.secret.key : '',
-      initialClientCertSecretName: this.value.tlsConfig.cert?.secret?.name ? this.value.tlsConfig.cert.secret.name : '',
-      initialClientKeySecretKey:   this.value.tlsConfig.keySecret?.key ? this.value.tlsConfig.keySecret.key : '',
-      initialClientKeySecretName:  this.value.tlsConfig.keySecret?.name ? this.value.tlsConfig.keySecret.name : '',
-      view:                        _VIEW,
-      none:                        '__[[NONE]]__'
+      view: _VIEW,
+      none: '__[[NONE]]__'
     };
+  },
+
+  computed: {
+    initialCaSecretKey() {
+      return this.value.tlsConfig.ca?.secret?.key ? this.value.tlsConfig.ca.secret.key : '';
+    },
+    initialCaSecretName() {
+      return this.value.tlsConfig.ca?.secret?.name ? this.value.tlsConfig.ca.secret.name : '';
+    },
+    initialClientCertSecretKey() {
+      return this.value.tlsConfig.cert?.secret?.key ? this.value.tlsConfig.cert.secret.key : '';
+    },
+    initialClientCertSecretName() {
+      return this.value.tlsConfig.cert?.secret?.name ? this.value.tlsConfig.cert.secret.name : '';
+    },
+    initialClientKeySecretKey() {
+      return this.value.tlsConfig.keySecret?.key ? this.value.tlsConfig.keySecret.key : '';
+    },
+    initialClientKeySecretName() {
+      return this.value.tlsConfig.keySecret?.name ? this.value.tlsConfig.keySecret.name : '';
+    },
+  },
+
+  created() {
+    this.value.tlsConfig = this.value.tlsConfig || {};
   },
 
   methods: {
