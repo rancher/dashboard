@@ -564,6 +564,35 @@ const focusTab = (id: string | null, toEnd = false) => {
   });
 };
 
+/** The view this user is deleting: they go to the tab beside it instead */
+let deletingId: string | null = null;
+
+/**
+ * Someone else can take the view in front away: deleted, unpublished or no longer readable. What it
+ * put on the table goes with it, and so does the pick, or its return would move the user back
+ */
+const leaveGoneView = () => {
+  const id = pickedViewId.value;
+
+  if (!id || id === deletingId || allViews.value.some((view) => view.id === id)) {
+    return;
+  }
+
+  // An export open on it is still of it, not of the tab taking its place
+  if (modal.value?.kind === 'export' && !modal.value.view) {
+    modal.value = { ...modal.value, view: { ...props.view } };
+  }
+
+  const hadFocus = tabWraps.get(id)?.contains(document.activeElement);
+
+  forgetDraft(id);
+  showTab();
+
+  if (hadFocus) {
+    focusTab(null);
+  }
+};
+
 const openRename = (saved?: { id?: string, name?: string } | null) => {
   if (!saved?.id) {
     return;
@@ -892,9 +921,16 @@ const deleteView = async(saved?: TableViewSaved) => {
   const neighbour = list[index > 0 ? index - 1 : index + 1];
 
   // Gone for everyone, so only once the cluster agrees
+  deletingId = saved.id;
+
   const removed = shared ? await removeShared(saved.id) : null;
 
+  deletingId = null;
+
   if (removed && !removed.ok) {
+    // It can fail because someone else deleted it first
+    leaveGoneView();
+
     return;
   }
 
@@ -1075,6 +1111,8 @@ const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
 };
 
 watch(tabQueries, (queries) => emit('tab-queries', queries), { immediate: true });
+
+watch(allViews, leaveGoneView);
 
 /**
  * Shared views can come after the list has opened the first time, so a default among them is
