@@ -159,7 +159,7 @@ export function init(store) {
     NAME_UNLINKED,
     FEATURE_DESCRIPTION,
     { ...RESTART, labelKey: 'tableHeaders.restartSystem' }
-  ]);  
+  ]);
 
   hideBulkActions(MANAGEMENT.FEATURE, true);
 }
