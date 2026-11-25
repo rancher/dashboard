@@ -145,19 +145,23 @@ describe('component: InternalExternalIP', () => {
       expect(wrapper.find('[data-testid="plus-more"]').exists()).toBe(false);
     });
 
-    it('should count the internal IPs that are not external ones when the first is the same as external', () => {
-      const wrapper = mountComponent({ row: { externalIps: [V4_EX], internalIps: [V4_EX, V6_IN] } });
+    it.each([
+      ['an internal IP after the same IP', [V4_EX], [V4_EX, V6_IN], [V6_IN], '+1 more'],
+      ['the same IPs of both families', [V4_EX, V6_EX], [V4_EX, V6_EX], [V6_EX, V6_EX], '+2 more'],
+      ['an internal IP that is shown as external', [V4_EX], [V4_IN, V4_EX], [V4_EX], '+1 more'],
+      ['an external IP that is shown as internal', [V4_EX, V4_IN], [V4_IN], [V4_IN], '+1 more'],
+    ])('should count the IPs it lists, given %s', (_, externalIps, internalIps, listed, more) => {
+      const wrapper = mountComponent({ row: { externalIps, internalIps } });
 
-      expect(wrapper.text()).toContain('tableHeaders.internalIpSameAsExternal');
-      expect(wrapper.find('[data-testid="plus-more"]').text()).toStrictEqual('+1 more');
-      expect(listedIps(wrapper)).toStrictEqual([V6_IN]);
+      expect(listedIps(wrapper)).toStrictEqual(listed);
+      expect(wrapper.find('[data-testid="plus-more"]').text()).toStrictEqual(more);
     });
 
-    it('should count an IP that is both external and internal once', () => {
-      const wrapper = mountComponent({ row: { externalIps: [V4_EX, V6_EX], internalIps: [V4_EX, V6_EX] } });
+    it('should not list the IP that is shown when it is repeated', () => {
+      const wrapper = mountComponent({ row: { externalIps: [V4_EX, V4_EX], internalIps: [V4_IN, V4_IN] } });
 
-      expect(wrapper.text()).toContain('tableHeaders.internalIpSameAsExternal');
-      expect(wrapper.find('[data-testid="plus-more"]').text()).toStrictEqual('+1 more');
+      expect(shownIps(wrapper)).toStrictEqual([V4_EX, V4_IN]);
+      expect(wrapper.find('[data-testid="plus-more"]').exists()).toBe(false);
     });
   });
 

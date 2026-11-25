@@ -54,7 +54,7 @@ export const CLUSTERIP = (() => {
 /**
  * Use to populate the cache with a node that can be used in Service's target value
  *
- * Service's Target Cell --> shell/components/formatter/ServiceTargets.vue --> shell/components/formatter/Endpoints.vue --> Picks the first one that has a model's externalIp
+ * Service's Target Cell --> shell/components/formatter/ServiceTargets.vue --> shell/components/formatter/Endpoints.vue --> Picks the first one that has an external IP
  */
 export const fetchNodesForServiceTargets = async({
   $store,

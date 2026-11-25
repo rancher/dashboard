@@ -43,7 +43,7 @@ export default {
       return this.primaryIps.internalIp || null;
     },
     remainingIpCount() {
-      return new Set([...this.remainingExternalIps, ...this.remainingInternalIps]).size;
+      return this.remainingExternalIps.length + this.remainingInternalIps.length;
     },
     tooltipContent() {
       const count = this.remainingIpCount;
