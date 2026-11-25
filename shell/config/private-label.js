@@ -1,7 +1,6 @@
 import { SETTING } from './settings';
-import { CURRENT_RANCHER_VERSION } from './version';
+import { CURRENT_RANCHER_VERSION, isRancherPrime } from './version';
 import { requireAsset } from '@shell/utils/require-asset';
-import { isRancherPrime } from '@shell/config/version';
 
 export const ANY = 0;
 export const STANDARD = 1;
@@ -59,7 +58,7 @@ export function matches(pl) {
 export function getVendor() {
   if ( vendor === SETTING.PL_RANCHER_VALUE ) {
     // If using the default 'rancher' vendor then return either Community or Prime based as appropriate
-    return !isRancherPrime() ? STANDARD_VENDOR : PRIME_VENDOR;
+    return isRancherPrime() ? PRIME_VENDOR : STANDARD_VENDOR;
   }
 
   // Return the custom vendor if it's not the default 'rancher' value
