@@ -115,4 +115,76 @@ describe('sortableTable selection', () => {
 
     expect(t.selectedRows.map((r) => r.id)).toStrictEqual(['b']);
   });
+
+  describe('the table an action is picked in', () => {
+    const headers = [{ name: 'name' }, { name: 'description' }];
+    const exportAs = {
+      action: 'download', bulkAction: 'downloadBulk', passTable: true, enabled: true
+    };
+    const remove = {
+      action: 'promptRemove', bulkAction: 'promptRemove', enabled: true
+    };
+
+    const resource = (id: string, action: object) => ({
+      id,
+      availableActions: [action],
+      download:         jest.fn(),
+      downloadBulk:     jest.fn(),
+      promptRemove:     jest.fn(),
+    });
+
+    type Resource = ReturnType<typeof resource>;
+
+    const tableOf = (groups: Resource[][], selected: Resource[]) => Object.assign(table(), {
+      headers,
+      groupedRows:  groups.map((rows) => ({ rows })),
+      selectedRows: selected,
+    }) as unknown as { applyTableAction: (action: object, args: null, event?: MouseEvent) => void };
+
+    it('should pass its columns and the picked rows, in its own order, to a bulk action asking for it', () => {
+      const [a, b, c, d] = ['a', 'b', 'c', 'd'].map((id) => resource(id, exportAs));
+
+      tableOf([[a, b], [c, d]], [d, c, a]).applyTableAction(exportAs, null);
+
+      expect(d.downloadBulk).toHaveBeenCalledWith([d, c, a], { headers, rows: [a, c, d] });
+    });
+
+    it('should pass only the row an action is run for', () => {
+      const perRow = { ...exportAs, bulkAction: undefined };
+      const [a, b] = ['a', 'b'].map((id) => resource(id, perRow));
+
+      tableOf([[a, b]], [a, b]).applyTableAction(perRow, null);
+
+      expect(a.download).toHaveBeenCalledWith({ headers, rows: [a] });
+      expect(b.download).toHaveBeenCalledWith({ headers, rows: [b] });
+    });
+
+    it('should pass the rows it shows when the action is run on another resource', () => {
+      const [a, b] = ['a', 'b'].map((id) => resource(id, exportAs));
+      const rows = [a, b].map((altResource) => resource(`row-${ altResource.id }`, { ...exportAs, altResource }));
+
+      tableOf([rows], rows).applyTableAction(exportAs, null);
+
+      expect(a.downloadBulk).toHaveBeenCalledWith([a, b], { headers, rows });
+    });
+
+    it('should pass the row it shows when the action is run on another resource for that row alone', () => {
+      const a = resource('a', exportAs);
+      const row = resource('row-a', { ...exportAs, altResource: a });
+
+      tableOf([[row]], [row]).applyTableAction(exportAs, null);
+
+      expect(a.download).toHaveBeenCalledWith({ headers, rows: [row] });
+    });
+
+    it('should not be passed to an action that does not ask for it', () => {
+      const [a, b] = ['a', 'b'].map((id) => resource(id, remove));
+
+      tableOf([[a, b]], [a, b]).applyTableAction(remove, null);
+      tableOf([[a, b]], [b]).applyTableAction(remove, null);
+
+      expect(a.promptRemove.mock.calls).toStrictEqual([[[a, b]]]);
+      expect(b.promptRemove.mock.calls).toStrictEqual([[]]);
+    });
+  });
 });

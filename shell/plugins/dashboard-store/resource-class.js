@@ -1007,6 +1007,7 @@ export default class Resource {
         icon:       'icon icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
+        passTable:  true,
         enabled:    this.canYaml,
         weight:     -9,
       },
@@ -1645,24 +1646,28 @@ export default class Resource {
   /**
    * With configurable tables on this asks for a format; YAML is the download it has always been. The
    * action keeps its name either way, since models hide or keep it by name
+   *
+   * @param {import('@shell/types/table-views').TableActionContext} [table] the table it was picked in
    */
-  download() {
-    return this.configurableTables ? this.openExportModal([this]) : this.downloadYaml();
+  download(table) {
+    return this.configurableTables ? this.openExportModal([this], table) : this.downloadYaml();
   }
 
-  downloadBulk(items) {
-    return this.configurableTables ? this.openExportModal(items) : this.downloadYamlBulk(items);
+  downloadBulk(items, table) {
+    return this.configurableTables ? this.openExportModal(items, table) : this.downloadYamlBulk(items);
   }
 
-  async openExportModal(items) {
+  async openExportModal(items, table) {
     // Imported on demand, to keep the component out of every bundle
     const { default: TableViewExportModal } = await import('@shell/components/TableViews/TableViewExportModal.vue');
 
     // It draws its own RcModal, so the modal manager hands it `modal` rather than framing it
     this.$ctx.commit('modal/openModal', {
       component:      markRaw(TableViewExportModal),
-      componentProps: { count: items.length, isSelection: true },
-      resources:      items,
+      componentProps: {
+        count: items.length, isSelection: true, table
+      },
+      resources: items,
     }, { root: true });
   }
 

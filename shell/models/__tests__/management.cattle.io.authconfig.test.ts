@@ -447,6 +447,7 @@ describe('class AuthConfig', () => {
         icon:       'icon icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
+        passTable:  true,
         enabled:    true,
         weight:     0,
       },

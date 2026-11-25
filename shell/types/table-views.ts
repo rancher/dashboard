@@ -98,12 +98,21 @@ export interface TableViewsPageSettings {
   allIndex?: number;
 }
 
+/** What a table passes to an action that asks for it (see `passTable`) */
+export interface TableActionContext {
+  headers: TableViewColumn[];
+  /** The rows the action was picked for, in the table's order */
+  rows: TableViewRow[];
+}
+
 export interface TableViewAction {
   action: string;
   label?: string;
   icon?: string;
   svg?: string;
   enabled?: boolean;
+  /** Run with the table it was picked in as its last argument, a TableActionContext */
+  passTable?: boolean;
 }
 
 export interface TableViewQueryToken {
