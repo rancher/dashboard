@@ -26,7 +26,7 @@ import {
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
   ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, LAST_USED, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN, PERSISTENT_VOLUME_CLAIM, RECLAIM_POLICY, PV_REASON, WORKLOAD_HEALTH_SCALE, POD_RESTARTS,
-  DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, ROLES, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
+  DURATION, MESSAGE, REASON, EVENT_TYPE, OBJECT, ROLE, NODE_CONTROL_PLANE, NODE_ETCD, NODE_WORKER, VERSION, INTERNAL_EXTERNAL_IP, KUBE_NODE_OS, CPU, RAM, SECRET_DATA,
   EVENT_LAST_SEEN_TIME,
   EVENT_FIRST_SEEN_TIME,
   TYPE,
@@ -40,7 +40,7 @@ import {
 
 import { COLUMN_BREAKPOINTS } from '@shell/types/store/type-map';
 import { configureConditionalDepaginate } from '@shell/store/type-map.utils';
-import { CATTLE_PUBLIC_ENDPOINTS, STORAGE } from '@shell/config/labels-annotations';
+import { CATTLE_PUBLIC_ENDPOINTS, NODE_ROLES, STORAGE } from '@shell/config/labels-annotations';
 import { POD_LAST_RESTART_FIELD as POD_RESTARTS_LAST_FIELD, POD_RESTART_FIELD as POD_RESTARTS_COUNT_FIELD } from '@shell/types/resources/pod';
 
 export const NAME = 'explorer';
@@ -466,7 +466,9 @@ export function init(store) {
     [
       STATE,
       NAME_COL,
-      ROLES,
+      NODE_CONTROL_PLANE,
+      NODE_ETCD,
+      NODE_WORKER,
       VERSION,
       INTERNAL_EXTERNAL_IP,
       {
@@ -488,9 +490,24 @@ export function init(store) {
     [
       STEVE_STATE_COL,
       STEVE_NAME_COL,
+      // Steve sorts a missing label last ascending and first descending. Worker also covers nodes without a control plane or etcd
+      // label, so those labels sort the other way to put such nodes next to the labelled workers
       {
-        ...ROLES,
-        sort:   false,
+        ...NODE_CONTROL_PLANE,
+        sort:   [`metadata.labels[${ NODE_ROLES.CONTROL_PLANE }]`, `metadata.labels[${ NODE_ROLES.MASTER }]`],
+        search: false
+      }, {
+        ...NODE_ETCD,
+        sort:   [`metadata.labels[${ NODE_ROLES.ETCD }]`],
+        search: false
+      }, {
+        ...NODE_WORKER,
+        sort: [
+          `metadata.labels[${ NODE_ROLES.WORKER }]`,
+          `metadata.labels[${ NODE_ROLES.CONTROL_PLANE }]:desc`,
+          `metadata.labels[${ NODE_ROLES.MASTER }]:desc`,
+          `metadata.labels[${ NODE_ROLES.ETCD }]:desc`,
+        ],
         search: false
       },
       {
