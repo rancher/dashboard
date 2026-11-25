@@ -7,7 +7,10 @@ import { catchTargetPageException } from '@/cypress/support/utils/exception-util
 import { qase } from '@/cypress/support/qase';
 
 const extensionName = 'SUSE Security Admission Controller';
-const gitRepoName = 'rancher-extensions';
+// rancher/kubewarden-ui contains the community version of the ui extension
+const gitRepoUrl = 'https://github.com/rancher/kubewarden-ui';
+const gitRepoBranch = 'gh-pages';
+const gitRepoName = 'kubewarden-ui';
 let removeExtensions = false;
 
 function verifyKubewardenInstalledDetails(extensionsPo: ExtensionsPagePo) {
@@ -29,8 +32,7 @@ describe('Kubewarden Extension', { tags: ['@extensions', '@adminUser'] }, () => 
     extensionsPo.goTo();
     extensionsPo.waitForPage();
 
-    // install the ui-plugin-charts repo
-    extensionsPo.addExtensionsRepository('https://github.com/rancher/ui-plugin-charts', 'main', gitRepoName).then(() => {
+    extensionsPo.addExtensionsRepository(gitRepoUrl, gitRepoBranch, gitRepoName).then(() => {
       removeExtensions = true;
     });
   });
