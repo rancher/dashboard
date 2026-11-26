@@ -425,6 +425,25 @@ describe('view: fleet.cattle.io.gitrepo, beforeNext dryRun validation', () => {
 
     await expect(vm.beforeNext({ name: 'stepMetadata' })).rejects.toStrictEqual(apiError);
   });
+
+  it('should go on when an admission policy denies the placeholder spec', async() => {
+    const policyDenial = {
+      _status: 422,
+      message: 'gitrepos.fleet.cattle.io "test" is forbidden: ValidatingAdmissionPolicy \'boundary\' with binding \'boundary\' denied request: not allowed',
+    };
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockRejectedValue(policyDenial);
+
+    await expect(vm.beforeNext({ name: 'stepMetadata' })).resolves.toBeUndefined();
+    expect(vm.value.$dispatch).toHaveBeenCalledWith('find', {
+      type: 'fleet.cattle.io.gitrepo',
+      id:   'test/test',
+      opt:  { force: true, transient: true },
+    });
+  });
 });
 
 describe('view: fleet.cattle.io.gitrepo, the credential a policy defaults to - should', () => {

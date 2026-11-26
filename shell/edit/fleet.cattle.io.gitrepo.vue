@@ -583,17 +583,10 @@ export default {
 
       await this.workspaceChange;
 
-      await this.value.dryRunCreate({
-        type:     this.value.type,
-        metadata: {
-          name:      this.value.metadata.name,
-          namespace: this.value.metadata.namespace,
-        },
-        spec: {
-          repo:   'https://example.com/placeholder',
-          branch: 'master',
-          paths:  [],
-        }
+      await this.value.validateNameAndWorkspace({
+        repo:   'https://example.com/placeholder',
+        branch: 'master',
+        paths:  [],
       });
     },
 

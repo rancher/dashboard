@@ -936,18 +936,11 @@ export default {
 
       await this.workspaceChange;
 
-      await this.value.dryRunCreate({
-        type:     this.value.type,
-        metadata: {
-          name:      this.value.metadata.name,
-          namespace: this.value.metadata.namespace,
+      await this.value.validateNameAndWorkspace({
+        helm: {
+          chart: 'placeholder',
+          repo:  'https://example.com',
         },
-        spec: {
-          helm: {
-            chart: 'placeholder',
-            repo:  'https://example.com',
-          },
-        }
       });
     },
   },

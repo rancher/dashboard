@@ -3572,6 +3572,7 @@ fleet:
       clusterGroup: There are no clusters in this Cluster Group
       cluster: There are no clusters available
     noPermissions: You have no permissions to create {label}
+    nameTaken: The name {name} is already used in the {workspace} workspace.
   gitRepo:
     intro:
       add: Create Git Repo

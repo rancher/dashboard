@@ -219,4 +219,94 @@ describe('class FleetApplication', () => {
       expect(app.stateDescription).toBe('Waiting for dependent bundle(s)');
     });
   });
+
+  describe('validateNameAndWorkspace', () => {
+    const placeholderSpec = { repo: 'https://example.com/placeholder' };
+    const policyDenial = 'gitrepos.fleet.cattle.io "my-repo" is forbidden: ValidatingAdmissionPolicy \'repo-boundary\' with binding \'repo-boundary\' denied request: GitRepos must use a repository under https://github.com/rancher/';
+
+    function apiError(status: number, message: string) {
+      return { _status: status, message };
+    }
+
+    function createApp(dispatch = jest.fn()) {
+      const t = jest.fn((key: string) => key);
+      const app = new FleetApplication({
+        type:     'fleet.cattle.io.gitrepo',
+        metadata: { name: 'my-repo', namespace: 'fleet-default' },
+        spec:     {},
+      }, { dispatch, rootGetters: { 'i18n/t': t } });
+
+      return {
+        app, dispatch, t
+      };
+    }
+
+    it('should send a dry-run with the name, the workspace and the placeholder spec', async() => {
+      const { app, dispatch } = createApp();
+      const dryRunCreate = jest.spyOn(app, 'dryRunCreate').mockResolvedValue({});
+
+      await expect(app.validateNameAndWorkspace(placeholderSpec)).resolves.toBeUndefined();
+
+      expect(dryRunCreate).toHaveBeenCalledWith({
+        type:     'fleet.cattle.io.gitrepo',
+        metadata: { name: 'my-repo', namespace: 'fleet-default' },
+        spec:     placeholderSpec,
+      });
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['the name is taken', apiError(409, 'gitrepos.fleet.cattle.io "my-repo" already exists')],
+      ['the name is invalid', apiError(422, 'GitRepo.fleet.cattle.io "AAA" is invalid: metadata.name: Invalid value: "AAA": a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters')],
+      ['the name is too long', apiError(422, 'GitRepo.fleet.cattle.io "aaa" is invalid: metadata.name: Invalid value: "aaa": must be no more than 253 characters')],
+      ['the workspace does not exist', apiError(404, 'namespaces "gone" not found')],
+      ['the user cannot create in the workspace', apiError(403, 'gitrepos.fleet.cattle.io is forbidden: User "u-abc" cannot create resource "gitrepos" in API group "fleet.cattle.io" in the namespace "fleet-default"')],
+      ['the workspace is being deleted', apiError(403, 'gitrepos.fleet.cattle.io "my-repo" is forbidden: unable to create new content in namespace fleet-default because it is being terminated')],
+    ])('should stop when %s', async(_label, error) => {
+      const { app, dispatch } = createApp();
+
+      jest.spyOn(app, 'dryRunCreate').mockRejectedValue(error);
+
+      await expect(app.validateNameAndWorkspace(placeholderSpec)).rejects.toStrictEqual(error);
+      expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['a ValidatingAdmissionPolicy denies the spec', apiError(422, policyDenial)],
+      ['a ValidatingAdmissionPolicy with reason Forbidden denies the spec', apiError(403, policyDenial)],
+      ['an admission webhook denies the spec', apiError(400, 'admission webhook "validate.kyverno.svc-fail" denied the request: the repository is not allowed')],
+      ['an admission webhook forbids the spec', apiError(403, 'admission webhook "validation.gatekeeper.sh" denied the request: [repo-allowed] the repository is not allowed')],
+      ['the spec fails the schema', apiError(422, 'GitRepo.fleet.cattle.io "my-repo" is invalid: spec.repo: Required value')],
+      ['the server fails', apiError(500, 'Internal error occurred')],
+      ['the request fails without a response', new Error('Network Error')],
+    ])('should go on when %s and the name is free', async(_label, error) => {
+      const { app, dispatch } = createApp(jest.fn().mockRejectedValue(apiError(404, 'gitrepos.fleet.cattle.io "my-repo" not found')));
+
+      jest.spyOn(app, 'dryRunCreate').mockRejectedValue(error);
+
+      await expect(app.validateNameAndWorkspace(placeholderSpec)).resolves.toBeUndefined();
+      expect(dispatch).toHaveBeenCalledWith('find', {
+        type: 'fleet.cattle.io.gitrepo',
+        id:   'fleet-default/my-repo',
+        opt:  { force: true, transient: true },
+      });
+    });
+
+    it('should stop when an admission policy denies the spec and the name is taken', async() => {
+      const { app, t } = createApp(jest.fn().mockResolvedValue({ id: 'fleet-default/my-repo' }));
+
+      jest.spyOn(app, 'dryRunCreate').mockRejectedValue(apiError(422, policyDenial));
+
+      await expect(app.validateNameAndWorkspace(placeholderSpec)).rejects.toStrictEqual('fleet.application.nameTaken');
+      expect(t).toHaveBeenCalledWith('fleet.application.nameTaken', { name: 'my-repo', workspace: 'fleet-default' });
+    });
+
+    it('should go on when an admission policy denies the spec and the name cannot be looked up', async() => {
+      const { app } = createApp(jest.fn().mockRejectedValue(apiError(403, 'gitrepos.fleet.cattle.io "my-repo" is forbidden: User "u-abc" cannot get resource "gitrepos"')));
+
+      jest.spyOn(app, 'dryRunCreate').mockRejectedValue(apiError(422, policyDenial));
+
+      await expect(app.validateNameAndWorkspace(placeholderSpec)).resolves.toBeUndefined();
+    });
+  });
 });
