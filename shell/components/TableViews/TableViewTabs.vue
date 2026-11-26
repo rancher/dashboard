@@ -20,6 +20,7 @@ import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { shareTableView, sharedTableKey } from '@shell/utils/table-views/share';
 import type { SharedTableView } from '@shell/utils/table-views/share';
 import { registerTableViewShortcuts } from '@shell/utils/table-views/shortcuts';
+import { announce } from '@shell/utils/aria-announce';
 import type { TableViewShortcutAction } from '@shell/utils/table-views/shortcuts';
 import { randomStr } from '@shell/utils/string';
 import { isViewDirty, isViewModified, persistenceIdOf, selectedViewIdFor } from '@shell/utils/table-views/views';
@@ -577,9 +578,9 @@ const defaultTabWithout = (goneId: string) => {
 /**
  * Someone else can take a view away: deleted, unpublished or no longer readable. Its held edits go with
  * it. In front, what it put on the table goes too, for the tab the list opens on, and so does the pick,
- * or its return would move the user back
+ * or its return would move the user back. `before` are the views as they were, to name the one that went
  */
-const leaveGoneView = () => {
+const leaveGoneView = (before: TableViewSaved[] = []) => {
   const ids = new Set(allViews.value.map((view) => view.id));
   const id = pickedViewId.value;
 
@@ -596,11 +597,17 @@ const leaveGoneView = () => {
 
   const hadFocus = tabWraps.get(id)?.contains(document.activeElement);
   const landing = defaultTabWithout(id);
+  const name = before.find((view) => view.id === id)?.name;
 
   showTab(landing);
 
   if (hadFocus) {
     focusTab(landing?.id || null);
+  }
+
+  // The list changed without the user doing anything, so a screen reader is told why
+  if (name) {
+    announce(t('tableViews.tab.removed', { name, view: landing?.name || t('tableViews.tabs.all') }, true));
   }
 };
 
@@ -939,8 +946,12 @@ const deleteView = async(saved?: TableViewSaved) => {
   deletingId = null;
 
   if (removed && !removed.ok) {
-    // It can fail because someone else deleted it first
-    leaveGoneView();
+    // It can fail because someone else deleted it first. Its tab, and the focus with it, can be gone already
+    leaveGoneView([saved]);
+
+    if (wasSelected && pickedViewId.value !== saved.id) {
+      focusTab(selectedViewId.value);
+    }
 
     return;
   }
@@ -1124,7 +1135,7 @@ const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
 
 watch(tabQueries, (queries) => emit('tab-queries', queries), { immediate: true });
 
-watch(allViews, leaveGoneView);
+watch(allViews, (_, before) => leaveGoneView(before));
 
 /**
  * Shared views can come after the list has opened the first time, so a default among them is
