@@ -7,7 +7,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { MANAGEMENT } from '@shell/config/types';
 import { PROJECT } from '@shell/config/labels-annotations';
 import { RcHeading } from '@components/RcHeading';
-import { exceptionToErrorsArray } from '@shell/utils/error';
+import { exceptionToErrorsArray, stringify } from '@shell/utils/error';
 
 const NONE_VALUE = ' ';
 
@@ -111,10 +111,10 @@ export default {
         }
       }));
 
-      const failures = results.filter((result) => result.status === 'rejected');
+      // results keep the order of toMove, so the index gives the namespace that failed
+      this.errors = results.flatMap((result, i) => result.status === 'rejected' ? exceptionToErrorsArray(result.reason).map((e) => `${ this.toMove[i].nameDisplay }: ${ stringify(e) }`) : []);
 
-      if (failures.length) {
-        this.errors = failures.flatMap((failure) => exceptionToErrorsArray(failure.reason));
+      if (this.errors.length) {
         finish(false);
 
         return;
