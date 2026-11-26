@@ -7,7 +7,7 @@ describe('vue.config dev server', () => {
   const originalWsPort = process.env.DEV_WS_PORT;
 
   beforeEach(() => {
-    jest.spyOn(console, 'log').mockImplementation(() => {}); // eslint-disable-line no-console
+    jest.spyOn(console, 'log').mockImplementation(() => {});
     delete process.env.DEV_WS_PORT;
   });
 
