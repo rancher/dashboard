@@ -147,7 +147,7 @@ export default class CapiMachineDeployment extends CapiMachineRoot {
 
     const initialValue = this.cluster;
 
-    this.inClusterSpec.quantity += delta;
+    this.inClusterSpec.quantity = Math.max(0, (this.inClusterSpec.quantity || 0) + delta);
 
     if ( !save ) {
       return;
