@@ -1606,7 +1606,6 @@ export default {
                 <td
                   v-if="tableActions"
                   class="row-check"
-                  align="middle"
                 >
                   {{ row.mainRowKey }}
                   <Checkbox
@@ -1774,7 +1773,6 @@ export default {
               <td
                 v-if="tableActions"
                 class="row-check"
-                align="middle"
               />
               <td
                 :colspan="fullColspan - (tableActions ? 1: 0)"
@@ -2079,6 +2077,16 @@ export default {
   .advanced-search-box {
     width: 100%;
   }
+
+  .sortable-table tr.main-row > td.row-check {
+    // Override older extensions' unscoped `.sortable-table td.row-check` (12px) rule
+    padding-top: 8px;
+
+    .selection-checkbox {
+      display: flex;
+      width: fit-content;
+    }
+  }
 </style>
 
 <style lang="scss">
@@ -2154,10 +2162,6 @@ export default {
 
       &:last-child {
         padding-right: 10px;
-      }
-
-      &.row-check {
-        padding-top: 12px;
       }
     }
 

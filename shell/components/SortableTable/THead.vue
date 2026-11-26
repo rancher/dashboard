@@ -513,6 +513,11 @@ export default {
         padding-right: 10px;
       }
 
+      .check {
+        display: flex;
+        width: fit-content;
+      }
+
       &:not(.sortable) > SPAN {
         display: block;
         margin-bottom: 2px;
