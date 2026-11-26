@@ -564,13 +564,20 @@ const focusTab = (id: string | null, toEnd = false) => {
   });
 };
 
-/** The view this user is deleting: they go to the tab beside it instead */
+/** The view this user is deleting, which moves the list itself */
 let deletingId: string | null = null;
+
+/** The tab the list opens on once `goneId` has gone: the user's default, else the page's, else its own */
+const defaultTabWithout = (goneId: string) => {
+  const id = defaultViewIdFor(ownDefaultViewId.value, globalViews.value, allViews.value.map((view) => view.id).filter((viewId) => viewId !== goneId));
+
+  return (tabs.value || []).find((tab) => tab.id === id);
+};
 
 /**
  * Someone else can take a view away: deleted, unpublished or no longer readable. Its held edits go with
- * it. In front, what it put on the table goes too, and so does the pick, or its return would move the
- * user back
+ * it. In front, what it put on the table goes too, for the tab the list opens on, and so does the pick,
+ * or its return would move the user back
  */
 const leaveGoneView = () => {
   const ids = new Set(allViews.value.map((view) => view.id));
@@ -588,11 +595,12 @@ const leaveGoneView = () => {
   }
 
   const hadFocus = tabWraps.get(id)?.contains(document.activeElement);
+  const landing = defaultTabWithout(id);
 
-  showTab();
+  showTab(landing);
 
   if (hadFocus) {
-    focusTab(null);
+    focusTab(landing?.id || null);
   }
 };
 
@@ -947,10 +955,11 @@ const deleteView = async(saved?: TableViewSaved) => {
   }
 
   if (wasSelected) {
-    showTab(neighbour);
-  }
+    const landing = defaultTabWithout(saved.id);
 
-  if (neighbour) {
+    showTab(landing);
+    focusTab(landing?.id || null);
+  } else if (neighbour) {
     focusTab(neighbour.id);
   }
 
