@@ -8,6 +8,9 @@ import { isViewDirty, selectedViewIdFor, savedViewsByType } from '@shell/utils/t
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 import { decodeSharedViews } from '@shell/utils/table-views/share';
 import type { SharedTableView } from '@shell/utils/table-views/share';
+import { announce } from '@shell/utils/aria-announce';
+
+jest.mock('@shell/utils/aria-announce', () => ({ announce: jest.fn() }));
 
 const EMPTY: TableViewState = {
   query: '', columns: null, labelColumns: [], groupBy: null
@@ -942,6 +945,34 @@ describe('TableViewTabs', () => {
         expect(vm.selectedViewId).toBe('own');
       });
 
+      describe('telling a screen reader', () => {
+        beforeEach(() => {
+          (announce as jest.Mock).mockClear();
+        });
+
+        it('should say which view went and which one is shown', async() => {
+          const { wrapper, store } = createWrapper({
+            admin: false, initialViewId: 'sv', view: shown
+          });
+
+          store.commit('configs', [pageConfig()]);
+          await wrapper.vm.$nextTick();
+
+          expect(announce).toHaveBeenCalledWith('tableViews.tab.removed-{"name":"Single view","view":"Page view"}');
+        });
+
+        it('should say nothing when a view that is not in front goes', async() => {
+          const { wrapper, store } = createWrapper({
+            admin: false, initialViewId: 'own', view: { ...EMPTY, query: 'name:mine' }
+          });
+
+          store.commit('configs', [pageConfig()]);
+          await wrapper.vm.$nextTick();
+
+          expect(announce).not.toHaveBeenCalled();
+        });
+      });
+
       it('should not go to another view that holds the same config', async() => {
         const twin = config('twin', {
           type: 'View', page: 'test', view: makeView('twin', 'Twin', { query: 'name:single' })
@@ -1269,6 +1300,55 @@ describe('TableViewTabs', () => {
         });
 
         (wrapper.find('[data-testid="table-views-tab-sv"]').element as HTMLElement).focus();
+        await vm.deleteView(single);
+        await wrapper.vm.$nextTick();
+        const testId = (document.activeElement as HTMLElement).dataset.testid;
+
+        wrapper.unmount();
+
+        expect(testId).toBe('table-views-tab-pv');
+      });
+
+      it('should tell a screen reader when someone else deleted the view first', async() => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({ initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' } });
+        const [pageConfig, singleConfig] = configs;
+
+        (announce as jest.Mock).mockClear();
+        singleConfig.remove.mockImplementation(async() => {
+          store.commit('configs', [pageConfig]);
+          await wrapper.vm.$nextTick();
+          throw new Error('not found');
+        });
+        await vm.deleteView(single);
+
+        expect(announce).toHaveBeenCalledWith('tableViews.tab.removed-{"name":"Single view","view":"Page view"}');
+      });
+
+      it('should leave the telling to the deleted message when their own delete works', async() => {
+        const { vm } = createWrapper({ initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' } });
+
+        (announce as jest.Mock).mockClear();
+        await vm.deleteView(single);
+
+        expect(announce).not.toHaveBeenCalled();
+      });
+
+      it('should take the focus to the tab the list goes to when someone else deleted the view first', async() => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({
+          initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' }, attachTo: document.body
+        });
+        const [pageConfig, singleConfig] = configs;
+
+        (wrapper.find('[data-testid="table-views-tab-sv"]').element as HTMLElement).focus();
+        singleConfig.remove.mockImplementation(async() => {
+          store.commit('configs', [pageConfig]);
+          await wrapper.vm.$nextTick();
+          throw new Error('not found');
+        });
         await vm.deleteView(single);
         await wrapper.vm.$nextTick();
         const testId = (document.activeElement as HTMLElement).dataset.testid;
