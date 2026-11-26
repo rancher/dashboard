@@ -56,8 +56,8 @@ export const SCOPED_RESOURCES = {
         'ClusterRegistrationTokens',
         'Contents',
         'GitRepos',
-        'GitRepoRestrictions',
         'HelmOps',
+        'Policies',
       ],
     },
     'gitjob.cattle.io': {

@@ -378,7 +378,7 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
       fleetWorkspacesListPage.list().resourceTable().sortableTable()
         .noRowsShouldNotExist();
       fleetWorkspacesListPage.baseResourceList().masthead().create();
-      fleetWorkspaceCreateEditPage.waitForPage(undefined, 'allowedtargetnamespaces');
+      fleetWorkspaceCreateEditPage.waitForPage(undefined, 'labels');
       fleetWorkspaceCreateEditPage.mastheadTitle().then((title) => {
         expect(title.replace(/\s+/g, ' ')).to.contain('Workspace: Create');
       });
@@ -391,23 +391,11 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
         .description()
         .set(`${ customWorkspace }-desc`);
       fleetWorkspaceCreateEditPage.resourceDetail().tabs()
-        .allTabs()
-        .should('have.length.at.least', 2);
-
-      const tabs = ['Allowed Target Namespaces', 'Labels & Annotations'];
-
-      fleetWorkspaceCreateEditPage.resourceDetail().tabs()
         .tabNames()
-        .each((el, i) => {
-          expect(el).to.eq(tabs[i]);
-        });
+        .should('deep.equal', ['Labels & Annotations']);
 
       fleetWorkspaceCreateEditPage.resourceDetail().tabs()
-        .assertTabIsActive('[data-testid="allowedtargetnamespaces"]');
-      fleetWorkspaceCreateEditPage.allowTargetNsTabList().setValueAtIndex('test', 0, 'Add');
-      fleetWorkspaceCreateEditPage.resourceDetail().tabs()
-        .clickTabWithSelector('[data-testid="btn-labels"]');
-      fleetWorkspaceCreateEditPage.waitForPage(undefined, 'labels');
+        .assertTabIsActive('[data-testid="labels"]');
       fleetWorkspaceCreateEditPage.lablesAnnotationsKeyValue().setKeyValueAtIndex('Add Label', 'label-key1', 'label-value1', 0, 'div.row:nth-of-type(2)');
 
       // Adding Annotations doesn't work via test automation
@@ -450,7 +438,7 @@ describe('Workspaces', { testIsolation: false, tags: ['@fleet', '@adminUser'] },
             .noRowsShouldNotExist();
           fleetWorkspacesListPage.list().actionMenu(customWorkspace).getMenuItem('Edit Config')
             .click();
-          fleetWorkspaceCreateEditPage.waitForPage('mode=edit', 'allowedtargetnamespaces');
+          fleetWorkspaceCreateEditPage.waitForPage('mode=edit', 'ociRegistries');
           fleetWorkspaceCreateEditPage.mastheadTitle().then((title) => {
             expect(title.replace(/\s+/g, ' ')).to.contain(`Workspace: ${ customWorkspace }`);
           });

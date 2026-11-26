@@ -2228,13 +2228,7 @@ fleet:
     ready: 就绪
     errors: 错误
   workspaces:
-    tabs:
-      restrictions: 允许的目标命名空间
     timeout: 工作空间创建超时。工作空间可能已创建，建议在创建另一个工作空间之前检查工作空间页面。
-  restrictions:
-    addTitle: 'allowedTargetNamespaces'
-    addLabel: 添加
-    banner: "{count, plural, =0 { 在这里添加命名空间会创建一个 GitRepoRestriction。} other { 只有 Git Repo Restriction 的 <code>allowedTargetNamespaces</code> 在此处管理，你可以对 Git Repo Restriction 进行其他更改。} }"
 footer:
   cnforums: 中文社区
   docs: Rancher 官方文档

@@ -12,11 +12,6 @@ interface Policy {
   helmOp?: PolicySource;
 }
 
-interface GitRepoRestriction {
-  metadata?: { name?: string, namespace?: string };
-  defaultClientSecretName?: string;
-}
-
 export interface FleetPolicyDefaults {
   /** The credential a GitRepo is given when it names none itself. */
   clientSecretName: string;
@@ -42,28 +37,17 @@ async function findAllIfServed<T>(store: Store<any>, type: string): Promise<T[]>
  *
  * Fleet aggregates every Policy in the namespace, sorted by name, and the first non-empty default
  * wins, so a form filling a field in advance shows the value the controller would have applied.
- *
- * A GitRepo is also still subject to the deprecated GitRepoRestriction, whose own default outranks
- * the policies' for the credential it names. A HelmOp has no such counterpart.
  */
 export async function getFleetPolicyDefaults(store: Store<any>, namespace?: string): Promise<FleetPolicyDefaults> {
   if (!namespace) {
     return NONE;
   }
 
-  const [policies, restrictions] = await Promise.all([
-    findAllIfServed<Policy>(store, FLEET.POLICY),
-    findAllIfServed<GitRepoRestriction>(store, FLEET.GIT_REPO_RESTRICTION),
-  ]);
-
+  const policies = await findAllIfServed<Policy>(store, FLEET.POLICY);
   const workspacePolicies = inNamespace(policies, namespace).sort(byName);
-  const workspaceRestrictions = inNamespace(restrictions, namespace).sort(byName);
 
   return {
-    clientSecretName: firstNonEmpty([
-      ...workspaceRestrictions.map((restriction) => restriction.defaultClientSecretName),
-      ...workspacePolicies.map((policy) => policy.gitRepo?.defaultClientSecretName),
-    ]),
-    helmSecretName: firstNonEmpty(workspacePolicies.map((policy) => policy.helmOp?.defaultHelmSecretName)),
+    clientSecretName: firstNonEmpty(workspacePolicies.map((policy) => policy.gitRepo?.defaultClientSecretName)),
+    helmSecretName:   firstNonEmpty(workspacePolicies.map((policy) => policy.helmOp?.defaultHelmSecretName)),
   };
 }
