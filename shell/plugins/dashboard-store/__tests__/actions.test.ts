@@ -268,6 +268,7 @@ describe('dashboard-store: actions', () => {
 
 describe('dashboard-store: findPage', () => {
   interface PageOpt {
+    requesterId?: string;
     pagination: { filters: string[] };
   }
 
@@ -359,7 +360,8 @@ describe('dashboard-store: findPage', () => {
     const pending = findPage(ctx, {
       type: 'pod',
       opt:  {
-        pagination: {
+        requesterId: 'list-1',
+        pagination:  {
           page: 1, pageSize: 10, filters: []
         }
       }
