@@ -113,6 +113,8 @@ describe('fx: parseQuery', () => {
     ['single around double', `name:'say "hi there" now'`, 'say "hi there" now'],
     ['double around single', `name:"it's here"`, `it's here`],
     ['the same kind, doubled', `name:"say ""it's here"" now"`, `say "it's here" now`],
+    ['single quotes doubled', `name:'it''s here'`, `it's here`],
+    ['single quotes doubled, around double', `name:'say ''hi'' and "bye"'`, `say 'hi' and "bye"`],
     ['the same kind, not doubled', 'name:"say "hi", now"', 'say "hi", now'],
     ['the other kind, next to each other', `name:'two "" quotes'`, 'two "" quotes'],
   ])('reads quotes within a quoted value: %s', (_, query, value) => {
