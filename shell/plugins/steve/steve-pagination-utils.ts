@@ -629,16 +629,15 @@ class StevePaginationUtils extends NamespaceProjectFilters {
               if ([PaginationFilterEquality.IN, PaginationFilterEquality.NOT_IN].includes(equality)) {
                 safeValue = `(${ field.value })`;
               } else {
-                const booleanSafeValue = typeof field.value === 'undefined' || field.value === null ? '' : field.value;
-                const encodedValue = encodeURIComponent(booleanSafeValue);
+                const booleanSafeValue = `${ field.value ?? '' }`;
 
                 if (StevePaginationUtils.VALID_FIELD_VALUE_REGEX.test(booleanSafeValue)) {
                   // All characters safe, send as is
-                  safeValue = encodedValue;
+                  safeValue = encodeURIComponent(booleanSafeValue);
                 } else {
                   // Contains protected characters, wrap in quotes to ensure backend doesn't fail
-                  // - replace reserver `"`/`%22` with empty string - see https://github.com/rancher/dashboard/issues/14549 for improvement
-                  safeValue = `"${ encodedValue.replaceAll('%22', '') }"`;
+                  // - escape `"` and `\`, which would otherwise end the value or escape what follows
+                  safeValue = `"${ encodeURIComponent(booleanSafeValue.replace(/["\\]/g, '\\$&')) }"`;
                 }
               }
 
