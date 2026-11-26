@@ -7586,6 +7586,7 @@ tableViews:
     deleted: View Deleted
     deletedMessage: The "{name}" view has been successfully deleted.
     deletedSharedMessage: The "{name}" view has been unpublished and deleted.
+    removed: The "{name}" view is no longer available. Showing "{view}".
     undo: Undo
     shared: Published
     share: Publish
