@@ -67,6 +67,20 @@ The `API` value must point to a running Rancher instance. The dashboard will be 
 
 ---
 
+## Hot reload doesn't connect through a proxy
+
+**Symptom:** The dev server is opened through a proxy on another port. The page loads, but changes don't hot reload and the browser console shows the hot reload websocket failing to connect to the proxy's port (`wss://<host>:<proxy port>/ws`).
+
+**Cause:** The hot reload client connects to the port the page was loaded from, and the proxy doesn't forward websockets to the dev server.
+
+**Fix:** Set `DEV_WS_PORT` to the dev server's port so the client connects to it directly, for example:
+
+```sh
+DEV_WS_PORT=8005 API=https://<your-rancher-host> yarn dev
+```
+
+---
+
 ## Unit test: peer dependency warning from `@vue/vue3-jest`
 
 **Symptom:** After installing test dependencies, yarn warns that `@vue/vue3-jest` expects Jest 29.x but Jest 30.x is installed.
