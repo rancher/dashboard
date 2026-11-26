@@ -1017,7 +1017,7 @@ describe('component: Group', () => {
         mocks: {
           $route:  route,
           $router: {
-            resolve:   jest.fn((loc: any) => ({ path: `/c/local/explorer/${ loc?.params?.resource || loc?.name || '' }` })),
+            resolve:   jest.fn((loc: any) => ({ path: loc?.name === 'nested-parent' ? '/c/local/nested-parent' : `/c/local/explorer/${ loc?.params?.resource || loc?.name || '' }` })),
             getRoutes: jest.fn().mockReturnValue([]),
           },
           t: (key: string) => key,
@@ -1098,6 +1098,37 @@ describe('component: Group', () => {
       const wrapper = mountGroup(workloadsGroup(false), activeRoute, { showHeader: false });
 
       expect(wrapper.classes()).not.toContain('group-highlight');
+    });
+
+    it('does not apply group-highlight when showHighlight is false even if a child is active', () => {
+      const wrapper = mountGroup(workloadsGroup(false), activeRoute, { showHighlight: false });
+
+      expect(wrapper.classes()).not.toContain('group-highlight');
+    });
+
+    it('matches via nested parent route path when route params differ', () => {
+      const group = {
+        name:     'workloads',
+        label:    'Workloads',
+        expanded: false,
+        children: [{
+          name:  'nested-child',
+          route: { name: 'nested-parent', params: { cluster: 'local' } },
+        }],
+      };
+      const nestedRoute = {
+        name:     'nested-grandchild',
+        params:   { cluster: 'local' },
+        path:     '/c/local/other/child',
+        fullPath: '/c/local/other/child',
+        matched:  [
+          { path: '/c/:cluster/nested-parent' },
+          { path: '/c/:cluster/other/child' },
+        ],
+      };
+      const wrapper = mountGroup(group, nestedRoute);
+
+      expect(wrapper.classes()).toContain('group-highlight');
     });
 
     it('applies group-highlight when the overview route is active and the group is collapsed', () => {
