@@ -142,6 +142,31 @@ export function uiPluginAnnotation(chart, name) {
   return chart?.versions?.[0]?.annotations?.[name];
 }
 
+// The Shell range assumed for an extension that predates `ui-shell-version` but still carries
+// the retired `ui-extensions-version`. Those were all built against Shell 3.x, so we read them
+// as supporting the first three lines of the new scheme rather than refusing them outright.
+export const INFERRED_SHELL_VERSION_RANGE = '>= 217.0.0 < 220.0.0';
+
+/**
+ * The Shell range an extension requires.
+ *
+ * `ui-shell-version` is the annotation from Rancher 2.17 onwards and is mandatory. An extension
+ * published before it exists has no way to declare one, so the presence of the retired
+ * `ui-extensions-version` is taken as a declaration of the inferred range above. An extension
+ * carrying neither says nothing about what it supports, and is refused.
+ *
+ * @returns String | undefined
+ */
+export function requiredShellVersion(annotations) {
+  const declared = annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION];
+
+  if (declared) {
+    return declared;
+  }
+
+  return annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION] ? INFERRED_SHELL_VERSION_RANGE : undefined;
+}
+
 /**
  * Parse the Rancher version string
  */
@@ -228,12 +253,12 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
 
   // Shell the extension was built against, propagated from the annotations in
   // pkg/package.json into "spec.plugin.metadata" on the UIPlugin resource. Mandatory, so an
-  // extension that does not declare the Shell it was built for is not loaded.
-  const requiredShellVersion = UIPluginResource.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION];
+  // extension that declares nothing at all is not loaded.
+  const shellVersionRange = requiredShellVersion(UIPluginResource.metadata);
 
-  if (!requiredShellVersion) {
+  if (!shellVersionRange) {
     return 'plugins.error.shellVersionMissing';
-  } else if (!semver.satisfies(parsedShellVersion, requiredShellVersion)) {
+  } else if (!semver.satisfies(parsedShellVersion, shellVersionRange)) {
     return 'plugins.error.shellVersion';
   }
 
@@ -302,6 +327,7 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
 
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
   const parsedShellVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
+  const shellVersionRange = requiredShellVersion(version.annotations);
 
   const checks = [
     {
@@ -321,12 +347,12 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
     },
     {
       currentVersion:      parsedShellVersion,
-      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION],
+      requiredVersion:     shellVersionRange,
       incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.SHELL_MISSING,
     },
     {
       currentVersion:      parsedShellVersion,
-      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION],
+      requiredVersion:     shellVersionRange,
       incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.SHELL,
     },
     {

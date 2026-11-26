@@ -2,19 +2,24 @@ import {
   UI_PLUGIN_ANNOTATION,
   UI_PLUGIN_CHART_ANNOTATIONS,
   EXTENSIONS_INCOMPATIBILITY_TYPES,
+  INFERRED_SHELL_VERSION_RANGE,
   isUIPlugin,
   uiPluginHasAnnotation,
   parseRancherVersion,
-  // shouldNotLoadPlugin, this is required per test so that we can mock semver.coerce
+  requiredShellVersion,
+  // shouldNotLoadPlugin, this is required per test so that we can reload the module with a
+  // different UI_EXTENSIONS_API_VERSION in the environment
   isSupportedChartVersion,
   isChartVersionHigher
 } from '@shell/config/uiplugins';
 
 import * as VersionModule from '@shell/config/version';
 
-let semver;
-let originalCoerce: any;
-const MOCK_API_VERSION = '33.33.33';
+// The Shell these tests run as. 217 is the first release line of the new scheme, so the range
+// inferred for an extension published before the scheme existed applies to it.
+const MOCK_API_VERSION = '217.0.0-alpha.0';
+const IN_RANGE_SHELL = '>= 217.0.0 < 220.0.0';
+const OUT_OF_RANGE_SHELL = '>= 220.0.0 < 223.0.0';
 
 describe('uiPlugins Config methods', () => {
   describe('fx: isUIPlugin', () => {
@@ -52,6 +57,49 @@ describe('uiPlugins Config methods', () => {
     });
   });
 
+  describe('fx: requiredShellVersion', () => {
+    it('uses the declared Shell range when the extension has one', () => {
+      const annotations = { [UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION]: OUT_OF_RANGE_SHELL };
+
+      expect(requiredShellVersion(annotations)).toStrictEqual(OUT_OF_RANGE_SHELL);
+    });
+
+    it('prefers the declared Shell range over the retired annotation', () => {
+      const annotations = {
+        [UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION]:      OUT_OF_RANGE_SHELL,
+        [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>= 3.0.0 < 4.0.0'
+      };
+
+      expect(requiredShellVersion(annotations)).toStrictEqual(OUT_OF_RANGE_SHELL);
+    });
+
+    it('infers a range from the retired annotation, whatever its value', () => {
+      expect(requiredShellVersion({ [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>= 3.0.0 < 4.0.0' })).toStrictEqual(INFERRED_SHELL_VERSION_RANGE);
+      expect(requiredShellVersion({ [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>= 1.0.0' })).toStrictEqual(INFERRED_SHELL_VERSION_RANGE);
+    });
+
+    it('declares nothing when there are no annotations at all', () => {
+      expect(requiredShellVersion({})).toBeUndefined();
+    });
+
+    it('declares nothing when only unrelated annotations are present', () => {
+      expect(requiredShellVersion({ [UI_PLUGIN_CHART_ANNOTATIONS.KUBE_VERSION]: '>= 1.0.0' })).toBeUndefined();
+    });
+
+    it('declares nothing when the annotations are undefined', () => {
+      expect(requiredShellVersion(undefined)).toBeUndefined();
+    });
+
+    it('ignores an empty declared range and falls through', () => {
+      const annotations = {
+        [UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION]:      '',
+        [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>= 3.0.0 < 4.0.0'
+      };
+
+      expect(requiredShellVersion(annotations)).toStrictEqual(INFERRED_SHELL_VERSION_RANGE);
+    });
+  });
+
   const PLUGIN_NAME = 'test-plugin';
 
   const basePluginResource = {
@@ -69,18 +117,6 @@ describe('uiPlugins Config methods', () => {
     beforeEach(() => {
       jest.resetModules();
       process.env.UI_EXTENSIONS_API_VERSION = MOCK_API_VERSION;
-
-      semver = require('semver');
-      originalCoerce = semver.coerce;
-
-      jest.spyOn(semver, 'coerce').mockImplementation((v) => {
-        if (v === MOCK_API_VERSION) {
-          return { version: '3.0.0' };
-        }
-
-        // Use the original for all other inputs (Rancher, Kube)
-        return originalCoerce(v);
-      });
     });
 
     afterEach(() => {
@@ -93,15 +129,56 @@ describe('uiPlugins Config methods', () => {
       expect(shouldNotLoadPlugin(basePluginResource, compatibleEnv, [])).toBe(false);
     });
 
-    it('should return "plugins.error.api" if Extensions API version is incompatible', () => {
+    it('should return false when the extension declares a Shell range that matches', () => {
       const { shouldNotLoadPlugin } = require('./../uiplugins');
 
-      const incompatibleApiPlugin = {
+      const compatibleShellPlugin = {
+        ...basePluginResource,
+        metadata: { [UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION]: IN_RANGE_SHELL }
+      };
+
+      expect(shouldNotLoadPlugin(compatibleShellPlugin, compatibleEnv, [])).toBe(false);
+    });
+
+    it('should return "plugins.error.shellVersion" if the declared Shell range does not match', () => {
+      const { shouldNotLoadPlugin } = require('./../uiplugins');
+
+      const incompatibleShellPlugin = {
+        ...basePluginResource,
+        metadata: { [UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION]: OUT_OF_RANGE_SHELL }
+      };
+
+      expect(shouldNotLoadPlugin(incompatibleShellPlugin, compatibleEnv, [])).toBe('plugins.error.shellVersion');
+    });
+
+    it('should return "plugins.error.shellVersionMissing" if the extension declares neither annotation', () => {
+      const { shouldNotLoadPlugin } = require('./../uiplugins');
+
+      const undeclaredPlugin = { ...basePluginResource, metadata: {} };
+
+      expect(shouldNotLoadPlugin(undeclaredPlugin, compatibleEnv, [])).toBe('plugins.error.shellVersionMissing');
+    });
+
+    it('should ignore the value of the retired ui-extensions-version annotation', () => {
+      const { shouldNotLoadPlugin } = require('./../uiplugins');
+
+      // `>=4.0.0` would have blocked this under the old gate. Only its presence matters now,
+      // and it stands in for the inferred range, which this Shell is inside.
+      const legacyPlugin = {
         ...basePluginResource,
         metadata: { [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>=4.0.0' }
       };
 
-      expect(shouldNotLoadPlugin(incompatibleApiPlugin, compatibleEnv, [])).toBe('plugins.error.api');
+      expect(shouldNotLoadPlugin(legacyPlugin, compatibleEnv, [])).toBe(false);
+    });
+
+    it('should stop loading inferred extensions once the Shell moves past the inferred range', () => {
+      process.env.UI_EXTENSIONS_API_VERSION = '220.0.0';
+      jest.resetModules();
+
+      const { shouldNotLoadPlugin } = require('./../uiplugins');
+
+      expect(shouldNotLoadPlugin(basePluginResource, compatibleEnv, [])).toBe('plugins.error.shellVersion');
     });
 
     it('should return "plugins.error.primeOnly" if extension is Prime-only and Rancher is not Prime', () => {
@@ -192,18 +269,6 @@ describe('uiPlugins Config methods', () => {
     beforeEach(() => {
       jest.resetModules();
       process.env.UI_EXTENSIONS_API_VERSION = MOCK_API_VERSION;
-
-      semver = require('semver');
-      originalCoerce = semver.coerce;
-
-      jest.spyOn(semver, 'coerce').mockImplementation((v) => {
-        if (v === MOCK_API_VERSION) {
-          return { version: '3.0.0' };
-        }
-
-        // Use the original for all other inputs (Rancher, Kube)
-        return originalCoerce(v);
-      });
     });
 
     afterEach(() => {
@@ -261,26 +326,37 @@ describe('uiPlugins Config methods', () => {
       expect(result.versionIncompatibilityData.required).toBe('>=3.0.0');
     });
 
-    it('should return incompatibility object for extensions api missing', () => {
+    it('should return incompatibility object when the chart declares no Shell range', () => {
       const annotations = {};
       const data = { ...versionData, version: { annotations } };
       const result = isSupportedChartVersion(data, true);
 
       expect(result.isVersionCompatible).toBe(false);
-      expect(result.versionIncompatibilityData.type).toBe(EXTENSIONS_INCOMPATIBILITY_TYPES.EXTENSIONS_API_MISSING);
+      expect(result.versionIncompatibilityData.type).toBe(EXTENSIONS_INCOMPATIBILITY_TYPES.SHELL_MISSING);
       expect(result.versionIncompatibilityData.required).toBeUndefined();
     });
 
-    it('should return incompatibility object for extensions API version mismatch', () => {
+    it('should return incompatibility object for Shell version mismatch', () => {
       const { isSupportedChartVersion } = require('./../uiplugins');
 
-      const annotations = { [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>=4.0.0' };
+      const annotations = { [UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION]: OUT_OF_RANGE_SHELL };
       const data = { ...versionData, version: { annotations } };
       const result = isSupportedChartVersion(data, true);
 
       expect(result.isVersionCompatible).toBe(false);
-      expect(result.versionIncompatibilityData.type).toBe(EXTENSIONS_INCOMPATIBILITY_TYPES.EXTENSIONS_API);
-      expect(result.versionIncompatibilityData.required).toBe('>=4.0.0');
+      expect(result.versionIncompatibilityData.type).toBe(EXTENSIONS_INCOMPATIBILITY_TYPES.SHELL);
+      expect(result.versionIncompatibilityData.required).toBe(OUT_OF_RANGE_SHELL);
+    });
+
+    it('should stay compatible for a chart carrying only the retired annotation', () => {
+      const { isSupportedChartVersion } = require('./../uiplugins');
+
+      const annotations = { [UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION]: '>= 3.0.0 < 4.0.0' };
+      const data = { ...versionData, version: { annotations } };
+      const result = isSupportedChartVersion(data, true);
+
+      expect(result.isVersionCompatible).toBe(true);
+      expect(result.versionIncompatibilityData).toStrictEqual({});
     });
 
     it('should return incompatibility object for HOST_APP mismatch', () => {
