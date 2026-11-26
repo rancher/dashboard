@@ -23,6 +23,8 @@ type RcDropdownMenuComponentProps = {
   /** Forwarded to RcDropdown's `container` prop. */
   container?: string | HTMLElement;
   open?: boolean;
+  /** Arguments for the action's method, from whatever the menu is in */
+  actionArgs?<T>(action: T, resources: unknown[]): unknown[] | undefined;
 }
 
 const props = defineProps <RcDropdownMenuComponentProps>();
@@ -83,7 +85,7 @@ const execute = (action: any, event: MouseEvent, args?: any) => {
     const opts = { alt: isAlternate(event) };
 
     store.dispatch('action-menu/execute', {
-      action, args, opts
+      action, args: args || props.actionArgs?.(action, [props.resource]), opts
     });
   }
 };

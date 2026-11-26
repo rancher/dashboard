@@ -566,6 +566,18 @@ export default {
       this.actionOfInterest = null;
     },
 
+    /** Only for the actions asking for the table: others, eg promptRemove, take arguments of their own */
+    tableActionArgs(action, rows) {
+      if (!action.passTable) {
+        return undefined;
+      }
+
+      const picked = new Set(rows.map(toRaw));
+      const shown = this.groupedRows.flatMap((group) => group.rows);
+
+      return [{ headers: this.headers, rows: shown.filter((row) => picked.has(toRaw(row))) }];
+    },
+
     clearSelection() {
       this.update([], [...this.selectedRows]);
     },
@@ -624,7 +636,7 @@ function _filter(map, disableAll = false) {
 }
 
 function _execute(resources, action, args, opts = {}, ctx) {
-  args = args || [];
+  const argsFor = (rows) => args || ctx.tableActionArgs(action, rows) || [];
 
   // New pattern for extensions - always call invoke
   if (action.invoke) {
@@ -634,7 +646,7 @@ function _execute(resources, action, args, opts = {}, ctx) {
       isAlt: !!opts.alt,
     };
 
-    return action.invoke.apply(ctx, [actionOpts, resources || [], args]);
+    return action.invoke.apply(ctx, [actionOpts, resources || [], args || []]);
   }
 
   /**
@@ -655,7 +667,7 @@ function _execute(resources, action, args, opts = {}, ctx) {
     if ( fn ) {
       const applyResources = resources.map(findResourceFromAction);
 
-      return fn.call(applyResource, applyResources, ...args);
+      return fn.call(applyResource, applyResources, ...argsFor(resources));
     }
   }
 
@@ -675,7 +687,7 @@ function _execute(resources, action, args, opts = {}, ctx) {
     }
 
     if ( fn ) {
-      promises.push(fn.apply(applyResource, args));
+      promises.push(fn.apply(applyResource, argsFor([resource])));
     }
   }
 
