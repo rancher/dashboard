@@ -256,7 +256,6 @@ describe('class FleetApplication', () => {
     });
 
     it.each([
-      ['the name is taken', apiError(409, 'gitrepos.fleet.cattle.io "my-repo" already exists')],
       ['the name is invalid', apiError(422, 'GitRepo.fleet.cattle.io "AAA" is invalid: metadata.name: Invalid value: "AAA": a lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters')],
       ['the name is too long', apiError(422, 'GitRepo.fleet.cattle.io "aaa" is invalid: metadata.name: Invalid value: "aaa": must be no more than 253 characters')],
       ['the workspace does not exist', apiError(404, 'namespaces "gone" not found')],
@@ -290,6 +289,16 @@ describe('class FleetApplication', () => {
         id:   'fleet-default/my-repo',
         opt:  { force: true, transient: true },
       });
+    });
+
+    it('should say the name is used when the API says it already exists', async() => {
+      const { app, dispatch, t } = createApp();
+
+      jest.spyOn(app, 'dryRunCreate').mockRejectedValue(apiError(409, 'gitrepos.fleet.cattle.io "my-repo" already exists'));
+
+      await expect(app.validateNameAndWorkspace(placeholderSpec)).rejects.toStrictEqual('fleet.application.nameTaken');
+      expect(t).toHaveBeenCalledWith('fleet.application.nameTaken', { name: 'my-repo', workspace: 'fleet-default' });
+      expect(dispatch).not.toHaveBeenCalled();
     });
 
     it('should stop when an admission policy denies the spec and the name is taken', async() => {

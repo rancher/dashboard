@@ -30,19 +30,18 @@ function normalizeStateCounts(data) {
 }
 
 const ADMISSION_DENIAL = /ValidatingAdmissionPolicy|admission webhook/;
-const NAME_OR_NAMESPACE_FIELD = /metadata\.(name|namespace):/;
+const NAME_FIELD = /metadata\.name:/;
 
 function isNameOrWorkspaceError(err) {
   const message = err?.message || '';
 
   switch (err?._status) {
   case 404: // the workspace does not exist
-  case 409: // the name is taken
     return true;
   case 403: // no permission to create in the workspace, or it is being deleted
     return !ADMISSION_DENIAL.test(message);
   case 422:
-    return NAME_OR_NAMESPACE_FIELD.test(message);
+    return NAME_FIELD.test(message);
   default:
     return false;
   }
@@ -94,6 +93,7 @@ export default class FleetApplication extends SteveModel {
    */
   async validateNameAndWorkspace(placeholderSpec) {
     const { name, namespace } = this.metadata;
+    const nameTaken = () => this.t('fleet.application.nameTaken', { name, workspace: namespace });
 
     try {
       await this.dryRunCreate({
@@ -104,6 +104,9 @@ export default class FleetApplication extends SteveModel {
 
       return;
     } catch (err) {
+      if (err?._status === 409) {
+        throw nameTaken();
+      }
       if (isNameOrWorkspaceError(err)) {
         throw err;
       }
@@ -123,7 +126,7 @@ export default class FleetApplication extends SteveModel {
     }
 
     if (existing) {
-      throw this.t('fleet.application.nameTaken', { name, workspace: namespace });
+      throw nameTaken();
     }
   }
 
