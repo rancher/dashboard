@@ -239,6 +239,7 @@ jobs:
           GREP_TAGS: "@adminUserSetup+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_ONLY: setup
+
       - name: Run user tests
         run: |
           yarn e2e:prod
@@ -249,19 +250,27 @@ jobs:
           GREP_TAGS: "@adminUser+@accessibility --@jenkins"
           TEST_USERNAME: admin
           TEST_A11Y: true
-          TEST_NO_VIDEOS: true          
+          TEST_NO_VIDEOS: true
 
       - name: Fetch Rancher Logs
         if: ${{ failure() }}
         run: yarn k3s:local:logs
 
-      - name: Upload Rancher Logs
-        if: ${{ failure() }}
+      - name: Create Artifacts Folder
+        if: ${{ always() }}
+        run: |
+          mkdir artifacts
+          cp -r cypress/reports/* artifacts || :
+          cp ${{ env.E2E_RANCHER_LOG }} artifacts/rancher.logs 2>/dev/null || :
+          cp browser-logs/out.html artifacts/browser-logs.html 2>/dev/null || :
+
+      - name: Upload Artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ always() }}
         with:
-          name: ${{github.run_number}}-${{github.run_attempt}}-accessibility-rancher-logs
-          path: ${{ env.E2E_RANCHER_LOG }}
-          if-no-files-found: ignore
+          name: ${{github.run_number}}-${{github.run_attempt}}-artifacts-accessibility-report
+          path: artifacts/
+          if-no-files-found: error
           retention-days: 5
           compression-level: 9
 

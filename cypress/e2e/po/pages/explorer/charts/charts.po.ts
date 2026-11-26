@@ -90,8 +90,12 @@ export class ChartsPage extends PagePo {
     return this.self().find('[data-testid="charts-empty-state-reset-filters"]');
   }
 
+  chartsTotal() {
+    return this.self().find('[data-testid="charts-total-message"]');
+  }
+
   totalChartsCount() {
-    return this.self().find('[data-testid="charts-total-message"]').invoke('text').then((text) => parseInt(text.match(/\d+/)[0], 10));
+    return this.chartsTotal().invoke('text').then((text) => parseInt(text.match(/\d+/)[0], 10));
   }
 
   chartCards() {
