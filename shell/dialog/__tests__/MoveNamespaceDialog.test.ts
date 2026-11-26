@@ -1,4 +1,6 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
+import { nextTick } from 'vue';
+import { Banner } from '@components/Banner';
 import MoveNamespaceDialog from '@shell/dialog/MoveNamespaceDialog.vue';
 
 const t = (key: string): string => key;
@@ -25,9 +27,9 @@ describe('component: MoveNamespaceDialog', () => {
     }
   ];
 
-  const createMockNamespace = (projectId: string | null = null) => {
+  const createMockNamespace = (projectId: string | null = null, name = 'test-namespace') => {
     const namespace: any = {
-      nameDisplay:   'test-namespace',
+      nameDisplay:   name,
       projectId,
       project:       projectId ? { shortId: projectId } : null,
       setLabel:      jest.fn(),
@@ -38,7 +40,7 @@ describe('component: MoveNamespaceDialog', () => {
     return namespace;
   };
 
-  const mountComponent = (propsData = {}, options = {}) => {
+  const mountComponent = (propsData = {}, options = {}, globalOptions = {}) => {
     const store = {
       dispatch: jest.fn().mockResolvedValue(mockProjects),
       getters:  { currentCluster: { id: 'local' } }
@@ -56,6 +58,7 @@ describe('component: MoveNamespaceDialog', () => {
         ...propsData,
       },
       global: {
+        ...globalOptions,
         mocks: {
           $store: store,
           t,
@@ -244,6 +247,105 @@ describe('component: MoveNamespaceDialog', () => {
       await wrapper.vm.move(finish);
 
       expect(finish).toHaveBeenCalledWith(false);
+    });
+
+    it('should restore the original project and show the error when save fails', async() => {
+      const namespace = createMockNamespace('p-abc123');
+
+      namespace.metadata = {
+        labels:      { 'field.cattle.io/projectId': 'p-abc123' },
+        annotations: { 'field.cattle.io/projectId': 'local:p-abc123' }
+      };
+      namespace.save.mockRejectedValue({ response: { data: { message: 'admission webhook denied the request' } } });
+
+      wrapper = mountComponent({ resources: [namespace] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      wrapper.vm.targetProject = 'p-def456';
+
+      const finish = jest.fn();
+
+      await wrapper.vm.move(finish);
+
+      expect(namespace.setLabel).toHaveBeenLastCalledWith('field.cattle.io/projectId', 'p-abc123');
+      expect(namespace.setAnnotation).toHaveBeenLastCalledWith('field.cattle.io/projectId', 'local:p-abc123');
+      expect(wrapper.vm.errors).toStrictEqual(['test-namespace: admission webhook denied the request']);
+      expect(wrapper.emitted('close')).toBeUndefined();
+    });
+
+    it('should name the namespace in each error of a bulk move', async() => {
+      const webhookError = { response: { data: { message: 'admission webhook denied the request' } } };
+      const nsA = createMockNamespace('p-abc123', 'ns-a');
+      const nsB = createMockNamespace('p-abc123', 'ns-b');
+      const nsC = createMockNamespace('p-abc123', 'ns-c');
+
+      nsA.save.mockRejectedValue(webhookError);
+      nsC.save.mockRejectedValue(webhookError);
+
+      wrapper = mountComponent({ resources: [nsA, nsB, nsC] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      wrapper.vm.targetProject = 'p-def456';
+
+      await wrapper.vm.move(jest.fn());
+
+      expect(wrapper.vm.errors).toStrictEqual([
+        'ns-a: admission webhook denied the request',
+        'ns-c: admission webhook denied the request'
+      ]);
+    });
+
+    it('should show a Banner per error', async() => {
+      const namespace = createMockNamespace('p-abc123');
+
+      namespace.save.mockRejectedValue({ response: { data: { message: 'admission webhook denied the request' } } });
+
+      // shallowMount stubs Card, so render its slots to reach the Banner
+      wrapper = mountComponent({ resources: [namespace] }, {}, { stubs: { Card: { template: '<div><slot name="title"/><slot name="body"/><slot name="actions"/></div>' } } });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      wrapper.vm.targetProject = 'p-def456';
+
+      await wrapper.vm.move(jest.fn());
+      await nextTick();
+
+      const banners = wrapper.findAllComponents(Banner);
+
+      expect(banners).toHaveLength(1);
+      expect(banners[0].props('label')).toBe('test-namespace: admission webhook denied the request');
+      expect(banners[0].props('color')).toBe('error');
+    });
+
+    it('should only restore the namespaces that failed to save', async() => {
+      const saved = createMockNamespace('p-abc123');
+      const failed = createMockNamespace('p-abc123');
+
+      failed.save.mockRejectedValue(new Error('Save failed'));
+
+      wrapper = mountComponent({ resources: [saved, failed] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      wrapper.vm.targetProject = 'p-def456';
+
+      await wrapper.vm.move(jest.fn());
+
+      expect(saved.setLabel).toHaveBeenCalledTimes(1);
+      expect(failed.setLabel).toHaveBeenCalledTimes(2);
+      expect(failed.setLabel).toHaveBeenLastCalledWith('field.cattle.io/projectId', undefined);
+    });
+
+    it('should clear previous errors when moving again', async() => {
+      const namespace = createMockNamespace('p-abc123');
+
+      wrapper = mountComponent({ resources: [namespace] });
+      await wrapper.vm.$options.fetch.call(wrapper.vm);
+
+      wrapper.vm.errors = ['old error'];
+      wrapper.vm.targetProject = 'p-def456';
+
+      await wrapper.vm.move(jest.fn());
+
+      expect(wrapper.vm.errors).toStrictEqual([]);
     });
   });
 });
