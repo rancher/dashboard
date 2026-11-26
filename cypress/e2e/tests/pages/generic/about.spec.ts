@@ -101,6 +101,28 @@ describe('About Page', { testIsolation: true, tags: ['@generic', '@adminUser', '
     aboutPage.self().find('a[href*="releases.rancher.com/cli2"]').should('not.exist');
   });
 
+  it('has consistent spacing between all sections and at the bottom of the page', () => {
+    aboutPage.goTo();
+    aboutPage.waitForPage();
+
+    aboutPage.sectionHeadings().should('have.length.greaterThan', 1).then(($headings) => {
+      const spacings = $headings.toArray().slice(1).map((heading) => getComputedStyle(heading).paddingTop);
+      const expectedSpacing = spacings[0];
+
+      expect(parseFloat(expectedSpacing)).to.be.greaterThan(0);
+      spacings.forEach((spacing) => {
+        expect(spacing).to.eq(expectedSpacing);
+      });
+
+      aboutPage.aboutContainer().should('have.css', 'padding-bottom', expectedSpacing).then(($about) => {
+        const lastChildBottom = $about.children().last()[0].getBoundingClientRect().bottom;
+        const aboutBottom = $about[0].getBoundingClientRect().bottom;
+
+        expect(Math.round(aboutBottom - lastChildBottom)).to.be.at.least(parseFloat(expectedSpacing));
+      });
+    });
+  });
+
   describe('Rancher Prime', { tags: '@prime' }, () => {
     function interceptVersionAndSetToPrime() {
       return cy.intercept('GET', '/rancherversion', {
