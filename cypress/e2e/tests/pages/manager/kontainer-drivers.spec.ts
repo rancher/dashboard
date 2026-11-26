@@ -58,7 +58,11 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       const existingDriver = resp.body.data?.find((driver: any) => driver.url === downloadUrl);
 
       if (existingDriver) {
-        cy.deleteRancherResource('v3', 'kontainerDrivers', existingDriver.id);
+        cy.deleteRancherResource('v3', 'kontainerDrivers', existingDriver.id, false);
+        // The delete propagates asynchronously. Wait for the driver to actually be gone before
+        // re-creating, otherwise on a retry (testIsolation is off) the UI create races the delete
+        // and the POST comes back 409, failing every retry.
+        cy.waitForRancherResource('v3', 'kontainerdrivers', existingDriver.id, (r: any) => r?.status === 404, 20, { failOnStatusCode: false });
       }
     });
 
@@ -85,7 +89,13 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
       driverId = response?.body.id;
     });
 
-    driversPage.list().details(exampleDriver, 1).should('contain', 'Activating');
+    // The "Example" display name resolves from the fetched driver binary shortly after create, and
+    // the list can lag the create, so the row is not queryable by name within the default window.
+    // Wait longer for the row to appear, then confirm it reaches its Active end state. (The transient
+    // "Activating" state raced the name resolving and was not reliably observable by name.)
+    driversPage.list().resourceTable().sortableTable()
+      .rowElementWithName(exampleDriver, LONG_TIMEOUT_OPT)
+      .should('be.visible');
     driversPage.list().details(exampleDriver, 1).contains('Active', LONG_TIMEOUT_OPT);
 
     // Verify the driver tile appears on the cluster create page.
@@ -341,10 +351,9 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     driversPage.list().resourceTable().sortableTable().checkVisible();
     driversPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
 
-    cy.intercept('DELETE', '/v3/kontainerDrivers/*', {
-      statusCode: 200,
-      body:       { }
-    }).as('deleteDriver');
+    // A 204 says the driver is gone, so the list drops it. A 200 says it may be terminating, and the
+    // driver that was never really deleted stays in the list
+    cy.intercept('DELETE', '/v3/kontainerDrivers/*', { statusCode: 204 }).as('deleteDriver');
 
     driversPage.list().actionMenu(exampleDriver).getMenuItem('Delete').click();
 
@@ -353,7 +362,7 @@ describe('Kontainer Drivers', { testIsolation: 'off', tags: ['@manager', '@admin
     promptRemove.remove();
 
     cy.wait('@deleteDriver').then(({ response }) => {
-      expect(response?.statusCode).to.eq(200);
+      expect(response?.statusCode).to.eq(204);
     });
 
     driversPage.waitForPage();
