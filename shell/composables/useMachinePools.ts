@@ -3,7 +3,6 @@ import { useStore, Store } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { removeObject } from '@shell/utils/array';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
-import merge from 'lodash/merge';
 
 /**
  * Classes to be adopted by the node badges in Machine pools
@@ -149,7 +148,7 @@ export function useMachinePools() {
    * one human-readable message per pool (e.g. "pool-a has invalid fields: quantity and roles").
    */
   function recordMachinePoolError(error: Record<string, string[]>): string[] {
-    machinePoolErrors.value = merge(machinePoolErrors.value, error);
+    machinePoolErrors.value = { ...machinePoolErrors.value, ...error };
 
     return Object.entries(machinePoolErrors.value)
       .map(([poolName, fields]) => {
