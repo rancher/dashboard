@@ -1,7 +1,9 @@
-import { mount } from '@vue/test-utils';
+import { mount, shallowMount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 import { _EDIT } from '@shell/config/query-params';
-import { AUTH_TYPE } from '@shell/config/types';
+import { AUTH_TYPE, SECRET } from '@shell/config/types';
+import { SECRET_TYPES } from '@shell/config/secret';
+import { FilterArgs, PaginationFilterField, PaginationParamFilter } from '@shell/types/store/pagination.types';
 import SelectOrCreateAuthSecret from '@shell/components/form/SelectOrCreateAuthSecret.vue';
 
 const requiredSetup = () => {
@@ -231,6 +233,71 @@ describe('component: SelectOrCreateAuthSecret', () => {
 
       expect(optionValues).toContain('default/gh-app');
       expect(optionValues).not.toContain('default/plain');
+    });
+  });
+
+  describe('fetching secrets by api', () => {
+    const responses: Record<string, unknown> = {
+      'cluster/request':    { data: ['own'] },
+      'cluster/createMany': ['classified own'],
+      'cluster/findPage':   ['store'],
+    };
+
+    const fetchSecrets = async(cacheSecrets: boolean) => {
+      const { global } = requiredSetup();
+      const urlFor = jest.fn((_type: string, _id: string | null, _opt: unknown) => 'secrets-url');
+      const dispatch = jest.fn((action: string, _payload?: unknown) => Promise.resolve(responses[action]));
+      const $store = { getters: { 'cluster/urlFor': urlFor }, dispatch };
+
+      const wrapper = shallowMount(SelectOrCreateAuthSecret, {
+        global: { ...global, mocks: { ...global.mocks, $store } },
+        props:  {
+          mode:               _EDIT,
+          namespace:          'default',
+          value:              {},
+          allowGithubApp:     true,
+          cacheSecrets,
+          registerBeforeHook: () => {},
+        },
+      });
+
+      const secrets = await (wrapper.vm as unknown as { filterSecretsByApi: () => Promise<string[]> }).filterSecretsByApi();
+
+      return {
+        secrets, urlFor, dispatch, actions: dispatch.mock.calls.map(([action]) => action)
+      };
+    };
+
+    const pageOf = (watch: boolean) => ({
+      namespaced: 'default',
+      pagination: new FilterArgs({
+        filters: [
+          PaginationParamFilter.createMultipleFields(
+            [SECRET_TYPES.SSH, SECRET_TYPES.BASIC, SECRET_TYPES.OPAQUE].map((value) => new PaginationFilterField({ field: 'metadata.fields.1', value }))
+          ),
+        ],
+      }),
+      watch,
+    });
+
+    it('should use its own response, and leave the store alone, when the secrets are not cached', async() => {
+      const {
+        secrets, urlFor, dispatch, actions
+      } = await fetchSecrets(false);
+
+      expect(secrets).toStrictEqual(['classified own']);
+      expect(actions).toStrictEqual(['cluster/request', 'cluster/createMany']);
+      expect(urlFor).toHaveBeenCalledWith(SECRET, null, pageOf(false));
+      expect(dispatch).toHaveBeenCalledWith('cluster/request', { url: 'secrets-url' });
+      expect(dispatch).toHaveBeenCalledWith('cluster/createMany', ['own']);
+    });
+
+    it('should go through the store when the secrets are cached', async() => {
+      const { secrets, dispatch, actions } = await fetchSecrets(true);
+
+      expect(secrets).toStrictEqual(['store']);
+      expect(actions).toStrictEqual(['cluster/findPage']);
+      expect(dispatch).toHaveBeenCalledWith('cluster/findPage', { type: SECRET, opt: pageOf(true) });
     });
   });
 });
