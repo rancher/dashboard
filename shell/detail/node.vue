@@ -149,7 +149,7 @@ export default {
     },
 
     graphVars() {
-      return { instance: `${ this.value.internalIp }:9796` };
+      return { instance: `${ this.value.internalIps[0] }:9796` };
     },
 
     podsUsed() {

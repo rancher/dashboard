@@ -4,6 +4,7 @@ import { get } from '@shell/utils/object';
 import { mapPref, GROUP_RESOURCES } from '@shell/store/prefs';
 import ButtonGroup from '@shell/components/ButtonGroup';
 import SortableTable from '@shell/components/SortableTable';
+import LimitedCell from '@shell/components/SortableTable/LimitedCell.vue';
 import { NAMESPACE, AGE } from '@shell/config/table-headers';
 import { COUNT } from '@shell/config/types';
 import { findBy } from '@shell/utils/array';
@@ -57,7 +58,7 @@ export default {
   emits: ['clickedActionButton', 'group-change'],
 
   components: {
-    ButtonGroup, SortableTable, TableViewControls, TableViewTabs, ToggleSwitch
+    ButtonGroup, LimitedCell, SortableTable, TableViewControls, TableViewTabs, ToggleSwitch
   },
 
   mixins: [
@@ -964,13 +965,21 @@ export default {
 
     <template #group-by="{group: thisGroup}">
       <div class="group-tab">
-        <span v-clean-html="thisGroup.ref" />
-        <span
-          v-if="showNamespaceCounts && Number.isInteger(namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count)"
-          class="count"
-        >
-          ({{ namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count }})
-        </span>
+        <div class="group-heading">
+          <LimitedCell
+            class="group-label"
+            :limits="{ lineClamp: 1 }"
+            focusable
+          >
+            <span v-clean-html="thisGroup.ref" />
+          </LimitedCell>
+          <span
+            v-if="showNamespaceCounts && Number.isInteger(namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count)"
+            class="count"
+          >
+            ({{ namespaceCounts[thisGroup.rows?.[0]?.metadata?.namespace]?.count }})
+          </span>
+        </div>
       </div>
     </template>
 
@@ -1042,8 +1051,23 @@ export default {
   min-width: 150px; height: 40px
 }
 
-.group-tab .count {
-  opacity: 0.7;
-  margin-left: 2px;
+.group-tab {
+  // Room for the tab's slanted edge, which reaches past it
+  max-width: calc(100% - 40px);
+
+  // A cut label leaves room for the count beside it
+  .group-heading {
+    display: flex;
+  }
+
+  .group-label {
+    color: var(--sortable-table-group-label);
+  }
+
+  .count {
+    opacity: 0.7;
+    // Also stands in for the space before it, which a flex row drops
+    margin-left: 6px;
+  }
 }
 </style>

@@ -187,6 +187,34 @@ describe('fx: resolveInitialProvider', () => {
   it('should be undefined when there are no providers at all', () => {
     expect(resolveInitialProvider([], 'okta-corp')).toBeUndefined();
   });
+
+  describe('with a requested provider', () => {
+    const withLocal = [option('okta-corp'), option('okta-partner'), option('local', { isLocal: true })];
+
+    it('should open on the requested provider over a different remembered one', () => {
+      expect(resolveInitialProvider(options, 'okta-corp', 'okta-partner')?.id).toBe('okta-partner');
+    });
+
+    it('should fall back to the remembered provider when the requested one is unknown', () => {
+      expect(resolveInitialProvider(options, 'okta-partner', 'unknown-config')?.id).toBe('okta-partner');
+    });
+
+    it('should fall back to the first provider when the requested one is unknown and nothing is remembered', () => {
+      expect(resolveInitialProvider(options, null, 'unknown-config')?.id).toBe('okta-corp');
+    });
+
+    it.each([null, undefined, ''])('should ignore an empty requested provider (%p)', (requestedId) => {
+      expect(resolveInitialProvider(options, 'okta-partner', requestedId)?.id).toBe('okta-partner');
+    });
+
+    it('should open on the local provider when it is requested', () => {
+      expect(resolveInitialProvider(withLocal, 'okta-partner', 'local')?.id).toBe('local');
+    });
+
+    it('should ignore a request for the local provider when local is not offered', () => {
+      expect(resolveInitialProvider(options, null, 'local')?.id).toBe('okta-corp');
+    });
+  });
 });
 
 describe('remembered provider storage', () => {
@@ -445,6 +473,12 @@ describe('fx: cloneableAuthConfigFields', () => {
     const fields = cloneableAuthConfigFields({ bindSecret: 'x', hostname: 'h' }, { bindSecret: { type: 'password' }, hostname: { type: 'string' } });
 
     expect(fields).toStrictEqual({ hostname: 'h' });
+  });
+
+  it('should leave out whether the source supports Single Logout', () => {
+    const fields = cloneableAuthConfigFields({ logoutAllSupported: false, clientId: 'abc' }, { logoutAllSupported: { type: 'boolean' }, clientId: { type: 'string' } });
+
+    expect(fields).toStrictEqual({ clientId: 'abc' });
   });
 
   it('should copy values rather than share them with the source', () => {

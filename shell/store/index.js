@@ -44,6 +44,7 @@ import sideNavService from '@shell/components/nav/TopLevelMenu.helper';
 import { fetchAndProcessDynamicContent } from '@shell/utils/dynamic-content';
 import { showReleaseWelcomeIfNew } from '@shell/utils/release-welcome';
 import { PROMETHEUS_FEDERATOR_SYSTEM_NAMESPACES_CONFIG_MAP } from '@shell/utils/monitoring';
+import { resumePendingRepoDownloads } from '@shell/utils/uiplugins-repos';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // because it's more efficient to do that sometimes.
@@ -913,6 +914,12 @@ export const actions = {
         all:   res[FLEET.WORKSPACE]
       });
     }
+
+    // An extension repository added before the page was last closed may have finished downloading
+    // in the meantime, or may still be going. Either way the user was promised a notification, so
+    // pick the wait back up rather than leave it unkept.
+    // This is a root action, so its own `dispatch`/`getters` already address the root namespace
+    resumePendingRepoDownloads({ dispatch, getters });
 
     const isMultiCluster = getters['isMultiCluster'];
 

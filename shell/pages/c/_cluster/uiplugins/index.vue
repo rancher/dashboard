@@ -39,6 +39,7 @@ import AppChartCardFooter from '@shell/pages/c/_cluster/apps/charts/AppChartCard
 import versions from '@shell/utils/versions';
 import { compareChartVersions } from '@shell/utils/chart';
 import { getPluginChartVersionLabel } from '@shell/utils/uiplugins';
+import { isReportableExtensionRepo, repoDownloadState, repoIndexId } from '@shell/utils/uiplugins-repos';
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -51,6 +52,7 @@ const TABS_VALUES = {
 // id of the container holding the extension cards - the tabs render in `tabs-only` mode, so this is
 // the tab panel they control
 const EXTENSIONS_PANEL_ID = 'extensions-tab-panel';
+
 
 export default {
   components: {
@@ -92,7 +94,8 @@ export default {
       hasFeatureFlag:                 true,
       defaultIcon:                    genericPluginSvg,
       reloadRequired:                 false,
-      rancherVersion:                 null
+      rancherVersion:                 null,
+      deferredRepoKeys:               []
     };
   },
 
@@ -106,8 +109,6 @@ export default {
         hash.plugins = this.$store.dispatch('management/findAll', { type: UI_PLUGIN });
       }
     }
-
-    hash.load = this.$store.dispatch('catalog/load', { reset: true });
 
     if (this.$store.getters['management/schemaFor'](MANAGEMENT.CLUSTER)) {
       hash.localCluster = this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: 'local' });
@@ -135,7 +136,6 @@ export default {
 
     this.rancherVersion = getVersionData()?.Version;
     this.plugins = res.plugins || [];
-    this.repos = res.repos || [];
     this.helmOps = res.helmOps || [];
     this.kubeVersion = res.localCluster?.kubernetesVersionBase || [];
 
@@ -155,6 +155,47 @@ export default {
     apps() {
       return this.$store.getters['management/all'](CATALOG.APP)
         .filter((app) => app.metadata?.namespace === UI_PLUGIN_NAMESPACE);
+    },
+
+    // Computed to reactively update when repositories are added, removed or re-indexed
+    repos() {
+      return this.$store.getters['management/all'](CATALOG.CLUSTER_REPO);
+    },
+
+    /**
+     * Extension repositories with no index yet, which is the only state in which they can
+     * contribute nothing, split by whether Rancher is still working on them or has given up.
+     * Repositories that already have an index are left alone even if their latest refresh failed,
+     * since their extensions are still installable.
+     */
+    pendingRepos() {
+      return this.repos
+        .filter((r) => isReportableExtensionRepo(r))
+        .map((r) => ({
+          id:   r.id,
+          name: r.nameDisplay,
+          ...repoDownloadState(r)
+        }))
+        .filter((r) => r.state !== 'ready');
+    },
+
+    failedRepos() {
+      return this.pendingRepos.filter((r) => r.state === 'failed');
+    },
+
+    downloadingRepos() {
+      return this.pendingRepos.filter((r) => r.state === 'downloading');
+    },
+
+    downloadingRepoNames() {
+      return this.downloadingRepos.map((r) => r.name).join(', ');
+    },
+
+    // Identity of each repository's index. The backend writes `indexConfigMapName` and
+    // `downloadTime` in the same status update when it publishes an index, so this changes exactly
+    // when a repository's charts first become fetchable, and again whenever they are replaced.
+    repoIndexes() {
+      return this.repos.map((r) => repoIndexId(r));
     },
 
     charts() {
@@ -393,6 +434,41 @@ export default {
       deep:      true
     },
 
+    /**
+     * A repository's index is built asynchronously, so a repository added from this page has no
+     * charts to fetch at the moment it is created. Pick them up when its index arrives over the
+     * socket instead of making the user reload the page.
+     */
+    repoIndexes(neu, old) {
+      const repoKeys = neu.filter((entry) => !old.includes(entry)).map((entry) => entry.split('|')[0]);
+
+      if (!repoKeys.length) {
+        return;
+      }
+
+      // Vue moves `old` on whether or not this handler acts, so an index landing mid-fetch would
+      // be lost for good if it were simply dropped. Hold it until the page has finished loading.
+      if (this.loading) {
+        this.deferredRepoKeys = [...new Set([...this.deferredRepoKeys, ...repoKeys])];
+
+        return;
+      }
+
+      this.loadRepoCharts(repoKeys);
+    },
+
+    loading(neu) {
+      if (neu || !this.deferredRepoKeys.length) {
+        return;
+      }
+
+      const repoKeys = this.deferredRepoKeys;
+
+      this.deferredRepoKeys = [];
+
+      this.loadRepoCharts(repoKeys);
+    },
+
     helmOps: {
       handler(neu) {
       // Get Helm operations for UI plugins and order by date
@@ -515,6 +591,16 @@ export default {
       }
     },
 
+    /**
+     * Nothing is waiting on this load, so it has to handle its own failure. The store rejects
+     * with a plain response object rather than an Error, which would otherwise surface as an
+     * unhandled `[object Object]` rejection.
+     */
+    loadRepoCharts(repoKeys) {
+      this.$store.dispatch('catalog/load', { force: true, repoKeys })
+        .catch((e) => console.error('Failed to load charts for', repoKeys, e)); // eslint-disable-line no-console
+    },
+
     async refreshCharts(forceChartsUpdate = false) {
       // we might need to force the request, so that we know at all times if what's the status of the offical and partners repos (installed or not)
       // tied to the SetupUIPlugins, AddExtensionRepos checkboxes
@@ -532,7 +618,7 @@ export default {
       }
 
       if ( hasFeatureFlag || forceChartsUpdate ) {
-        this.refreshCharts(forceChartsUpdate);
+        await this.refreshCharts(forceChartsUpdate);
       }
 
       this['hasFeatureFlag'] = hasFeatureFlag;
@@ -1452,6 +1538,42 @@ export default {
         </button>
       </Banner>
 
+      <Banner
+        v-if="!loading && failedRepos.length"
+        color="error"
+        role="alert"
+        class="mb-20"
+        data-testid="extensions-failed-repos-banner"
+      >
+        <div class="pending-repos">
+          <span>{{ t('plugins.pendingRepos.failed') }}</span>
+          <ul class="pending-repos__list">
+            <li
+              v-for="repo in failedRepos"
+              :key="repo.id"
+            >
+              <span class="pending-repos__name">{{ repo.name }}</span>
+              <!-- Rancher appends ". Will retry after <duration>" to its own message when another
+                   attempt is coming, so the banner does not need to say it a second time -->
+              <span v-if="repo.message"> - {{ repo.message }}</span>
+            </li>
+          </ul>
+        </div>
+      </Banner>
+
+      <Banner
+        v-if="!loading && downloadingRepos.length"
+        color="info"
+        role="status"
+        class="mb-20"
+        data-testid="extensions-downloading-repos-banner"
+      >
+        <div class="pending-repos">
+          <div v-clean-html="t('plugins.pendingRepos.downloading', { names: downloadingRepoNames }, true)" />
+          <div v-clean-html="t('plugins.pendingRepos.continue', {}, true)" />
+        </div>
+      </Banner>
+
       <Tabbed
         v-if="!loading"
         ref="tabs"
@@ -1625,6 +1747,19 @@ export default {
     align-items: center;
   }
 
+  // `.banner__content` lays its children out in a row, so the message and the repository names
+  // need a single block child of their own to read as one paragraph
+  .pending-repos {
+    &__list {
+      margin: 5px 0 0 0;
+      padding-left: 20px;
+    }
+
+    &__name {
+      font-weight: 600;
+    }
+  }
+
   .plugin-cards {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -1639,4 +1774,16 @@ export default {
     }
   }
 
+</style>
+
+<!-- Not scoped: the emphasis in the downloading banner comes from a translated string rendered
+     with v-clean-html, which scoped styles cannot reach. `.pending-repos` is only used here. -->
+<style lang="scss">
+.pending-repos {
+  // Emphasis is carried by weight alone. The browser default for `b` is `bolder`, which lands on
+  // 700 and reads as though the text had also grown, so match the 600 used elsewhere here.
+  b {
+    font-weight: 600;
+  }
+}
 </style>

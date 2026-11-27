@@ -780,6 +780,37 @@ describe('class: Resource', () => {
     });
   });
 
+  describe('exporting', () => {
+    const table = { headers: [{ name: 'name' }], rows: [{}] };
+
+    const exportable = () => {
+      const commit = jest.fn();
+      const resource = new Resource({ type: 'test' }, {
+        commit,
+        getters:     { schemaFor: () => ({ linkFor: jest.fn() }) },
+        rootGetters: { 'i18n/t': (key: string) => key, 'features/get': () => true },
+      });
+
+      return { resource, commit };
+    };
+
+    it.each([
+      ['a resource', (resource: Resource) => resource.download(table), 1],
+      ['a selection', (resource: Resource) => resource.downloadBulk([resource, resource], table), 2],
+    ])('should open the export of %s with the table it was picked in', async(_, run, count) => {
+      const { resource, commit } = exportable();
+
+      await run(resource);
+
+      const [mutation, { componentProps }] = commit.mock.calls[0];
+
+      expect(mutation).toBe('modal/openModal');
+      expect(componentProps).toStrictEqual({
+        count, isSelection: true, table
+      });
+    });
+  });
+
   describe('getter: _availableActions', () => {
     function createResource(links: Record<string, string>, overrides: Record<string, any> = {}) {
       const resource = new Resource({
@@ -817,6 +848,12 @@ describe('class: Resource', () => {
     function findAction(actions: any[], actionName: string) {
       return actions.find((a: any) => a.action === actionName);
     }
+
+    it('should have the export ask for the table it is picked in', () => {
+      const action = findAction(createResource({ view: '/api/v1/test' })._availableActions, 'download');
+
+      expect([action.bulkAction, action.passTable]).toStrictEqual(['downloadBulk', true]);
+    });
 
     it('should hide "View YAML" when "Show Configuration" is enabled and resource cannot edit YAML', () => {
       const resource = createResource({ view: '/api/v1/test' });

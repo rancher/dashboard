@@ -41,7 +41,7 @@ describe('view: node detail', () => {
     isDiskPressureOk:   true,
     isMemoryPressureOk: true,
     isKubeletOk:        true,
-    internalIp:         '10.0.0.1',
+    internalIps:        ['10.0.0.1'],
   };
 
   function createWrapper(nodeOverrides = {}) {
@@ -118,5 +118,11 @@ describe('view: node detail', () => {
       expect([gauge.props('used')?.formattedUseful, gauge.props('used')?.formattedTotal]).toStrictEqual(['0.88', '62 GiB']);
       expect([gauge.props('reserved')?.formattedUseful, gauge.props('reserved')?.formattedTotal]).toStrictEqual(['500', '800 MiB']);
     });
+  });
+
+  it('should look up the metrics by the first internal IP, whichever internal IP is shown', () => {
+    const wrapper = createWrapper({ internalIp: 'fd00::1', internalIps: ['10.0.0.1', 'fd00::1'] });
+
+    expect((wrapper.vm as any).graphVars).toStrictEqual({ instance: '10.0.0.1:9796' });
   });
 });

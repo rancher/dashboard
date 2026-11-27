@@ -2,16 +2,27 @@ import { mount } from '@vue/test-utils';
 import DisableLocalLoginDialog from '@shell/dialog/DisableLocalLoginDialog.vue';
 import { Checkbox } from '@components/Form/Checkbox';
 
-const createWrapper = (props = {}) => mount(DisableLocalLoginDialog, { props });
+const createWrapper = (props = {}) => mount(DisableLocalLoginDialog, {
+  props:    { modal: { show: true, onClose: jest.fn() }, ...props },
+  attachTo: document.body,
+  global:   { stubs: { teleport: true } },
+});
 
 const confirmButton = (wrapper: any) => wrapper.find('[data-testid="disable-local-login-confirm-button"]');
-const cancelButton = (wrapper: any) => wrapper.find('[data-testid="disable-local-login-cancel-button"]');
+const cancelButton = (wrapper: any) => wrapper.find('[data-testid="rc-modal-cancel"]');
+const onClose = (wrapper: any) => wrapper.props('modal').onClose;
 
 describe('component: DisableLocalLoginDialog', () => {
+  it('should render nothing until it is told to show', () => {
+    const wrapper = createWrapper({ modal: { show: false, onClose: jest.fn() } });
+
+    expect(wrapper.find('[data-testid="rc-modal-title"]').exists()).toBe(false);
+  });
+
   it('should ask about the setting being turned on', () => {
     const wrapper = createWrapper();
 
-    expect(wrapper.find('h3').text()).toBe('%authConfig.disableLocal.title%');
+    expect(wrapper.find('[data-testid="rc-modal-title"]').text()).toBe('%authConfig.disableLocal.title%');
   });
 
   // Local accounts surviving, and the way back, are the two things an admin needs
@@ -47,7 +58,7 @@ describe('component: DisableLocalLoginDialog', () => {
     await confirmButton(wrapper).trigger('click');
 
     expect(disableCb).not.toHaveBeenCalled();
-    expect(wrapper.emitted('close')).toBeUndefined();
+    expect(onClose(wrapper)).not.toHaveBeenCalled();
   });
 
   it('should run the callback once acknowledged and confirmed', async() => {
@@ -58,7 +69,7 @@ describe('component: DisableLocalLoginDialog', () => {
     await confirmButton(wrapper).trigger('click');
 
     expect(disableCb).toHaveBeenCalledWith();
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(onClose(wrapper)).toHaveBeenCalledWith();
   });
 
   it('should close without disabling when cancelled', async() => {
@@ -69,7 +80,7 @@ describe('component: DisableLocalLoginDialog', () => {
     await cancelButton(wrapper).trigger('click');
 
     expect(disableCb).not.toHaveBeenCalled();
-    expect(wrapper.emitted('close')).toHaveLength(1);
+    expect(onClose(wrapper)).toHaveBeenCalledWith();
   });
 
   // The dialog is opened from a page that already has its own, so the prefix has

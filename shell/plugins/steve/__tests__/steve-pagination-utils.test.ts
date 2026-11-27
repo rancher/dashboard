@@ -3,6 +3,7 @@ import { PaginationFilterEquality, PaginationFilterField, PaginationParamFilter,
 import { NAMESPACE_FILTER_ALL_SYSTEM, NAMESPACE_FILTER_ALL_USER, NAMESPACE_FILTER_P_FULL_PREFIX } from '@shell/utils/namespace-filter';
 import stevePaginationUtils from '../steve-pagination-utils';
 import { Schema } from '@shell/plugins/steve/schema';
+import { CRD } from '@shell/config/types';
 
 type Namespaces = Parameters<(typeof stevePaginationUtils)['handlePrefAndSettingFilter']>[0]['allNamespaces'];
 
@@ -369,6 +370,47 @@ describe('class StevePaginationUtils', () => {
     });
   });
 
+  describe('method: createParamsForPagination with the CRD Resource column fields', () => {
+    const crdSchema = { id: CRD, attributes: { columns: [] } } as unknown as Schema;
+    const resourceFields = ['spec.group', 'spec.names.singular'];
+    let warn: jest.SpyInstance;
+
+    beforeEach(() => {
+      warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warn.mockRestore();
+    });
+
+    it('should sort by them without warning that the api does not support them', () => {
+      stevePaginationUtils.createParamsForPagination({
+        schema: crdSchema,
+        opt:    { pagination: { pageSize: 10, sort: resourceFields.map((field) => ({ field, asc: true })) } }
+      } as any);
+
+      expect(warn.mock.calls).toStrictEqual([]);
+    });
+
+    it('should filter by them without warning that the api does not support them', () => {
+      stevePaginationUtils.createParamsForPagination({
+        schema: crdSchema,
+        opt:    {
+          pagination: {
+            pageSize: 10,
+            filters:  [new PaginationParamFilter({
+              fields: resourceFields.map((field) => new PaginationFilterField({
+                field, value: 'auditpolicy', exact: false
+              }))
+            })]
+          }
+        }
+      } as any);
+
+      expect(warn.mock.calls).toStrictEqual([]);
+    });
+  });
+
   describe('method: convertPaginationParams', () => {
     it('should return an empty string for no filters', () => {
       const result = stevePaginationUtils['convertPaginationParams']({ schema, filters: [] });
@@ -456,6 +498,31 @@ describe('class StevePaginationUtils', () => {
       const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
 
       expect(result).toBe(`filter=metadata.name=${ y }`);
+    });
+
+    it.each([
+      ['double quotes', 'He said "hello", then left', 'He%20said%20%5C%22hello%5C%22%2C%20then%20left'],
+      ['a double quote in a word', 'a"b', 'a%5C%22b'],
+      ['a single quote', `it's`, `it's`],
+      ['backslashes', 'C:\\temp', 'C%3A%5C%5Ctemp'],
+      ['a backslash at the end', 'C:\\', 'C%3A%5C%5C'],
+      ['a double quote after a backslash', 'a\\"b', 'a%5C%5C%5C%22b'],
+    ])('should keep a filter value as it is for the api: %s', (_, x, y) => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: x })] }),
+      ];
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
+
+      expect(result).toBe(`filter=metadata.name="${ y }"`);
+    });
+
+    it('should send a number that needs quotes as text', () => {
+      const filters = [
+        new PaginationParamFilter({ fields: [new PaginationFilterField({ field: 'metadata.name', value: -1 as unknown as string })] }),
+      ];
+      const result = stevePaginationUtils['convertPaginationParams']({ schema, filters });
+
+      expect(result).toBe('filter=metadata.name="-1"');
     });
 
     it('should handle IN and NOT_IN operators', () => {

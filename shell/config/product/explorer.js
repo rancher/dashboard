@@ -585,11 +585,13 @@ export function init(store) {
   const CRD_CR_COL = {
     name:          'crd-cr',
     labelKey:      'tableHeaders.customResources',
-    sort:          false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
-    search:        false, // ['spec.group', 'spec.names.singular'], blocked on https://github.com/rancher/rancher/issues/55811
-    value:         'resourceLink',
+    sort:          ['spec.group', 'spec.names.singular'],
+    search:        ['spec.group', 'spec.names.singular'],
+    value:         'resourceType',
     formatter:     'Link',
-    formatterOpts: { options: { internal: true } },
+    formatterOpts: {
+      urlKey: 'resourceLink.to', labelKey: 'resourceLink.text', options: { internal: true }
+    },
   };
 
   headers(CRD, [

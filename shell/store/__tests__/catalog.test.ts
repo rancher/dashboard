@@ -124,6 +124,90 @@ describe('catalog', () => {
       };
     };
 
+    describe('serialisation', () => {
+      /**
+       * Each load decides what to fetch when it starts, and a `reset` one rebuilds `charts` from
+       * only what it fetched. Two running at once let the slower commit last and discard what the
+       * other found, which silently drops a repo indexed while a `reset` load was in flight.
+       */
+      const slowRepoStore = (order: string[]) => {
+        const config: any = constructStore();
+        const defer = (label: string, ms: number) => () => new Promise((resolve) => {
+          order.push(`${ label }:start`);
+          setTimeout(() => {
+            order.push(`${ label }:end`);
+            resolve({ entries: { [repoChartName]: [repoChart] } });
+          }, ms);
+        });
+
+        config.modules[clusterStore].actions.findAll = (ctx: any, ...args: any[]) => {
+          if (args[0].type === CATALOG.CLUSTER_REPO) {
+            return Promise.resolve([clusterRepo]);
+          }
+          if (args[0].type === CATALOG.REPO) {
+            // First load fetches slowly, the next one quickly
+            const followLink = order.length ? defer('fast', 0) : defer('slow', 30);
+
+            return Promise.resolve([{ ...repo, followLink }]);
+          }
+
+          return Promise.resolve([]);
+        };
+
+        return config;
+      };
+
+      it('should not let a slow load overlap a later one', async() => {
+        const order: string[] = [];
+        const store = createStore(slowRepoStore(order));
+
+        await Promise.all([
+          store.dispatch(`${ catalogStoreName }/load`, { force: true, reset: true }),
+          store.dispatch(`${ catalogStoreName }/load`, { force: true, repoKeys: [repo._key] }),
+        ]);
+
+        expect(order).toStrictEqual(['slow:start', 'slow:end', 'fast:start', 'fast:end']);
+      });
+
+      it('should keep the charts found by the later load', async() => {
+        const order: string[] = [];
+        const store = createStore(slowRepoStore(order));
+
+        await Promise.all([
+          store.dispatch(`${ catalogStoreName }/load`, { force: true, reset: true }),
+          store.dispatch(`${ catalogStoreName }/load`, { force: true, repoKeys: [repo._key] }),
+        ]);
+
+        expect(store.getters[`${ catalogStoreName }/rawCharts`][expectedChartKey]).toBeDefined();
+      });
+
+      it('should keep running after a load fails', async() => {
+        const config: any = constructStore();
+        let first = true;
+
+        config.modules[clusterStore].actions.findAll = (ctx: any, ...args: any[]) => {
+          if (args[0].type === CATALOG.CLUSTER_REPO) {
+            if (first) {
+              first = false;
+
+              return Promise.reject(new Error('boom'));
+            }
+
+            return Promise.resolve([clusterRepo]);
+          }
+
+          return Promise.resolve(args[0].type === CATALOG.REPO ? [repo] : []);
+        };
+
+        const store = createStore(config);
+
+        await expect(store.dispatch(`${ catalogStoreName }/load`, { force: true })).rejects.toThrow('boom');
+        await store.dispatch(`${ catalogStoreName }/load`, { force: true });
+
+        expect(store.getters[`${ catalogStoreName }/rawCharts`][expectedChartKey]).toBeDefined();
+      });
+    });
+
     it('no force', async() => {
       const store = createStore(constructStore());
 

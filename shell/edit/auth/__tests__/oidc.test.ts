@@ -429,3 +429,50 @@ describe('oidc.vue', () => {
     });
   });
 });
+
+describe('oidc.vue: Single Logout options', () => {
+  it.each([
+    ['onlyRancher', 0],
+    ['logoutAll', 1],
+  ])('should name the provider in the %p option of a config that has no name yet', (key, index) => {
+    const t = (val: string, args?: object) => (args ? `${ val }:${ JSON.stringify(args) }` : val);
+    const wrapper = mount(oidc, {
+      data() {
+        return {
+          isEnabling:     false,
+          editConfig:     false,
+          model:          { type: 'keyCloakOIDCConfig', logoutAllSupported: true },
+          serverSetting:  null,
+          errors:         [],
+          originalModel:  null,
+          principals:     [],
+          authConfigName: '',
+        } as any;
+      },
+      global: {
+        mocks: {
+          t,
+          $fetchState: { pending: false },
+          $store:      {
+            getters: {
+              currentStore:              () => 'current_store',
+              'current_store/schemaFor': jest.fn(),
+              'current_store/all':       jest.fn(),
+              'i18n/t':                  t,
+              'i18n/exists':             jest.fn(),
+              'features/get':            () => false,
+            },
+            dispatch: jest.fn(),
+          },
+          $route:  { query: { AS: '' }, params: { id: '' } },
+          $router: { applyQuery: jest.fn() },
+        },
+      },
+      props: { value: {}, mode: _EDIT },
+    });
+
+    expect(wrapper.vm.sloOptions[index].label).toBe(t(`authConfig.slo.sloOptions.${ key }`, { name: 'model.authConfig.provider.keycloakoidc' }));
+
+    wrapper.unmount();
+  });
+});

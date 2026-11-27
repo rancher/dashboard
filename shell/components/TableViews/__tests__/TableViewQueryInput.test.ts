@@ -83,6 +83,18 @@ describe('TableViewQueryInput', () => {
     expect(wrapper.emitted('update:value')).toHaveLength(typed as number);
   });
 
+  it.each([
+    ['double quotes', 'He said "hello there", then left', `state:'He said "hello there", then left' `],
+    ['an apostrophe', `it's`, `state:"it's" `],
+  ])('should write a picked value with %s as one term', async(_, value, query) => {
+    mountWith({ fieldValues: { state: [{ value, count: 1 }] } });
+    await type('state:');
+    options()[0].dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    await nextTick();
+
+    expect(wrapper.emitted<[string]>('update:value')?.slice(-1)[0]?.[0]).toBe(query);
+  });
+
   it('should name a field by its column first, and the word to type second', async() => {
     mountWith({});
     await type('sta');

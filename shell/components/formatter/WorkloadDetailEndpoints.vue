@@ -33,8 +33,7 @@ export default {
     // annotation, which holds the same array
     parsed() {
       const nodes = this.nodes;
-      const nodeWithExternal = nodes.find((node) => !!node.externalIp) || {};
-      const externalIp = nodeWithExternal.externalIp;
+      const externalIp = nodes.find((node) => node.externalIps?.length)?.externalIps[0];
 
       if ( this.value && this.value.length ) {
         let endpoints;

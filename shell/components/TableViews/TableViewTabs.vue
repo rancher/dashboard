@@ -20,6 +20,7 @@ import { isMac, shortcutLabel } from '@shell/utils/platform';
 import { shareTableView, sharedTableKey } from '@shell/utils/table-views/share';
 import type { SharedTableView } from '@shell/utils/table-views/share';
 import { registerTableViewShortcuts } from '@shell/utils/table-views/shortcuts';
+import { announce } from '@shell/utils/aria-announce';
 import type { TableViewShortcutAction } from '@shell/utils/table-views/shortcuts';
 import { randomStr } from '@shell/utils/string';
 import { isViewDirty, isViewModified, persistenceIdOf, selectedViewIdFor } from '@shell/utils/table-views/views';
@@ -564,6 +565,52 @@ const focusTab = (id: string | null, toEnd = false) => {
   });
 };
 
+/** The view this user is deleting, which moves the list itself */
+let deletingId: string | null = null;
+
+/** The tab the list opens on once `goneId` has gone: the user's default, else the page's, else its own */
+const defaultTabWithout = (goneId: string) => {
+  const id = defaultViewIdFor(ownDefaultViewId.value, globalViews.value, allViews.value.map((view) => view.id).filter((viewId) => viewId !== goneId));
+
+  return (tabs.value || []).find((tab) => tab.id === id);
+};
+
+/**
+ * Someone else can take a view away: deleted, unpublished or no longer readable. Its held edits go with
+ * it. In front, what it put on the table goes too, for the tab the list opens on, and so does the pick,
+ * or its return would move the user back. `before` are the views as they were, to name the one that went
+ */
+const leaveGoneView = (before: TableViewSaved[] = []) => {
+  const ids = new Set(allViews.value.map((view) => view.id));
+  const id = pickedViewId.value;
+
+  Object.keys(drafts.value).filter((key) => key !== draftKey(null) && !ids.has(key)).forEach(forgetDraft);
+
+  if (!id || id === deletingId || ids.has(id)) {
+    return;
+  }
+
+  // An export open on it is still of it, not of the tab taking its place
+  if (modal.value?.kind === 'export' && !modal.value.view) {
+    modal.value = { ...modal.value, view: { ...props.view } };
+  }
+
+  const hadFocus = tabWraps.get(id)?.contains(document.activeElement);
+  const landing = defaultTabWithout(id);
+  const name = before.find((view) => view.id === id)?.name;
+
+  showTab(landing);
+
+  if (hadFocus) {
+    focusTab(landing?.id || null);
+  }
+
+  // The list changed without the user doing anything, so a screen reader is told why
+  if (name) {
+    announce(t('tableViews.tab.removed', { name, view: landing?.name || t('tableViews.tabs.all') }, true));
+  }
+};
+
 const openRename = (saved?: { id?: string, name?: string } | null) => {
   if (!saved?.id) {
     return;
@@ -892,9 +939,20 @@ const deleteView = async(saved?: TableViewSaved) => {
   const neighbour = list[index > 0 ? index - 1 : index + 1];
 
   // Gone for everyone, so only once the cluster agrees
+  deletingId = saved.id;
+
   const removed = shared ? await removeShared(saved.id) : null;
 
+  deletingId = null;
+
   if (removed && !removed.ok) {
+    // It can fail because someone else deleted it first. Its tab, and the focus with it, can be gone already
+    leaveGoneView([saved]);
+
+    if (wasSelected && pickedViewId.value !== saved.id) {
+      focusTab(selectedViewId.value);
+    }
+
     return;
   }
 
@@ -908,10 +966,11 @@ const deleteView = async(saved?: TableViewSaved) => {
   }
 
   if (wasSelected) {
-    showTab(neighbour);
-  }
+    const landing = defaultTabWithout(saved.id);
 
-  if (neighbour) {
+    showTab(landing);
+    focusTab(landing?.id || null);
+  } else if (neighbour) {
     focusTab(neighbour.id);
   }
 
@@ -1075,6 +1134,8 @@ const SHORTCUT_ACTIONS: Record<TableViewShortcutAction, () => void> = {
 };
 
 watch(tabQueries, (queries) => emit('tab-queries', queries), { immediate: true });
+
+watch(allViews, (_, before) => leaveGoneView(before));
 
 /**
  * Shared views can come after the list has opened the first time, so a default among them is
