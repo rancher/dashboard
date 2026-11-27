@@ -15,6 +15,10 @@ export default class PromptRemove extends ComponentPo {
     return this.confirmField().set(text);
   }
 
+  confirmText() {
+    return this.self().find('.confirm-text');
+  }
+
   remove() {
     return this.self().getId('prompt-remove-confirm-button').click();
   }
@@ -25,6 +29,10 @@ export default class PromptRemove extends ComponentPo {
 
   cancel() {
     return this.self().get('.btn.role-secondary').contains('Cancel').click();
+  }
+
+  background() {
+    return this.self().closest('.modal-overlay');
   }
 
   // Get the warning message

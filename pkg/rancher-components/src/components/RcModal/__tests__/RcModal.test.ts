@@ -50,6 +50,15 @@ const dialog = () => document.querySelector('#modals .rc-modal') as HTMLElement;
 
 const modalBody = () => document.querySelector('[data-testid="rc-modal-body"]') as HTMLElement;
 
+const background = () => document.querySelector('.rc-modal-overlay') as HTMLElement;
+
+const pressOn = (el: HTMLElement) => el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+
+const clickBackground = () => {
+  pressOn(background());
+  background().dispatchEvent(new MouseEvent('click'));
+};
+
 const setBodyOverflow = (scrollHeight: number, clientHeight: number) => {
   const el = modalBody();
 
@@ -348,9 +357,34 @@ describe('component: RcModal', () => {
     it('should emit close when the background is clicked', () => {
       const wrapper = mountModal();
 
-      (document.querySelector('.rc-modal-overlay') as HTMLElement).dispatchEvent(new MouseEvent('click'));
+      clickBackground();
 
       expect(wrapper.emitted('close')).toHaveLength(1);
+
+      wrapper.unmount();
+    });
+
+    it('should not emit close when a press inside the dialog is released on the background, so selecting text or dragging out does not dismiss it', () => {
+      const wrapper = mountModal();
+
+      pressOn(modalBody());
+      background().dispatchEvent(new MouseEvent('click'));
+
+      expect(wrapper.emitted('close')).toBeUndefined();
+
+      wrapper.unmount();
+    });
+
+    it('should not emit close when a press inside content that stops mousedown is released on the background', () => {
+      const wrapper = mountModal();
+
+      modalBody().addEventListener('mousedown', (event) => event.stopPropagation());
+
+      pressOn(background());
+      pressOn(modalBody());
+      background().dispatchEvent(new MouseEvent('click'));
+
+      expect(wrapper.emitted('close')).toBeUndefined();
 
       wrapper.unmount();
     });
@@ -358,6 +392,7 @@ describe('component: RcModal', () => {
     it('should not emit close when the dialog itself is clicked', () => {
       const wrapper = mountModal();
 
+      pressOn(background());
       dialog().dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
       expect(wrapper.emitted('close')).toBeUndefined();
@@ -409,7 +444,7 @@ describe('component: RcModal', () => {
     it('should not close on a background click when clickToClose is false', () => {
       const wrapper = mountModal({ props: { clickToClose: false } });
 
-      (document.querySelector('.rc-modal-overlay') as HTMLElement).dispatchEvent(new MouseEvent('click'));
+      clickBackground();
 
       expect(wrapper.emitted('close')).toBeUndefined();
 
@@ -514,7 +549,7 @@ describe('component: RcModal', () => {
     it('should emit cancel then close from a background click', () => {
       const wrapper = mountModal();
 
-      (document.querySelector('.rc-modal-overlay') as HTMLElement).dispatchEvent(new MouseEvent('click'));
+      clickBackground();
 
       expect(wrapper.emitted('cancel')).toHaveLength(1);
       expect(wrapper.emitted('close')).toHaveLength(1);
