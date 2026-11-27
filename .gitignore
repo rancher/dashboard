@@ -123,3 +123,8 @@ codecov
 
 # @rancher/shell on-demand legacy ESLint toolchain (installed by scripts/lint)
 shell/eslint-legacy/node_modules/
+
+# Raw e2e recordings can hold credentials; only the scrubbed bundles in cypress/integration-mocks are committed
+cypress/recordings/
+e2e-recordings/
+e2e-mocks/

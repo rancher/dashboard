@@ -2,6 +2,7 @@
 import { defineConfig } from 'cypress';
 import websocketTasks from './support/utils/webSocket-utils';
 import { CypressFailedAttempt, formatFailedCypressAttempt } from './support/utils/retry-logging';
+import { e2eModeFromEnv, e2eModeUrls, e2eRecordingSet, startE2EModeServer } from './support/e2e-modes/config';
 import path from 'path';
 import * as os from 'os';
 import * as fs from 'fs';
@@ -59,14 +60,21 @@ const getCpuUsage = (): Promise<number> => {
  */
 const hasCoverage = (process.env.TEST_INSTRUMENT === 'true') || false; // Add coverage if instrumented
 let testDirs = ['priority', 'components', 'setup', 'pages', 'navigation', 'global-ui', 'features', 'extensions'];
-const skipSetup = process.env.TEST_SKIP?.includes('setup');
-const baseUrl = (process.env.TEST_BASE_URL || 'https://localhost:8005').replace(/\/$/, '');
+const e2eMode = e2eModeFromEnv(process.env);
+const skipSetup = process.env.TEST_SKIP?.includes('setup') || (e2eMode === 'integration' && !process.env.TEST_ONLY?.includes('setup'));
+const defaultBaseUrl = e2eMode === 'integration' ? 'https://localhost:8005/dashboard' : 'https://localhost:8005';
+const baseUrl = (process.env.TEST_BASE_URL || defaultBaseUrl).replace(/\/$/, '');
 const DEFAULT_USERNAME = 'admin';
 const username = process.env.TEST_USERNAME || DEFAULT_USERNAME;
 const apiUrl = process.env.API || (baseUrl.endsWith('/dashboard') ? baseUrl.split('/').slice(0, -1).join('/') : baseUrl);
 const rancherVersion = process.env.RANCHER_VERSION;
 const noPassedVideos = process.env.TEST_NO_PASSED_VIDEOS === 'true';
 const passedSpecVideo = path.join(__dirname, 'support', 'assets', 'passed-spec.mp4');
+const modeUrls = e2eModeUrls(e2eMode, baseUrl, apiUrl, process.env);
+
+if (e2eMode === 'integration' && skipSetup && !process.env.TEST_SKIP?.includes('setup')) {
+  process.env.TEST_SKIP = [process.env.TEST_SKIP, 'setup'].filter(Boolean).join(',');
+}
 
 if (process.env.TEST_A11Y) {
   testDirs = ['accessibility'];
@@ -79,25 +87,31 @@ if (process.env.TEST_A11Y) {
  */
 console.log('E2E Test Configuration');
 console.log('');
+console.log(`    Mode: ${ e2eMode }`);
 console.log(`    Username: ${ username }`);
 
-if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
-  console.log(' ❌ You must provide either CATTLE_BOOTSTRAP_PASSWORD or TEST_PASSWORD');
-}
-if (process.env.CATTLE_BOOTSTRAP_PASSWORD && process.env.TEST_PASSWORD) {
-  console.log(' ❗ If both CATTLE_BOOTSTRAP_PASSWORD and TEST_PASSWORD are provided, the first will be used');
-}
-if (!skipSetup && !process.env.CATTLE_BOOTSTRAP_PASSWORD) {
-  console.log(' ❌ You must provide CATTLE_BOOTSTRAP_PASSWORD when running setup tests');
-}
-if (skipSetup && !process.env.TEST_PASSWORD) {
-  console.log(' ❌ You must provide TEST_PASSWORD when running the tests without the setup tests');
+if (e2eMode !== 'integration') {
+  if (!process.env.CATTLE_BOOTSTRAP_PASSWORD && !process.env.TEST_PASSWORD) {
+    console.log(' ❌ You must provide either CATTLE_BOOTSTRAP_PASSWORD or TEST_PASSWORD');
+  }
+  if (process.env.CATTLE_BOOTSTRAP_PASSWORD && process.env.TEST_PASSWORD) {
+    console.log(' ❗ If both CATTLE_BOOTSTRAP_PASSWORD and TEST_PASSWORD are provided, the first will be used');
+  }
+  if (!skipSetup && !process.env.CATTLE_BOOTSTRAP_PASSWORD) {
+    console.log(' ❌ You must provide CATTLE_BOOTSTRAP_PASSWORD when running setup tests');
+  }
+  if (skipSetup && !process.env.TEST_PASSWORD) {
+    console.log(' ❌ You must provide TEST_PASSWORD when running the tests without the setup tests');
+  }
 }
 
 console.log(`    Setup tests will ${ skipSetup ? 'NOT' : '' } be run`);
 console.log(`    Dashboard URL: ${ baseUrl }`);
 console.log(`    Rancher API URL: ${ apiUrl }`);
 console.log(`    Rancher version: ${ rancherVersion || 'not provided' }`);
+if (e2eMode !== 'full') {
+  console.log(`    Record/replay server: ${ modeUrls.origin } (recording set '${ e2eRecordingSet(process.env, username) }')`);
+}
 
 // Check API - sometimes in dev, you might have API set to a different system to the base url - this won't work
 // as the login cookie will be for the base url and any API requests will fail as not authenticated
@@ -152,11 +166,12 @@ const baseConfig = defineConfig({
     },
   },
   env: {
-    baseUrl,
+    baseUrl:                  modeUrls.baseUrl,
     rancherVersion,
-    api:                      apiUrl,
+    api:                      modeUrls.api,
+    e2eMode,
     username,
-    password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD,
+    password:                 process.env.CATTLE_BOOTSTRAP_PASSWORD || process.env.TEST_PASSWORD || (e2eMode === 'integration' ? 'password' : undefined),
     bootstrapPassword:        process.env.CATTLE_BOOTSTRAP_PASSWORD,
     // the below env vars are only available to tests that run in Jenkins
     awsAccessKey:             process.env.AWS_ACCESS_KEY_ID,
@@ -181,7 +196,7 @@ const baseConfig = defineConfig({
   },
   e2e: {
     fixturesFolder: 'cypress/e2e/blueprints',
-    setupNodeEvents(on, config) {
+    async setupNodeEvents(on, config) {
       // For more info: https://docs.cypress.io/guides/tooling/code-coverage
       require('@cypress/code-coverage/task')(on, config);
       // @cypress/grep v6 moved the plugin to `@cypress/grep/plugin` and exports it as a
@@ -238,6 +253,8 @@ const baseConfig = defineConfig({
       config.env.hasRetryLogging = true;
       websocketTasks(on, config);
 
+      const e2eModeServer = await startE2EModeServer(e2eMode, modeUrls, process.env, config.projectRoot, username);
+
       require('cypress-terminal-report/src/installLogsPrinter')(on, {
         outputRoot:           `${ config.projectRoot }/browser-logs/`,
         outputTarget:         { 'out.html': 'html' },
@@ -267,6 +284,8 @@ const baseConfig = defineConfig({
         });
 
         on('after:spec', (spec, results) => {
+          e2eModeServer?.afterSpec(spec.relative);
+
           if (!noPassedVideos || !results?.video) {
             return;
           }
@@ -288,7 +307,7 @@ const baseConfig = defineConfig({
       return config;
     },
     specPattern: getSpecPattern(testDirs, process.env),
-    baseUrl
+    baseUrl:     modeUrls.baseUrl
   },
   videoCompression:       15,
   screenshotOnRunFailure: process.env.TEST_NO_SCREENSHOTS !== 'true',
