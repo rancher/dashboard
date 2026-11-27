@@ -51,14 +51,18 @@ When either created, editing, viewing or listing a kubernetes resource the follo
 
 ## Fetching Resources
 
-- Use the store's actions (`find`, `findAll`, `findPage`, etc) rather than dispatching `<store>/request` with a hand-built `/v1/...` url. If the request needs pagination args (page size, filters, sort) use `findPage`.
+- Use the store's `findX` actions (`find`, `findAll`, `findPage`, etc) rather than dispatching `<store>/request` with a hand-built `/v1/...` url. If the request needs pagination args (page size, filters, sort) use `findPage`.
+  - By default these actions cache the result and watch for changes (cache automatically updates).
+  - A resource type only has one cache. Most calls replace what's in it. For example, a list of pods gets its rows from `findPage`. If another component then calls `findAll` for pods, the pod cache containing a page is replaced with every pod and the list stops showing its page.
+  - If concurrent views on the same resource type are needed, pass in `transient: true`. The resources are fetched but not cached. This also means they aren't watched and won't update automatically.
 - Avoid fetching all of a resource type that can scale to large numbers, especially clusters (`MANAGEMENT.CLUSTER`). Instead
-  - for a dropdown, use `ResourceLabeledSelect` (`shell/components/form/ResourceLabeledSelect.vue`). With pagination enabled it requests one page at a time and doesn't persist results to the store. See the cluster scope select in `shell/edit/token.vue`, which also filters clusters server-side via `paginationFilterClusters`
+  - for a dropdown, use `ResourceLabeledSelect` (`shell/components/form/ResourceLabeledSelect.vue`). With pagination enabled it requests one page at a time and doesn't persist results to the store. See `shell/components/form/SecretSelector.vue`, which filters secrets server-side by name, namespace and type via `paginatePageOptions`
   - if only the spread of possible options for a property in a resource is needed use the steve store's `fetchResourceSummary` action (e.g. `summaryField: 'metadata.name'`)
 
 ## Translations, Internationalization and Localization
 
-- Translations live in `shell/assets/translations/`. `en-us.yaml` is the source of truth.
+- Shell translations live in `shell/assets/translations/`. `en-us.yaml` is the source of truth.
+- Built-in packages in `pkg/` (e.g. `aks`, `eks`, `gke`) have their own `l10n/` translation files. Strings used only by a package go in that package's files.
 - A link in another locale must use the same URL, anchor and attributes (e.g. `target="_blank" rel="noopener nofollow"`) as `en-us.yaml`.
 - When adding or changing a docs link, check that the page and its `#anchor` exist on the current docs site. The Rancher docs are built with Antora, so section anchors look like `#_section_title`, not `#section-title`.
 - If a docs link changes, update any e2e test that asserts the URL (search `cypress/` for the old anchor).
