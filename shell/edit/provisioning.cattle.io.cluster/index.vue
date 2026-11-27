@@ -224,9 +224,17 @@ export default {
       return this.value.isRke2;
     },
 
+    // if the cluster provisioner matches the id of a management.cattle.io.kontainerdriver resource AND
+    // there is no extension-provided component for that cluster provisioner
+    // its treated as though it had an Ember-based UI and a deprecation banner is shown instead of the provisioning form
     isEmberKontainerDriver() {
       // RKE2/K3s clusters are never legacy Ember kontainer drivers
       if (!this.value?.id || !this.value?.provisioner || this.value.isRke2) {
+        return false;
+      }
+
+      // a vue-based UI extension has a component for this type of cluster: do not show the Ember UI deprecation banner
+      if (this.selectedSubType?.component) {
         return false;
       }
 
@@ -238,7 +246,7 @@ export default {
         return d.driverName === resolvedName || d.driverName === provisioner || d.id === provisioner;
       });
 
-      // If the driver exists and is not built-in, it's a legacy ember driver
+      // If the driver exists, is not built-in, and there's no vue-based UI component for it, assume it had a legacy Ember UI
       return !!driver && !driver.spec?.builtIn;
     },
 
