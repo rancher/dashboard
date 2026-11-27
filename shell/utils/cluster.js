@@ -181,7 +181,7 @@ export function clusterChip(cluster) {
 
   return {
     label:       target.nameDisplay,
-    ready:       target.ready,
+    ready:       target.canExplore,
     isLocal:     target.isLocal,
     isHarvester: target.isHarvester,
     badge:       target.badge,
