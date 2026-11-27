@@ -500,7 +500,7 @@ describe('fx: clusterFilterSignature', () => {
 
 describe('fx: clusterChip', () => {
   const mgmt = {
-    nameDisplay: 'prod', ready: true, isLocal: false, isHarvester: false, badge: { text: 'live' }, iconColor: '#fff', pinned: true
+    nameDisplay: 'prod', canExplore: true, isLocal: false, isHarvester: false, badge: { text: 'live' }, iconColor: '#fff', pinned: true
   };
 
   it('should carry the chip fields off a management cluster, naming it as the chip expects', () => {
@@ -510,7 +510,16 @@ describe('fx: clusterChip', () => {
   });
 
   it('should read through a provisioning cluster to its management cluster', () => {
-    expect(clusterChip({ nameDisplay: 'prov', mgmt })).toMatchObject({ label: 'prod', pinned: true });
+    expect(clusterChip({ nameDisplay: 'prov', mgmt })).toMatchObject({
+      label: 'prod', ready: true, pinned: true
+    });
+  });
+
+  it.each([
+    ['ready for an explorable cluster with no ready machines', { ready: 0, canExplore: true }, true],
+    ['not ready for a cluster with ready machines that cannot be explored', { ready: 3, canExplore: false }, false],
+  ])('should mark the chip %s', (_label, cluster, expected) => {
+    expect(clusterChip({ nameDisplay: 'prod', ...cluster }).ready).toStrictEqual(expected);
   });
 });
 
