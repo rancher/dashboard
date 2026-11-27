@@ -29,6 +29,24 @@ function normalizeStateCounts(data) {
   };
 }
 
+const ADMISSION_DENIAL = /ValidatingAdmissionPolicy|admission webhook/;
+const NAME_FIELD = /metadata\.name:/;
+
+function isNameOrWorkspaceError(err) {
+  const message = err?.message || '';
+
+  switch (err?._status) {
+  case 404: // the workspace does not exist
+    return true;
+  case 403: // no permission to create in the workspace, or it is being deleted
+    return !ADMISSION_DENIAL.test(message);
+  case 422:
+    return NAME_FIELD.test(message);
+  default:
+    return false;
+  }
+}
+
 export default class FleetApplication extends SteveModel {
   get applicationType() {
     return this.kind;
@@ -67,6 +85,49 @@ export default class FleetApplication extends SteveModel {
   unpause() {
     this.spec.paused = false;
     this.save();
+  }
+
+  /**
+   * Checks the name and the workspace with a dry-run create, before the rest of the form is filled in.
+   * The spec is a placeholder, so any other error is left for Save, which sends the real spec.
+   */
+  async validateNameAndWorkspace(placeholderSpec) {
+    const { name, namespace } = this.metadata;
+    const nameTaken = () => this.t('fleet.application.nameTaken', { name, workspace: namespace });
+
+    try {
+      await this.dryRunCreate({
+        type:     this.type,
+        metadata: { name, namespace },
+        spec:     placeholderSpec,
+      });
+
+      return;
+    } catch (err) {
+      if (err?._status === 409) {
+        throw nameTaken();
+      }
+      if (isNameOrWorkspaceError(err)) {
+        throw err;
+      }
+    }
+
+    // An admission policy that rejects the placeholder runs before the API checks whether the name is taken
+    let existing;
+
+    try {
+      existing = await this.$dispatch('find', {
+        type: this.type,
+        id:   `${ namespace }/${ name }`,
+        opt:  { force: true, transient: true },
+      });
+    } catch (e) {
+      return;
+    }
+
+    if (existing) {
+      throw nameTaken();
+    }
   }
 
   goToClone() {

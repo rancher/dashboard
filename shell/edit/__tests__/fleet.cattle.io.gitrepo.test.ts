@@ -411,7 +411,7 @@ describe('view: fleet.cattle.io.gitrepo, beforeNext dryRun validation', () => {
     expect(vm.value.dryRunCreate).not.toHaveBeenCalled();
   });
 
-  it('should reject with API errors when dryRunCreate fails', async() => {
+  it('should say the name is used when dryRunCreate finds it exists', async() => {
     const apiError = {
       _status:    409,
       message:    'gitrepos.fleet.cattle.io "test" already exists',
@@ -422,8 +422,29 @@ describe('view: fleet.cattle.io.gitrepo, beforeNext dryRun validation', () => {
     const vm = wrapper.vm as any;
 
     vm.value.dryRunCreate = jest.fn().mockRejectedValue(apiError);
+    vm.value.$rootGetters['i18n/t'].mockReturnValue('name taken');
 
-    await expect(vm.beforeNext({ name: 'stepMetadata' })).rejects.toStrictEqual(apiError);
+    await expect(vm.beforeNext({ name: 'stepMetadata' })).rejects.toStrictEqual('name taken');
+    expect(vm.value.$rootGetters['i18n/t']).toHaveBeenCalledWith('fleet.application.nameTaken', { name: 'test', workspace: 'test' });
+  });
+
+  it('should go on when an admission policy denies the placeholder spec', async() => {
+    const policyDenial = {
+      _status: 422,
+      message: 'gitrepos.fleet.cattle.io "test" is forbidden: ValidatingAdmissionPolicy \'boundary\' with binding \'boundary\' denied request: not allowed',
+    };
+
+    const wrapper = mount(GitRepoComponent, initGitRepo({ mode: _CREATE }));
+    const vm = wrapper.vm as any;
+
+    vm.value.dryRunCreate = jest.fn().mockRejectedValue(policyDenial);
+
+    await expect(vm.beforeNext({ name: 'stepMetadata' })).resolves.toBeUndefined();
+    expect(vm.value.$dispatch).toHaveBeenCalledWith('find', {
+      type: 'fleet.cattle.io.gitrepo',
+      id:   'test/test',
+      opt:  { force: true, transient: true },
+    });
   });
 });
 
