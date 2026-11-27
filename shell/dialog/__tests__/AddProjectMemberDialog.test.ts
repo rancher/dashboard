@@ -17,7 +17,7 @@ describe('component: AddProjectMemberDialog', () => {
     },
     global: {
       mocks: { $store: { dispatch: jest.fn().mockResolvedValue({ save: jest.fn() }) } },
-      stubs: { Card: CardStub },
+      stubs: { Card: CardStub, RcButton: false },
     },
   });
 
@@ -49,7 +49,7 @@ describe('component: AddProjectMemberDialog', () => {
   });
 
   describe('when handing the bindings back to the caller', () => {
-    const addButton = () => wrapper.find('button.role-primary');
+    const addButton = () => wrapper.find('button.variant-primary');
 
     it('should disable Add while no member is selected', () => {
       wrapper = createWrapper();

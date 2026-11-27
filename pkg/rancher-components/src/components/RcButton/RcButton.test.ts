@@ -1,5 +1,6 @@
 import { mount, RouterLinkStub } from '@vue/test-utils';
 import RcButton from './RcButton.vue';
+import { DeprecatedButtonVariant } from './types';
 
 describe('rcButton.vue', () => {
   it('renders with default variant', () => {
@@ -96,25 +97,18 @@ describe('rcButton.vue', () => {
   });
 
   describe('variant prop', () => {
-    it('applies variant-primary class when variant="primary"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'primary' } });
+    it('applies variant-primary class when variant="solid"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'solid' } });
       const button = wrapper.find('button');
 
       expect(button.classes()).toContain('variant-primary');
     });
 
-    it('applies variant-secondary class when variant="secondary"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'secondary' } });
+    it('applies variant-secondary class when variant="outline"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'outline' } });
       const button = wrapper.find('button');
 
       expect(button.classes()).toContain('variant-secondary');
-    });
-
-    it('applies variant-tertiary class when variant="tertiary"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'tertiary' } });
-      const button = wrapper.find('button');
-
-      expect(button.classes()).toContain('variant-tertiary');
     });
 
     it('applies variant-link class when variant="link"', () => {
@@ -124,18 +118,61 @@ describe('rcButton.vue', () => {
       expect(button.classes()).toContain('variant-link');
     });
 
-    it('applies variant-multi-action class when variant="multiAction"', () => {
-      const wrapper = mount(RcButton, { props: { variant: 'multiAction' } });
-      const button = wrapper.find('button');
-
-      expect(button.classes()).toContain('variant-multi-action');
-    });
-
     it('applies variant-ghost class when variant="ghost"', () => {
       const wrapper = mount(RcButton, { props: { variant: 'ghost' } });
       const button = wrapper.find('button');
 
       expect(button.classes()).toContain('variant-ghost');
+    });
+
+    it('applies color-destructive alongside the variant when color="destructive"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'solid', color: 'destructive' } });
+      const button = wrapper.find('button');
+
+      expect(button.classes()).toContain('variant-primary');
+      expect(button.classes()).toContain('color-destructive');
+    });
+
+    it('defaults to color="primary"', () => {
+      const wrapper = mount(RcButton, { props: { variant: 'solid' } });
+      const button = wrapper.find('button');
+
+      expect(button.classes()).toContain('color-primary');
+    });
+  });
+
+  describe('color on a variant that ignores it', () => {
+    it('warns that color has no effect on link', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      mount(RcButton, { props: { variant: 'link', color: 'destructive' } });
+
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('has no effect on variant="link"'));
+      warn.mockRestore();
+    });
+
+    it('does not warn when the variant supports color', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      mount(RcButton, { props: { variant: 'outline', color: 'destructive' } });
+
+      expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('has no effect'));
+      warn.mockRestore();
+    });
+  });
+
+  describe('deprecated variant values', () => {
+    it.each([
+      ['primary', 'variant-primary'],
+      ['secondary', 'variant-secondary'],
+      ['tertiary', 'variant-tertiary'],
+      ['multiAction', 'variant-multi-action'],
+    ] as [DeprecatedButtonVariant, string][])('still renders variant="%s"', (deprecated, className) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const wrapper = mount(RcButton, { props: { variant: deprecated } });
+
+      expect(wrapper.find('button').classes()).toContain(className);
+      warn.mockRestore();
     });
   });
 
@@ -223,7 +260,7 @@ describe('rcButton.vue', () => {
     });
 
     it('applies button classes when rendered as an anchor', () => {
-      const wrapper = mount(RcButton, { props: { href: 'https://example.com', variant: 'secondary' } });
+      const wrapper = mount(RcButton, { props: { href: 'https://example.com', variant: 'outline' } });
       const anchor = wrapper.find('a');
 
       expect(anchor.classes()).toContain('rc-button');
