@@ -499,8 +499,9 @@ describe('fx: clusterFilterSignature', () => {
 });
 
 describe('fx: clusterChip', () => {
+  // `ready` on the management model is its count of ready machines: 0 for an imported or hosted cluster
   const mgmt = {
-    nameDisplay: 'prod', ready: true, isLocal: false, isHarvester: false, badge: { text: 'live' }, iconColor: '#fff', pinned: true
+    nameDisplay: 'prod', ready: 0, canExplore: true, isLocal: false, isHarvester: false, badge: { text: 'live' }, iconColor: '#fff', pinned: true
   };
 
   it('should carry the chip fields off a management cluster, naming it as the chip expects', () => {
@@ -511,6 +512,13 @@ describe('fx: clusterChip', () => {
 
   it('should read through a provisioning cluster to its management cluster', () => {
     expect(clusterChip({ nameDisplay: 'prov', mgmt })).toMatchObject({ label: 'prod', pinned: true });
+  });
+
+  it.each([
+    ['a cluster with no machines that can be explored', { ready: 0, canExplore: true }, true],
+    ['a cluster with ready machines that cannot be explored', { ready: 3, canExplore: false }, false],
+  ])('should mark %s as the side nav does', (_label, cluster, ready) => {
+    expect(clusterChip(cluster).ready).toBe(ready);
   });
 });
 

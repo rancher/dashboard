@@ -128,7 +128,7 @@ export default {
     },
     // Fake cluster object for use with badge component
     previewCluster() {
-      return this.isCreate || !this.currentCluster ? this.generateBadgeObject(false, '', true) : this.generateBadgeObject(this.currentCluster.isLocal, this.currentCluster.providerNavLogo, this.currentCluster.ready);
+      return this.isCreate || !this.currentCluster ? this.generateBadgeObject(false, '', true) : this.generateBadgeObject(this.currentCluster.isLocal, this.currentCluster.providerNavLogo, this.currentCluster.canExplore);
     },
 
     displayClusterPrevIcon() {

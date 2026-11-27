@@ -174,6 +174,9 @@ describe('Cluster Dashboard', { testIsolation: false, tags: ['@explorer', '@admi
 
     customClusterCard.getTitle().contains('Cluster Appearance');
 
+    // The cluster can be explored, so the side nav shows its badge at full strength
+    clusterDashboard.customBadge().sideNavPreview().should('be.visible').and('not.have.class', 'disabled');
+
     // update badge
     clusterDashboard.customBadge().selectCheckbox('Show cluster comment').set();
     clusterDashboard.customBadge().badgeCustomDescription().set(settings.description.new);
