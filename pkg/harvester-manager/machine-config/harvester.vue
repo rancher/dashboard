@@ -96,6 +96,21 @@ export default {
   mixins: [CreateEditView],
 
   props: {
+    cluster: {
+      type:    Object,
+      default: () => ({})
+    },
+
+    previousKubeVersion: {
+      type:    String,
+      default: null
+    },
+
+    poolCreateMode: {
+      type:    Boolean,
+      default: false
+    },
+
     credentialId: {
       type:     String,
       required: true
@@ -404,6 +419,12 @@ export default {
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
 
+    skipVGpuDeviceCapacity() {
+      return this.isEdit && !this.poolCreateMode && !!this.previousKubeVersion &&
+        !!this.cluster.spec?.kubernetesVersion &&
+        this.cluster.spec.kubernetesVersion !== this.previousKubeVersion;
+    },
+
     cpuModelOptions() {
       const defaultOption = { label: this.t('generic.default'), value: '' };
 
@@ -606,6 +627,17 @@ export default {
   },
 
   watch: {
+    skipVGpuDeviceCapacity(skip) {
+      if (skip) {
+        // Kubernetes upgrades reuse the existing machines, so free capacity is not relevant.
+        Object.values(this.vGpuDevices).forEach((device) => {
+          device.allocatable = null;
+        });
+      } else if (this.credential) {
+        this.getAvailableVGpuDevices();
+      }
+    },
+
     'value.enableEfi': {
       handler(neu) {
         // clear secureBoot if disable enableEfi
@@ -840,6 +872,10 @@ export default {
     },
 
     validatorVGpus(errors) {
+      if (this.skipVGpuDeviceCapacity) {
+        return;
+      }
+
       const notAllocatable = this.vGpus
         .map((type) => {
           const allocated = this.machinePools.reduce((acc, machinePool) => {
@@ -955,10 +991,12 @@ export default {
         try {
           vGpus = await this.$store.dispatch('cluster/request', { url: `${ url }/${ HCI.VGPU_DEVICE }` });
 
-          const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
+          if (!this.skipVGpuDeviceCapacity) {
+            const harvesterCluster = await this.$store.dispatch('cluster/request', { url: `${ url }/harvester/cluster/local` });
 
-          if (harvesterCluster?.links?.deviceCapacity) {
-            deviceCapacity = await this.$store.dispatch('cluster/request', { url: harvesterCluster?.links?.deviceCapacity });
+            if (!this.skipVGpuDeviceCapacity && harvesterCluster?.links?.deviceCapacity) {
+              deviceCapacity = await this.$store.dispatch('cluster/request', { url: harvesterCluster?.links?.deviceCapacity });
+            }
           }
         } catch (e) {
         }
@@ -969,7 +1007,7 @@ export default {
 
             let allocatable = null;
 
-            if (deviceCapacity) {
+            if (deviceCapacity && !this.skipVGpuDeviceCapacity) {
               allocatable = deviceCapacity[type] ? Number(deviceCapacity[type]) : 0;
             }
 
