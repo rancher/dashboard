@@ -21,6 +21,55 @@ import { clone } from '@shell/utils/object';
 import InfoBox from '@shell/components/InfoBox';
 import { mapFeature, UNSUPPORTED_STORAGE_DRIVERS } from '@shell/store/features';
 import ResourceManager from '@shell/mixins/resource-manager';
+import AwsElasticBlockStorePlugin from './plugins/awsElasticBlockStore';
+import AzureDiskPlugin from './plugins/azureDisk';
+import AzureFilePlugin from './plugins/azureFile';
+import CephfsPlugin from './plugins/cephfs';
+import CinderPlugin from './plugins/cinder';
+import CsiPlugin from './plugins/csi';
+import FcPlugin from './plugins/fc';
+import FlexVolumePlugin from './plugins/flexVolume';
+import FlockerPlugin from './plugins/flocker';
+import GcePersistentDiskPlugin from './plugins/gcePersistentDisk';
+import GlusterfsPlugin from './plugins/glusterfs';
+import HostPathPlugin from './plugins/hostPath';
+import IscsiPlugin from './plugins/iscsi';
+import LocalPlugin from './plugins/local';
+import LonghornPlugin from './plugins/longhorn';
+import NfsPlugin from './plugins/nfs';
+import PhotonPersistentDiskPlugin from './plugins/photonPersistentDisk';
+import PortworxVolumePlugin from './plugins/portworxVolume';
+import QuobytePlugin from './plugins/quobyte';
+import RbdPlugin from './plugins/rbd';
+import ScaleIOPlugin from './plugins/scaleIO';
+import StorageosPlugin from './plugins/storageos';
+import VsphereVolumePlugin from './plugins/vsphereVolume';
+
+const pluginComponents = {
+  awsElasticBlockStore: AwsElasticBlockStorePlugin,
+  azureDisk:            AzureDiskPlugin,
+  azureFile:            AzureFilePlugin,
+  cephfs:               CephfsPlugin,
+  cinder:               CinderPlugin,
+  csi:                  CsiPlugin,
+  fc:                   FcPlugin,
+  flexVolume:           FlexVolumePlugin,
+  flocker:              FlockerPlugin,
+  gcePersistentDisk:    GcePersistentDiskPlugin,
+  glusterfs:            GlusterfsPlugin,
+  hostPath:             HostPathPlugin,
+  iscsi:                IscsiPlugin,
+  local:                LocalPlugin,
+  longhorn:             LonghornPlugin,
+  nfs:                  NfsPlugin,
+  photonPersistentDisk: PhotonPersistentDiskPlugin,
+  portworxVolume:       PortworxVolumePlugin,
+  quobyte:              QuobytePlugin,
+  rbd:                  RbdPlugin,
+  scaleIO:              ScaleIOPlugin,
+  storageos:            StorageosPlugin,
+  vsphereVolume:        VsphereVolumePlugin,
+};
 
 const DEFAULT_ACCESS_MODES = ['ReadWriteOnce'];
 
@@ -195,7 +244,7 @@ export default {
       }
     },
     getComponent(name) {
-      return require(`./plugins/${ name }`).default;
+      return pluginComponents[name];
     },
     willSave() {
       if (this.value.spec.storageClassName === this.noneOption.value) {

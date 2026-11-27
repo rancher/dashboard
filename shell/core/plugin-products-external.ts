@@ -1,4 +1,4 @@
-import { ProductFunction } from '@shell/core/plugin';
+import { ProductFunction, ProductModule } from '@shell/core/plugin';
 import { HeaderOptions } from '@shell/core/types';
 import { NAME as EXPLORER_PROD_NAME } from '@shell/config/product/explorer.js';
 import { NAME as CLUSTER_MAN_PROD_NAME } from '@shell/config/product/manager.js';
@@ -443,6 +443,13 @@ export interface IExtensionProducts {
    * @param importFn Function that will import the module containing a product definition
    */
   addProduct(importFn: ProductFunction): void;
+
+  /**
+   * Add a product to the sidebar (deprecated, use other signatures of addProduct instead)
+   *
+   * @param productModule Imported module whose `init` export defines the product
+   */
+  addProduct(productModule: ProductModule): void;
 
   /**
    * Extend an existing product in Rancher, with children and a side menu for navigation for internal pages

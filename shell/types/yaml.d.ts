@@ -1,5 +1,5 @@
 /**
- * `shell/vue.config.js` runs YAML through `js-yaml-loader`, so an import yields the
+ * `shell/vite/loaders.mjs` parses YAML imports, so an import yields the
  * parsed document as the default export.
  */
 declare module '*.yaml' {

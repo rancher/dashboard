@@ -43,7 +43,11 @@ if [ "${HAS_SHELL}" != "1" ]; then
 fi
 
 # Copy files for the top-level folder (from the app creator)
-rsync --exclude nuxt.config.js --exclude .gitlab-ci.yml ${BASE_DIR}/app/files/* .
+rsync --exclude nuxt.config.js --exclude .gitlab-ci.yml --exclude vite.config.mjs ${BASE_DIR}/app/files/* .
+
+if [ ! -f vite.config.mjs ] && [ ! -f vue.config.js ]; then
+  cp ${BASE_DIR}/app/files/vite.config.mjs .
+fi
 
 # Go through each folder in the pkg folder and update their files
 for pkg in ./pkg/*
@@ -52,6 +56,19 @@ do
     pkgName=$(basename $pkg)
     echo "Updating package ${pkgName}"
 
-    cp ${BASE_DIR}/pkg/files/* ${pkg}
+    for file in ${BASE_DIR}/pkg/files/*; do
+      name=$(basename ${file})
+      own=${name}
+
+      if [ "${name}" == "index.ts" ] && [ ! -e "${pkg}/index.ts" ] && [ -f "${pkg}/index.js" ]; then
+        own=index.js
+      fi
+
+      if [ -e "${pkg}/${own}" ]; then
+        echo "  Keeping the package's own ${own}"
+      else
+        cp ${file} ${pkg}
+      fi
+    done
   fi
 done

@@ -19,6 +19,7 @@ Options:
   --suggest             Suggest Mode: Generate a 'suggested_changes.diff' file with proposed changes.
   --paths=<path>        Specify Paths: Limit migration to specific paths or files (accepts glob patterns).
   --ignore=<patterns>   Ignore Patterns: Exclude specific files or directories (accepts comma-separated glob patterns).
+  --shell-version=<v>   Shell Version: Raise @rancher/shell to this version when the extension's is older.
   --files               Output Modified Files: List all files modified during the migration.
   --log                 Generate Log File: Write detailed migration statistics to 'stats.json'.
   --help, -h            Display this help message and exit.
@@ -52,7 +53,7 @@ function escapeRegExp(string) {
 
 function setParams(params) {
   const args = process.argv.slice(2);
-  const paramKeys = ['paths', 'ignore'];
+  const paramKeys = ['paths', 'ignore', 'shell-version'];
 
   args.forEach((val) => {
     paramKeys.forEach((key) => {
@@ -61,6 +62,8 @@ function setParams(params) {
 
         if (key === 'ignore') {
           params.ignorePatterns = value.split(',').map((pattern) => pattern.trim());
+        } else if (key === 'shell-version') {
+          params.shellVersion = value;
         } else {
           params[key] = value;
         }

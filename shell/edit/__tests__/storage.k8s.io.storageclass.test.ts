@@ -1,6 +1,10 @@
 import { shallowMount, VueWrapper } from '@vue/test-utils';
 import { _CREATE } from '@shell/config/query-params';
 import StorageClass from '@shell/edit/storage.k8s.io.storageclass/index.vue';
+import AwsEbsProvisioner from '@shell/edit/storage.k8s.io.storageclass/provisioners/kubernetes.io/aws-ebs.vue';
+import LonghornProvisioner from '@shell/edit/storage.k8s.io.storageclass/provisioners/driver.longhorn.io.vue';
+import CustomProvisioner from '@shell/edit/storage.k8s.io.storageclass/provisioners/custom.vue';
+import { PROVISIONER_OPTIONS } from '@shell/models/storage.k8s.io.storageclass';
 
 const createEditViewMock = {
   props: {
@@ -80,5 +84,24 @@ describe('storageClass edit', () => {
 
     expect(nonDeprecated).toStrictEqual([...nonDeprecated].sort());
     expect(deprecated).toStrictEqual([...deprecated].sort());
+  });
+
+  it.each([
+    ['kubernetes.io/aws-ebs', AwsEbsProvisioner],
+    ['driver.longhorn.io', LonghornProvisioner],
+    ['example.com/unknown', CustomProvisioner],
+  ])('shows the provisioner form for %p', (provisioner, expected) => {
+    createComponent();
+
+    expect(wrapper.vm.getComponent(provisioner)).toStrictEqual(expected);
+  });
+
+  it.each(PROVISIONER_OPTIONS.map((opt) => opt.value))('has a provisioner form of its own for %p', (provisioner) => {
+    createComponent();
+
+    const component = wrapper.vm.getComponent(provisioner);
+
+    expect(component).toBeDefined();
+    expect(component).not.toStrictEqual(CustomProvisioner);
   });
 });

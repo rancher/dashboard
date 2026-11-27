@@ -1,0 +1,377 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { parseSync } from '@babel/core';
+import { rancherRequireCompat } from '@shell/vite/require-compat.mjs';
+import { REQUIRE_FILE } from '@shell/vite/commonjs.mjs';
+
+const ROOT = '/app';
+const warn = jest.fn();
+const parse = (code: string) => {
+  const parsed = parseSync(code, {
+    sourceType: 'module', configFile: false, babelrc: false, parserOpts: { plugins: ['estree'] }
+  });
+
+  if (!parsed) {
+    throw new Error('Could not parse the code');
+  }
+
+  return parsed.program;
+};
+const transform = (code: string, id = `${ ROOT }/pkg/thing/index.ts`, command = 'serve', root = ROOT) => {
+  const plugin: any = rancherRequireCompat({ root });
+
+  plugin.configResolved({
+    root: `${ root }/pkg/thing`, command, resolve: { alias: [{ find: '@shell', replacement: `${ root }/pkg/thing/.shell` }] }
+  });
+
+  return plugin.transform.call({ warn, parse }, code, id);
+};
+
+const run = (code: string, files: Record<string, unknown>) => {
+  const glob = ([pattern]: string[]) => {
+    const folder = pattern.slice(0, pattern.indexOf('**')).replace(/^@shell\//, '/.shell/');
+
+    return Object.fromEntries(Object.entries(files).filter(([file]) => file.startsWith(folder)));
+  };
+  const source = transform(code).code.replace(/import\.meta\.glob\(/g, 'glob(');
+
+  return new Function('glob', `${ source }\nreturn load;`)(glob); // eslint-disable-line no-new-func
+};
+
+const requireThrough = (code: string, imported: unknown) => new Function('__rancher_require_0__', `${ transform(code).code.replace(/^import .*$/gm, '') }\nreturn load();`)(imported); // eslint-disable-line no-new-func
+
+describe('fx: rancherRequireCompat', () => {
+  it('should import a required module', () => {
+    const code = `const { thing } = require('./thing');\n`;
+
+    expect(transform(code).code).toStrictEqual(`const { thing } = __rancher_require_file__(__rancher_require_0__);\n\nimport * as __rancher_require_0__ from "./thing";\n${ REQUIRE_FILE }\n`);
+  });
+
+  it('should give the namespace of an ES module', () => {
+    const namespace = { [Symbol.toStringTag]: 'Module', default: 'a' };
+
+    expect(requireThrough(`function load() {\n  return require('./thing');\n}`, namespace)).toStrictEqual(namespace);
+  });
+
+  it.each([
+    ['an image', './logo.svg'],
+    ['json', './package.json'],
+    ['yaml', '../l10n/en-us.yaml'],
+    ['an asset with a query', './logo.png?url'],
+  ])('should import %s as its value', (_, source) => {
+    expect(transform(`const value = require('${ source }');`).code).toStrictEqual(`const value = __rancher_require_0__;\nimport __rancher_require_0__ from ${ JSON.stringify(source) };\n`);
+  });
+
+  it('should import each module once', () => {
+    const code = `const a = require('./a');\nconst b = require("./b");\nconst c = require(\`./a\`);`;
+
+    expect(transform(code).code).toStrictEqual(`const a = __rancher_require_file__(__rancher_require_0__);\nconst b = __rancher_require_file__(__rancher_require_1__);\nconst c = __rancher_require_file__(__rancher_require_0__);\nimport * as __rancher_require_0__ from "./a";\nimport * as __rancher_require_1__ from "./b";\n${ REQUIRE_FILE }\n`);
+  });
+
+  it.each([
+    ['a file outside the pkg folder', `const a = require('./a');`, `${ ROOT }/shell/thing.js`],
+    ['a dependency of a package', `const a = require('./a');`, `${ ROOT }/pkg/thing/node_modules/dep/index.js`],
+    ['a file that is not code', `const a = require('./a');`, `${ ROOT }/pkg/thing/styles.scss`],
+    ['a method called require', `const a = store.require('./a');`, `${ ROOT }/pkg/thing/index.ts`],
+    ['code without require', `import a from './a';`, `${ ROOT }/pkg/thing/index.ts`],
+    ['a require() in a doc comment', `/**\n * const x = require('./m/does-not-exist');\n */\nexport const a = 1;`, `${ ROOT }/pkg/thing/index.ts`],
+    ['a require() in a line comment', `// const x = require('./m/does-not-exist');\nexport const a = 1;`, `${ ROOT }/pkg/thing/index.js`],
+    ['a require() in a string', `export const help = "call require('./m/nope') to load";`, `${ ROOT }/pkg/thing/index.ts`],
+    ['a require() with a path built from a template in a comment', `// require(\`./models/\${ type }\`)\nexport const a = 1;`, `${ ROOT }/pkg/thing/index.ts`],
+  ])('should leave %s alone', (_, code, id) => {
+    expect(transform(code, id)).toBeUndefined();
+  });
+
+  describe('with a path built from a template', () => {
+    const MODELS = {
+      '/.shell/models/pod.js':                    { pod: true },
+      '/.shell/models/fleet.cattle.io.policy.ts': { policy: true },
+      '/.shell/models/management/index.js':       { management: true },
+    };
+
+    it.each([
+      ['pod', { pod: true }],
+      ['fleet.cattle.io.policy', { policy: true }],
+      ['management', { management: true }],
+    ])('should load %p from every module the folder holds', (type, model) => {
+      const load = run(`function load(type) {\n  return require(\`@shell/models/\${ type }\`);\n}`, MODELS);
+
+      expect(load(type)).toStrictEqual(model);
+    });
+
+    it('should load the module.exports of a CommonJS file', () => {
+      const legacy = () => 'legacy';
+      const load = run(`function load(type) {\n  return require(\`@shell/models/\${ type }\`);\n}`, {
+        '/.shell/models/legacy.js': {
+          [Symbol.toStringTag]: 'Module', default: legacy, __rancher_commonjs__: { exports: legacy, default: legacy }
+        }
+      });
+
+      expect(load('legacy')).toStrictEqual(legacy);
+    });
+
+    it('should load the value of an asset', () => {
+      const load = run(`const load = (name) => require(\`./icons/\${ name }.svg\`);`, { './icons/aws.svg': { [Symbol.toStringTag]: 'Module', default: 'aws.svg' } });
+
+      expect(load('aws')).toStrictEqual('aws.svg');
+    });
+
+    it('should throw MODULE_NOT_FOUND for a module the folder does not hold', () => {
+      const load = run(`function load(type) {\n  return require(\`@shell/models/\${ type }\`);\n}`, MODELS);
+
+      expect(() => load('missing')).toThrow(expect.objectContaining({ message: 'Cannot find module \'@shell/models/missing\'', code: 'MODULE_NOT_FOUND' }));
+    });
+
+    it('should leave tests, type declarations and other files out of the folder', () => {
+      expect(transform(`const load = (type) => require(\`@shell/models/\${ type }\`);`).code).toContain('["@shell/models/**/*.{js,jsx,ts,tsx,mjs,vue,json}","!**/__tests__/**","!**/*.{test,spec}.*","!**/*.d.ts"]');
+    });
+
+    it('should keep the extension after an expression that contains braces', () => {
+      expect(transform(`const load = (name) => require(\`./icons/\${ format({ name }) }.svg\`);`).code).toContain('["./icons/**/*.svg","!**/__tests__/**","!**/*.{test,spec}.*","!**/*.d.ts"]');
+    });
+
+    it('should rewrite a require() inside a template expression', () => {
+      const code = transform(`const a = require(\`@shell/models/\${ require('./name').default }\`);`).code;
+
+      expect(code).toContain(`\`@shell/models/\${ __rancher_require_file__(__rancher_require_0__).default }\``);
+      expect(code).toContain('import * as __rancher_require_0__ from "./name";');
+    });
+
+    it('should leave a path that starts with an expression alone, and warn about it', () => {
+      expect(transform(`const load = (dir) => require(\`\${ dir }/a\`);`)).toBeUndefined();
+      expect(warn).toHaveBeenCalledWith(`${ ROOT }/pkg/thing/index.ts: require(\`\${ dir }/a\`) cannot be bundled, so it will throw when it runs: start its path with a folder`);
+    });
+  });
+
+  describe('with a package', () => {
+    const cloneDeep = () => 'cloned';
+    const dayjs = Object.assign(() => 'day', { isDayjs: () => true });
+    const compiled = {
+      __esModule: true, default: cloneDeep, other: 1
+    };
+    const namespace = {
+      [Symbol.toStringTag]: 'Module', load: cloneDeep, default: { load: cloneDeep }
+    };
+
+    it.each([
+      ['the module.exports of a CommonJS package', { default: cloneDeep }, cloneDeep],
+      ['the module.exports of a CommonJS package that is a function with properties of its own', { ...dayjs, default: dayjs }, dayjs],
+      ['the module.exports of a CommonJS package compiled from an ES module', compiled, compiled],
+      ['the namespace of a package with named exports', namespace, namespace],
+      ['the default of a package with only a default export', { [Symbol.toStringTag]: 'Module', default: cloneDeep }, cloneDeep],
+    ])('should give %s', (_, imported, expected) => {
+      expect(requireThrough(`function load() {\n  return require('some-package');\n}`, imported)).toStrictEqual(expected);
+    });
+  });
+
+  describe('with a CommonJS file', () => {
+    const FILE = `${ ROOT }/pkg/thing/legacy.js`;
+    const REQUIRING = `const cloneDeep = require('lodash/cloneDeep');\nmodule.exports = (value) => cloneDeep(value);\n`;
+
+    const evaluate = (code: string, imports: Record<string, unknown> = {}): Record<string, any> => {
+      const exported: Record<string, unknown> = {};
+      const body = code
+        .replace(/^import \* as (\w+) from .*$/gm, '')
+        .replace(/^export { (\w+) as (\w+) };$/gm, 'exported.$2 = $1;')
+        .replace(/^export { (\w+) };$/gm, 'exported.$1 = $1;')
+        .replace(/^export default (.*);$/gm, 'exported.default = $1;');
+
+      new Function('exported', ...Object.keys(imports), body)(exported, ...Object.values(imports)); // eslint-disable-line no-new-func
+
+      return exported;
+    };
+
+    it('should give require() the module.exports of a CommonJS file', () => {
+      const legacy = evaluate(transform(`module.exports = { thing: 'b' };\n`, FILE).code);
+
+      expect(requireThrough(`function load() {\n  return require('./legacy');\n}`, legacy)).toStrictEqual({ thing: 'b' });
+    });
+
+    it('should turn the file into an ES module that gives what it requires', () => {
+      const copy = evaluate(transform(REQUIRING, FILE).code, { __rancher_require_0__: { default: (value: unknown) => ({ copied: value }) } }).default;
+
+      expect(copy(1)).toStrictEqual({ copied: 1 });
+    });
+
+    it('should import what the file requires at the top level of the module', () => {
+      expect(transform(REQUIRING, FILE).code).toMatch(/^import \* as __rancher_require_0__ from "lodash\/cloneDeep";$/m);
+    });
+
+    it('should give code that parses as a module', () => {
+      expect(parse(transform(REQUIRING, FILE).code).type).toStrictEqual('Program');
+    });
+
+    it('should run a TypeScript file whose imports were all types, without the export TypeScript left in', () => {
+      const code = transform(`module.exports = { a: 1 };\nexport {};\n`, `${ ROOT }/pkg/thing/legacy.ts`).code;
+
+      expect(evaluate(code).a).toStrictEqual(1);
+    });
+
+    it.each([
+      ['an ES module', `import a from './a';\nmodule.exports = a;\n`, FILE],
+      ['a component', `module.exports = {};\n`, `${ ROOT }/pkg/thing/legacy.vue`],
+      ['a file outside the pkg folder', `module.exports = {};\n`, `${ ROOT }/shell/legacy.js`],
+      ['a file that does not parse', `module.exports = {;\n`, FILE],
+      ['a classic web worker', `if (typeof module !== 'undefined') {\n  module.exports = {};\n}\n`, `${ FILE }?worker_file&type=classic`],
+    ])('should leave %s alone', (_, code, id) => {
+      expect(transform(code, id)).toBeUndefined();
+    });
+
+    it('should leave a build to the bundler', () => {
+      expect(transform(`module.exports = {};\n`, FILE, 'build')).toBeUndefined();
+    });
+  });
+
+  describe('with a require() that runs after its file loads', () => {
+    beforeEach(() => {
+      warn.mockClear();
+    });
+
+    it('should warn that it runs when the file loads, at the call, and point to import()', () => {
+      const code = `try {\n  require('./throws');\n} catch (e) {}\n`;
+
+      transform(code);
+
+      expect(warn).toHaveBeenCalledWith(`require('./throws') in a try runs when this file loads under yarn dev, not when the call is reached; if the module throws, it stops the dashboard. Use import() to load it on demand.`, code.indexOf('require('));
+    });
+
+    it.each([
+      ['in a function', `const load = () => require('./a');`, `require('./a') in a function`],
+      ['in a method', `export default { get a() { return require('a-package'); } };`, `require('a-package') in a function`],
+      ['in an if', `if (enabled) {\n  require('./a');\n}`, `require('./a') in a condition`],
+      ['in a ternary', `const a = enabled ? require('./a') : null;`, `require('./a') in a condition`],
+      ['after a logical operator', `const a = enabled && require('./a');`, `require('./a') in a condition`],
+      ['in a catch', `try {\n  load();\n} catch (e) {\n  require('./fallback');\n}`, `require('./fallback') in a condition`],
+      ['with a path built from a template', `function load(name) {\n  return require(\`./models/\${ name }\`);\n}`, `require(\`./models/\${ name }\`) in a function`],
+      ['in a logical assignment', `cache ||= require('./a');`, `require('./a') in a condition`],
+      ['in a nullish assignment', `cache ??= require('./a');`, `require('./a') in a condition`],
+      ['in a destructuring default', `const { a = require('./a') } = options;`, `require('./a') in a condition`],
+      ['in an optional call', `widget.maybe?.(require('./a'));`, `require('./a') in a condition`],
+      ['after an optional member', `widget?.load(require('./a'));`, `require('./a') in a condition`],
+      ['in a class instance field', `class Widget {\n  a = require('./a');\n}`, `require('./a') in a condition`],
+    ])('should warn about a require() %s', (_, code, described) => {
+      transform(code);
+
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`^${ described.replace(/[$()[\]{}.*?+|\\^]/g, '\\$&') } runs when this file loads`)), code.indexOf('require('));
+    });
+
+    it('should warn about each one at its own position', () => {
+      const code = `function a() {\n  return require('./a');\n}\ntry {\n  require('./b');\n} catch (e) {}\n`;
+
+      transform(code);
+
+      expect(warn).toHaveBeenCalledTimes(2);
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^require\('\.\/a'\) in a function /), code.indexOf(`require('./a')`));
+      expect(warn).toHaveBeenCalledWith(expect.stringMatching(/^require\('\.\/b'\) in a try /), code.indexOf(`require('./b')`));
+    });
+
+    it.each([
+      ['at the top of the file', `const a = require('./a');`],
+      ['in the test of a condition', `if (require('./a').enabled) {\n  run();\n}`],
+      ['in a finally', `try {\n  run();\n} finally {\n  require('./a');\n}`],
+      ['of an asset', `const icon = () => require('./icon.svg');`],
+      ['of json', `try {\n  require('./package.json');\n} catch (e) {}`],
+      ['of a template path to assets', `const icon = (name) => require(\`./icons/\${ name }.svg\`);`],
+      ['by a method of another object', `const load = () => store.require('./a');`],
+      ['at the start of an optional chain', `const load = require('./a')?.load;`],
+      ['in a static class field', `class Widget {\n  static a = require('./a');\n}`],
+    ])('should not warn about a require() %s', (_, code) => {
+      transform(code);
+
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('should not warn in a build, where the call loads the module when it runs', () => {
+      transform(`try {\n  require('./throws');\n} catch (e) {}\n`, `${ ROOT }/pkg/thing/index.ts`, 'build');
+
+      expect(warn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('in a build', () => {
+    let root: string;
+
+    beforeEach(() => {
+      root = fs.mkdtempSync(path.join(os.tmpdir(), 'rancher-require-'));
+      ['icons/aws.svg', 'icons/gcp.svg', 'icons/__tests__/aws.test.ts', 'models/pod.js', 'models/policy.ts', 'models/management/index.js', 'models/pod.d.ts', 'models/notes.md'].forEach((file) => {
+        fs.mkdirSync(path.dirname(path.join(root, 'pkg/thing', file)), { recursive: true });
+        fs.writeFileSync(path.join(root, 'pkg/thing', file), '');
+      });
+    });
+
+    afterEach(() => {
+      fs.rmSync(root, { recursive: true, force: true });
+    });
+
+    const build = (code: string) => transform(code, `${ root }/pkg/thing/index.ts`, 'build', root);
+    const run = (code: string) => {
+      const required: string[] = [];
+      const fakeRequire = (source: string) => {
+        required.push(source);
+
+        return {
+          __esModule: true, default: `value of ${ source }`, source
+        };
+      };
+
+      return { required, load: new Function('require', `${ build(code).code }\nreturn load;`)(fakeRequire) }; // eslint-disable-line no-new-func
+    };
+
+    it('should leave a required module to the bundler, which loads it when the call runs', () => {
+      expect(build(`function load() {\n  return require('./thing');\n}`)).toBeUndefined();
+    });
+
+    it.each([
+      ['a string', `export const help = "load it with require('./logo.svg')";`],
+      ['a comment', `// const logo = require('./logo.svg');\nexport const a = 1;`],
+    ])('should leave a require() of an asset in %s alone', (_, code) => {
+      expect(build(code)).toBeUndefined();
+    });
+
+    it.each([
+      ['an image', './logo.svg'],
+      ['json', './package.json'],
+    ])('should give the value of %s', (_, source) => {
+      expect(build(`const value = require('${ source }');`).code).toContain(`const value = __rancher_require_value__(require('${ source }'));`);
+    });
+
+    it.each([
+      ['a module', { __esModule: true, default: 'url' }, 'url'],
+      ['json, which the bundler gives as it is', { default: 'a key', other: 1 }, { default: 'a key', other: 1 }],
+    ])('should give the value of an asset that the bundler gives as %s', (_, module, expected) => {
+      const load = new Function('require', `${ build('function load() {\n  return require(\'./logo.svg\');\n}').code }\nreturn load;`)(() => module); // eslint-disable-line no-new-func
+
+      expect(load()).toStrictEqual(expected);
+    });
+
+    it('should require only the file a template names, when the call runs', () => {
+      const { required, load } = run(`const load = (name) => require(\`./icons/\${ name }.svg\`);`);
+
+      expect(required).toStrictEqual([]);
+      expect(load('aws')).toStrictEqual('value of ./icons/aws.svg');
+      expect(required).toStrictEqual(['./icons/aws.svg']);
+    });
+
+    it.each([
+      ['pod', '@shell/models/pod.js'],
+      ['policy', '@shell/models/policy.ts'],
+      ['management', '@shell/models/management/index.js'],
+    ])('should require the module %p names from a folder of modules', (type, file) => {
+      fs.symlinkSync(`${ root }/pkg/thing`, `${ root }/pkg/thing/.shell`);
+
+      const { load } = run(`function load(type) {\n  return require(\`@shell/models/\${ type }\`);\n}`);
+
+      expect(load(type)).toStrictEqual({
+        __esModule: true, default: `value of ${ file }`, source: file
+      });
+    });
+
+    it('should leave tests, type declarations and other files out of a template', () => {
+      const code = build(`const load = (name) => require(\`./icons/\${ name }\`);`).code;
+
+      expect(code).not.toContain('__tests__');
+      expect(() => run(`const load = (name) => require(\`./icons/\${ name }\`);`).load('__tests__/aws.test')).toThrow(expect.objectContaining({ code: 'MODULE_NOT_FOUND' }));
+    });
+  });
+});

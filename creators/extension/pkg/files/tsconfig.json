@@ -19,7 +19,6 @@
     ],
     "types": [
       "@types/node",
-      "@types/webpack-env",
       "@types/jest",
       "@types/lodash",
       "rancher",
@@ -45,7 +44,8 @@
     "**/*.ts",
     "**/*.d.ts",
     "**/*.tsx",
-    "**/*.vue"
+    "**/*.vue",
+    "../../node_modules/@rancher/shell/types/vite-env.d.ts"
   ],
   "exclude": [
     "../../node_modules"

@@ -75,6 +75,12 @@ function build_pkg() {
 
   pushd pkg/${PKG}
 
+  if [ ! -f ./vite.config.mjs ] && [ -f ./vue.config.js ] && ! { [ "$(grep -cv '^[[:space:]]*$' ./vue.config.js)" = 1 ] && grep -qE "^module\.exports = require\('(\./\.shell|@rancher/shell)/pkg/vue\.config(\.js)?'\)\(__dirname\);?$" ./vue.config.js; }; then
+    echo "vue.config.js is no longer used: packages are built with Vite. Move its configuration to vite.config.mjs, or run the extension creator with --update (--migrate for an extension still on Vue 2)"
+    popd
+    return 1
+  fi
+
   # Check that the .shell link exists and points to the correct place.
   # -L is tested as well as -e because -e is false for a dangling symlink,
   # which is what an interrupted build can leave behind
@@ -96,16 +102,16 @@ function build_pkg() {
   # Deliberately not local - cleanup_shell_link reads this from the traps
   SHELL_LINK="$(pwd)/.shell"
 
-  local FILE=index.js
-  if [ -f ./index.ts ]; then
-    FILE=index.ts
-  fi
-
   if [ -n "$COMMIT" ]; then
     echo ${COMMIT} > ${PKG_DIST}/version
   fi
 
-  ${BASE_DIR}/node_modules/.bin/vue-cli-service build --name ${NAME} --target lib ${FILE} --dest ${PKG_DIST} --formats ${FORMATS} --filename ${NAME}
+  local CONFIG=${SHELL_DIR%/}/pkg/vite.config.mjs
+  if [ -f ./vite.config.mjs ]; then
+    CONFIG=./vite.config.mjs
+  fi
+
+  PKG_NAME=${NAME} PKG_DIST=${PKG_DIST} PKG_FORMAT=${FORMATS} ${BASE_DIR}/node_modules/.bin/vite build --config ${CONFIG}
   local BUILD_EXIT_CODE=$?
   cp -f ./package.json ${PKG_DIST}/package.json
   node ${SCRIPT_DIR}/pkgfile.js ${PKG_DIST}/package.json

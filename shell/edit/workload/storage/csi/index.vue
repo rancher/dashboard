@@ -2,8 +2,11 @@
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import { Checkbox } from '@components/Form/Checkbox';
 import { LabeledInput } from '@components/Form/LabeledInput';
+import LonghornDriver from '@shell/edit/workload/storage/csi/driver.longhorn.io';
 
 import { mapGetters } from 'vuex';
+
+const driverComponents = { 'driver.longhorn.io': LonghornDriver };
 
 export default {
   components: {
@@ -35,15 +38,11 @@ export default {
 
   computed: {
     driverComponent() {
-      try {
-        return require(`@shell/edit/workload/storage/csi/${ this.value.csi.driver }`).default;
-      } catch {
-        return null;
-      }
+      return driverComponents[this.value.csi.driver];
     },
 
     driverOpts() {
-      return require.context('@shell/edit/workload/storage/csi', true, /^.*\.vue$/).keys().map((path) => path.replace(/(\.\/)|(.vue)/g, '')).filter((file) => file !== 'index');
+      return Object.keys(driverComponents);
     },
 
     ...mapGetters({ t: 'i18n/t' })

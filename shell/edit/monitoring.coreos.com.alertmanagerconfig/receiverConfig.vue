@@ -18,6 +18,11 @@ import emailLogo from '@shell/assets/images/vendor/email.svg';
 import pagerdutyLogo from '@shell/assets/images/vendor/pagerduty.svg';
 import webhookLogo from '@shell/assets/images/vendor/webhook.svg';
 import customLogo from '@shell/assets/images/vendor/custom.svg';
+import EmailReceiver from './types/email';
+import OpsgenieReceiver from './types/opsgenie';
+import PagerdutyReceiver from './types/pagerduty';
+import SlackReceiver from './types/slack';
+import WebhookReceiver from './types/webhook';
 
 // i18n-uses monitoringReceiver.slack.*, monitoringReceiver.email.*, monitoringReceiver.pagerduty.*
 // i18n-uses monitoringReceiver.opsgenie.*, monitoringReceiver.webhook.*, monitoringReceiver.custom.*
@@ -68,6 +73,14 @@ export const RECEIVERS_TYPES = [
     logo:  customLogo
   },
 ];
+
+const receiverComponents = {
+  email:     EmailReceiver,
+  opsgenie:  OpsgenieReceiver,
+  pagerduty: PagerdutyReceiver,
+  slack:     SlackReceiver,
+  webhook:   WebhookReceiver,
+};
 
 export default {
   components: {
@@ -243,7 +256,7 @@ export default {
 
   methods: {
     getComponent(name) {
-      return require(`./types/${ name }`).default;
+      return receiverComponents[name];
     },
 
     navigateTo(receiverType) {
