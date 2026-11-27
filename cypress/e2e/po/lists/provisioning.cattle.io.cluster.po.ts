@@ -32,6 +32,10 @@ export default class ProvClusterListPo extends BaseResourceList {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(3);
   }
 
+  badgeChip(clusterName: string) {
+    return this.badge(clusterName).find('.cluster-badge-logo');
+  }
+
   version(clusterName: string) {
     return this.resourceTable().sortableTable().rowWithName(clusterName).column(5);
   }

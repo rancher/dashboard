@@ -76,6 +76,21 @@ describe('Home Page List', { testIsolation: false }, () => {
     });
   }));
 
+  it('Shows the badge of a cluster that can be explored at full strength, as the side nav does', { tags: ['@generic', '@adminUser'] }, () => {
+    // `local` has no machine pools, which used to dim its badge in both lists
+    const clusterName = 'local';
+
+    HomePagePo.navTo();
+    homePage.waitForPage();
+    homeClusterList.resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
+    homeClusterList.badgeChip(clusterName).should('be.visible').and('not.have.class', 'disabled');
+
+    clusterMgmtClusterList.goTo();
+    clusterMgmtClusterList.waitForPage();
+    clusterMgmtClusterList.sortableTable().checkLoadingIndicatorNotVisible();
+    clusterMgmtClusterList.list().badgeChip(clusterName).should('be.visible').and('not.have.class', 'disabled');
+  });
+
   qase(4109, it('Can filter rows in the cluster list', { tags: ['@generic', '@adminUser'] }, () => {
     /**
        * Filter rows in the cluster list

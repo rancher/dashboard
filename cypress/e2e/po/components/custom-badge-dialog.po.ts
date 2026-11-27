@@ -17,6 +17,10 @@ export default class CustomBadgeDialogPo extends ComponentPo {
     return this.badgePreview().find('.cluster-icon');
   }
 
+  sideNavPreview(): Cypress.Chainable {
+    return this.badgePreview().find('.badge-preview-sidenav .cluster-badge-logo');
+  }
+
   clusterName() {
     return this.badgePreview().find('.cluster-name');
   }
