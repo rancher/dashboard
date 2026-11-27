@@ -1,7 +1,12 @@
 import { mount } from '@vue/test-utils';
 import { createStore } from 'vuex';
 
+import { RadioGroup } from '@components/Form/Radio';
 import TableViewExportModal from '@shell/components/TableViews/TableViewExportModal.vue';
+import { downloadFile } from '@shell/utils/download';
+import type { TableActionContext } from '@shell/types/table-views';
+
+jest.mock('@shell/utils/download', () => ({ downloadFile: jest.fn(() => Promise.resolve()) }));
 
 /**
  * The modal has one sentence with four forms: a whole view or a selection, each with and without
@@ -80,16 +85,18 @@ describe('TableViewExportModal', () => {
         calls,
         store: createStore({
           getters: {
-            'type-map/headersFor': () => () => [],
-            'type-map/labelFor':   () => (schema: { id: string }, count: number) => `${ schema.id }${ count === 1 ? '' : 's' }`,
-            'i18n/t':              () => (key: string) => key,
+            'type-map/headersFor': () => () => [{
+              name: 'id', label: 'Id', value: 'id'
+            }],
+            'type-map/labelFor': () => (schema: { id: string }, count: number) => `${ schema.id }${ count === 1 ? '' : 's' }`,
+            'i18n/t':            () => (key: string) => key,
           },
           modules: { notifications: { namespaced: true, actions: { add: record('add'), update: record('update') } } },
         }),
       };
     };
 
-    const mountSelection = (resource: object, others: object[] = []) => {
+    const mountSelection = (resource: object, others: object[] = [], table?: TableActionContext) => {
       const { calls, store } = notifications();
       const row = (props: object) => ({
         type: 'pod', nameDisplay: 'web', downloadYaml: jest.fn(), downloadYamlBulk: jest.fn(() => Promise.resolve()), ...props
@@ -98,7 +105,7 @@ describe('TableViewExportModal', () => {
       const onClose = jest.fn();
       const wrapper = mount(TableViewExportModal, {
         props: {
-          modal: { show: true, onClose }, count: resources.length, isSelection: true, resources
+          modal: { show: true, onClose }, count: resources.length, isSelection: true, resources, table
         },
         global:  { plugins: [store], stubs: { RcModal: RcModalStub } },
         shallow: true,
@@ -165,6 +172,79 @@ describe('TableViewExportModal', () => {
 
       expect(calls[0].payload.message).toContain(type);
       expect(calls[calls.length - 1].payload.message).toContain(type);
+    });
+
+    describe('its columns', () => {
+      const pod = {
+        id: 'default/web', type: 'pod', schema: { id: 'Pod' }
+      };
+      const table: TableActionContext = {
+        headers: [{
+          name: 'name', label: 'Name', value: 'metadata.name'
+        }, {
+          name: 'description', label: 'Description', value: 'metadata.about'
+        }],
+        // Not the resource the action is run on, as with a cluster's row
+        rows: [{ metadata: { name: 'web', about: 'Serves the site' } }],
+      };
+
+      const exported = async(format: string, from?: TableActionContext) => {
+        const { wrapper } = mountSelection(pod, [], from);
+
+        wrapper.findComponent(RadioGroup).vm.$emit('update:value', format);
+        await wrapper.find('[data-testid="table-views-export-download"]').trigger('click');
+        await flush();
+
+        return jest.mocked(downloadFile).mock.calls[0];
+      };
+
+      beforeEach(() => jest.mocked(downloadFile).mockClear());
+
+      it.each([
+        ['csv', 'Name,Description\nweb,Serves the site'],
+        ['json', JSON.stringify([{ Name: 'web', Description: 'Serves the site' }], null, 2)],
+      ])('should be the ones of the table it was picked in, read from its rows, as %s', async(format, file) => {
+        expect((await exported(format, table)).slice(0, 2)).toStrictEqual([`pod.${ format }`, file]);
+      });
+
+      it('should be the type\'s own outside a table', async() => {
+        expect((await exported('csv')).slice(0, 2)).toStrictEqual(['pod.csv', 'Id\ndefault/web']);
+      });
+
+      it('should name the file after the rows it holds', async() => {
+        const rows = [{ type: 'management.cattle.io.cluster', metadata: { name: 'web' } }];
+
+        expect((await exported('csv', { ...table, rows }))[0]).toStrictEqual('management-cattle-io-cluster.csv');
+      });
+
+      const exportYaml = async(count: number) => {
+        const resources = Array.from({ length: count }, (_x, i) => ({
+          ...pod, id: `resource-${ i }`, downloadYaml: jest.fn(), downloadYamlBulk: jest.fn((_items: { id: string }[]) => Promise.resolve())
+        }));
+        const rows = resources.map(() => ({
+          metadata: { name: 'row' }, downloadYaml: jest.fn(), downloadYamlBulk: jest.fn()
+        }));
+        const { wrapper } = mountSelection(resources[0], resources.slice(1), { ...table, rows });
+
+        await wrapper.find('[data-testid="table-views-export-download"]').trigger('click');
+        await flush();
+
+        return { resources, fromRows: rows.flatMap((row) => [...row.downloadYaml.mock.calls, ...row.downloadYamlBulk.mock.calls]) };
+      };
+
+      it('should still write the YAML of the resource the action is run on, not of its row', async() => {
+        const { resources, fromRows } = await exportYaml(1);
+
+        expect(resources[0].downloadYaml).toHaveBeenCalledTimes(1);
+        expect(fromRows).toStrictEqual([]);
+      });
+
+      it('should still write the YAML of the resources the action is run on, not of their rows', async() => {
+        const { resources, fromRows } = await exportYaml(2);
+
+        expect(resources[0].downloadYamlBulk.mock.calls[0][0].map(({ id }) => id)).toStrictEqual(['resource-0', 'resource-1']);
+        expect(fromRows).toStrictEqual([]);
+      });
     });
   });
 });

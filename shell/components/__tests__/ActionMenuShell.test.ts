@@ -122,4 +122,35 @@ describe('component: ActionMenuShell', () => {
       expect(wrapper.emitted('action-invoked')).toBeUndefined();
     });
   });
+
+  describe('actionArgs prop', () => {
+    const resource = { id: 'default/nginx' };
+    const action = { action: 'download', label: 'Export As...' };
+
+    const select = (props: object) => {
+      const wrapper = shallowMount(ActionMenuShell, { props: { resource, ...props } });
+
+      wrapper.findComponent(RcDropdownMenu).vm.$emit('select', new MouseEvent('click'), action);
+    };
+
+    it('should run the action with the arguments given for it and its resource', () => {
+      const table = { headers: [], rows: [resource] };
+      const actionArgs = jest.fn(() => [table]);
+
+      select({ actionArgs });
+
+      expect(actionArgs).toHaveBeenCalledWith(action, [resource]);
+      expect(mockDispatch).toHaveBeenCalledWith('action-menu/execute', {
+        action, args: [table], opts: { alt: false }
+      });
+    });
+
+    it('should run the action without arguments when none are given', () => {
+      select({});
+
+      expect(mockDispatch).toHaveBeenCalledWith('action-menu/execute', {
+        action, args: undefined, opts: { alt: false }
+      });
+    });
+  });
 });
