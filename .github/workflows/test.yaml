@@ -89,13 +89,15 @@ jobs:
       - name: Setup env
         uses: ./.github/actions/setup
 
-      # Installing fixed version of Chrome since latest version does not work (128 didn't work)
-      # Leaving this here again in case we need to pin to a specific Chrome version in the future
-      # - name: Install Chrome
-      #   uses: ./.github/actions/install-chrome
-      #   with:
-      #     chrome-version: '143.0.7499.192-1'
-      #     chrome-version-checksum:
+      # chrome 158 rejects Storage.clearDataForOrigin with origin '*' ("* is not a valid URL")
+      # cypress < 15.21.2 sends that call when it opens each spec after the first, and the run aborts
+      # https://github.com/cypress-io/cypress/issues/35195
+      # remove this step when cypress is >= 15.21.2
+      - name: Install Chrome
+        uses: ./.github/actions/install-chrome
+        with:
+          chrome-version: '157.0.8103.78-1'
+          chrome-version-checksum: '4d740636b5c96f687798602c5aad6a5a270f44dd02e48db0638ae77aa4867b1b'
 
       - name: Download e2e build
         uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -163,11 +165,12 @@ jobs:
       - name: Setup env
         uses: ./.github/actions/setup
 
-      # - name: Install Chrome
-      #   uses: ./.github/actions/install-chrome
-      #   with:
-      #     chrome-version: '143.0.7499.192-1'
-      #     chrome-version-checksum:
+      # same chrome pin and reason as the e2e-test job
+      - name: Install Chrome
+        uses: ./.github/actions/install-chrome
+        with:
+          chrome-version: '157.0.8103.78-1'
+          chrome-version-checksum: '4d740636b5c96f687798602c5aad6a5a270f44dd02e48db0638ae77aa4867b1b'
 
       - name: Download e2e build
         uses:  actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
