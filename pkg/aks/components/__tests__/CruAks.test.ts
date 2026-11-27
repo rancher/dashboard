@@ -4,7 +4,7 @@ import LabeledSelect from '@shell/components/form/LabeledSelect.vue';
 import CruAks from '@pkg/aks/components/CruAks.vue';
 // eslint-disable-next-line jest/no-mocks-import
 import { mockRegions } from '@pkg/aks/util/__mocks__/aks';
-import { _CREATE } from '@shell/config/query-params';
+import { _CREATE, _IMPORT } from '@shell/config/query-params';
 
 const mockedStore = (versionSetting: any) => {
   return {
@@ -28,12 +28,12 @@ const mockedStore = (versionSetting: any) => {
 
 const mockedRoute = { query: {} };
 
-const requiredSetup = (versionSetting = { value: '<=1.27.x' }) => {
+const requiredSetup = (versionSetting = { value: '<=1.27.x' }, route: { query: Record<string, string> } = mockedRoute) => {
   return {
     global: {
       mocks: {
         $store:      mockedStore(versionSetting),
-        $route:      mockedRoute,
+        $route:      route,
         $fetchState: {},
       },
       stubs: { CruResource: { template: '<div><slot /></div>' } }
@@ -129,6 +129,48 @@ describe('aks provisioning form', () => {
     expect(clusterDropdown.exists()).toBe(false);
 
     expect(wrapper.vm.fvUnreportedValidationErrors).toHaveLength(0);
+  });
+
+  describe('when the mode is import', () => {
+    const mountImport = () => shallowMount(CruAks, {
+      props: { value: {}, mode: _CREATE },
+      ...requiredSetup(undefined, { query: { mode: _IMPORT } })
+    });
+
+    it('should report a required error for the cluster to register until one is selected', async() => {
+      const wrapper = mountImport();
+
+      await setCredential(wrapper, { clusterName: '', resourceLocation: 'eastus' });
+      await wrapper.setData({ normanCluster: { name: 'my-cluster' } });
+
+      expect(wrapper.vm.fvGetPathErrors(['clusterName'])).toStrictEqual(['validation.required']);
+    });
+
+    it('should be valid once a cluster to register is selected', async() => {
+      const wrapper = mountImport();
+
+      await setCredential(wrapper, { clusterName: '', resourceLocation: 'eastus' });
+      await wrapper.setData({ normanCluster: { name: 'my-cluster' }, config: { clusterName: 'aks-cluster' } });
+
+      expect(wrapper.vm.fvFormIsValid).toBe(true);
+    });
+  });
+
+  it.each([
+    ['there is no route', undefined],
+    ['the route has no query', {}],
+    ['the route has no mode', { query: {} }],
+  ])('should not require a cluster to register when %s', async(_, route) => {
+    const setup = requiredSetup();
+    const wrapper = shallowMount(CruAks, {
+      props:  { value: {}, mode: _CREATE },
+      global: { ...setup.global, mocks: { ...setup.global.mocks, $route: route } }
+    });
+
+    await setCredential(wrapper, { clusterName: '', resourceLocation: 'eastus' });
+    await wrapper.setData({ normanCluster: { name: 'my-cluster' } });
+
+    expect(wrapper.vm.fvFormIsValid).toBe(true);
   });
 
   it.each([

@@ -35,6 +35,14 @@ export default class ClusterManagerCreateAKSPagePo extends ClusterManagerCreateR
     return new LabeledInputPo('[placeholder*="better describes this resource"]');
   }
 
+  getImportClusterName() {
+    return LabeledInputPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'Name');
+  }
+
+  getClusterToRegister() {
+    return LabeledSelectPo.byLabel(cy.get('[data-testid="cruaks-form"]'), 'Cluster to register');
+  }
+
   getRegion() {
     return new LabeledSelectPo('[data-testid="cruaks-resourcelocation"]');
   }
