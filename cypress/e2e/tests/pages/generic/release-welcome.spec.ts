@@ -67,7 +67,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.checkVisible();
     dialog.title().should('contain', 'Welcome to');
     dialog.whatsNew().should('be.visible');
-    dialog.whatsNewFeatures().should('have.length', 4);
+    dialog.whatsNewFeatures().should('have.length', 5);
     dialog.cardsSettled();
     dialog.primePromo().scrollIntoView().should('be.visible');
     dialog.primePromo().should('contain', 'Ready for production? Go Prime.');
@@ -132,7 +132,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     dialog.loading().should('be.visible');
     cy.wait('@firstRun');
     dialog.loading().should('not.exist');
-    dialog.whatsNewFeatures().should('have.length', 4);
+    dialog.whatsNewFeatures().should('have.length', 5);
 
     dialog.closeButton().click();
     cy.wait('@markRead');
@@ -146,7 +146,7 @@ describe('Release welcome', { tags: ['@generic', '@adminUser', '@standardUser'] 
     HomePagePo.goTo();
     cy.wait('@firstRun');
     dialog.checkVisible();
-    dialog.whatsNewFeatures().should('have.length', 4);
+    dialog.whatsNewFeatures().should('have.length', 5);
     dialog.whatsNewVersion().should('contain', '2.16').and('not.contain', 'v').and('not.contain', '2.16.1');
 
     dialog.closeButton().click();

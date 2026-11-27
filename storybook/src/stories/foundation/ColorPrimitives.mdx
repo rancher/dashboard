@@ -10,8 +10,8 @@ export const USAGE = typeof __COLOR_USAGE__ === 'undefined' ? {} : __COLOR_USAGE
 export const UNPAINTED = new Set(typeof __UNPAINTED_VARIABLES__ === 'undefined' ? [] : __UNPAINTED_VARIABLES__);
 
 export const THEMES = {
-  light: ['theme-light', 'classic theme-light', 'suse theme-light'],
-  dark:  ['theme-dark', 'classic theme-dark', 'suse theme-dark', 'theme-dark suse-prime-surface'],
+  light: ['theme-light', 'suse theme-light'],
+  dark:  ['theme-dark', 'suse theme-dark', 'theme-dark suse-prime-surface'],
 };
 
 export const PRIMITIVES = Object.entries(COLOR_TOKENS).map(([name, value]) => ({ name, value }));
@@ -22,7 +22,7 @@ export const themeVariableNames = () => {
     for (const rule of rules) {
       if (rule.cssRules && !rule.selectorText) {
         walk(rule.cssRules);
-      } else if (rule.style && /theme-(light|dark)|\.classic|\.suse/.test(rule.selectorText || '')) {
+      } else if (rule.style && /theme-(light|dark)|\.suse/.test(rule.selectorText || '')) {
         for (const name of rule.style) {
           if (name.startsWith('--') && !name.startsWith('--color-')) {
             names.add(name);

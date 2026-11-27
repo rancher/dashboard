@@ -1,18 +1,3 @@
-/*
-Primary color classes from _light.scss
-
-  --primary                    : #{$primary};
-  --primary-text               : #{contrast-color($primary)};
-  --primary-hover-bg           : #{darken($primary, 10%)};
-  --primary-hover-text         : #{saturate($lightest, 20%)};
-  --primary-active-bg          : #{darken($primary, 25%)};
-  --primary-active-text        : #{contrast-color(darken($primary, 25%))};
-  --primary-border             : #($primary);
-  --primary-banner-bg          : #{rgba($primary, 0.15)};
-  --primary-light-bg           : #{rgba($primary, 0.05)};
-
-*/
-
 import Color from 'color';
 
 /**
