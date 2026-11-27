@@ -1,7 +1,12 @@
+import jsyaml from 'js-yaml';
+import isPlainObject from 'lodash/isPlainObject';
+import omit from 'lodash/omit';
+import pickBy from 'lodash/pickBy';
 import { get } from '@shell/utils/object';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { NORMAN } from '@shell/config/types';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
+import { dropControllerMetadata } from '@shell/plugins/steve/resource-utils';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
 export const CATTLE_API_GROUP = '.cattle.io';
@@ -55,6 +60,41 @@ export const VERBS = [
 ];
 
 export const CREATE_VERBS = new Set(['PUT', 'blocked-PUT']);
+
+const API_VERSION = 'management.cattle.io/v3';
+const KIND = 'RoleTemplate';
+const NON_FIELD_KEYS = ['apiVersion', 'kind', 'id', 'type', 'links', 'actions', 'metadata', 'status', 'displayName'];
+const NEVER_CLEARED_KEYS = [...NON_FIELD_KEYS, 'context'];
+const NORMAN_FIELD_NAMES = { roleTemplateNames: 'roleTemplateIds' };
+const STRING_TYPES = /^(string|dnsLabel|enum|date|reference\[.*\])$/;
+
+function wrongTypePath(value, type, schemaFor, path) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  const itemType = type.match(/^array\[(.*)\]$/)?.[1];
+  const fields = schemaFor(type)?.resourceFields;
+  let children = [];
+
+  if (itemType) {
+    if (!Array.isArray(value)) {
+      return path;
+    }
+    children = value.map((item, i) => [`${ path }[${ i }]`, item, itemType]);
+  } else if (fields) {
+    if (!isPlainObject(value)) {
+      return path;
+    }
+    children = Object.keys(value)
+      .filter((key) => fields[key])
+      .map((key) => [`${ path }.${ key }`, value[key], fields[key].type]);
+  } else if (type === 'boolean' ? typeof value !== 'boolean' : STRING_TYPES.test(type) && typeof value !== 'string') {
+    return path;
+  }
+
+  return children.map(([childPath, item, childType]) => wrongTypePath(item, childType, schemaFor, childPath)).find(Boolean);
+}
 
 export default class RoleTemplate extends SteveDescriptionModel {
   get customValidationRules() {
@@ -167,6 +207,74 @@ export default class RoleTemplate extends SteveDescriptionModel {
     })();
   }
 
+  get canSaveYaml() {
+    return true;
+  }
+
+  /**
+   * Save the role template's YAML through Norman.
+   *
+   * The YAML must be a RoleTemplate whose fields have the types the role template's Norman schema gives them, or
+   * saving throws. A field the YAML leaves out is cleared, except the display name (on edit) and context, which
+   * keep their current value. On create, the labels and annotations that Rancher's controllers own are dropped.
+   */
+  async saveYaml(yaml) {
+    const data = jsyaml.load(yaml);
+
+    if (data?.apiVersion !== API_VERSION || data?.kind !== KIND) {
+      throw this.t('resourceYaml.errors.wrongKind', { kind: KIND, apiVersion: API_VERSION });
+    }
+
+    const metadata = data.metadata || {};
+    const fields = pickBy(omit(data, NON_FIELD_KEYS), (_, key) => !key.startsWith('_'));
+    const schemaFor = this.$rootGetters['rancher/schemaFor'];
+    const normanFieldTypes = schemaFor(NORMAN.ROLE_TEMPLATE)?.resourceFields || {};
+    const wrongField = Object.entries(fields)
+      .map(([key, value]) => {
+        const normanField = normanFieldTypes[NORMAN_FIELD_NAMES[key] || key];
+
+        return normanField && wrongTypePath(value, normanField.type, schemaFor, key);
+      })
+      .find(Boolean);
+
+    if (wrongField) {
+      throw this.t('resourceYaml.errors.wrongType', { path: wrongField });
+    }
+
+    Object.entries(this.toJSON()).forEach(([key, value]) => {
+      if (!(key in fields) && !NEVER_CLEARED_KEYS.includes(key) && !key.startsWith('_')) {
+        fields[key] = typeof value === 'boolean' ? false : null;
+      }
+    });
+
+    if (!this.id) {
+      dropControllerMetadata(metadata);
+    }
+
+    const { roleTemplateNames, ...normanFields } = fields;
+    const renamed = {
+      name:            data.displayName || (!this.id && metadata.name) || undefined,
+      roleTemplateIds: roleTemplateNames,
+      labels:          metadata.labels || {},
+      annotations:     metadata.annotations || {},
+    };
+    const norman = await this.$dispatch('rancher/clone', { resource: await this.basicNorman }, { root: true });
+
+    if (!norman.context) {
+      norman.context = this.context;
+    }
+
+    if (!this.id) {
+      delete norman.name;
+      norman.clusterCreatorDefault = false;
+      norman.projectCreatorDefault = false;
+    }
+
+    Object.assign(norman, normanFields, pickBy(renamed, (value) => value !== undefined));
+
+    return this.saveNorman(norman);
+  }
+
   get canCreate() {
     const schema = this.$getters['schemaFor'](this.type);
 
@@ -194,14 +302,21 @@ export default class RoleTemplate extends SteveDescriptionModel {
   }
 
   async save() {
-    const norman = await this.norman;
+    return this.saveNorman(await this.norman);
+  }
 
-    for (const rule of norman.rules) {
-      if (rule.nonResourceURLs && rule.nonResourceURLs.length) {
-        delete rule.resources;
-        delete rule.apiGroups;
-      } else {
-        delete rule.nonResourceURLs;
+  saveNorman(norman) {
+    if (Array.isArray(norman.rules)) {
+      for (const rule of norman.rules) {
+        if (!rule || typeof rule !== 'object') {
+          continue;
+        }
+        if (rule.nonResourceURLs && rule.nonResourceURLs.length) {
+          delete rule.resources;
+          delete rule.apiGroups;
+        } else {
+          delete rule.nonResourceURLs;
+        }
       }
     }
 

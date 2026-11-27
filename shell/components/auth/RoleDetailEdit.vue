@@ -52,6 +52,8 @@ const RBAC_ROLE = SUBTYPE_MAPPING.RBAC_ROLE.key;
  *   - Should show only namespace scoped resources
  */
 export default {
+  inheritAttrs: false,
+
   emits: ['set-subtype', 'input'],
 
   components: {
@@ -148,7 +150,11 @@ export default {
     if (this.registerBeforeHook) {
       this.registerBeforeHook(() => {
         // Map default value back to its own key for given subtype
-        this.value[SUBTYPE_MAPPING[this.value.subtype].defaultKey] = !!this.defaultValue;
+        const defaultKey = SUBTYPE_MAPPING[this.value.subtype]?.defaultKey;
+
+        if (defaultKey) {
+          this.value[defaultKey] = !!this.defaultValue;
+        }
       });
     }
 
@@ -550,11 +556,12 @@ export default {
   <CruResource
     v-else
     class="receiver"
-    :can-yaml="!isCreate"
+    :done-route="doneRoute"
     :mode="mode"
     :resource="value"
     :errors="fvUnreportedValidationErrors"
     :validation-passed="fvFormIsValid"
+    :apply-hooks="applyHooks"
     :cancel-event="true"
     @error="e=>errors = e"
     @finish="save"
@@ -619,7 +626,7 @@ export default {
         name-key="displayName"
         description-key="description"
         label="Name"
-        :rules="{ name: fvGetAndReportPathRules('displayName') }"
+        :rules="{ name: [...fvGetAndReportPathRules('displayName'), ...fvGetAndReportPathRules('name')] }"
         @update:value="$emit('input', $event)"
       />
       <div

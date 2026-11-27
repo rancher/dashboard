@@ -8,7 +8,7 @@ import isObject from 'lodash/isObject';
 import { classify } from '@shell/plugins/dashboard-store/classify';
 import { NAMESPACE } from '@shell/config/types';
 import { handleKubeApiHeaderWarnings } from '@shell/plugins/steve/header-warnings';
-import { steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
+import { dropControllerMetadata, steveCleanForDownload } from '@shell/plugins/steve/resource-utils';
 import paginationUtils from '@shell/utils/pagination-utils';
 import stevePaginationUtils from '@shell/plugins/steve/steve-pagination-utils';
 
@@ -391,6 +391,7 @@ export default {
     dropKeys(m, newMetadataKeys);
     dropCattleKeys(m.annotations);
     dropCattleKeys(m.labels);
+    dropControllerMetadata(m);
 
     m.name = '';
 

@@ -1106,8 +1106,18 @@ export default class Resource {
     return this.hasLink('view');
   }
 
+  /**
+   * Whether YAML for this type can be saved at all, regardless of the user's permissions.
+   *
+   * False when the API blocks writes to the type (`blocked-PUT`). A model that saves its YAML
+   * through a different API (see `saveYaml`) should override this.
+   */
+  get canSaveYaml() {
+    return !this.schema?.resourceMethods?.includes('blocked-PUT');
+  }
+
   get canEditYaml() {
-    return this.schema?.resourceMethods?.find((x) => x === 'blocked-PUT') ? false : this.canUpdate;
+    return this.canSaveYaml ? this.canUpdate : false;
   }
 
   // ------------------------------------------------------------------

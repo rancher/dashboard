@@ -1,9 +1,11 @@
+import jsyaml from 'js-yaml';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
 import { SCHEMA, NORMAN } from '@shell/config/types';
 import { CATTLE_API_GROUP, SUBTYPE_MAPPING, CREATE_VERBS } from '@shell/models/management.cattle.io.roletemplate';
 import { uniq } from '@shell/utils/array';
 import { get } from '@shell/utils/object';
 import SteveDescriptionModel from '@shell/plugins/steve/steve-description-class';
+import { dropControllerMetadata } from '@shell/plugins/steve/resource-utils';
 import { AS, MODE, _CLONE, _UNFLAG } from '@shell/config/query-params';
 
 const BASE = 'user-base';
@@ -147,6 +149,21 @@ export default class GlobalRole extends SteveDescriptionModel {
     };
 
     this.currentRouter().push(location);
+  }
+
+  /**
+   * On create, the labels and annotations that Rancher's controllers own are dropped from the YAML.
+   */
+  saveYaml(yaml, initialYaml) {
+    if (this.id) {
+      return super.saveYaml(yaml, initialYaml);
+    }
+
+    const data = jsyaml.load(yaml);
+
+    dropControllerMetadata(data?.metadata);
+
+    return super.saveYaml(jsyaml.dump(data), initialYaml);
   }
 
   async save() {

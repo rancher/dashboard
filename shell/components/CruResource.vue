@@ -252,7 +252,7 @@ export default {
     },
 
     canEditYaml() {
-      return !(this.schema?.resourceMethods?.includes('blocked-PUT'));
+      return this.resource?.canSaveYaml ?? !(this.schema?.resourceMethods?.includes('blocked-PUT'));
     },
 
     showYaml() {
