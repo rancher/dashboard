@@ -106,4 +106,32 @@ describe('component: ResourceLabeledSelect.vue', () => {
     expect(labeledSelect.attributes('placeholder')).toBe('Select a resource');
     expect(labeledSelect.attributes('multiple')).toBe('true');
   });
+
+  it('should pass its context when deciding whether to paginate', async() => {
+    // A type paginated only in some contexts: the plain id says no, the id with its context says yes
+    const paginationEnabled = jest.fn((args) => typeof args === 'object' && args.context === 'token');
+    const dispatch = jest.fn().mockResolvedValue(undefined);
+    const wrapper = shallowMount(ResourceLabeledSelect, {
+      global: {
+        components: { LabeledSelect },
+        mocks:      {
+          $store: {
+            ...mockStore, getters: { ...mockStore.getters, 'cluster/paginationEnabled': paginationEnabled }, dispatch
+          },
+          $fetchState: {}
+        }
+      },
+      props: {
+        resourceType: 'management.cattle.io.cluster',
+        context:      'token',
+        paginateMode: RESOURCE_LABEL_SELECT_MODE.DYNAMIC,
+      }
+    });
+
+    await (wrapper.vm.$options as any).fetch.call(wrapper.vm);
+
+    expect(paginationEnabled).toHaveBeenCalledWith({ id: 'management.cattle.io.cluster', context: 'token' });
+    expect(wrapper.vm.paginate).toBe(true);
+    expect(dispatch).not.toHaveBeenCalledWith('cluster/findAll', expect.anything());
+  });
 });
