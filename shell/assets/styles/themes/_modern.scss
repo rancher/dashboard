@@ -1083,6 +1083,8 @@ BODY, .theme-dark {
     color: var(--link-text-secondary);
   }
   
+  --rc-none: #{$gray002};
+
   --rc-active-background: #{$gray006};
   --rc-active-disabled-background: #{$gray006};
   --rc-active-border: #{$gray005};
