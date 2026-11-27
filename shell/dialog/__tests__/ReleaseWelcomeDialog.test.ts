@@ -280,21 +280,40 @@ describe('component: ReleaseWelcomeDialog', () => {
       expect(wrapper.findComponent(RouterLinkStub).props('to')).toStrictEqual(REGISTRATION_ROUTE);
     });
 
-    it('should close when the registration page link is followed', async() => {
+    it('should close and mark the release notes as read when the registration page link is followed', async() => {
       const wrapper = await createWrapper({ prime: true });
 
       await byTestId(wrapper, 'release-welcome-registration-page').trigger('click');
 
+      expect(markReleaseNotesRead).toHaveBeenCalledWith(mockStore.dispatch, mockStore.getters);
       expect(wrapper.props('modal').onClose).toHaveBeenCalledWith();
     });
   });
 
-  it('should close with the close button', async() => {
+  it('should close and mark the release notes as read immediately with the close button', async() => {
     const wrapper = await createWrapper();
 
     await byTestId(wrapper, 'release-welcome-close').trigger('click');
 
+    expect(markReleaseNotesRead).toHaveBeenCalledWith(mockStore.dispatch, mockStore.getters);
     expect(wrapper.props('modal').onClose).toHaveBeenCalledWith();
+
+    wrapper.unmount();
+
+    expect(markReleaseNotesRead).toHaveBeenCalledTimes(1);
+  });
+
+  it('should close and mark the release notes as read when the modal emits close', async() => {
+    const wrapper = await createWrapper();
+
+    wrapper.findComponent(RcModalStub).vm.$emit('close');
+
+    expect(markReleaseNotesRead).toHaveBeenCalledWith(mockStore.dispatch, mockStore.getters);
+    expect(wrapper.props('modal').onClose).toHaveBeenCalledWith();
+
+    wrapper.unmount();
+
+    expect(markReleaseNotesRead).toHaveBeenCalledTimes(1);
   });
 
   it('should open with the focus on the close button', async() => {
@@ -303,7 +322,7 @@ describe('component: ReleaseWelcomeDialog', () => {
     expect(byTestId(wrapper, 'release-welcome-close').attributes()).toHaveProperty('autofocus');
   });
 
-  it('should mark the release notes as read when it closes, like their notification', async() => {
+  it('should mark the release notes as read when it unmounts without an explicit close', async() => {
     const wrapper = await createWrapper();
 
     expect(markReleaseNotesRead).toHaveBeenCalledTimes(0);

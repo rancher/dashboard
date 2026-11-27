@@ -19,14 +19,17 @@ import {
   PINNED_CLUSTERS,
   RECENT_CLUSTERS,
   SHOW_PRE_RELEASE,
+  READ_WHATS_NEW,
   enqueuePreferenceWrite,
   R_AUTH_REDIRECT,
+  R_PENDING_PREFS,
 } from '@shell/store/prefs';
 import { commitAndReconcile, movePinned, prependRecent } from '@shell/utils/cluster-pref-writer';
 
 describe('prefs store', () => {
   beforeEach(() => {
     sessionStorage.clear();
+    localStorage.clear();
   });
 
   describe('create', () => {
@@ -527,6 +530,13 @@ describe('prefs store', () => {
         mutations.reset(s as any);
 
         expect(s.data[LOCALE]).toStrictEqual('en-us');
+      });
+
+      it('removes pending preference writes from localStorage', () => {
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({ [READ_WHATS_NEW]: '"v2.16.0"' }));
+        mutations.reset(s as any);
+
+        expect(localStorage.getItem(R_PENDING_PREFS)).toBeNull();
       });
     });
 
@@ -1940,6 +1950,293 @@ describe('prefs store', () => {
         } as any, undefined);
 
         expect(commit).toHaveBeenCalledWith('load', { key: DEV, value: true });
+      });
+    });
+
+    describe('interrupted preference writes across page reload', () => {
+      it('stages the write in localStorage scoped to the user and clears it once server.save completes', async() => {
+        const s = state();
+        const commit = jest.fn();
+        let resolveSave: () => void = () => undefined;
+        const serverObj = {
+          data: {} as Record<string, any>,
+          save: jest.fn(() => new Promise<void>((resolve) => {
+            resolveSave = resolve;
+          })),
+        };
+        const dispatch = jest.fn().mockResolvedValue(serverObj);
+        const rootGetters = { 'auth/loggedIn': true, 'auth/principalId': 'local://user-a' };
+
+        const writePromise = actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: READ_WHATS_NEW, value: 'v2.16.0' });
+
+        expect(JSON.parse(localStorage.getItem(R_PENDING_PREFS) || 'null')).toStrictEqual({
+          user:  'local://user-a',
+          prefs: { [READ_WHATS_NEW]: '"v2.16.0"' },
+        });
+
+        await Promise.resolve();
+        await Promise.resolve();
+
+        resolveSave();
+        await writePromise;
+
+        expect(localStorage.getItem(R_PENDING_PREFS)).toBeNull();
+      });
+
+      it('retains remaining pending keys in localStorage when one of several writes completes', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: {} as Record<string, any>,
+          save: jest.fn().mockResolvedValue(undefined),
+        };
+        const dispatch = jest.fn().mockResolvedValue(serverObj);
+        const rootGetters = { 'auth/loggedIn': true, 'auth/principalId': 'local://user-a' };
+
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+          user:  'local://user-a',
+          prefs: { [CLUSTER]: 'other-cluster' },
+        }));
+
+        await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: READ_WHATS_NEW, value: 'v2.16.0' });
+
+        expect(JSON.parse(localStorage.getItem(R_PENDING_PREFS) || 'null')).toStrictEqual({
+          user:  'local://user-a',
+          prefs: { [CLUSTER]: 'other-cluster' },
+        });
+      });
+
+      it('handles external removal of R_PENDING_PREFS before save finishes', async() => {
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: {} as Record<string, any>,
+          save: jest.fn(async() => {
+            localStorage.removeItem(R_PENDING_PREFS);
+          }),
+        };
+        const dispatch = jest.fn().mockResolvedValue(serverObj);
+        const rootGetters = { 'auth/loggedIn': true, 'auth/principalId': 'local://user-a' };
+
+        await actions.set({
+          dispatch, commit, rootGetters, state: s
+        } as any, { key: READ_WHATS_NEW, value: 'v2.16.0' });
+
+        expect(localStorage.getItem(R_PENDING_PREFS)).toBeNull();
+      });
+
+      it('replays an interrupted write from localStorage on the next loadServer call for the same user', async() => {
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+          user:  'local://user-a',
+          prefs: { [READ_WHATS_NEW]: '"v2.16.0"' },
+        }));
+
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: { [READ_WHATS_NEW]: '"v2.15.3"' } as Record<string, any>,
+          save: jest.fn().mockResolvedValue(undefined),
+        };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+
+        await actions.loadServer({
+          state:       s,
+          dispatch,
+          commit,
+          rootState:   {},
+          rootGetters: { 'auth/principalId': 'local://user-a' },
+        } as any, undefined);
+
+        expect(serverObj.data[READ_WHATS_NEW]).toStrictEqual('"v2.16.0"');
+        expect(serverObj.save).toHaveBeenCalledWith({ redirectUnauthorized: false });
+        expect(commit).toHaveBeenCalledWith('load', { key: READ_WHATS_NEW, value: 'v2.16.0' });
+        expect(localStorage.getItem(R_PENDING_PREFS)).toBeNull();
+      });
+
+      it('ignores unknown preference keys in R_PENDING_PREFS when replaying interrupted writes', async() => {
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+          user:  'local://user-a',
+          prefs: { 'unknown-pref-key': '"unexpected"' },
+        }));
+
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: { [READ_WHATS_NEW]: '"v2.15.3"' } as Record<string, any>,
+          save: jest.fn().mockResolvedValue(undefined),
+        };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+
+        await actions.loadServer({
+          state:       s,
+          dispatch,
+          commit,
+          rootState:   {},
+          rootGetters: { 'auth/principalId': 'local://user-a' },
+        } as any, undefined);
+
+        expect(serverObj.save).toHaveBeenCalledTimes(0);
+        expect(serverObj.data['unknown-pref-key']).toBeUndefined();
+      });
+
+      it('discards pending writes belonging to a different user instead of replaying them', async() => {
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+          user:  'local://user-a',
+          prefs: { [READ_WHATS_NEW]: '"v2.16.0"' },
+        }));
+
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: { [READ_WHATS_NEW]: '"v2.15.3"' } as Record<string, any>,
+          save: jest.fn().mockResolvedValue(undefined),
+        };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+
+        await actions.loadServer({
+          state:       s,
+          dispatch,
+          commit,
+          rootState:   {},
+          rootGetters: { 'auth/principalId': 'local://user-b' },
+        } as any, undefined);
+
+        expect(serverObj.save).toHaveBeenCalledTimes(0);
+        expect(serverObj.data[READ_WHATS_NEW]).toStrictEqual('"v2.15.3"');
+        expect(commit).toHaveBeenCalledWith('load', { key: READ_WHATS_NEW, value: 'v2.15.3' });
+        expect(localStorage.getItem(R_PENDING_PREFS)).toBeNull();
+      });
+
+      it('does not clear a newer staged value when an older replay save completes', async() => {
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+          user:  'local://user-a',
+          prefs: { [READ_WHATS_NEW]: '"v2.16.0"' },
+        }));
+
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: { [READ_WHATS_NEW]: '"v2.15.3"' } as Record<string, any>,
+          save: jest.fn(async() => {
+            localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+              user:  'local://user-a',
+              prefs: { [READ_WHATS_NEW]: '"v2.16.1"' },
+            }));
+          }),
+        };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+
+        await actions.loadServer({
+          state:       s,
+          dispatch,
+          commit,
+          rootState:   {},
+          rootGetters: { 'auth/principalId': 'local://user-a' },
+        } as any, undefined);
+
+        expect(JSON.parse(localStorage.getItem(R_PENDING_PREFS) || 'null')).toStrictEqual({
+          user:  'local://user-a',
+          prefs: { [READ_WHATS_NEW]: '"v2.16.1"' },
+        });
+      });
+
+      it('continues loading preferences when replaying interrupted writes fails to save', async() => {
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+          user:  'local://user-a',
+          prefs: { [READ_WHATS_NEW]: '"v2.16.0"' },
+        }));
+
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: { [READ_WHATS_NEW]: '"v2.15.3"', [CLUSTER]: 'c1' } as Record<string, any>,
+          save: jest.fn().mockRejectedValue(new Error('save failed')),
+        };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+
+        const result = await actions.loadServer({
+          state:       s,
+          dispatch,
+          commit,
+          rootState:   {},
+          rootGetters: { 'auth/principalId': 'local://user-a' },
+        } as any, undefined);
+
+        expect(result).toBe(serverObj);
+        expect(commit).toHaveBeenCalledWith('load', { key: READ_WHATS_NEW, value: 'v2.16.0' });
+        expect(commit).toHaveBeenCalledWith('load', { key: CLUSTER, value: 'c1' });
+        expect(JSON.parse(localStorage.getItem(R_PENDING_PREFS) || 'null')).toStrictEqual({
+          user:  'local://user-a',
+          prefs: { [READ_WHATS_NEW]: '"v2.16.0"' },
+        });
+        errorSpy.mockRestore();
+      });
+
+      it.each([
+        ['corrupted JSON', '{invalid-json'],
+        ['a JSON primitive', '123'],
+        ['a JSON array', '[]'],
+        ['a legacy object without user/prefs shape', JSON.stringify({ [READ_WHATS_NEW]: '"v2.16.0"' })],
+      ])('ignores %s in R_PENDING_PREFS', async(_, raw) => {
+        localStorage.setItem(R_PENDING_PREFS, raw);
+
+        const s = state();
+        const commit = jest.fn();
+        const serverObj = {
+          data: { [READ_WHATS_NEW]: '"v2.15.3"' },
+          save: jest.fn().mockResolvedValue(undefined),
+        };
+        const dispatch = jest.fn().mockResolvedValue([serverObj]);
+
+        await actions.loadServer({
+          state: s, dispatch, commit, rootState: {}, rootGetters: {}
+        } as any, undefined);
+
+        expect(serverObj.save).toHaveBeenCalledTimes(0);
+        expect(commit).toHaveBeenCalledWith('load', { key: READ_WHATS_NEW, value: 'v2.15.3' });
+      });
+
+      it('does not fail preference writes, clearing, or reset when localStorage throws', async() => {
+        localStorage.setItem(R_PENDING_PREFS, JSON.stringify({
+          user:  'local://user-a',
+          prefs: {
+            [CLUSTER]:        'other-cluster',
+            [READ_WHATS_NEW]: '"v2.16.0"',
+          },
+        }));
+
+        const setItemSpy = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+          throw new Error('QuotaExceededError');
+        });
+        const removeItemSpy = jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+          throw new Error('SecurityError');
+        });
+
+        try {
+          const s = state();
+          const commit = jest.fn();
+          const serverObj = {
+            data: {} as Record<string, any>,
+            save: jest.fn().mockResolvedValue(undefined),
+          };
+          const dispatch = jest.fn().mockResolvedValue(serverObj);
+          const rootGetters = { 'auth/loggedIn': true, 'auth/principalId': 'local://user-a' };
+
+          await actions.set({
+            dispatch, commit, rootGetters, state: s
+          } as any, { key: READ_WHATS_NEW, value: 'v2.16.0' });
+
+          expect(serverObj.save).toHaveBeenCalledWith({ redirectUnauthorized: false });
+          expect(() => mutations.reset(s as any)).not.toThrow();
+        } finally {
+          setItemSpy.mockRestore();
+          removeItemSpy.mockRestore();
+        }
       });
     });
   });

@@ -101,17 +101,30 @@ onMounted(async() => {
   await showCards();
 });
 
-onUnmounted(() => markReleaseNotesRead(store.dispatch, store.getters));
+let markedRead = false;
 
-const close = () => props.modal.onClose();
+const markRead = () => {
+  if (!markedRead) {
+    markedRead = true;
+    markReleaseNotesRead(store.dispatch, store.getters);
+  }
+};
+
+onUnmounted(markRead);
+
+const close = () => {
+  markRead();
+  props.modal.onClose();
+};
 </script>
 
 <template>
   <RcModal
-    v-bind="modal"
+    :show="modal.show"
     size="large"
     class="release-welcome"
     data-testid="release-welcome"
+    @close="close"
   >
     <template #title>
       <h2 class="sr-only">
