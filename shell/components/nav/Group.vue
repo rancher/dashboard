@@ -1,6 +1,6 @@
 <script>
 import Type from '@shell/components/nav/Type';
-import { filterLocationValidParams, isNavItemActive } from '@shell/utils/router';
+import { filterLocationValidParams, groupHasActiveRoute } from '@shell/utils/router';
 import { isTruncated } from '@shell/utils/style';
 import { observeResize } from '@shell/utils/element-resize';
 import { RcSeparator } from '@components/RcSeparator';
@@ -48,6 +48,11 @@ export default {
       type:    Boolean,
       default: true,
     },
+
+    showHighlight: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   data() {
@@ -92,7 +97,7 @@ export default {
     },
 
     isGroupActive() {
-      return this.isOverview || (this.hasActiveRoute() && this.isExpanded && this.showHeader);
+      return this.showHighlight && (this.isOverview || (this.hasActiveRoute() && this.showHeader));
     },
 
     hasChildren() {
@@ -238,50 +243,7 @@ export default {
     },
 
     hasActiveRoute(items) {
-      if (!items) {
-        items = this.group;
-      }
-
-      let parentPath = '';
-      const cluster = this.$route.params?.cluster;
-
-      // Where we use nested route configuration, consider the parent route when trying to identify the nav location
-      if (this.$route.matched.length > 1) {
-        const parentRoute = this.$route.matched[this.$route.matched.length - 2];
-
-        parentPath = parentRoute.path.replace(':cluster', cluster);
-        parentPath = parentPath === '/' ? undefined : parentPath;
-      }
-
-      for (const item of items.children) {
-        if (item.children && this.hasActiveRoute(item)) {
-          return true;
-        } else if (item.route) {
-          const navLevels = ['cluster', 'product', 'resource'];
-          const matchesNavLevel = navLevels.filter((param) => !this.$route.params[param] || this.$route.params[param] !== item.route.params[param]).length === 0;
-
-          // Keep the group open wherever the child itself is highlighted, otherwise pages nested under a
-          // child's route (its create/detail pages) would collapse the group out from under it
-          if (matchesNavLevel || isNavItemActive(this.$router, this.$route, item)) {
-            return true;
-          }
-
-          if (!parentPath) {
-            continue;
-          }
-
-          const validItemRoute = filterLocationValidParams(this.$router, item.route);
-
-          // Use .path instead of .fullPath to ignore query parameters and hashes when comparing routes
-          const itemPath = this.$router.resolve(validItemRoute).path;
-
-          if (itemPath === parentPath) {
-            return true;
-          }
-        }
-      }
-
-      return false;
+      return groupHasActiveRoute(this.$router, this.$route, items || this.group);
     },
 
     syncNav() {

@@ -1,7 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import SideNav from '@shell/components/SideNav.vue';
-import { FAVORITE_GROUP } from '@shell/store/type-map';
+import { FAVORITE_GROUP, IN_USE_GROUP } from '@shell/store/type-map';
 
 const navStateStorage = { load: jest.fn(), save: jest.fn() };
 
@@ -74,7 +74,7 @@ const starredGroup = (): any => ({
 // Stands in for Group, with the pieces SideNav's route sync calls into.
 const GroupStub = {
   name:     'Group',
-  props:    ['group', 'canCollapse', 'showHeader', 'idPrefix'],
+  props:    ['group', 'canCollapse', 'showHeader', 'showHighlight', 'idPrefix'],
   template: '<div class="group-stub" />',
   methods:  {
     hasActiveRoute: () => false,
@@ -511,6 +511,149 @@ describe('component: SideNav', () => {
       await nextTick();
 
       expect(scroll).not.toHaveBeenCalledWith();
+    });
+  });
+
+  describe('More Resources highlight suppression', () => {
+    const mountNavOnRoute = (route: Record<string, any>) => shallowMount(SideNav as any, {
+      global: {
+        provide: { store: mockStore },
+        stubs:   { Group: GroupStub, 'router-link': true },
+        mocks:   {
+          $store:  mockStore,
+          $route:  route,
+          $router: {
+            resolve:   jest.fn((loc: any) => ({ path: `/c/c-test/explorer/${ loc?.params?.resource || loc?.name || '' }` })),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: (key: string) => key,
+        },
+      },
+    });
+
+    const groupsWithMoreResources = (): any[] => [
+      {
+        name:  'promoted-events',
+        route: {
+          name:   'c-cluster-product-resource',
+          params: {
+            cluster: 'c-test', product: 'explorer', resource: 'event'
+          }
+        },
+        children: [],
+      },
+      {
+        name:     'workloads',
+        children: [
+          {
+            name:  'apps.daemonset',
+            route: {
+              name:   'c-cluster-product-resource',
+              params: {
+                cluster: 'c-test', product: 'explorer', resource: 'apps.daemonset'
+              }
+            }
+          },
+        ],
+      },
+      {
+        name:     IN_USE_GROUP,
+        children: [
+          {
+            name:     'apps',
+            children: [
+              {
+                name:  'apps.daemonset',
+                route: {
+                  name:   'c-cluster-product-resource',
+                  params: {
+                    cluster: 'c-test', product: 'explorer', resource: 'apps.daemonset'
+                  }
+                }
+              },
+            ],
+          },
+          {
+            name:     'core',
+            children: [
+              {
+                name:  'event',
+                route: {
+                  name:   'c-cluster-product-resource',
+                  params: {
+                    cluster: 'c-test', product: 'explorer', resource: 'event'
+                  }
+                }
+              },
+              {
+                name:  'serviceaccount',
+                route: {
+                  name:   'c-cluster-product-resource',
+                  params: {
+                    cluster: 'c-test', product: 'explorer', resource: 'serviceaccount'
+                  }
+                }
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    it('hides highlight on More Resources when another group matches the active route', async() => {
+      const wrapper = mountNavOnRoute({
+        params: {
+          cluster: 'c-test', product: 'explorer', resource: 'apps.daemonset'
+        },
+        path:    '/c/c-test/explorer/apps.daemonset',
+        matched: [],
+      });
+
+      navGroups(wrapper, groupsWithMoreResources());
+      await nextTick();
+
+      const groupComps = wrapper.findAllComponents(GroupStub);
+      const workloads = groupComps.find((c) => c.props('group').name === 'workloads');
+      const inUse = groupComps.find((c) => c.props('group').name === IN_USE_GROUP);
+
+      expect(workloads?.props('showHighlight')).toBe(true);
+      expect(inUse?.props('showHighlight')).toBe(false);
+    });
+
+    it('keeps highlight on More Resources when no other group matches the active route', async() => {
+      const wrapper = mountNavOnRoute({
+        params: {
+          cluster: 'c-test', product: 'explorer', resource: 'serviceaccount'
+        },
+        path:    '/c/c-test/explorer/serviceaccount',
+        matched: [],
+      });
+
+      navGroups(wrapper, groupsWithMoreResources());
+      await nextTick();
+
+      const groupComps = wrapper.findAllComponents(GroupStub);
+      const inUse = groupComps.find((c) => c.props('group').name === IN_USE_GROUP);
+
+      expect(inUse?.props('showHighlight')).toBe(true);
+    });
+
+    it('hides highlight on More Resources when a childless top-level item matches the active route', async() => {
+      const wrapper = mountNavOnRoute({
+        params: {
+          cluster: 'c-test', product: 'explorer', resource: 'event'
+        },
+        path:    '/c/c-test/explorer/event',
+        matched: [],
+      });
+
+      navGroups(wrapper, groupsWithMoreResources());
+      await nextTick();
+
+      const groupComps = wrapper.findAllComponents(GroupStub);
+      const inUse = groupComps.find((c) => c.props('group').name === IN_USE_GROUP);
+
+      expect(inUse?.props('showHighlight')).toBe(false);
     });
   });
 });

@@ -983,4 +983,181 @@ describe('component: Group', () => {
       expect(wrapper.find('.toggle-accordion').attributes('aria-label')).toBe('nav.ariaLabel.expand:Workloads Display');
     });
   });
+
+  describe('group-highlight class (isGroupActive)', () => {
+    const activeRoute = {
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster: 'local', product: 'explorer', resource: 'apps.daemonset'
+      },
+      path:     '/c/local/explorer/apps.daemonset',
+      fullPath: '/c/local/explorer/apps.daemonset',
+      matched:  [],
+    };
+
+    const inactiveRoute = {
+      name:   'c-cluster-product-resource',
+      params: {
+        cluster: 'local', product: 'explorer', resource: 'configmap'
+      },
+      path:     '/c/local/explorer/configmap',
+      fullPath: '/c/local/explorer/configmap',
+      matched:  [],
+    };
+
+    const mountGroup = (group: any, route: any = activeRoute, extraProps: Record<string, unknown> = {}) => shallowMount(Group as any, {
+      props: {
+        group,
+        canCollapse: true,
+        idPrefix:    '',
+        ...extraProps,
+      },
+      global: {
+        stubs: { 'router-link': { template: '<a><slot /></a>' } },
+        mocks: {
+          $route:  route,
+          $router: {
+            resolve:   jest.fn((loc: any) => ({ path: loc?.name === 'nested-parent' ? '/c/local/nested-parent' : `/c/local/explorer/${ loc?.params?.resource || loc?.name || '' }` })),
+            getRoutes: jest.fn().mockReturnValue([]),
+          },
+          t: (key: string) => key,
+        },
+      },
+    });
+
+    const workloadsGroup = (expanded: boolean) => ({
+      name:     'workloads',
+      label:    'Workloads',
+      expanded,
+      children: [{
+        name:  'apps.daemonset',
+        route: {
+          name:   'c-cluster-product-resource',
+          params: {
+            cluster: 'local', product: 'explorer', resource: 'apps.daemonset'
+          },
+        },
+      }],
+    });
+
+    it.each([
+      ['expanded', true],
+      ['collapsed', false],
+    ])('applies group-highlight when a child is active and the group is %s', (_state, expanded) => {
+      const wrapper = mountGroup(workloadsGroup(expanded));
+
+      expect(wrapper.classes()).toContain('group-highlight');
+    });
+
+    it('retains group-highlight after collapsing an expanded active group via its toggle', async() => {
+      const wrapper = mountGroup(workloadsGroup(true));
+
+      expect(wrapper.classes()).toContain('group-highlight');
+
+      await wrapper.find('.toggle-accordion').trigger('click');
+
+      expect(wrapper.find('.body').exists()).toBe(false);
+      expect(wrapper.classes()).toContain('group-highlight');
+    });
+
+    it('keeps group-highlight when a nested descendant is active and the group is collapsed', () => {
+      const nestedGroup = {
+        name:     'more-resources',
+        label:    'More Resources',
+        expanded: false,
+        children: [{
+          name:     'core',
+          label:    'Core',
+          expanded: false,
+          children: [{
+            name:  'apps.daemonset',
+            route: {
+              name:   'c-cluster-product-resource',
+              params: {
+                cluster: 'local', product: 'explorer', resource: 'apps.daemonset'
+              },
+            },
+          }],
+        }],
+      };
+      const wrapper = mountGroup(nestedGroup);
+
+      expect(wrapper.classes()).toContain('group-highlight');
+    });
+
+    it.each([
+      ['expanded', true],
+      ['collapsed', false],
+    ])('does not apply group-highlight when no child is active and the group is %s', (_state, expanded) => {
+      const wrapper = mountGroup(workloadsGroup(expanded), inactiveRoute);
+
+      expect(wrapper.classes()).not.toContain('group-highlight');
+    });
+
+    it('does not apply group-highlight when showHeader is false even if a child is active', () => {
+      const wrapper = mountGroup(workloadsGroup(false), activeRoute, { showHeader: false });
+
+      expect(wrapper.classes()).not.toContain('group-highlight');
+    });
+
+    it('does not apply group-highlight when showHighlight is false even if a child is active', () => {
+      const wrapper = mountGroup(workloadsGroup(false), activeRoute, { showHighlight: false });
+
+      expect(wrapper.classes()).not.toContain('group-highlight');
+    });
+
+    it('matches via nested parent route path when route params differ', () => {
+      const group = {
+        name:     'workloads',
+        label:    'Workloads',
+        expanded: false,
+        children: [{
+          name:  'nested-child',
+          route: { name: 'nested-parent', params: { cluster: 'local' } },
+        }],
+      };
+      const nestedRoute = {
+        name:     'nested-grandchild',
+        params:   { cluster: 'local' },
+        path:     '/c/local/other/child',
+        fullPath: '/c/local/other/child',
+        matched:  [
+          { path: '/c/:cluster/nested-parent' },
+          { path: '/c/:cluster/other/child' },
+        ],
+      };
+      const wrapper = mountGroup(group, nestedRoute);
+
+      expect(wrapper.classes()).toContain('group-highlight');
+    });
+
+    it('applies group-highlight when the overview route is active and the group is collapsed', () => {
+      const groupWithOverview = {
+        name:     'cluster',
+        label:    'Cluster',
+        expanded: false,
+        children: [
+          {
+            name:     'overview',
+            overview: true,
+            route:    { name: 'overview-route', params: {} },
+          },
+          {
+            name:  'nodes',
+            route: { name: 'nodes-route', params: {} },
+          },
+        ],
+      };
+      const overviewRoute = {
+        name:     'overview-route',
+        params:   {},
+        path:     '/overview',
+        fullPath: '/overview',
+        matched:  [],
+      };
+      const wrapper = mountGroup(groupWithOverview, overviewRoute);
+
+      expect(wrapper.classes()).toContain('group-highlight');
+    });
+  });
 });

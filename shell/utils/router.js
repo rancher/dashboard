@@ -152,6 +152,56 @@ export const isNavItemActive = (router, to, navItem) => {
 };
 
 /**
+ * Whether any child (or nested descendant) in a side nav group matches the given route.
+ *
+ * @param {*} router VueRouter instance
+ * @param {*} to a VueRouter Route object
+ * @param {*} group a side nav group with a `children` array
+ * @returns true if any descendant matches the route, false otherwise
+ */
+export function groupHasActiveRoute(router, to, group) {
+  if (!group?.children?.length) {
+    return false;
+  }
+
+  let parentPath = '';
+  const cluster = to.params?.cluster;
+
+  if (to.matched?.length > 1) {
+    const parentRoute = to.matched[to.matched.length - 2];
+
+    parentPath = parentRoute.path.replace(':cluster', cluster);
+    parentPath = parentPath === '/' ? undefined : parentPath;
+  }
+
+  for (const item of group.children) {
+    if (item.children && groupHasActiveRoute(router, to, item)) {
+      return true;
+    } else if (item.route) {
+      const navLevels = ['cluster', 'product', 'resource'];
+      const matchesNavLevel = navLevels.filter((param) => !to.params?.[param] || to.params[param] !== item.route.params?.[param]).length === 0;
+
+      if (matchesNavLevel || isNavItemActive(router, to, item)) {
+        return true;
+      }
+
+      if (!parentPath) {
+        continue;
+      }
+
+      const validItemRoute = filterLocationValidParams(router, item.route);
+      const itemPath = router.resolve(validItemRoute).path;
+
+      if (itemPath === parentPath) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
  * Given a route it will look through the matching parent routes to see if any match the fn (predicate) criteria
  *
  * @param {*} to a VueRouter Route object

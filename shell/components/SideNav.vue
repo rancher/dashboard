@@ -17,7 +17,8 @@ import { ucFirst } from '@shell/utils/string';
 import { HCI, UI, SCHEMA } from '@shell/config/types';
 import { HARVESTER_NAME as HARVESTER } from '@shell/config/features';
 import { NAME as EXPLORER } from '@shell/config/product/explorer';
-import { TYPE_MODES, FAVORITE_GROUP } from '@shell/store/type-map';
+import { TYPE_MODES, FAVORITE_GROUP, IN_USE_GROUP } from '@shell/store/type-map';
+import { groupHasActiveRoute, isNavItemActive } from '@shell/utils/router';
 import { NAME as NAVLINKS } from '@shell/config/product/navlinks';
 import Group from '@shell/components/nav/Group';
 import LocaleSelector from '@shell/components/LocaleSelector';
@@ -230,6 +231,10 @@ export default {
       });
 
       return expanded;
+    },
+
+    hasPrimaryActiveGroup() {
+      return this.groups.some((g) => g.name !== IN_USE_GROUP && (isNavItemActive(this.$router, this.$route, g) || groupHasActiveRoute(this.$router, this.$route, g)));
     },
   },
 
@@ -481,6 +486,10 @@ export default {
       this.navStateStorage.save(this.currentNavState());
     },
 
+    showGroupHighlight(group) {
+      return group.name !== IN_USE_GROUP || !this.hasPrimaryActiveGroup;
+    },
+
     syncNav() {
       const refs = this.$refs.groups;
 
@@ -578,6 +587,7 @@ export default {
           :group="g"
           :can-collapse="!g.isRoot"
           :show-header="!g.isRoot"
+          :show-highlight="showGroupHighlight(g)"
           @expand="saveNavState()"
           @close="saveNavState()"
         />
