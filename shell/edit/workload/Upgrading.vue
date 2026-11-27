@@ -48,16 +48,20 @@ export default {
       podManagementPolicy = 'OrderedReady'
     } = this.value;
     const strategy = strategyObj.type || updateStrategyObj.type || 'RollingUpdate';
-    let maxSurge = '25';
+    const isDaemonSet = this.type === WORKLOAD_TYPES.DAEMON_SET;
+    // DaemonSets use updateStrategy.rollingUpdate; k8s defaults their maxSurge to 0
+    const rollingUpdate = isDaemonSet ? updateStrategyObj.rollingUpdate : strategyObj.rollingUpdate;
+    let maxSurge = isDaemonSet ? 0 : '25';
     let maxUnavailable = '25';
-    let surgeUnits = '%';
+    let surgeUnits = isDaemonSet ? 'Pods' : '%';
     let unavailableUnits = '%';
 
-    if (strategyObj.rollingUpdate) {
-      maxSurge = strategyObj.rollingUpdate.maxSurge;
-      maxUnavailable = strategyObj.rollingUpdate.maxUnavailable;
+    if (rollingUpdate) {
+      maxSurge = rollingUpdate.maxSurge;
+      maxUnavailable = rollingUpdate.maxUnavailable;
 
       if ( typeof maxSurge === 'string' && maxSurge.includes('%')) {
+        surgeUnits = '%';
         maxSurge = maxSurge.slice(0, maxSurge.indexOf('%'));
       } else {
         surgeUnits = 'Pods';
@@ -172,7 +176,7 @@ export default {
         let updateStrategy;
 
         if (this.strategy === 'RollingUpdate') {
-          updateStrategy = { rollingUpdate: { maxUnavailable }, type: this.strategy };
+          updateStrategy = { rollingUpdate: { maxSurge, maxUnavailable }, type: this.strategy };
         } else {
           updateStrategy = { type: this.strategy };
         }
@@ -268,10 +272,7 @@ export default {
         class="row mb-20"
         data-testid="input-policy-surge"
       >
-        <div
-          v-if="isDeployment"
-          class="col span-6"
-        >
+        <div class="col span-6">
           <InputWithSelect
             :text-value="maxSurge"
             :select-before-text="false"
