@@ -2,7 +2,9 @@ import { shallowMount, VueWrapper } from '@vue/test-utils';
 import Login from '@shell/pages/auth/login.vue';
 import AuthProviderList from '@shell/components/auth/login/AuthProviderList.vue';
 import { Banner } from '@components/Banner';
-import { LOCAL as LOCAL_QUERY, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@shell/config/query-params';
+import {
+  LOCAL as LOCAL_QUERY, LOGGED_OUT, PROVIDER, TIMED_OUT, _FLAGGED
+} from '@shell/config/query-params';
 import { REMEMBERED_PROVIDER_KEY } from '@shell/utils/auth-providers';
 
 jest.mock('@shell/utils/require-asset', () => {
@@ -42,7 +44,7 @@ const applyQuery = jest.fn();
  */
 const t = (key: string, args?: Record<string, string>) => (key === 'login.logoAlt' ? `${ args?.vendor } Logo` : key);
 
-const createWrapper = (drivers: object[], query: Record<string, string | null> = {}) => {
+const createWrapper = (drivers: object[], query: Record<string, string | string[] | null> = {}) => {
   const dispatch = jest.fn((action: string) => {
     if (action === 'auth/getAuthProviders') {
       return Promise.resolve(drivers);
@@ -540,6 +542,111 @@ describe('page: login', () => {
         expect(wrapper.vm.showLocal).toBe(false);
         expect(wrapper.vm.rememberProvider).toBe(false);
       });
+    });
+  });
+
+  describe('choosing a provider from the URL', () => {
+    it('should open on the provider named in the URL', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: 'okta-corp' });
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.selectedProviderId).toBe('okta-corp');
+    });
+
+    it('should point the login component at the provider named in the URL', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: 'okta-corp' });
+
+      await runFetch(wrapper);
+
+      expect((wrapper.vm.selectedProvider as any).id).toBe('okta-corp');
+      expect((wrapper.vm.providers as any[])[wrapper.vm.selectedProviderIndex].id).toBe('okta-corp');
+    });
+
+    it('should prefer the provider named in the URL over a different remembered one', async() => {
+      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'gh-community');
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: 'okta-corp' });
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.selectedProviderId).toBe('okta-corp');
+      expect(wrapper.vm.rememberProvider).toBe(false);
+    });
+
+    it('should show the box ticked when the URL names the remembered provider', async() => {
+      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'okta-corp');
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: 'okta-corp' });
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.rememberProvider).toBe(true);
+    });
+
+    it('should not change the remembered provider', async() => {
+      window.localStorage.setItem(REMEMBERED_PROVIDER_KEY, 'gh-community');
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: 'okta-corp' });
+
+      await runFetch(wrapper);
+
+      expect(window.localStorage.getItem(REMEMBERED_PROVIDER_KEY)).toBe('gh-community');
+    });
+
+    it('should not save the provider named in the URL', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: 'okta-corp' });
+
+      await runFetch(wrapper);
+
+      expect(window.localStorage.getItem(REMEMBERED_PROVIDER_KEY)).toBeNull();
+    });
+
+    // A disabled provider is left out of the public list, so it reads as unknown.
+    it.each([
+      ['an unknown provider', 'unknown-config'],
+      ['a disabled provider', OKTA_PARTNER.id],
+    ])('should open as without the parameter for %s', async(_label, requested) => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: requested });
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
+    });
+
+    it('should ignore the parameter when it is given more than once', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: ['okta-corp', 'okta-corp'] });
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
+    });
+
+    it.each([
+      ['a list of providers', [LOCAL, OKTA_CORP, GITHUB]],
+      ['a single external provider', [LOCAL, OKTA_CORP]],
+    ])('should open on the local provider when the URL names it, with %s', async(_label, drivers) => {
+      const wrapper = createWrapper(drivers, { [PROVIDER]: 'local' });
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.selectedProviderId).toBe('local');
+      expect(wrapper.vm.showLocal).toBe(true);
+    });
+
+    it('should open as without the parameter when the URL names local and local is not offered', async() => {
+      const wrapper = createWrapper([OKTA_CORP, GITHUB], { [PROVIDER]: 'local' });
+
+      await runFetch(wrapper);
+
+      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
+      expect(wrapper.vm.showLocal).toBe(false);
+    });
+
+    it('should still let the user choose another provider', async() => {
+      const wrapper = createWrapper([LOCAL, OKTA_CORP, GITHUB], { [PROVIDER]: 'okta-corp' });
+
+      await runFetch(wrapper);
+      wrapper.vm.selectProvider(wrapper.vm.providerOptions[0]);
+
+      expect(wrapper.vm.selectedProviderId).toBe('gh-community');
     });
   });
 

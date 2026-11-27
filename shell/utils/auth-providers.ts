@@ -162,16 +162,18 @@ export const clearRememberedProviderId = (): void => {
 };
 
 /**
- * The provider the page should open on: the one the visitor asked to be
- * remembered, or the first on offer when there is no usable saved choice.
+ * The provider the page should open on: the one named in the sign-in URL, else
+ * the one the visitor asked to be remembered, else the first on offer.
  */
 export const resolveInitialProvider = (
   options: AuthProviderOption[],
-  rememberedId: string | null
+  rememberedId: string | null,
+  requestedId?: string | null
 ): AuthProviderOption | undefined => {
+  const requested = requestedId ? options.find((option) => option.id === requestedId) : undefined;
   const remembered = rememberedId ? options.find((option) => option.id === rememberedId) : undefined;
 
-  return remembered || options[0];
+  return requested || remembered || options[0];
 };
 
 /**
