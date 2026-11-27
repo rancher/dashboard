@@ -51,10 +51,20 @@ When either created, editing, viewing or listing a kubernetes resource the follo
 
 ## Fetching Resources
 
-- Use the store's `findX` actions (`find`, `findAll`, `findPage`, etc) rather than dispatching `<store>/request` with a hand-built `/v1/...` url. If the request needs pagination args (page size, filters, sort) use `findPage`.
-  - By default these actions cache the result and watch for changes (cache automatically updates).
-  - A resource type only has one cache. Most calls replace what's in it. For example, a list of pods gets its rows from `findPage`. If another component then calls `findAll` for pods, the pod cache containing a page is replaced with every pod and the list stops showing its page.
-  - If concurrent views on the same resource type are needed, pass in `transient: true`. The resources are fetched but not cached. This also means they aren't watched and won't update automatically.
+- Prefer the store's `findX` actions (`find`, `findAll`, `findPage`, etc) over dispatching `<store>/request`.
+  - `findPage` can be used for any request that needs to use pagination args (page size, filters, sort). It's not just for requests to support lists.
+  - By default `findX` actions cache the result and watch for changes (cache automatically updates).
+    - A resource type only has one cache. Most calls replace its content.
+      - This can cause concurrency issues: for example a list of pods gets its rows from `findPage`. If another component then calls `findAll` for pods, the pod cache containing a page is replaced with every pod and the list stops showing its page.
+      - To avoid the cache
+        - for `find` or `findPage` provide `transient: true`.
+        - for other requests fall back to `<store>/request`.
+        - in all cases the results aren't watched and won't update automatically.
+    - A watch will ensure the cache is kept up to date with server-side changes (new, updated or deleted resources).
+      - Sometimes this isn't needed, so provide `watch: false`.
+- If a `<store>/request` action is used to fetch a kubernetes resource
+  - the url can be calculated via the `<store>/urlFor` getter.
+  - results are JSON and not instances of the Resource model. They can be manually converted via the `<store>/create` action (or `<store>/createMany` for an array).
 - Avoid fetching all of a resource type that can scale to large numbers, especially clusters (`MANAGEMENT.CLUSTER`). Instead
   - for a dropdown, use `ResourceLabeledSelect` (`shell/components/form/ResourceLabeledSelect.vue`). With pagination enabled it requests one page at a time and doesn't persist results to the store. See `shell/components/form/SecretSelector.vue`, which filters secrets server-side by name, namespace and type via `paginatePageOptions`
   - if only the spread of possible options for a property in a resource is needed use the steve store's `fetchResourceSummary` action (e.g. `summaryField: 'metadata.name'`)
