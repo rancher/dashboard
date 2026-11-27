@@ -8,6 +8,9 @@ import { isViewDirty, selectedViewIdFor, savedViewsByType } from '@shell/utils/t
 import type { TableViewSaved, TableViewState } from '@shell/types/table-views';
 import { decodeSharedViews } from '@shell/utils/table-views/share';
 import type { SharedTableView } from '@shell/utils/table-views/share';
+import { announce } from '@shell/utils/aria-announce';
+
+jest.mock('@shell/utils/aria-announce', () => ({ announce: jest.fn() }));
 
 const EMPTY: TableViewState = {
   query: '', columns: null, labelColumns: [], groupBy: null
@@ -576,8 +579,10 @@ describe('TableViewTabs', () => {
         expect(growl).toHaveBeenCalledWith(expect.objectContaining({ action: expect.objectContaining({ run: expect.any(Function) }) }));
       });
 
-      it('should go to the tab on its left when the one in front is deleted', () => {
-        const { vm, shown } = createWrapper({ view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb' });
+      it('should go to the default view when the one in front is deleted', () => {
+        const { vm, shown } = createWrapper({
+          defaultViewId: 'aaa', view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb'
+        });
 
         vm.deleteView(second);
 
@@ -586,7 +591,9 @@ describe('TableViewTabs', () => {
       });
 
       it('should leave none of the deleted tab\'s changes on the tab that takes its place', async() => {
-        const { vm, shown, wrapper } = createWrapper({ view: { ...EMPTY, query: 'name:foo name:zzz' }, initialViewId: 'bbb' });
+        const { vm, shown, wrapper } = createWrapper({
+          defaultViewId: 'aaa', view: { ...EMPTY, query: 'name:foo name:zzz' }, initialViewId: 'bbb'
+        });
 
         vm.deleteView(second);
         // As the owning table does
@@ -597,7 +604,9 @@ describe('TableViewTabs', () => {
       });
 
       it('should bring back the changes held for the tab it goes to', () => {
-        const { vm, shown } = createWrapper({ view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb' });
+        const { vm, shown } = createWrapper({
+          defaultViewId: 'aaa', view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb'
+        });
 
         vm.drafts = { aaa: { ...EMPTY, query: 'state:Running name:held' } };
         vm.deleteView(second);
@@ -605,17 +614,16 @@ describe('TableViewTabs', () => {
         expect(shown()?.query).toBe('state:Running name:held');
       });
 
-      it('should go to the table\'s own tab when that is on its left', () => {
-        const { vm, shown } = createWrapper({ view: { ...EMPTY, query: 'state:Running name:zzz' }, initialViewId: 'aaa' });
+      it('should go to the table\'s own tab when there is no default view', () => {
+        const { vm, shown } = createWrapper({ view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb' });
 
-        vm.deleteView(first);
+        vm.deleteView(second);
 
         expect(shown()).toMatchObject({ query: '', groupBy: null });
         expect(vm.selectedViewId).toBeNull();
       });
 
-      it('should go to the tab on its right when it leads the strip', () => {
-        // The default view leads, so `bbb` is first and the table's own tab follows it
+      it('should go to the table\'s own tab when the default view itself is deleted', () => {
         const { vm, shown } = createWrapper({
           defaultViewId: 'bbb', view: { ...EMPTY, query: 'name:foo' }, initialViewId: 'bbb'
         });
@@ -713,7 +721,8 @@ describe('TableViewTabs', () => {
 
     function createWrapper({
       admin = true, configs = null as FakeConfig[] | null, view = { ...EMPTY }, initialViewId = undefined as string | undefined,
-      defaultViewId = null as string | null, failWrites = false, loaded = true, canCreate = null as boolean | null, order = null as string[] | null
+      defaultViewId = null as string | null, failWrites = false, loaded = true, canCreate = null as boolean | null, order = null as string[] | null,
+      attachTo = undefined as HTMLElement | undefined
     } = {}) {
       const all = configs || [
         config('page', {
@@ -783,6 +792,7 @@ describe('TableViewTabs', () => {
         },
         global:  { plugins: [store] },
         shallow: true,
+        attachTo,
       });
 
       type Entry = { views: TableViewSaved[], defaultViewId?: string, order?: string[] };
@@ -856,6 +866,244 @@ describe('TableViewTabs', () => {
 
       expect(entry().defaultViewId).toBe('all');
       expect(vm.tabs[0].id).toBeNull();
+    });
+
+    describe('taken away by someone else', () => {
+      const pageConfig = () => config('page', {
+        type: 'Page', page: 'test', views: [pageView], defaultViewId: 'pv'
+      }, false);
+      const singleConfig = () => config('single', {
+        type: 'View', page: 'test', view: single
+      }, false);
+      const shown: TableViewState = {
+        ...EMPTY, query: 'name:single', columns: ['name'], columnOrder: ['name'], labelColumns: ['app'], groupBy: 'none', sort: 'name', sortDescending: true
+      };
+      const asItComes: TableViewState = {
+        query: '', columns: null, columnOrder: null, labelColumns: [], groupBy: null, sort: null, sortDescending: false
+      };
+      const emitted = (wrapper: { emitted: (name: string) => unknown }) => ((wrapper.emitted('update:view') || []) as [TableViewState][]).map(([view]) => view);
+
+      const asPageView = { ...asItComes, query: 'state:Running' };
+
+      // The page's default is `pv`, so it is where the list goes, unless it is the view that went
+      const gone: [string, string, FakeConfig[], string | null, TableViewState][] = [
+        ['a View resource, to the page\'s default', 'sv', [pageConfig()], 'pv', asPageView],
+        ['the page\'s default, to the table\'s own tab', 'pv', [singleConfig()], null, asItComes],
+        ['every shared view, as they can\'t be read any more, to the table\'s own tab', 'sv', [], null, asItComes],
+      ];
+
+      it.each(gone)('should show the view the list opens on when it was %s', async(_, id, left, __, landing) => {
+        const { wrapper, store } = createWrapper({
+          admin: false, initialViewId: id, view: shown
+        });
+
+        store.commit('configs', left);
+        await wrapper.vm.$nextTick();
+
+        expect(emitted(wrapper)).toStrictEqual([landing]);
+      });
+
+      it.each(gone)('should put its tab in front, with no unsaved changes, when it was %s', async(_, id, left, landingId) => {
+        const { wrapper, vm, store } = createWrapper({
+          admin: false, initialViewId: id, view: shown
+        });
+
+        store.commit('configs', left);
+        await wrapper.vm.$nextTick();
+        await wrapper.setProps({ view: emitted(wrapper)[0] });
+
+        expect(vm.selectedViewId).toBe(landingId);
+        expect(vm.isDirty).toBe(false);
+      });
+
+      it.each(gone)('should leave the user where they are when it comes back, when it was %s', async(_, id, left, landingId, landing) => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({
+          admin: false, initialViewId: id, view: shown
+        });
+
+        store.commit('configs', left);
+        await wrapper.vm.$nextTick();
+        await wrapper.setProps({ view: emitted(wrapper)[0] });
+        store.commit('configs', configs);
+        await wrapper.vm.$nextTick();
+
+        expect(vm.selectedViewId).toBe(landingId);
+        expect(emitted(wrapper)).toStrictEqual([landing]);
+      });
+
+      it('should go to the user\'s own default over the page\'s', async() => {
+        const { wrapper, vm, store } = createWrapper({
+          admin: false, initialViewId: 'sv', view: shown, defaultViewId: 'own'
+        });
+
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+
+        expect(emitted(wrapper)).toStrictEqual([{ ...asItComes, query: 'name:mine' }]);
+        expect(vm.selectedViewId).toBe('own');
+      });
+
+      describe('telling a screen reader', () => {
+        beforeEach(() => {
+          (announce as jest.Mock).mockClear();
+        });
+
+        it('should say which view went and which one is shown', async() => {
+          const { wrapper, store } = createWrapper({
+            admin: false, initialViewId: 'sv', view: shown
+          });
+
+          store.commit('configs', [pageConfig()]);
+          await wrapper.vm.$nextTick();
+
+          expect(announce).toHaveBeenCalledWith('tableViews.tab.removed-{"name":"Single view","view":"Page view"}');
+        });
+
+        it('should say nothing when a view that is not in front goes', async() => {
+          const { wrapper, store } = createWrapper({
+            admin: false, initialViewId: 'own', view: { ...EMPTY, query: 'name:mine' }
+          });
+
+          store.commit('configs', [pageConfig()]);
+          await wrapper.vm.$nextTick();
+
+          expect(announce).not.toHaveBeenCalled();
+        });
+      });
+
+      it('should not go to another view that holds the same config', async() => {
+        const twin = config('twin', {
+          type: 'View', page: 'test', view: makeView('twin', 'Twin', { query: 'name:single' })
+        }, false);
+        const { wrapper, store } = createWrapper({
+          admin: false, initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' }, configs: [singleConfig(), twin]
+        });
+
+        store.commit('configs', [twin]);
+        await wrapper.vm.$nextTick();
+
+        expect(emitted(wrapper)).toStrictEqual([asItComes]);
+      });
+
+      it('should bring back the changes held for the tab it goes to', async() => {
+        const { wrapper, vm, store } = createWrapper({
+          admin: false, view: { ...EMPTY, query: 'name:typed' }, configs: [singleConfig()]
+        });
+
+        vm.applyView(single);
+        await wrapper.setProps({ view: emitted(wrapper)[0] });
+        store.commit('configs', []);
+        await wrapper.vm.$nextTick();
+
+        expect(emitted(wrapper)[1]).toStrictEqual({ ...EMPTY, query: 'name:typed' });
+      });
+
+      it('should drop the changes held for it', async() => {
+        const { wrapper, vm, store } = createWrapper({
+          admin: false, initialViewId: 'sv', view: { ...EMPTY, query: 'name:edited' }
+        });
+
+        // Left and come back to, so its changes are held
+        vm.applyView(mine);
+        await wrapper.setProps({ view: { ...EMPTY, query: 'name:mine' } });
+        vm.applyView(single);
+        await wrapper.setProps({ view: { ...EMPTY, query: 'name:edited' } });
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+
+        expect(vm.drafts).toStrictEqual({});
+      });
+
+      it('should drop the changes held for it when it is not in front, so it comes back as saved', async() => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({
+          admin: false, initialViewId: 'sv', view: { ...EMPTY, query: 'name:edited' }
+        });
+
+        vm.applyView(mine);
+        await wrapper.setProps({ view: { ...EMPTY, query: 'name:mine' } });
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+        store.commit('configs', configs);
+        await wrapper.vm.$nextTick();
+
+        expect(vm.drafts).toStrictEqual({});
+      });
+
+      it('should keep the changes held for the views still there', async() => {
+        const { wrapper, vm, store } = createWrapper({
+          admin: false, initialViewId: 'pv', view: { ...EMPTY, query: 'name:edited' }
+        });
+
+        vm.applyView(mine);
+        await wrapper.setProps({ view: { ...EMPTY, query: 'name:mine' } });
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+
+        expect(Object.keys(vm.drafts)).toStrictEqual(['pv']);
+      });
+
+      it.each([
+        ['another tab is in front', 'own', { ...EMPTY, query: 'name:mine' }],
+        ['a filter was typed on the table\'s own tab', undefined, { ...EMPTY, query: 'name:typed' }],
+      ])('should leave the table alone when %s', async(_, initialViewId, view) => {
+        const { wrapper, store } = createWrapper({
+          admin: false, initialViewId, view
+        });
+
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.emitted('update:view')).toBeUndefined();
+      });
+
+      it('should leave the table alone while another resource still holds the view', async() => {
+        const { wrapper, store } = createWrapper({
+          admin: false, initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' }, configs: [singleConfig(), config('copy', { ...singleConfig().spec }, false)]
+        });
+
+        store.commit('configs', [config('copy', { ...singleConfig().spec }, false)]);
+        await wrapper.vm.$nextTick();
+
+        expect(wrapper.emitted('update:view')).toBeUndefined();
+      });
+
+      it('should still export the view its export was opened for', async() => {
+        const { wrapper, vm, store } = createWrapper({
+          admin: false, initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' }
+        });
+
+        vm.openExport(tabFor(single, true));
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+        vm.doExport('csv');
+
+        expect(wrapper.emitted('export')).toStrictEqual([[{
+          format: 'csv', name: single.name, view: { ...EMPTY, query: 'name:single' }
+        }]]);
+      });
+
+      it.each([
+        ['take the focus to the tab it goes to when its tab had it', 'table-views-tab-sv', 'table-views-tab-pv'],
+        ['leave the focus alone when it was elsewhere', 'table-views-tab-own', 'table-views-tab-own'],
+      ])('should %s', async(_, focused, expected) => {
+        const { wrapper, store } = createWrapper({
+          admin: false, initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' }, attachTo: document.body
+        });
+
+        (wrapper.find(`[data-testid="${ focused }"]`).element as HTMLElement).focus();
+        store.commit('configs', [pageConfig()]);
+        await wrapper.vm.$nextTick();
+        await wrapper.vm.$nextTick();
+        const testId = (document.activeElement as HTMLElement).dataset.testid;
+
+        wrapper.unmount();
+
+        expect(testId).toBe(expected);
+      });
     });
 
     describe('for a user who can only read them', () => {
@@ -1029,6 +1277,126 @@ describe('TableViewTabs', () => {
 
         expect(configs[1].remove).toHaveBeenCalledWith();
         expect(entry().views.map((v) => v.id)).toStrictEqual(['own']);
+      });
+
+      it('should go straight to the default view when they delete the shared view in front, when its removal is heard of first', async() => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({ initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' } });
+        const [pageConfig, singleConfig] = configs;
+
+        singleConfig.remove.mockImplementation(async() => {
+          store.commit('configs', [pageConfig]);
+          await wrapper.vm.$nextTick();
+        });
+        await vm.deleteView(single);
+
+        expect((wrapper.emitted('update:view') as [TableViewState][]).map(([view]) => view.query)).toStrictEqual(['state:Running']);
+      });
+
+      it('should take the focus to the tab the list goes to when they delete the view in front', async() => {
+        const { wrapper, vm } = createWrapper({
+          initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' }, attachTo: document.body
+        });
+
+        (wrapper.find('[data-testid="table-views-tab-sv"]').element as HTMLElement).focus();
+        await vm.deleteView(single);
+        await wrapper.vm.$nextTick();
+        const testId = (document.activeElement as HTMLElement).dataset.testid;
+
+        wrapper.unmount();
+
+        expect(testId).toBe('table-views-tab-pv');
+      });
+
+      it('should tell a screen reader when someone else deleted the view first', async() => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({ initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' } });
+        const [pageConfig, singleConfig] = configs;
+
+        (announce as jest.Mock).mockClear();
+        singleConfig.remove.mockImplementation(async() => {
+          store.commit('configs', [pageConfig]);
+          await wrapper.vm.$nextTick();
+          throw new Error('not found');
+        });
+        await vm.deleteView(single);
+
+        expect(announce).toHaveBeenCalledWith('tableViews.tab.removed-{"name":"Single view","view":"Page view"}');
+      });
+
+      it('should leave the telling to the deleted message when their own delete works', async() => {
+        const { vm } = createWrapper({ initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' } });
+
+        (announce as jest.Mock).mockClear();
+        await vm.deleteView(single);
+
+        expect(announce).not.toHaveBeenCalled();
+      });
+
+      it('should take the focus to the tab the list goes to when someone else deleted the view first', async() => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({
+          initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' }, attachTo: document.body
+        });
+        const [pageConfig, singleConfig] = configs;
+
+        (wrapper.find('[data-testid="table-views-tab-sv"]').element as HTMLElement).focus();
+        singleConfig.remove.mockImplementation(async() => {
+          store.commit('configs', [pageConfig]);
+          await wrapper.vm.$nextTick();
+          throw new Error('not found');
+        });
+        await vm.deleteView(single);
+        await wrapper.vm.$nextTick();
+        const testId = (document.activeElement as HTMLElement).dataset.testid;
+
+        wrapper.unmount();
+
+        expect(testId).toBe('table-views-tab-pv');
+      });
+
+      it('should go to the table\'s own tab when they delete the page\'s default in front, before the change is heard of', async() => {
+        const { wrapper, vm } = createWrapper({ initialViewId: 'pv', view: { ...EMPTY, query: 'state:Running' } });
+
+        await vm.deleteView(pageView);
+
+        expect((wrapper.emitted('update:view') as [TableViewState][]).map(([view]) => view.query)).toStrictEqual(['']);
+        expect(vm.selectedViewId).toBeNull();
+      });
+
+      it('should go to the default view when someone else deletes the view first', async() => {
+        const {
+          wrapper, vm, store, configs, fromError
+        } = createWrapper({ initialViewId: 'sv', view: { ...EMPTY, query: 'name:single' } });
+        const [pageConfig, singleConfig] = configs;
+
+        singleConfig.remove.mockImplementation(async() => {
+          store.commit('configs', [pageConfig]);
+          await wrapper.vm.$nextTick();
+          throw new Error('not found');
+        });
+        await vm.deleteView(single);
+
+        expect((wrapper.emitted('update:view') as [TableViewState][]).map(([view]) => view.query)).toStrictEqual(['state:Running']);
+        expect(fromError).toHaveBeenCalledWith(expect.objectContaining({ err: expect.any(Error) }));
+      });
+
+      it('should keep a view they publish or stop sharing in front', async() => {
+        const {
+          wrapper, vm, store, configs
+        } = createWrapper({ initialViewId: 'own', view: { ...EMPTY, query: 'name:mine' } });
+
+        (await askPublish(wrapper, vm, mine)).vm.$emit('publish');
+        await new Promise((resolve) => setTimeout(resolve));
+        await vm.unshareView(tabFor(mine, true));
+        store.commit('configs', configs);
+        await wrapper.vm.$nextTick();
+
+        expect(vm.selectedViewId).toBe('own');
+        expect(wrapper.emitted('update:view')).toBeUndefined();
       });
 
       it('should stop sharing a view by making it the user\'s first, in its place, then deleting its resource', async() => {
