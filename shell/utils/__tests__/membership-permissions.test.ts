@@ -3,6 +3,8 @@ import {
   canViewClusterMembershipEditor,
   canViewMembershipEditor,
   canViewMembershipEditorList,
+  getRoleLockProps,
+  resolveUnlockedPermissionGroup,
 } from '@shell/utils/membership-permissions';
 
 const MGMT_ROLE_TEMPLATE = 'management.cattle.io.roletemplate';
@@ -145,6 +147,67 @@ describe('utils: membership-permissions', () => {
       },
     ])('when $description, returns $expected', ({ schemas, expected }) => {
       expect(canViewClusterMembershipEditor(storeWithSchemas(schemas))).toStrictEqual(expected);
+    });
+  });
+
+  describe('getRoleLockProps', () => {
+    const lockedTooltip = '%members.clusterPermissions.custom.lockedRole%';
+    const roleTemplates = [
+      { id: 'locked-role', locked: true },
+      { id: 'unlocked-role', locked: false },
+    ];
+
+    it('returns disabled, locked, and tooltip when a role object is locked', () => {
+      expect(getRoleLockProps({ id: 'custom', locked: true }, roleTemplates, lockedTooltip)).toStrictEqual({
+        disabled: true,
+        locked:   true,
+        tooltip:  lockedTooltip,
+      });
+    });
+
+    it('returns disabled, locked, and tooltip when a role ID matches a locked role template', () => {
+      expect(getRoleLockProps('locked-role', roleTemplates, lockedTooltip)).toStrictEqual({
+        disabled: true,
+        locked:   true,
+        tooltip:  lockedTooltip,
+      });
+    });
+
+    it('returns an empty object when the role is unlocked or not found', () => {
+      expect(getRoleLockProps('unlocked-role', roleTemplates, lockedTooltip)).toStrictEqual({});
+      expect(getRoleLockProps('missing-role', roleTemplates, lockedTooltip)).toStrictEqual({});
+      expect(getRoleLockProps({ id: 'custom', locked: false }, roleTemplates, lockedTooltip)).toStrictEqual({});
+    });
+  });
+
+  describe('resolveUnlockedPermissionGroup', () => {
+    const options = [
+      { value: 'owner', disabled: true },
+      { value: 'member' },
+      { value: 'locked-1', disabled: true },
+      { value: 'locked-2', disabled: true },
+      { value: 'custom' },
+    ];
+
+    it('returns the selected value when it is unlocked or unknown', () => {
+      expect(resolveUnlockedPermissionGroup('member', 'custom', options)).toStrictEqual('member');
+      expect(resolveUnlockedPermissionGroup('unknown', 'member', options)).toStrictEqual('unknown');
+    });
+
+    it('skips consecutive disabled options when moving forward', () => {
+      expect(resolveUnlockedPermissionGroup('locked-1', 'member', options)).toStrictEqual('custom');
+    });
+
+    it('skips consecutive disabled options when moving backward', () => {
+      expect(resolveUnlockedPermissionGroup('locked-2', 'custom', options)).toStrictEqual('member');
+    });
+
+    it('keeps the current value when no unlocked option exists in the direction of movement', () => {
+      expect(resolveUnlockedPermissionGroup('owner', 'member', options)).toStrictEqual('member');
+    });
+
+    it('finds the first unlocked option when current value is empty', () => {
+      expect(resolveUnlockedPermissionGroup('owner', '', options)).toStrictEqual('member');
     });
   });
 });

@@ -3,11 +3,13 @@
 import CreateEditView from '@shell/mixins/create-edit-view';
 import SelectPrincipal from '@shell/components/auth/SelectPrincipal';
 import { MANAGEMENT, NORMAN } from '@shell/config/types';
-import { RadioGroup } from '@components/Form/Radio';
 import { Card } from '@components/Card';
 import Loading from '@shell/components/Loading';
 import { Checkbox } from '@components/Form/Checkbox';
+import { RcIconTooltip } from '@components/RcIconTooltip';
 import { DESCRIPTION } from '@shell/config/labels-annotations';
+import { getRoleLockProps } from '@shell/utils/membership-permissions';
+import MemberPermissionGroup from '@shell/components/form/Members/MemberPermissionGroup.vue';
 
 export function canViewClusterPermissionsEditor(store) {
   return !!store.getters['management/schemaFor'](MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING) &&
@@ -22,7 +24,8 @@ export default {
     Card,
     Checkbox,
     Loading,
-    RadioGroup,
+    MemberPermissionGroup,
+    RcIconTooltip,
     SelectPrincipal
   },
 
@@ -51,6 +54,10 @@ export default {
     ]);
 
     this.roleTemplates = roleTemplates;
+
+    if (this.options.find((opt) => opt.value === this.permissionGroup)?.disabled) {
+      this.permissionGroup = '';
+    }
   },
   data() {
     return {
@@ -126,6 +133,10 @@ export default {
         });
     },
     roleTemplateIds() {
+      if (!this.permissionGroup) {
+        return [];
+      }
+
       if (this.permissionGroup === 'owner') {
         return ['cluster-owner'];
       }
@@ -143,22 +154,26 @@ export default {
       return [this.permissionGroup];
     },
     options() {
+      const lockedTooltip = this.t('members.clusterPermissions.custom.lockedRole');
       const customRoles = this.customRoles.map((role) => ({
         label:       role.nameDisplay,
         description: role.description || role.metadata?.annotations?.[DESCRIPTION] || this.t('members.clusterPermissions.noDescription'),
-        value:       role.id
+        value:       role.id,
+        ...getRoleLockProps(role, this.roleTemplates, lockedTooltip)
       }));
 
       return [
         {
           label:       this.t('members.clusterPermissions.owner.label'),
           description: this.t('members.clusterPermissions.owner.description'),
-          value:       'owner'
+          value:       'owner',
+          ...getRoleLockProps('cluster-owner', this.roleTemplates, lockedTooltip)
         },
         {
           label:       this.t('members.clusterPermissions.member.label'),
           description: this.t('members.clusterPermissions.member.description'),
-          value:       'member'
+          value:       'member',
+          ...getRoleLockProps('cluster-member', this.roleTemplates, lockedTooltip)
         },
         ...customRoles,
         {
@@ -178,16 +193,9 @@ export default {
       }, { root: true });
     },
     customPermissionsUpdate() {
-      return this.customPermissions.reduce((acc, customPermissionsItem) => {
-        const lockedExist = this.roleTemplates.find((roleTemplateItem) => roleTemplateItem.id === customPermissionsItem.key);
+      const lockedTooltip = this.t('members.clusterPermissions.custom.lockedRole');
 
-        if (lockedExist.locked) {
-          customPermissionsItem['locked'] = true;
-          customPermissionsItem['tooltip'] = this.t('members.clusterPermissions.custom.lockedRole');
-        }
-
-        return [...acc, customPermissionsItem];
-      }, []);
+      return this.customPermissions.map((item) => Object.assign(item, getRoleLockProps(item.key, this.roleTemplates, lockedTooltip)));
     }
   },
 
@@ -259,10 +267,9 @@ export default {
         </div>
       </template>
       <template v-slot:body>
-        <RadioGroup
+        <MemberPermissionGroup
           v-model:value="permissionGroup"
           :options="options"
-          name="permission-group"
         />
         <div
           v-if="permissionGroup === 'custom'"
@@ -279,10 +286,10 @@ export default {
               class="mb-5"
               :label="permission.label"
             />
-            <i
+            <RcIconTooltip
               v-if="permission.locked"
-              v-clean-tooltip="permission.tooltip"
-              class="icon icon-lock"
+              :content="permission.tooltip"
+              icon-type="lock"
             />
           </div>
         </div>

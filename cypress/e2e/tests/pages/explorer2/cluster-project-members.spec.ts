@@ -152,6 +152,88 @@ describe('Cluster Project and Members', { tags: ['@explorer2', '@adminUser'] }, 
         .and('include.text', 'Manage Config Maps');
     });
   });
+
+  describe('Locked role templates', () => {
+    const createdRoleTemplateIds: string[] = [];
+
+    afterEach(() => {
+      while (createdRoleTemplateIds.length) {
+        const id = createdRoleTemplateIds.pop();
+
+        if (id) {
+          cy.deleteRancherResource('v3', 'roletemplates', id, false);
+        }
+      }
+    });
+
+    it('Disables locked cluster and project role templates and displays lock icon', () => {
+      const lockedClusterRoleName = `${ runPrefix }-locked-cluster-role`;
+      const lockedProjectRoleName = `${ runPrefix }-locked-project-role`;
+
+      cy.createRancherResource('v3', 'roletemplates', JSON.stringify({
+        type:    'roleTemplate',
+        name:    lockedClusterRoleName,
+        context: 'cluster',
+        locked:  true,
+        builtin: false,
+        hidden:  false,
+        rules:   [{
+          apiGroups: [''], resources: ['nodes'], verbs: ['get']
+        }]
+      })).then((resp: Cypress.Response<any>) => {
+        createdRoleTemplateIds.push(resp.body.id);
+      });
+
+      cy.createRancherResource('v3', 'roletemplates', JSON.stringify({
+        type:    'roleTemplate',
+        name:    lockedProjectRoleName,
+        context: 'project',
+        locked:  true,
+        builtin: false,
+        hidden:  false,
+        rules:   [{
+          apiGroups: [''], resources: ['configmaps'], verbs: ['get']
+        }]
+      })).then((resp: Cypress.Response<any>) => {
+        createdRoleTemplateIds.push(resp.body.id);
+      });
+
+      const clusterMembership = new ClusterProjectMembersPo('local', 'cluster-membership');
+
+      HomePagePo.goTo();
+      clusterMembership.navToClusterMenuEntry('local');
+      clusterMembership.waitForPageWithSpecificUrl('/c/local/explorer');
+      clusterMembership.navToSideMenuEntryByLabel('Cluster and Project Members');
+      clusterMembership.triggerAddClusterOrProjectMemberAction();
+
+      clusterMembership.permissionOptions().self().contains('label.radio-container', lockedClusterRoleName).within(() => {
+        cy.root().should('have.class', 'disabled');
+        cy.get('span[role="radio"]').should('have.attr', 'aria-disabled', 'true');
+        cy.get('button.rc-icon-tooltip').should('exist').find('i.icon-lock').should('exist');
+        cy.root().click({ force: true }).should('not.have.class', 'radio-button-checked');
+        cy.get('button.rc-icon-tooltip').focus();
+      });
+      cy.get('.v-popper__popper--shown').should('contain.text', 'This role is locked.');
+
+      clusterMembership.cancelCreateForm().click();
+      clusterMembership.waitForPageWithExactUrl();
+
+      const projectMembership = new ClusterProjectMembersPo('local', 'project-membership');
+
+      projectMembership.goTo();
+      projectMembership.waitForPageWithSpecificUrl('/c/local/explorer/members#project-membership');
+      projectMembership.triggerAddProjectMemberAction('default');
+
+      projectMembership.permissionOptions().self().contains('label.radio-container', lockedProjectRoleName).within(() => {
+        cy.root().should('have.class', 'disabled');
+        cy.get('span[role="radio"]').should('have.attr', 'aria-disabled', 'true');
+        cy.get('button.rc-icon-tooltip').should('exist').find('i.icon-lock').should('exist');
+        cy.root().click({ force: true }).should('not.have.class', 'radio-button-checked');
+        cy.get('button.rc-icon-tooltip').focus();
+      });
+      cy.get('.v-popper__popper--shown').should('contain.text', 'This role is locked.');
+    });
+  });
 });
 
 describe('Cluster Membership Add button', { tags: ['@explorer2', '@adminUser'] }, () => {

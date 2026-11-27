@@ -45,8 +45,12 @@ export default class ClusterProjectMembersPo extends PagePo {
     selectClusterOrProjectMember.clickOptionWithLabel(name);
   }
 
+  permissionOptions(): RadioGroupInputPo {
+    return new RadioGroupInputPo('[data-testid="permission-options"]');
+  }
+
   selectProjectCustomPermission() {
-    const permissionOptions = new RadioGroupInputPo('[data-testid="permission-options"]');
+    const permissionOptions = this.permissionOptions();
 
     permissionOptions.checkExists();
 
