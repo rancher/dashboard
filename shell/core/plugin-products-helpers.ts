@@ -136,9 +136,14 @@ class PluginProductsHelpers {
   private generateConfigureTypeRouteForExistingProduct(parentName: string, pageChild: ProductChildResourcePage | undefined, options: ProductRegistrationRouteGenerationOptions = {}): RouteRecordRawWithParams {
     const { component, omitPath } = options;
 
+    // Reuse the parent product's own generic resource route rather than minting a per-extension one.
+    // A route like `c/:cluster/${ parentName }/:resource` has a static product segment that outranks
+    // the core `c/:cluster/:product/:resource`, so it would shadow the parent's specific virtual-type
+    // routes (e.g. projectsnamespaces) and break navigation. Pointing at the core route makes the
+    // extension's resource pages behave exactly like the product's built-in ones.
     const route: RouteRecordRawWithParams = {
-      name:   `c-cluster-${ parentName }-resource`,
-      path:   `c/:cluster/${ parentName }/:resource`,
+      name:   'c-cluster-product-resource',
+      path:   'c/:cluster/:product/:resource',
       params: { product: parentName, resource: pageChild?.type },
       meta:   { product: parentName, resource: pageChild?.type },
     };

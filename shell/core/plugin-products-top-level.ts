@@ -43,7 +43,11 @@ export class TopLevelPluginProduct extends BasePluginProduct {
     this.product = product;
 
     // register the product as a top-level product in the plugin object (will be needed for routes correction when on list views for top-level products)
-    plugin._registerTopLevelProduct();
+    plugin._registerTopLevelProduct(this.name);
+    // 2.15 has no `startRouteWithProduct` opt-out - every top-level product is product-prefixed.
+    // Recorded explicitly so readers bundled from a 2.16+ shell, which consult the per-product
+    // map rather than the deprecated boolean, resolve correctly against this host.
+    plugin._setStartRouteWithProduct(this.name, true);
 
     this.processConfigChildren();
 

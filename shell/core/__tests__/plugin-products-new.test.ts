@@ -2,6 +2,7 @@ import { PluginProduct } from '@shell/core/plugin-products';
 import { Plugin } from '@shell/core/plugin';
 import { IExtension } from '@shell/core/types';
 import { ProductChildPage, ProductMetadata, ProductMetadataSinglePage, StandardProductNames } from '@shell/core/plugin-products-external';
+import { isProductPrefixedTopLevel } from '@shell/utils/extension-product-routing';
 
 // Mock the helper functions
 jest.mock('@shell/core/plugin-products-helpers', () => ({
@@ -55,6 +56,7 @@ jest.mock('@shell/core/productDebugger', () => ({
 function createMockPlugin(): IExtension {
   return {
     _registerTopLevelProduct:   jest.fn(),
+    _setStartRouteWithProduct:  jest.fn(),
     addRoute:                   jest.fn(),
     enableServerSidePagination: jest.fn(),
     DSL:                        jest.fn(),
@@ -384,6 +386,32 @@ describe('pluginProduct', () => {
       expect(() => {
         new PluginProduct(mockPlugin, productMetadata, badConfig);
       }).toThrow('forEach');
+    });
+  });
+
+  // Regression for https://github.com/rancher/dashboard/issues/19678 - these flags are tracked per
+  // product, not per plugin, so a plugin that registers its own product AND extends a core one
+  // gets the right answer for whichever product the user is currently on.
+  describe('top-level product routing flags', () => {
+    it('should record the product name against the plugin', () => {
+      const mockPlugin = createMockPlugin();
+
+      new PluginProduct(mockPlugin, { name: 'myproduct', label: 'My Product' }, []);
+
+      expect(mockPlugin._registerTopLevelProduct).toHaveBeenCalledWith('myproduct');
+      expect(mockPlugin._setStartRouteWithProduct).toHaveBeenCalledWith('myproduct', true);
+    });
+
+    it('should resolve the plugin own product as product-prefixed, and an extended one as not', () => {
+      const plugin = new Plugin('test-extension');
+
+      plugin.addProduct({ name: 'myproduct', label: 'My Product' }, []);
+      plugin.extendProduct(StandardProductNames.EXPLORER, [{
+        name: 'extra-page', label: 'Extra', component: { name: 'Extra' }
+      }]);
+
+      expect(isProductPrefixedTopLevel(plugin, 'myproduct')).toStrictEqual(true);
+      expect(isProductPrefixedTopLevel(plugin, StandardProductNames.EXPLORER)).toStrictEqual(false);
     });
   });
 });

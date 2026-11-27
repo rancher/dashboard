@@ -54,6 +54,7 @@ jest.mock('@shell/core/productDebugger', () => ({
 function createMockPlugin(): IExtension {
   return {
     _registerTopLevelProduct:   jest.fn(),
+    _setStartRouteWithProduct:  jest.fn(),
     addRoute:                   jest.fn(),
     enableServerSidePagination: jest.fn(),
     DSL:                        jest.fn(),
@@ -184,6 +185,35 @@ describe('pluginProduct', () => {
       new PluginProduct(mockPlugin, validStandardProduct, []);
 
       expect(mockPlugin._registerTopLevelProduct).not.toHaveBeenCalled();
+    });
+
+    // The parent product already owns `c/:cluster/<product>/:resource` and friends. Adding them
+    // again gives the extension a static product segment that outranks the core's dynamic
+    // `:product` one, shadowing the parent's own specific routes - /c/:cluster/explorer/
+    // projectsnamespaces would hit the generic :resource page and fail to resolve its type.
+    it('should not register generic resource routes when extending an existing product', () => {
+      const mockPlugin = createMockPlugin();
+      const config: ProductChildPage[] = [{ type: 'configmap' }];
+
+      new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, config);
+
+      expect(mockPlugin.addRoute).not.toHaveBeenCalled();
+    });
+
+    it('should still register routes for custom pages when extending an existing product', () => {
+      const mockPlugin = createMockPlugin();
+      const config: ProductChildPage[] = [
+        { type: 'configmap' },
+        {
+          name: 'custom-section', label: 'Custom', component: { name: 'CustomComponent' }
+        },
+      ];
+
+      new PluginProduct(mockPlugin, StandardProductNames.EXPLORER, config);
+
+      const routeNames = [...(mockPlugin.addRoute as jest.Mock).mock.calls].map(([route]) => route?.name);
+
+      expect(routeNames).toStrictEqual(['explorer-custom-section']);
     });
   });
 });
