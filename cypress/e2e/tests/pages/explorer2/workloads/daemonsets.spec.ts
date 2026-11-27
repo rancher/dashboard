@@ -48,22 +48,8 @@ describe('DaemonSets', { testIsolation: false, tags: ['@explorer2', '@adminUser'
     workloadsDaemonsetsEditPage.resourceDetail().cruResource().saveOrCreate()
       .click();
 
-    // Wait for the daemonset to exist AND for its rollout to settle before opening the edit form.
-    // While a workload is still reporting status changes the socket keeps sending `resource.changes`,
-    // which makes the paginated list re-request its page. Opening the edit form while one of those is
-    // still in flight leaves it without a resource to render, so its tabs never mount. Letting the
-    // rollout settle stops those re-fetches; the list loading check below covers one already running.
-    // Remove this workaround once https://github.com/rancher/dashboard/issues/19075 is fixed.
-    cy.waitForRancherResource('v1', 'apps.daemonsets', `default/${ daemonsetName }`, (resp: any) => {
-      const status = resp?.body?.status || {};
-
-      return resp?.status === 200 && status.desiredNumberScheduled > 0 && status.numberReady === status.desiredNumberScheduled;
-    }, 30, { failOnStatusCode: false });
-
     workloadsDaemonsetsListPage.waitForPage();
     workloadsDaemonsetsListPage.baseResourceList().checkVisible();
-    // Confirm the list has finished loading before opening the edit form: we flick quickly between the
-    // list and the edit form, and the nav must not overlap a list fetch (see the note above).
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable().checkLoadingIndicatorNotVisible();
     workloadsDaemonsetsListPage.list().resourceTable().sortableTable()
       .rowElementWithName(daemonsetName)

@@ -419,7 +419,7 @@ export default {
   },
 
   async beforeUnmount() {
-    if (this.havePaginated) {
+    if (this.havePaginated || this.canPaginate) {
       const store = this.overrideInStore || this.inStore;
       // of type @STEVE_WATCH_PARAMS
       const watchArgs = {

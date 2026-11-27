@@ -201,3 +201,45 @@ describe.each(['stateFilter', 'nameFilter'])('watch: %s', (key) => {
     expect(run(true)).not.toHaveBeenCalled();
   });
 });
+
+describe('beforeUnmount', () => {
+  const runBeforeUnmount = async(havePaginated: boolean, canPaginate: boolean) => {
+    const dispatch = jest.fn(() => Promise.resolve());
+
+    await paginationMixin.beforeUnmount.call({
+      havePaginated,
+      canPaginate,
+      inStore:  'cluster',
+      resource: 'apps.deployment',
+      $store:   { dispatch },
+    });
+
+    return dispatch;
+  };
+
+  it('forgets the resource type when canPaginate is true even before the first page has loaded', async() => {
+    const dispatch = await runBeforeUnmount(false, true);
+
+    expect(dispatch).toHaveBeenCalledWith('cluster/forgetType', expect.objectContaining({
+      type:    'apps.deployment',
+      unwatch: true,
+      forget:  true,
+    }));
+  });
+
+  it('forgets the resource type when havePaginated is true', async() => {
+    const dispatch = await runBeforeUnmount(true, false);
+
+    expect(dispatch).toHaveBeenCalledWith('cluster/forgetType', expect.objectContaining({
+      type:    'apps.deployment',
+      unwatch: true,
+      forget:  true,
+    }));
+  });
+
+  it('does nothing when neither havePaginated nor canPaginate is true', async() => {
+    const dispatch = await runBeforeUnmount(false, false);
+
+    expect(dispatch).not.toHaveBeenCalledWith('cluster/forgetType', expect.anything());
+  });
+});
