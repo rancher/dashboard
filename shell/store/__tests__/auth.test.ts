@@ -10,7 +10,6 @@ import { createStore } from 'vuex';
 
 describe('action: redirectTo', () => {
   it('should include query parameters from redirect', async() => {
-    jest.spyOn(window, 'window', 'get');
     const store = {
       dispatch: jest.fn((x) => {
         if (x === 'getAuthProvider') return { scopes: '' };
@@ -32,7 +31,6 @@ describe('action: redirectTo', () => {
   });
 
   it('should apply the azure specific parameters to a renamed azure config', async() => {
-    jest.spyOn(window, 'window', 'get');
     const store = {
       dispatch: jest.fn((x) => {
         if (x === 'getAuthProvider') return { type: 'azureADProvider', scopes: '' };
@@ -50,7 +48,6 @@ describe('action: redirectTo', () => {
   });
 
   it('should apply the base scopes of a renamed config', async() => {
-    jest.spyOn(window, 'window', 'get');
     const store = {
       dispatch: jest.fn((x) => {
         if (x === 'getAuthProvider') return { type: 'githubProvider', scopes: '' };
@@ -70,7 +67,6 @@ describe('action: redirectTo', () => {
   it.each([
     ['genericoidc', '://myhost/?redirect_uri=anyURI&scope=openid%20profile%20email%20groups&state=undefined'],
   ])('given provider %p should return URL %p', async(provider, expectation) => {
-    jest.spyOn(window, 'window', 'get');
     const store = {
       dispatch: jest.fn((x) => {
         if (x === 'getAuthProvider') return { scopes: 'groups' };
@@ -112,7 +108,6 @@ describe('action: redirectTo', () => {
         })
       };
 
-      jest.spyOn(window, 'window', 'get');
       const url = await actions.redirectTo(store as any, options);
 
       expect(url).toContain(customScope);
@@ -134,7 +129,6 @@ describe('action: redirectTo', () => {
         })
       };
 
-      jest.spyOn(window, 'window', 'get');
       const url = await actions.redirectTo(store as any, options);
 
       expect(url).toContain('scope=openid%20profile%20email%20myScope&');
