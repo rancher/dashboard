@@ -280,9 +280,12 @@ const getDevServerConfig = (proxy) => {
   const harFile = process.env.HAR_FILE;
   // HAR File support - load network responses from the specified .har file and use those rather than communicating to the Rancher server
   const harData = harFile ? har.loadFile(harFile, devPorts ? 8005 : 80, '') : undefined;
+  // Port 0 makes the hot reload client use the page's own port, so each of several dev servers (8005 is taken, or PORT is set) reloads only its own pages.
+  // DEV_WS_PORT overrides it, e.g. DEV_WS_PORT=8005 when the page is opened through a proxy on another port that doesn't forward websockets
+  const webSocketPort = process.env.DEV_WS_PORT || 0;
 
   return {
-    client: { webSocketURL: { hostname: '0.0.0.0', port: devPorts ? 8005 : 80 } },
+    client: { webSocketURL: { hostname: '0.0.0.0', port: webSocketPort } },
     server: {
       type:    'https',
       options: {
