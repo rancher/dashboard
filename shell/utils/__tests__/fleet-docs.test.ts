@@ -1,4 +1,4 @@
-import { getDownstreamResourcesDocsUrl, getBundleDeploymentOptionsDocsUrl, getPolicyNamespaceCreationDocsUrl, getGitRepoRestrictionMigrationDocsUrl } from '@shell/utils/fleet-docs';
+import { getDownstreamResourcesDocsUrl, getBundleDeploymentOptionsDocsUrl, getPolicyNamespaceCreationDocsUrl } from '@shell/utils/fleet-docs';
 import { getVersionData, isRancherPrime } from '@shell/config/version';
 
 // The docs URLs depend on the running Rancher version and whether it's a Prime install, both
@@ -99,28 +99,6 @@ describe('fleet-docs utils', () => {
     it('should stay on the community docs when Prime, as there is no SUSE counterpart', () => {
       mockVersionData('v2.15.1', true);
       expect(getPolicyNamespaceCreationDocsUrl()).toStrictEqual('https://fleet.rancher.io/explanations/multi-tenancy#_namespace_creation');
-    });
-  });
-
-  describe('getGitRepoRestrictionMigrationDocsUrl (Prime-aware, with anchor)', () => {
-    it('should use the community docs (with anchor) at the root on a later release', () => {
-      mockVersionData('v2.15.1', false);
-      expect(getGitRepoRestrictionMigrationDocsUrl()).toStrictEqual('https://fleet.rancher.io/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction');
-    });
-
-    it('should use the community "next" docs (with anchor) on the release that introduced them', () => {
-      mockVersionData('v2.15.0', false);
-      expect(getGitRepoRestrictionMigrationDocsUrl()).toStrictEqual('https://fleet.rancher.io/next/how-tos-for-operators/tenant-setup#_migration_from_gitreporestriction');
-    });
-
-    it('should use the latest SUSE docs (with anchor) on a later release when Prime', () => {
-      mockVersionData('v2.15.1', true);
-      expect(getGitRepoRestrictionMigrationDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/latest/en/how-tos-for-operators/tenant-setup.html#_migration_from_gitreporestriction');
-    });
-
-    it('should use the SUSE "next" docs (with anchor) on the release that introduced them when Prime', () => {
-      mockVersionData('v2.15.0', true);
-      expect(getGitRepoRestrictionMigrationDocsUrl()).toStrictEqual('https://documentation.suse.com/cloudnative/continuous-delivery/next/en/how-tos-for-operators/tenant-setup.html#_migration_from_gitreporestriction');
     });
   });
 });

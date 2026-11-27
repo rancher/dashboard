@@ -1,6 +1,6 @@
 /**
  * Helpers for building version- and edition-aware links into the Fleet documentation.
- * Shared across the Fleet UI (AppCo, GitRepoRestriction, Policies, workspaces, ...), so kept
+ * Shared across the Fleet UI (AppCo, Policies, workspaces, ...), so kept
  * separate from any single feature's utils.
  *
  * Docs live in two places depending on the edition:
@@ -48,10 +48,6 @@ const FLEET_DOCS = {
   // and from the Policy reference page, so the multi-tenancy explanation is where it is covered.
   policyNamespaceCreation: {
     path: 'explanations/multi-tenancy', anchor: '_namespace_creation', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: false
-  },
-  // GitRepoRestriction migration docs — also published to the Rancher Prime docs.
-  gitRepoRestrictionMigration: {
-    path: 'how-tos-for-operators/tenant-setup', anchor: '_migration_from_gitreporestriction', minRancherMinor: 15, minRancherPatch: 0, usePrimeDoc: true
   },
 } as const satisfies Record<string, FleetDoc>;
 
@@ -130,9 +126,4 @@ export function getBundleDeploymentOptionsDocsUrl(): string {
 /** Fleet Policy namespace-creation docs (community only). */
 export function getPolicyNamespaceCreationDocsUrl(): string {
   return fleetDocsUrl(FLEET_DOCS.policyNamespaceCreation);
-}
-
-/** Fleet GitRepoRestriction -> Policies migration docs (has a Rancher Prime counterpart). */
-export function getGitRepoRestrictionMigrationDocsUrl(): string {
-  return fleetDocsUrl(FLEET_DOCS.gitRepoRestrictionMigration);
 }

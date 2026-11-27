@@ -177,5 +177,12 @@ describe('component: RoleDetailEdit', () => {
 
       expect(optionValues(wrapper)).not.toContainEqual({ resourceName, apiGroupValue });
     });
+
+    it('should offer Policies in place of GitRepoRestrictions for fleet.cattle.io', () => {
+      const values = optionValues(createWrapper());
+
+      expect(values).toContainEqual({ resourceName: 'policies', apiGroupValue: 'fleet.cattle.io' });
+      expect(values).not.toContainEqual({ resourceName: 'gitreporestrictions', apiGroupValue: 'fleet.cattle.io' });
+    });
   });
 });

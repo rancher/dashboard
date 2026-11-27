@@ -3,9 +3,8 @@ import { _CREATE } from '@shell/config/query-params';
 import CreateEditView from '@shell/mixins/create-edit-view';
 import CruResource from '@shell/components/CruResource';
 import Labels from '@shell/components/form/Labels';
-import Loading from '@shell/components/Loading';
 import NameNsDescription from '@shell/components/form/NameNsDescription';
-import { FLEET, MANAGEMENT, SCHEMA } from '@shell/config/types';
+import { FLEET } from '@shell/config/types';
 import { FLEET as FLEET_ANNOTATIONS } from '@shell/config/labels-annotations';
 // import RoleBindings from '@shell/components/RoleBindings';
 import Tabbed from '@shell/components/Tabbed';
@@ -16,10 +15,7 @@ import { NAME as FLEET_NAME } from '@shell/config/product/fleet';
 import { mapState } from 'vuex';
 import { LAST_NAMESPACE, WORKSPACE } from '@shell/store/prefs';
 import { exceptionToErrorsArray } from '@shell/utils/error';
-import Banner from '@components/Banner/Banner.vue';
-import ArrayList from '@shell/components/form/ArrayList.vue';
 import FleetOCIStorageSecret from '@shell/components/fleet/FleetOCIStorageSecret.vue';
-import FleetMigrationGuideLink from '@shell/components/fleet/FleetMigrationGuideLink.vue';
 
 export default {
   name: 'FleetCruWorkspace',
@@ -29,55 +25,19 @@ export default {
   inheritAttrs: false,
   components:   {
     CruResource,
-    FleetMigrationGuideLink,
     FleetOCIStorageSecret,
     Labels,
-    Loading,
     NameNsDescription,
     Tabbed,
     Tab,
-    Banner,
-    ArrayList
   },
 
   mixins: [CreateEditView],
 
-  async fetch() {
-    this.rancherClusters = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER });
-
-    if (this.$store.getters['management/schemaFor']( FLEET.CLUSTER )) {
-      this.fleetClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
-    }
-
-    if (this.hasRepoRestrictionSchema) {
-      const restrictions = await this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO_RESTRICTION });
-
-      const workSpaceRestriction = restrictions.find((item) => {
-        return item.metadata.namespace === this.value.metadata.name && item.metadata.name.startsWith(`restriction-${ this.value.metadata.name }`);
-      });
-
-      if (workSpaceRestriction) {
-        this.workSpaceRestriction = workSpaceRestriction;
-      }
-    }
-
-    this.restrictionsOptions = await this.$store.getters[`type-map/optionsFor`](FLEET.GIT_REPO_RESTRICTION);
-    this.restrictionsSchema = await this.$store.getters[`management/schemaFor`](FLEET.GIT_REPO_RESTRICTION);
-  },
-
   data() {
     this.value['spec'] = this.value.spec || {};
 
-    return {
-      fleetClusters:            null,
-      rancherClusters:          null,
-      workSpaceRestriction:     null,
-      restrictions:             [],
-      targetNamespaces:         [],
-      restrictionsSchema:       { spec: {} },
-      namespace:                this.$store.getters['prefs/get'](LAST_NAMESPACE),
-      hasRepoRestrictionSchema: !!this.$store.getters['management/schemaFor']( FLEET.GIT_REPO_RESTRICTION )
-    };
+    return { namespace: this.$store.getters['prefs/get'](LAST_NAMESPACE) };
   },
 
   methods: {
@@ -86,32 +46,6 @@ export default {
 
       try {
         await this.value.save();
-
-        // IF there is a restriction update it
-        if (this.workSpaceRestriction) {
-          await this.workSpaceRestriction.save();
-        }
-
-        // If there is no restriction and targetnamespace is set then create it.
-        if (!this.workSpaceRestriction && this.targetNamespaces.length) {
-          // For users with more limited permissions the gitreporestriction schema may not be visible until they create a workspace
-          if (!this.hasRepoRestrictionSchema) {
-            await this.$store.dispatch('management/find', { type: SCHEMA, id: FLEET.GIT_REPO_RESTRICTION }, { force: true });
-          }
-          const model = await this.$store.dispatch(`management/create`, {
-            type:                    FLEET.GIT_REPO_RESTRICTION,
-            allowedTargetNamespaces: this.targetNamespaces,
-            metadata:                {
-              // restriction- prefix is added to the workspace name
-              // to identify automatically created GitRepoRestrictions
-              // when adding targetNamespaces at the point of workspace creation
-              name:      `restriction-${ this.value.metadata.name }-${ Date.now() }`,
-              namespace: this.value.metadata.name // what the user types
-            }
-          });
-
-          await model.save();
-        }
 
         await this.value.waitForWorkspaceSchema(20000, (schema) => {
           // For standard user if there are no workspaces, user can't list workspaces
@@ -141,20 +75,6 @@ export default {
   computed: {
     ...mapState(['allWorkspaces', 'workspace']),
 
-    allowedTargetNamespaces: {
-      get() {
-        return this.workSpaceRestriction?.allowedTargetNamespaces || [];
-      },
-
-      set(value) {
-        if (this.workSpaceRestriction) {
-          this.workSpaceRestriction.allowedTargetNamespaces = value;
-        }
-
-        this.targetNamespaces = value;
-      }
-    },
-
     defaultOCIStorageSecret() {
       return this.value.metadata?.annotations?.[FLEET_ANNOTATIONS.OCI_STORAGE_SECRET_DEFAULT];
     },
@@ -179,9 +99,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <CruResource
-    v-else
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"
@@ -217,54 +135,6 @@ export default {
         />
       </Tab> -->
 
-      <Tab
-        name="allowedtargetnamespaces"
-        label-key="fleet.workspaces.tabs.restrictions"
-        :weight="3"
-      >
-        <Banner
-          color="warning"
-          data-testid="fleet-workspace-restriction-deprecation-banner"
-        >
-          <div>
-            <div>{{ t('fleet.restrictions.deprecationWarningTargetNamespaces') }}</div>
-            <!-- The migration guide documents how to replace allowedTargetNamespaces (no Policy
-                 equivalent) with downstream ServiceAccount RBAC. -->
-            <FleetMigrationGuideLink
-              data-testid="fleet-workspace-restriction-migration-guide"
-              class="mt-5"
-            />
-          </div>
-        </Banner>
-
-        <Banner
-          color="info"
-        >
-          <div>
-            <t
-              k="fleet.restrictions.banner"
-              :count="allowedTargetNamespaces.length"
-              :raw="true"
-            />
-            <a
-              v-if="!!allowedTargetNamespaces.length"
-              @click="workSpaceRestriction.goToDetail()"
-            >
-              {{ t('generic.here') }}
-            </a>
-          </div>
-        </Banner>
-
-        <ArrayList
-          key="labels"
-          v-model:value="allowedTargetNamespaces"
-          :add-label="t('fleet.restrictions.addLabel')"
-          :mode="mode"
-          :title="t('fleet.restrictions.addTitle')"
-          :read-allowed="false"
-          :value-can-be-empty="true"
-        />
-      </Tab>
       <Tab
         v-if="!isCreate"
         name="ociRegistries"

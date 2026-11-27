@@ -3,7 +3,6 @@ import ProductNavPo from '@/cypress/e2e/po/side-bars/product-side-nav.po';
 import { BaseListPagePo } from '@/cypress/e2e/po/pages/base/base-list-page.po';
 import TabbedPo from '@/cypress/e2e/po/components/tabbed.po';
 import { BaseDetailPagePo } from '@/cypress/e2e/po/pages/base/base-detail-page.po';
-import ArrayListPo from '@/cypress/e2e/po/components/array-list.po';
 import KeyValuePo from '@/cypress/e2e/po/components/key-value.po';
 import ResourceTablePo from '@/cypress/e2e/po/components/resource-table.po';
 import LabeledSelectPo from '~/cypress/e2e/po/components/labeled-select.po';
@@ -45,10 +44,6 @@ export class FleetWorkspaceCreateEditPo extends BaseDetailPagePo {
 
   constructor(fleetWorkspace?: string) {
     super(FleetWorkspaceCreateEditPo.createPath(fleetWorkspace));
-  }
-
-  allowTargetNsTabList() {
-    return new ArrayListPo('[data-testid="tab-panel-allowedtargetnamespaces"]');
   }
 
   lablesAnnotationsKeyValue() {

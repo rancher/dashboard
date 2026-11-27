@@ -2,6 +2,7 @@
 
 | Date | Version | Description |
 |---|---|---|
+| 26&#160;November&#160;2026 | **3.0.16** | **[BREAKING]** Removed GitRepoRestrictions, which Fleet drops in Rancher 2.17 in favour of Policies: the `FLEET.GIT_REPO_RESTRICTION` type from `@shell/config/types`, `getGitRepoRestrictionMigrationDocsUrl` from `@shell/utils/fleet-docs`, the `FleetMigrationGuideLink` component, and the `fleet.restrictions` and `fleet.workspaces.tabs.restrictions` translations. |
 | 12&#160;October&#160;2026 | **3.0.14** | Dialogs opened with `promptModal` or `shell.modal.open()` can now render their own `RcModal`, see [dialog](./folder-structure.md#dialogs-that-render-their-own-modal). |
 | 18&#160;September&#160;2026 | **3.0.14** | **[BREAKING]** Removed the "Only Namespaced Resources" and "Only Cluster Resources" namespace filter options, along with the `namespaceMode` argument to the `type-map/getTree` getter and the related `@shell/store/type-map` and `@shell/utils/namespace-filter` exports. |
 | 08&#160;April&#160;2026 | [**3.0.11**](https://github.com/rancher/dashboard/releases/tag/shell-pkg-v3.0.11) | Fixed a silent error that swallowed the real failure message when an extension failed to initialize — errors are now properly surfaced. Fixed a compatibility issue where certain extension points were not available when running against older Rancher versions. Updated creators package to v3.0.10. |

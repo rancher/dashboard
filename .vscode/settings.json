@@ -67,7 +67,6 @@
     "geoip",
     "GEOIP",
     "gitrepo",
-    "gitreporestriction",
     "globaldnsprovider",
     "globalrole",
     "globalrolebinding",
