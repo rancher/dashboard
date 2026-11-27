@@ -36,7 +36,7 @@ const defaultConfig = {
   dns:                   '',
   environment:           'AzurePublicCloud',
   faultDomainCount:      '3',
-  image:                 'canonical:ubuntu-24_04-lts:server-gen1:latest',
+  image:                 'susellc:opensuse-leap-x86-64:gen1:latest',
   location:              'westus',
   managedDisks:          true,
   noPublicIp:            false,
