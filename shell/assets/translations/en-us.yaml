@@ -6073,6 +6073,8 @@ plugins:
   incompatibleKubeVersion: "The latest version of this extension ({ version }) is not compatible with the current Kube version ({ required })."
   incompatibleUiExtensionsApiVersionMissing: 'The latest version of this extension ({ version }) is missing the mandatory annotation catalog.cattle.io/ui-extensions-version from Rancher 2.10 and onwards.'
   incompatibleUiExtensionsApiVersion: "The latest version of this extension ({ version }) is not compatible with the current Extensions API version ({ required })."
+  incompatibleShellVersionMissing: 'The latest version of this extension ({ version }) is missing the mandatory annotation catalog.cattle.io/ui-shell-version from Rancher 2.17 and onwards.'
+  incompatibleShellVersion: "The latest version of this extension ({ version }) was built for a different Rancher Shell ({ required })."
   incompatibleHost: 'The latest version of this extension ({ version }) has a host of "{ required }" which is not compatible with this application "{ mainHost }".'
   currentInstalledVersionBlockedByKubeVersion: "This version is not compatible with the current Kubernetes version ({ kubeVersion }  Vs  { kubeVersionToCheck })."
   viewVersionDetails: View extension {name} version {version} details/Readme
@@ -6103,8 +6105,8 @@ plugins:
     message: Could not load extension code
     generic: Extension error
     primeOnly: Unable to load Rancher Prime Extension in Rancher Community
-    apiAnnotationMissing: 'Unable to load Extension. The version installed is not compatible with the current Extensions API Version (Extension is missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards)'
-    api: Unable to load Extension. The version installed is not compatible with the current Extensions API version
+    shellVersionMissing: 'Unable to load Extension. The version installed is missing the annotation catalog.cattle.io/ui-shell-version, which is mandatory from Rancher 2.17 and onwards'
+    shellVersion: Unable to load Extension. The version installed was built for a different Rancher Shell
     host: Unable to load Extension. The version installed is not compatible with this application host
     version: Unable to load Extension. The version installed is not compatible with the current version of Rancher
     kubeVersion: Unable to load Extension. The version installed is not compatible with the current Rancher kubernetes version
@@ -6133,6 +6135,8 @@ plugins:
     requiresKubeVersion: "Requires Kube version {required}"
     requiresExtensionApiVersionMissing: 'Missing the annotation catalog.cattle.io/ui-extensions-version which implies incompatibility with Rancher 2.10 and onwards'
     requiresExtensionApiVersion: "Requires Extensions API version {required}"
+    requiresShellVersionMissing: 'Missing the annotation catalog.cattle.io/ui-shell-version, which is mandatory from Rancher 2.17 and onwards'
+    requiresShellVersion: "Requires Rancher Shell {required}"
     requiresHost: 'Requires a host that matches "{mainHost}"'
   empty:
     all: Extensions are neither installed nor available

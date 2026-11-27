@@ -40,6 +40,7 @@ export const UI_PLUGIN_CHART_ANNOTATIONS = {
   KUBE_VERSION:       'catalog.cattle.io/kube-version',
   RANCHER_VERSION:    'catalog.cattle.io/rancher-version',
   EXTENSIONS_VERSION: 'catalog.cattle.io/ui-extensions-version',
+  SHELL_VERSION:      'catalog.cattle.io/ui-shell-version',
   UI_VERSION:         'catalog.cattle.io/ui-version',
   EXTENSIONS_HOST:    'catalog.cattle.io/ui-extensions-host',
   DISPLAY_NAME:       'catalog.cattle.io/display-name',
@@ -71,8 +72,12 @@ export const UI_PLUGIN_LABELS = {
 
 export const EXTENSIONS_INCOMPATIBILITY_TYPES = {
   UI:                     'uiVersion',
+  // Deprecated from 2.17, superseded by SHELL. Kept because they are part of the published
+  // Shell API; removing them belongs to the epic's phase two.
   EXTENSIONS_API_MISSING: 'extensionsApiVersionMissing',
   EXTENSIONS_API:         'extensionsApiVersion',
+  SHELL_MISSING:          'shellVersionMissing',
+  SHELL:                  'shellVersion',
   KUBE:                   'kubeVersion',
   HOST:                   'host',
   PRIME_ONLY:             'primeOnly',
@@ -93,6 +98,16 @@ export const EXTENSIONS_INCOMPATIBILITY_DATA = {
     type:           EXTENSIONS_INCOMPATIBILITY_TYPES.EXTENSIONS_API,
     cardMessageKey: 'plugins.incompatibleUiExtensionsApiVersion',
     tooltipKey:     'plugins.info.requiresExtensionApiVersion',
+  },
+  SHELL_MISSING: {
+    type:           EXTENSIONS_INCOMPATIBILITY_TYPES.SHELL_MISSING,
+    cardMessageKey: 'plugins.incompatibleShellVersionMissing',
+    tooltipKey:     'plugins.info.requiresShellVersionMissing',
+  },
+  SHELL: {
+    type:           EXTENSIONS_INCOMPATIBILITY_TYPES.SHELL,
+    cardMessageKey: 'plugins.incompatibleShellVersion',
+    tooltipKey:     'plugins.info.requiresShellVersion',
   },
   KUBE: {
     type:           EXTENSIONS_INCOMPATIBILITY_TYPES.KUBE,
@@ -127,6 +142,31 @@ export function uiPluginAnnotation(chart, name) {
   return chart?.versions?.[0]?.annotations?.[name];
 }
 
+// The Shell range assumed for an extension that predates `ui-shell-version` but still carries
+// the retired `ui-extensions-version`. Those were all built against Shell 3.x, so we read them
+// as supporting the first three lines of the new scheme rather than refusing them outright.
+export const INFERRED_SHELL_VERSION_RANGE = '>= 217.0.0 < 220.0.0';
+
+/**
+ * The Shell range an extension requires.
+ *
+ * `ui-shell-version` is the annotation from Rancher 2.17 onwards and is mandatory. An extension
+ * published before it exists has no way to declare one, so the presence of the retired
+ * `ui-extensions-version` is taken as a declaration of the inferred range above. An extension
+ * carrying neither says nothing about what it supports, and is refused.
+ *
+ * @returns String | undefined
+ */
+export function requiredShellVersion(annotations) {
+  const declared = annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.SHELL_VERSION];
+
+  if (declared) {
+    return declared;
+  }
+
+  return annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION] ? INFERRED_SHELL_VERSION_RANGE : undefined;
+}
+
 /**
  * Parse the Rancher version string
  */
@@ -156,6 +196,7 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
     }
     break;
   case EXTENSIONS_INCOMPATIBILITY_TYPES.EXTENSIONS_API_MISSING:
+  case EXTENSIONS_INCOMPATIBILITY_TYPES.SHELL_MISSING:
     !requiredVersion ? passed = false : passed = true;
     break;
   case EXTENSIONS_INCOMPATIBILITY_TYPES.HOST:
@@ -184,7 +225,7 @@ function checkIncompatibility(currentVersion, requiredVersion, incompatibilityDa
   return true;
 }
 
-// i18n-uses plugins.error.generic, plugins.error.api, plugins.error.host, plugins.error.kubeVersion, plugins.error.version, plugins.error.developerPkg, plugins.error.apiAnnotationMissing, plugins.error.primeOnly
+// i18n-uses plugins.error.generic, plugins.error.shellVersion, plugins.error.shellVersionMissing, plugins.error.host, plugins.error.kubeVersion, plugins.error.version, plugins.error.developerPkg, plugins.error.primeOnly
 
 /**
  * Whether an extension should be loaded based on the metadata returned by the backend in the UIPlugins resource instance
@@ -205,19 +246,20 @@ export function shouldNotLoadPlugin(UIPluginResource, { rancherVersion, kubeVers
     return 'plugins.error.generic';
   }
 
-  // Extension chart specified a required extension API version
-  // we are propagating the annotations in pkg/package.json for any extension
-  // inside the "spec.plugin.metadata" property of UIPlugin resource
-  const requiredUiExtensionsVersion = UIPluginResource.metadata?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION];
-  // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
-  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
   const parsedKubeVersion = kubeVersion ? semver.coerce(kubeVersion)?.version : '';
+  // semver.coerce will get rid of any suffix on the version numbering (-rc, -head, etc)
+  const parsedShellVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
 
-  if (!requiredUiExtensionsVersion) {
-    return 'plugins.error.apiAnnotationMissing';
-  } else if (requiredUiExtensionsVersion && !semver.satisfies(parsedUiExtensionsApiVersion, requiredUiExtensionsVersion)) {
-    return 'plugins.error.api';
+  // Shell the extension was built against, propagated from the annotations in
+  // pkg/package.json into "spec.plugin.metadata" on the UIPlugin resource. Mandatory, so an
+  // extension that declares nothing at all is not loaded.
+  const shellVersionRange = requiredShellVersion(UIPluginResource.metadata);
+
+  if (!shellVersionRange) {
+    return 'plugins.error.shellVersionMissing';
+  } else if (!semver.satisfies(parsedShellVersion, shellVersionRange)) {
+    return 'plugins.error.shellVersion';
   }
 
   // Prime only
@@ -284,7 +326,8 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
   };
 
   const parsedRancherVersion = rancherVersion ? parseRancherVersion(rancherVersion) : '';
-  const parsedUiExtensionsApiVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
+  const parsedShellVersion = semver.coerce(UI_EXTENSIONS_API_VERSION)?.version;
+  const shellVersionRange = requiredShellVersion(version.annotations);
 
   const checks = [
     {
@@ -303,14 +346,14 @@ export function isSupportedChartVersion(versionData, returnObj = false) {
       incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.UI,
     },
     {
-      currentVersion:      parsedUiExtensionsApiVersion,
-      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION],
-      incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.EXTENSIONS_API_MISSING,
+      currentVersion:      parsedShellVersion,
+      requiredVersion:     shellVersionRange,
+      incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.SHELL_MISSING,
     },
     {
-      currentVersion:      parsedUiExtensionsApiVersion,
-      requiredVersion:     version.annotations?.[UI_PLUGIN_CHART_ANNOTATIONS.EXTENSIONS_VERSION],
-      incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.EXTENSIONS_API,
+      currentVersion:      parsedShellVersion,
+      requiredVersion:     shellVersionRange,
+      incompatibilityData: EXTENSIONS_INCOMPATIBILITY_DATA.SHELL,
     },
     {
       currentVersion:      UI_PLUGIN_HOST_APP,

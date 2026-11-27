@@ -36,6 +36,18 @@ const commit = process.env.COMMIT || 'head';
 const perfTest = (process.env.PERF_TEST === 'true'); // Enable performance testing when in dev
 
 /**
+ * The Rancher release line a Shell build belongs to, e.g. 217.0.1 -> '2.17'.
+ *
+ * From Rancher 2.17 the Shell major is the Rancher minor, so this is derived rather than read
+ * from the hand-maintained `rancherVersion`, which is only a fallback for older Shells.
+ */
+function shellRancherLine(shellPkg) {
+  const match = `${ shellPkg?.version }`.match(/^2(\d{2,})\./);
+
+  return match ? `2.${ match[1] }` : (shellPkg?.rancherVersion || '');
+}
+
+/**
  * Paths to the shell folder when it is included as a node dependency
  */
 const getShellPaths = (dir) => {
@@ -358,7 +370,7 @@ const getDevServerConfig = (proxy) => {
         }
       });
 
-      checkRancherVersionCompatibility(api, shellPkgData.rancherVersion);
+      checkRancherVersionCompatibility(api, shellRancherLine(shellPkgData));
 
       return middlewares;
     }
@@ -458,7 +470,7 @@ const createEnvVariablesPlugin = (routerBasePath, rancherEnv) => new webpack.Def
   'process.env.harvesterPkgUrl':           JSON.stringify(process.env.HARVESTER_PKG_URL),
   'process.env.api':                       JSON.stringify(api),
   'process.env.UI_EXTENSIONS_API_VERSION': JSON.stringify(shellPkgData.version),
-  'process.env.UI_SHELL_RANCHER_VERSION':  JSON.stringify(shellPkgData.rancherVersion || ''),
+  'process.env.UI_SHELL_RANCHER_VERSION':  JSON.stringify(shellRancherLine(shellPkgData)),
   // Store the Router Base as env variable that we can use in `shell/config/router.js`
   'process.env.routerBase':                JSON.stringify(routerBasePath),
   __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
