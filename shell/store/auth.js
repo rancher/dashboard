@@ -25,6 +25,15 @@ export const BASE_SCOPES = {
 };
 
 const KEY = 'rc_nonce';
+let impersonationRestorePromise = null;
+let impersonationRecoveryPromise = null;
+let impersonationRestoreGeneration = 0;
+
+function invalidateImpersonationRequests() {
+  impersonationRestoreGeneration++;
+  impersonationRestorePromise = null;
+  impersonationRecoveryPromise = null;
+}
 
 export const LOGIN_ERRORS = {
   CLIENT:              'client',
@@ -36,13 +45,15 @@ export const LOGIN_ERRORS = {
 
 export const state = function() {
   return {
-    fromHeader:  null,
-    hasAuth:     null,
-    loggedIn:    false,
-    principalId: null,
-    user:        null,
-    initialPass: null,
-    selfUser:    null,
+    fromHeader:          null,
+    hasAuth:             null,
+    loggedIn:            false,
+    principalId:         null,
+    user:                null,
+    initialPass:         null,
+    selfUser:            null,
+    impersonation:       null,
+    impersonationStatus: 'unknown',
   };
 };
 
@@ -78,6 +89,18 @@ export const getters = {
   selfUser(state) {
     return state.selfUser;
   },
+
+  impersonation(state) {
+    return state.impersonation;
+  },
+
+  impersonationStatusKnown(state) {
+    return state.impersonationStatus === 'active' || state.impersonationStatus === 'inactive';
+  },
+
+  impersonationStatus(state) {
+    return state.impersonationStatus;
+  },
 };
 
 export const mutations = {
@@ -112,10 +135,32 @@ export const mutations = {
     state.user = null;
     state.selfUser = null;
     state.initialPass = null;
+    state.impersonation = null;
+    state.impersonationStatus = 'unknown';
+    invalidateImpersonationRequests();
   },
 
   initialPass(state, pass) {
     state.initialPass = pass;
+  },
+
+  impersonationStarted(state, session) {
+    state.impersonation = session;
+    state.impersonationStatus = 'active';
+  },
+
+  impersonationStopped(state) {
+    state.impersonation = null;
+    state.impersonationStatus = 'inactive';
+  },
+
+  impersonationStatus(state, status) {
+    state.impersonationStatus = status;
+  },
+
+  clearUserCache(state) {
+    state.user = null;
+    state.selfUser = null;
   }
 };
 
@@ -169,6 +214,128 @@ export const actions = {
 
   setInitialPass({ commit }, pass) {
     commit('initialPass', pass);
+  },
+
+  async stopImpersonation({ commit, dispatch }) {
+    invalidateImpersonationRequests();
+
+    await dispatch('management/request', {
+      url:    '/v3/impersonation-sessions/current',
+      method: 'delete',
+    }, { root: true });
+
+    commit('impersonationStopped');
+    window.location.reload();
+  },
+
+  async restoreImpersonation({ commit, dispatch, state }) {
+    if (state?.impersonationStatus === 'active' || state?.impersonationStatus === 'inactive') {
+      return state.impersonation;
+    }
+
+    if (impersonationRestorePromise) {
+      return impersonationRestorePromise;
+    }
+
+    const generation = impersonationRestoreGeneration;
+    const request = (async() => {
+      commit('impersonationStatus', 'loading');
+
+      try {
+        const session = await dispatch('management/request', { url: '/v3/impersonation-sessions/current' }, { root: true });
+
+        if (!session || session.impersonating !== true || !session.userId || !session.principalId) {
+          throw new Error('invalid impersonation session response');
+        }
+        if (generation === impersonationRestoreGeneration) {
+          commit('impersonationStarted', session);
+        }
+
+        return session;
+      } catch (e) {
+        const status = e?.status || e?._status || e?.statusCode || e?.response?.status || e?.data?.status;
+
+        if (generation === impersonationRestoreGeneration) {
+          if (status === 404) {
+            commit('impersonationStopped');
+          } else {
+            commit('impersonationStatus', 'unknown');
+          }
+        }
+
+        if (status === 404) {
+          return null;
+        }
+
+        throw e;
+      }
+    })();
+
+    impersonationRestorePromise = request;
+    try {
+      return await request;
+    } finally {
+      if (impersonationRestorePromise === request) {
+        impersonationRestorePromise = null;
+      }
+    }
+  },
+
+  async recoverImpersonation({ commit, dispatch, state }) {
+    if (state?.impersonationStatus === 'inactive') {
+      return null;
+    }
+
+    if (impersonationRecoveryPromise) {
+      return impersonationRecoveryPromise;
+    }
+
+    const generation = ++impersonationRestoreGeneration;
+
+    impersonationRestorePromise = null;
+    const request = (async() => {
+      commit('impersonationStatus', 'unknown');
+
+      try {
+        const response = await dispatch('management/request', {
+          url:                  '/v3/impersonation-sessions/recover',
+          method:               'post',
+          redirectUnauthorized: false,
+        }, { root: true });
+
+        if (response?.impersonating !== false || typeof response?.restored !== 'boolean') {
+          throw new Error('invalid impersonation recovery response');
+        }
+
+        if (generation !== impersonationRestoreGeneration) {
+          return response;
+        }
+
+        if (response.restored) {
+          commit('impersonationStopped');
+          window.location.reload();
+        } else {
+          dispatch('uiLogout', { sessionIdle: false });
+        }
+
+        return response;
+      } catch (e) {
+        if (generation === impersonationRestoreGeneration) {
+          commit('impersonationStatus', 'unknown');
+        }
+
+        throw e;
+      }
+    })();
+
+    impersonationRecoveryPromise = request;
+    try {
+      return await request;
+    } finally {
+      if (impersonationRecoveryPromise === request) {
+        impersonationRecoveryPromise = null;
+      }
+    }
   },
 
   getAuthProviders({ dispatch }, opt) {
@@ -465,6 +632,16 @@ export const actions = {
   },
 
   async logout({ dispatch, getters, rootState }, options = {}) {
+    if (options?.unauthorized && ['active', 'loading', 'unknown'].includes(getters.impersonationStatus)) {
+      try {
+        await dispatch('recoverImpersonation');
+      } catch {
+        // Keep the session unknown so a later request can retry recovery.
+      }
+
+      return;
+    }
+
     // So, we only do this check if auth has been initialized.
     //
     // It's possible to be logged in and visit auth/logout directly instead

@@ -19,6 +19,19 @@ describe('class User', () => {
 
   const create = (principalIds: string[]) => new (User as unknown as new (data: object, ctx: object) => User)({ principalIds }, { rootGetters });
 
+  const createImpersonatable = (impersonation: object | null = null) => new (User as unknown as new (data: object, ctx: object) => User)({
+    actions:      { impersonate: '/v1/users/u-target?action=impersonate' },
+    principalIds: ['local://u-target'],
+    username:     'target',
+  }, {
+    rootGetters: {
+      ...rootGetters,
+      'auth/principalId':         'local://u-admin',
+      'auth/impersonation':       impersonation,
+      'auth/impersonationStatus': 'inactive',
+    }
+  });
+
   describe('provider', () => {
     it.each([
       [['local://u-abc'], 'local'],
@@ -91,6 +104,32 @@ describe('class User', () => {
       const find = jest.fn().mockRejectedValue(new Error('not found'));
 
       expect(await createWithStore({ find }).fetchGroupPrincipals()).toStrictEqual({});
+    });
+  });
+
+  describe('canImpersonate', () => {
+    it('allows the action when no impersonation is active', () => {
+      expect(createImpersonatable().canImpersonate).toStrictEqual(true);
+    });
+
+    it('hides the action while impersonation is active', () => {
+      expect(createImpersonatable({ userId: 'u-other' }).canImpersonate).toStrictEqual(false);
+    });
+
+    it('hides the action until impersonation status is known', () => {
+      const user = createImpersonatable();
+
+      user.$rootGetters['auth/impersonationStatus'] = 'unknown';
+
+      expect(user.canImpersonate).toStrictEqual(false);
+    });
+
+    it.each(['unknown', 'loading', 'active'])('hides the action while status is %s', (status) => {
+      const user = createImpersonatable();
+
+      user.$rootGetters['auth/impersonationStatus'] = status;
+
+      expect(user.canImpersonate).toStrictEqual(false);
     });
   });
 });

@@ -94,6 +94,25 @@ describe('navigation-guards/authentication: mustChangePassword', () => {
     expect(isLoggedInMock).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps the authenticated user id when no current principal is marked', async() => {
+    const user = {
+      id:                 'user-1',
+      mustChangePassword: false,
+      principalIds:       ['local://user-1'],
+    };
+    const store = makeStore({ user, fromHeader: 'true' });
+
+    findMeMock.mockResolvedValue(null);
+    const next = jest.fn();
+
+    await authenticate(to as any, {} as any, next, { store } as any);
+
+    expect(isLoggedInMock).toHaveBeenCalledWith(store, {
+      id: 'user-1', me: null, user
+    });
+    expect(next).toHaveBeenCalledWith();
+  });
+
   it('redirects local users with mustChangePassword to auth-setup for older-style fromHeader', async() => {
     const store = makeStore({
       user:       { mustChangePassword: true, principalIds: ['local://user-1'] },

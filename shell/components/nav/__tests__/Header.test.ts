@@ -1,5 +1,7 @@
 import { shallowMount } from '@vue/test-utils';
-import { isReactive, markRaw, ref } from 'vue';
+import { isReactive, markRaw, reactive, ref } from 'vue';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 import Header from '@shell/components/nav/Header.vue';
 import ClusterBadge from '@shell/components/ClusterBadge.vue';
 import ClusterPinControl from '@shell/components/ClusterPinControl.vue';
@@ -49,7 +51,7 @@ describe('component: Header', () => {
       ...routeOverride,
     };
 
-    const storeMock = {
+    const storeMock = reactive({
       ...defaultStoreMock,
       getters: {
         ...defaultStoreMock.getters,
@@ -57,7 +59,7 @@ describe('component: Header', () => {
       },
       dispatch: jest.fn(),
       commit:   jest.fn(),
-    };
+    });
 
     return shallowMount(Header as any, {
       props,
@@ -89,6 +91,146 @@ describe('component: Header', () => {
       },
     });
   }
+
+  it('handles restore errors without an unhandled rejection', async() => {
+    const wrapper = createWrapper();
+    const dispatch = (wrapper.vm as any).$store.dispatch as jest.Mock;
+
+    dispatch
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('status unavailable'));
+
+    (Header as any).fetch.call(wrapper.vm);
+    await Promise.resolve();
+    expect(dispatch).toHaveBeenCalledWith('auth/restoreImpersonation');
+  });
+
+  describe('impersonation UI', () => {
+    const activeSession = {
+      userId:      'u-target',
+      displayName: 'Impersonated User',
+      principalId: 'local://target',
+    };
+
+    function impersonatingWrapper(session = activeSession, storeOverride: any = {}) {
+      return createWrapper({}, {
+        'auth/enabled':       true,
+        'auth/impersonation': session,
+        'rancher/byId':       () => ({ loginName: 'admin', name: 'admin' }),
+        ...storeOverride,
+      });
+    }
+
+    it('renders the active badge and return control with the impersonated user', () => {
+      const wrapper = impersonatingWrapper();
+
+      expect(wrapper.find('.impersonation-header-badge').exists()).toStrictEqual(true);
+      expect(wrapper.find('.impersonation-header-badge').text()).toContain('Impersonated User');
+      expect(wrapper.find('[data-testid="user-menu-stop-impersonation"]').exists()).toStrictEqual(true);
+      expect(wrapper.find('[data-testid="user-menu-stop-impersonation"]').text()).toContain('nav.userMenu.returnToAdministrator');
+    });
+
+    it('dispatches one stop action when returning to the administrator', async() => {
+      const wrapper = impersonatingWrapper();
+
+      await wrapper.find('[data-testid="user-menu-stop-impersonation"]').trigger('click');
+      await Promise.resolve();
+
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith('auth/stopImpersonation');
+      expect(wrapper.vm.$store.dispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not dispatch duplicate returns while the first one is pending', async() => {
+      const wrapper = impersonatingWrapper();
+      const dispatch = wrapper.vm.$store.dispatch as jest.Mock;
+      let resolveReturn: () => void = () => undefined;
+      const pendingReturn = new Promise<void>((resolve) => {
+        resolveReturn = resolve;
+      });
+
+      dispatch.mockReturnValueOnce(pendingReturn);
+      const control = wrapper.find('[data-testid="user-menu-stop-impersonation"]');
+      const firstClick = control.trigger('click');
+      const secondClick = control.trigger('click');
+
+      await Promise.resolve();
+      expect(dispatch).toHaveBeenCalledWith('auth/stopImpersonation');
+      expect(dispatch).toHaveBeenCalledTimes(1);
+
+      resolveReturn();
+      await Promise.all([firstClick, secondClick]);
+    });
+
+    it('shows an error growl and does not reload when returning to the administrator fails', async() => {
+      const wrapper = impersonatingWrapper();
+      const dispatch = wrapper.vm.$store.dispatch as jest.Mock;
+      const failure = new Error('return failed');
+      const title = (wrapper.vm as any).t('nav.userMenu.returnToAdministratorError');
+
+      dispatch.mockRejectedValueOnce(failure);
+
+      await expect((wrapper.vm as any).stopImpersonation()).resolves.toBeUndefined();
+      expect(dispatch).toHaveBeenCalledWith('auth/stopImpersonation');
+      expect(dispatch).toHaveBeenCalledWith('growl/fromError', { title, err: failure }, { root: true });
+      expect((wrapper.vm as any).stoppingImpersonation).toStrictEqual(false);
+    });
+
+    it.each(['unknown', 'loading', 'inactive'])('does not render impersonation controls while status is %s', (status) => {
+      const wrapper = createWrapper({}, {
+        'auth/impersonation':       null,
+        'auth/impersonationStatus': status,
+      });
+
+      expect(wrapper.find('.impersonation-header-badge').exists()).toStrictEqual(false);
+      expect(wrapper.find('[data-testid="user-menu-stop-impersonation"]').exists()).toStrictEqual(false);
+    });
+
+    it('updates from loading to active and then inactive without a stale badge', async() => {
+      const wrapper = createWrapper({}, {
+        'auth/impersonation':       null,
+        'auth/impersonationStatus': 'loading',
+      });
+
+      expect(wrapper.find('.impersonation-header-badge').exists()).toStrictEqual(false);
+
+      wrapper.vm.$store.getters['auth/impersonation'] = activeSession;
+      wrapper.vm.$store.getters['auth/impersonationStatus'] = 'active';
+      await wrapper.vm.$nextTick();
+      expect(wrapper.find('.impersonation-header-badge').exists()).toStrictEqual(true);
+
+      wrapper.vm.$store.getters['auth/impersonation'] = null;
+      wrapper.vm.$store.getters['auth/impersonationStatus'] = 'inactive';
+      await wrapper.vm.$nextTick();
+      expect(wrapper.find('.impersonation-header-badge').exists()).toStrictEqual(false);
+    });
+
+    it('keeps long display names accessible while using the responsive badge class', () => {
+      const displayName = 'A User With A Deliberately Very Long Display Name';
+      const wrapper = impersonatingWrapper({ ...activeSession, displayName });
+      const badge = wrapper.find('.impersonation-header-badge');
+      const name = badge.find('span');
+
+      expect(name.text()).toBe(displayName);
+      expect(name.attributes('title')).toBe(displayName);
+      expect(badge.classes()).toContain('impersonation-header-badge');
+    });
+
+    it('keeps the long-name CSS truncation declaration on the rendered badge', () => {
+      const source = readFileSync(resolve(__dirname, '../Header.vue'), 'utf8');
+
+      expect(source).toContain('max-width: min(40vw, 360px);');
+      expect(source).toContain('overflow: hidden;');
+      expect(source).toContain('text-overflow: ellipsis;');
+    });
+
+    it('does not render impersonation UI during a normal session', () => {
+      const wrapper = createWrapper({}, { 'auth/impersonation': null });
+
+      expect(wrapper.find('[data-testid="nav_header_showUserMenu"]').exists()).toStrictEqual(true);
+      expect(wrapper.find('.impersonation-header-badge').exists()).toStrictEqual(false);
+      expect(wrapper.find('[data-testid="user-menu-stop-impersonation"]').exists()).toStrictEqual(false);
+    });
+  });
 
   describe('a11y: brand logo', () => {
     it('should label the logo with the product name, not just "Logo"', () => {

@@ -316,9 +316,7 @@ export async function findMe(store) {
     }
   });
 
-  const me = findBy(principals, 'me', true);
-
-  return me;
+  return findBy(principals, 'me', true) || null;
 }
 
 /**

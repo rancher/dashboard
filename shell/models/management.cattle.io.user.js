@@ -191,6 +191,27 @@ export default class User extends SteveModel {
     await membershipRefreshRequests.save();
   }
 
+  async impersonate() {
+    if (this._impersonationInProgress) {
+      return;
+    }
+
+    this._impersonationInProgress = true;
+    const actionURL = this.actions?.impersonate || this.actionLinks?.impersonate;
+
+    try {
+      await this.doAction('impersonate', undefined, { url: actionURL });
+      window.location.reload();
+    } catch (err) {
+      this.$dispatch('growl/fromError', {
+        title: this.$rootGetters['i18n/t']('generic.notification.title.error'),
+        err:   err.data || err,
+      }, { root: true });
+    } finally {
+      this._impersonationInProgress = false;
+    }
+  }
+
   /**
    * The groups the user was in when they last logged in (or their memberships were refreshed), from their UserAttribute.
    * Roles bound to these groups apply to the user too.
@@ -231,6 +252,15 @@ export default class User extends SteveModel {
     return schema?.collectionMethods.find((x) => x.toLowerCase() === 'post');
   }
 
+  get canImpersonate() {
+    return !!(this.actions?.impersonate || this.actionLinks?.impersonate) &&
+      !this.isSystem &&
+      this.username !== 'admin' &&
+      !this.isCurrentUser &&
+      this.$rootGetters['auth/impersonationStatus'] === 'inactive' &&
+      !this.$rootGetters['auth/impersonation'];
+  }
+
   canActivate(state) {
     const stateOk = state ? this.state === 'inactive' : this.state === 'active';
     const permissionOk = this.hasLink('update'); // Not canUpdate, only gate on api not whether editable pages should be visible
@@ -263,6 +293,12 @@ export default class User extends SteveModel {
         label:   this.t('authGroups.actions.refresh'),
         icon:    'icon icon-refresh',
         enabled: this.canRefreshMemberships
+      },
+      {
+        action:  'impersonate',
+        label:   this.t('nav.userMenu.loginAsThisUser'),
+        icon:    'icon icon-user',
+        enabled: this.canImpersonate
       },
       { divider: true },
       ...super._availableActions,

@@ -354,12 +354,55 @@ describe('findMe', () => {
     });
   });
 
-  it('returns undefined when no principal has me=true', async() => {
+  it('returns null when the only principal has no me=true marker', async() => {
     const store = { dispatch: jest.fn().mockResolvedValue([{ id: 'user-1', me: false }]) };
 
     const result = await findMe(store);
 
-    expect(result).toStrictEqual(undefined);
+    expect(result).toStrictEqual(null);
+  });
+
+  it('returns null when multiple principals have no me=true marker', async() => {
+    const store = {
+      dispatch: jest.fn().mockResolvedValue([
+        { id: 'user-1', me: false },
+        { id: 'user-2', me: false },
+      ])
+    };
+
+    const result = await findMe(store);
+
+    expect(result).toStrictEqual(null);
+  });
+
+  it.each([
+    { description: 'missing me', principal: { id: 'user-1' } },
+    { description: 'null principal', principal: null },
+    { description: 'string true', principal: { id: 'user-1', me: 'true' } },
+    { description: 'number one', principal: { id: 'user-1', me: 1 } },
+  ])('returns null for $description', async({ principal }) => {
+    const store = { dispatch: jest.fn().mockResolvedValue([principal]) };
+
+    const result = await findMe(store);
+
+    expect(result).toStrictEqual(null);
+  });
+
+  it('returns null for an empty principal list', async() => {
+    const store = { dispatch: jest.fn().mockResolvedValue([]) };
+
+    const result = await findMe(store);
+
+    expect(result).toStrictEqual(null);
+  });
+
+  it('returns the explicitly marked principal when several are returned', async() => {
+    const marked = { id: 'user-2', me: true };
+    const store = { dispatch: jest.fn().mockResolvedValue([{ id: 'user-1', me: false }, marked]) };
+
+    const result = await findMe(store);
+
+    expect(result).toStrictEqual(marked);
   });
 });
 

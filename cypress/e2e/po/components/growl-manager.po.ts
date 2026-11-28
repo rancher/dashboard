@@ -10,14 +10,10 @@ export class GrowlManagerPo extends ComponentPo {
   }
 
   growlMessage() {
-    return this.self().find('.growl-message');
+    return this.growlList().find('[data-testid^="growl-list-item-"]');
   }
 
   dismissWarning() {
-    return this.self().find('.icon-close').click();
-  }
-
-  dismissAllWarnings() {
-    return this.self().find('button.btn').contains('Clear All Notifications').click();
+    return this.growlMessage().first().find('.icon-close').click();
   }
 }

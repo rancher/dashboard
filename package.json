@@ -159,6 +159,7 @@
     "@cypress/grep": "6.0.2",
     "@cypress/vue": "5.0.5",
     "@cypress/webpack-dev-server": "4.0.0",
+    "entities": "7.0.1",
     "@eslint/js": "10.0.1",
     "@percy/cli": "1.32.8",
     "@percy/cypress": "3.1.6",

@@ -14,6 +14,115 @@ metadata:
 `;
 
 describe('steve: actions:', () => {
+  describe('request authentication expiry', () => {
+    it('starts impersonation recovery only for an active session', async() => {
+      const dispatch = jest.fn().mockResolvedValue(undefined);
+      const ctx = {
+        state:       { deferredRequests: {} },
+        dispatch,
+        rootGetters: { 'auth/impersonationStatus': 'active' },
+        getters:     { isSteveUrl: () => false },
+      };
+      const requestError = {
+        response: {
+          status:     401,
+          statusText: 'Unauthorized',
+          data:       {},
+          headers:    {},
+          request:    {},
+        }
+      };
+      const requestContext = {
+        $config: { rancherEnv: 'web' },
+        $axios:  jest.fn().mockRejectedValue(requestError),
+      };
+
+      await expect(actions.request.call(requestContext, ctx, { url: '/v3/users' })).rejects.toStrictEqual({});
+
+      expect(dispatch).toHaveBeenCalledWith('auth/logout', { unauthorized: true }, { root: true });
+    });
+
+    it('keeps normal 401 logout behavior when no impersonation is active', async() => {
+      const dispatch = jest.fn().mockResolvedValue(undefined);
+      const ctx = {
+        state:       { deferredRequests: {} },
+        dispatch,
+        rootGetters: { 'auth/impersonationStatus': 'inactive' },
+        getters:     { isSteveUrl: () => false },
+      };
+      const requestError = {
+        response: {
+          status:     401,
+          statusText: 'Unauthorized',
+          data:       {},
+          headers:    {},
+          request:    {},
+        }
+      };
+      const requestContext = {
+        $config: { rancherEnv: 'web' },
+        $axios:  jest.fn().mockRejectedValue(requestError),
+      };
+
+      await expect(actions.request.call(requestContext, ctx, { url: '/v3/users' })).rejects.toStrictEqual({});
+
+      expect(dispatch).toHaveBeenCalledWith('auth/logout', { unauthorized: true }, { root: true });
+    });
+
+    it.each([
+      {
+        name:  '403',
+        error: {
+          response: {
+            status: 403, data: {}, headers: {}, request: {}
+          }
+        }
+      },
+      { name: 'network', error: new Error('network error') },
+    ])('does not start recovery for a normal $name error', async({ error }) => {
+      const dispatch = jest.fn().mockResolvedValue(undefined);
+      const ctx = {
+        state:       { deferredRequests: {} },
+        dispatch,
+        rootGetters: { 'auth/impersonationStatus': 'inactive' },
+        getters:     { isSteveUrl: () => false },
+      };
+      const requestContext = {
+        $config: { rancherEnv: 'web' },
+        $axios:  jest.fn().mockRejectedValue(error),
+      };
+
+      await expect(actions.request.call(requestContext, ctx, { url: '/v3/users' })).rejects.toBeDefined();
+
+      expect(dispatch).not.toHaveBeenCalledWith('auth/logout', { unauthorized: true }, { root: true });
+    });
+
+    it('does not loop when the recovery endpoint itself returns 401', async() => {
+      const dispatch = jest.fn().mockResolvedValue(undefined);
+      const ctx = {
+        state:       { deferredRequests: {} },
+        dispatch,
+        rootGetters: { 'auth/impersonationStatus': 'active' },
+        getters:     { isSteveUrl: () => false },
+      };
+      const requestContext = {
+        $config: { rancherEnv: 'web' },
+        $axios:  jest.fn().mockRejectedValue({
+          response: {
+            status: 401, data: {}, headers: {}, request: {}
+          }
+        }),
+      };
+
+      await expect(actions.request.call(requestContext, ctx, {
+        url:                  '/v3/impersonation-sessions/recover',
+        redirectUnauthorized: false,
+      })).rejects.toBeDefined();
+
+      expect(dispatch).not.toHaveBeenCalledWith('auth/logout', { unauthorized: true }, { root: true });
+    });
+  });
+
   describe('fetchResourceSummary', () => {
     const schema = {
       id:         'pod',

@@ -188,10 +188,16 @@ nav:
     noResults: 没有匹配的集群
   header:
     setLoginPage: 设置为登录页面
+    impersonating: '正在模拟 {user}'
+    impersonatingLabel: 模拟登录
   userMenu:
     preferences: 偏好设置
     accountAndKeys: 账号 & API 密钥
     logOut: 登出
+    loginAsThisUser: 以此用户身份登录
+    impersonating: '正在模拟 {user}'
+    returnToAdministrator: 返回管理员账户
+    returnToAdministratorError: 返回管理员账户失败
   failWhale:
     authMiddleware: 认证中间件
     clusterNotFound: 未找到集群 { clusterId }

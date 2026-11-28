@@ -35,7 +35,7 @@ export function install(router, context) {
  */
 function getUserObject(user, me) {
   return {
-    id: me.id,
+    id: me?.id || user?.id,
     me,
     user,
   };
